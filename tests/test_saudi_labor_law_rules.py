@@ -265,22 +265,22 @@ def test_eosb_article_87_female_resignation_exceptions():
 # 5. اختبارات سقف القروض والجزاءات (المادتان 92 و 70)
 # =============================================================================
 
-def test_article_92_loan_cap_25_percent():
-    """المادة 92: حظر تجاوز استقطاع قروض صاحب العمل لسقف 25% من الأجر"""
-    monthly_wage = 10000.0  # السقف 25% = 2,500 ريال
+def test_article_92_loan_cap_10_percent():
+    """المادة 92: حظر تجاوز استقطاع قروض صاحب العمل لسقف 10% من الأجر بلا موافقة خطية"""
+    monthly_wage = 10000.0  # السقف 10% = 1,000 ريال
     
-    # قسط 2,000 ريال -> مقبول
-    res_valid = validate_loan_installment_cap(monthly_wage, 2000.0)
+    # قسط 800 ريال -> مقبول
+    res_valid = validate_loan_installment_cap(monthly_wage, 800.0)
     assert res_valid.is_valid is True
     assert res_valid.code == "LOAN_INSTALLMENT_WITHIN_STATUTORY_CAP"
 
-    # قسط 2,600 ريال -> مرفوض لتجاوز السقف
-    res_invalid = validate_loan_installment_cap(monthly_wage, 2600.0)
+    # قسط 1,200 ريال -> مرفوض لتجاوز السقف
+    res_invalid = validate_loan_installment_cap(monthly_wage, 1200.0)
     assert res_invalid.is_valid is False
-    assert res_invalid.code == "LOAN_DEDUCTION_EXCEEDS_25_PERCENT_CAP"
+    assert res_invalid.code == "LOAN_DEDUCTION_EXCEEDS_10_PERCENT_CAP"
 
-    # قسط 1,500 مع وجود أقساط سابقة 1,200 = 2,700 -> مرفوض
-    res_combined = validate_loan_installment_cap(monthly_wage, 1500.0, current_active_installments=1200.0)
+    # قسط 600 مع وجود أقساط سابقة 500 = 1,100 -> مرفوض
+    res_combined = validate_loan_installment_cap(monthly_wage, 600.0, current_active_installments=500.0)
     assert res_combined.is_valid is False
 
 

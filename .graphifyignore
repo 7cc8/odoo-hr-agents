@@ -28,3 +28,6 @@ __pycache__/**
 *.pyc
 *.pyo
 *.egg-info
+laya-main
+laya-main/
+laya-main/**

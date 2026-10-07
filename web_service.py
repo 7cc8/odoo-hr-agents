@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request, Header
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request, Header, Depends
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -44,19 +44,71 @@ from odoo_write_gateway import OdooWriteGateway, EnvironmentGuardError
 import telegram_notifier
 
 
+WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN")
+
+
+def get_write_api_token() -> str:
+    """Returns WRITE_API_TOKEN or raises RuntimeError to stop startup."""
+    token = os.environ.get("WRITE_API_TOKEN")
+    if not token:
+        raise RuntimeError(
+            "خطأ في الإقلاع: متغير البيئة WRITE_API_TOKEN غير محدد أو فارغ. يلزم تعيين توكن المصادقة لبدء تشغيل خدمة الويب."
+        )
+    return token
+
+
+async def verify_global_auth_dependency(request: Request) -> None:
+    """FastAPI dependency for authentication covering all routes except GET /."""
+    if request.method == "GET" and request.url.path == "/":
+        return
+
+    if request.method == "OPTIONS":
+        return
+
+    token = request.headers.get("X-API-Key")
+    if not token:
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:].strip()
+        elif auth_header:
+            token = auth_header.strip()
+    if not token:
+        token = request.headers.get("X-Auth-Token")
+
+    expected = os.environ.get("WRITE_API_TOKEN")
+    if not expected:
+        raise HTTPException(
+            status_code=500,
+            detail="خطأ في الإعداد: متغير البيئة WRITE_API_TOKEN غير محدد على الخادم.",
+        )
+
+    if not token or token != expected:
+        raise HTTPException(
+            status_code=401,
+            detail="غير مصرّح: يلزم تقديم توكن المصادقة الصحيح (X-API-Key) للوصول إلى الخدمة.",
+        )
+
+
 app = FastAPI(
     title="Odoo HR Agents Web & Automation API",
     description="Secure HR Import & Verification Portal for Odoo ERP (Phase 7)",
     version="1.1.0",
+    dependencies=[Depends(verify_global_auth_dependency)],
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def check_startup_token() -> None:
+    get_write_api_token()
+
 
 UPLOAD_DIR = Path("output") / "web_uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -65,21 +117,35 @@ LOGS_DIR = Path("logs")
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 API_LOG_FILE = LOGS_DIR / "web_access.log"
 
-WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "hr-write-secret-token")
-
 
 def audit_log_access(endpoint: str, request: Request, details: Optional[Dict[str, Any]] = None) -> None:
     """Logs every API access request for compliance and audit trail."""
     try:
         client_ip = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "unknown")
+
+        def _mask_tokens(obj: Any) -> Any:
+            if isinstance(obj, dict):
+                res = {}
+                for k, v in obj.items():
+                    if ("token" in k.lower() or "approval" in k.lower()) and isinstance(v, str):
+                        res[k] = v[-4:] if len(v) >= 4 else v
+                    else:
+                        res[k] = _mask_tokens(v)
+                return res
+            elif isinstance(obj, list):
+                return [_mask_tokens(item) for item in obj]
+            return obj
+
+        sanitized_details = _mask_tokens(details) if details else {}
+
         entry = {
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "endpoint": endpoint,
             "method": request.method,
             "client_ip": client_ip,
             "user_agent": user_agent,
-            "details": details or {},
+            "details": sanitized_details,
         }
         with open(API_LOG_FILE, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
@@ -96,9 +162,11 @@ def verify_write_auth(request: Request) -> None:
             token = auth_header[7:].strip()
         elif auth_header:
             token = auth_header.strip()
+    if not token:
+        token = request.headers.get("X-Auth-Token")
 
-    expected = os.environ.get("WRITE_API_TOKEN", "hr-write-secret-token")
-    if not token or token != expected:
+    expected = os.environ.get("WRITE_API_TOKEN")
+    if not expected or not token or token != expected:
         raise HTTPException(
             status_code=401,
             detail="غير مصرّح: يلزم تقديم توكن المصادقة الصحيح (X-API-Key أو Authorization) لتنفيذ الإنشاء.",
@@ -3450,6 +3518,7 @@ def get_dashboard_html() -> str:
 
 
 if __name__ == "__main__":
+    get_write_api_token()
     import uvicorn
     print("Starting Odoo HR Dashboard on http://localhost:8000 ...")
     uvicorn.run("web_service:app", host="127.0.0.1", port=8000, reload=False)

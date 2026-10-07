@@ -26,14 +26,22 @@ def create_sample_xlsx(path: Path):
 class WebServiceTests(unittest.TestCase):
 
     def setUp(self):
-        self.client = TestClient(app)
+        import os
+        self.token = os.environ.get("WRITE_API_TOKEN", "test-secret-api-token-2026")
+        self.client = TestClient(app, headers={"X-API-Key": self.token})
         self.tmpdir = Path(tempfile.mkdtemp())
 
     def test_get_root_returns_html(self):
-        response = self.client.get("/")
+        unauth_client = TestClient(app, headers={})
+        response = unauth_client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertIn("text/html", response.headers["content-type"])
         self.assertIn("بوابة أتمتة إدخال الموظفين في Odoo", response.text)
+
+    def test_protected_routes_require_auth(self):
+        unauth_client = TestClient(app, headers={})
+        response = unauth_client.get("/status")
+        self.assertEqual(response.status_code, 401)
 
     def test_get_guide_returns_html(self):
         response = self.client.get("/guide")
@@ -166,7 +174,8 @@ class WebServiceTests(unittest.TestCase):
 
     # Acceptance Test 3.2.1: /write rejects without valid auth token
     def test_write_rejects_without_auth_token(self):
-        res = self.client.post(
+        unauth_client = TestClient(app, headers={})
+        res = unauth_client.post(
             "/write",
             json={"run_id": "dummy_run"},
         )
@@ -177,7 +186,7 @@ class WebServiceTests(unittest.TestCase):
     def test_write_rejects_without_prior_approval(self):
         res = self.client.post(
             "/write",
-            headers={"X-API-Key": "hr-write-secret-token"},
+            headers={"X-API-Key": self.token},
             json={"run_id": "non_existent_run"},
         )
         self.assertEqual(res.status_code, 400)
@@ -216,7 +225,7 @@ class WebServiceTests(unittest.TestCase):
 
         res = self.client.post(
             "/write",
-            headers={"X-API-Key": "hr-write-secret-token"},
+            headers={"X-API-Key": self.token},
             json={
                 "input_path": str(inp_p),
                 "report_path": str(rep_p),

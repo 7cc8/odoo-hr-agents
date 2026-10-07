@@ -57,8 +57,8 @@ DISCIPLINARY_REPETITION_EXPIRY_DAYS = 180  # المادة 71: سقوط أثر ت
 DISCIPLINARY_DISCOVERY_LIMIT_DAYS = 30     # المادة 72: عدم جواز اتهام العامل بعد مضي 30 يوماً على كشف المخالفة
 DISCIPLINARY_DECISION_LIMIT_DAYS = 30      # المادة 72: عدم جواز توقيع الجزاء بعد مضي 30 يوماً على انتهاء التحقيق
 
-# المادة 92: القروض
-LOAN_DEDUCTION_MAX_PERCENTAGE = 0.25  # سقف استقطاع قروض صاحب العمل 25% من الأجر
+# المادة 92: القروض (قروض صاحب العمل بلا موافقة خطية سقفها 10%، وأي سقف أعلى يتطلب موافقة خطية موثقة)
+LOAN_DEDUCTION_MAX_PERCENTAGE = 0.10
 
 # المادة 98: ساعات العمل
 STANDARD_DAILY_WORKING_HOURS = 8.0
@@ -512,10 +512,10 @@ def validate_loan_installment_cap(
         return RuleValidationResult(
             is_valid=False,
             article="المادة 92 فقرة (1)",
-            code="LOAN_DEDUCTION_EXCEEDS_25_PERCENT_CAP",
+            code="LOAN_DEDUCTION_EXCEEDS_10_PERCENT_CAP",
             message_ar=(
                 f"مخالفة للمادة 92: القسط المقترح ({proposed_installment:,.2f} ر.س) مع الأقساط القائمة "
-                f"يمثل {pct}% من الأجر، متجاوزاً السقف النظامي الإلزامي البالغ 25% ({max_allowed:,.2f} ر.س)."
+                f"يمثل {pct}% من الأجر، متجاوزاً السقف النظامي الإلزامي البالغ 10% بلا موافقة خطية ({max_allowed:,.2f} ر.س)."
             ),
             details={
                 "monthly_wage": monthly_wage,

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -348,7 +349,7 @@ class TestRecruitmentAPIEndpoints(unittest.TestCase):
         resp = self.client.post(
             "/api/recruitment/apply",
             json=payload,
-            headers={"X-API-Key": "hr-write-secret-token"},
+            headers={"X-API-Key": os.environ.get("WRITE_API_TOKEN", "test-secret-api-token-2026")},
         )
         self.assertEqual(resp.status_code, 200)
         data = resp.json()

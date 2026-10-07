@@ -183,7 +183,7 @@ TG_AUDIT_LOG_FILE = LOGS_DIR / "telegram_audit.log"
 
 DEFAULT_COMPANY_ID = 15
 DEFAULT_MAX_ROWS = 10
-WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "hr-write-secret-token")
+WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "")
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000")
 
 # Pending confirmations waiting for written 'تأكيد' (Section 5.1)
