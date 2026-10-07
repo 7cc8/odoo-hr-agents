@@ -1,0 +1,1235 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>دليل تشغيل استيراد الموظفين | Odoo HR Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* ==========================================================================
+         SUPABASE DESIGN SYSTEM & IMPECCABLE CRAFT FLOOR
+         Based on .claude/skills/DESIGN-2.md & impeccable / taste / superdesign
+         ========================================================================== */
+      :root {
+        /* Colors - Palette Tokens */
+        --color-obsidian: #121212;
+        --color-ash: #242424;
+        --color-charcoal: #2e2e2e;
+        --color-slate: #393939;
+        --color-graphite: #4d4d4d;
+        --color-snow: #fafafa;
+        --color-silver-mist: #b4b4b4;
+        --color-smoke: #898989;
+
+        /* Accents */
+        --color-phosphor-green: #3ecf8e;
+        --color-mint-pulse: #00c573;
+        --color-forest-depth: #1f4b37;
+        --color-midnight-emerald: #006239;
+
+        /* Semantics */
+        --color-amber: #ffca16;
+        --color-coral: #ff6465;
+
+        /* Spacing (8px Grid) */
+        --space-1: 4px;
+        --space-2: 8px;
+        --space-3: 12px;
+        --space-4: 16px;
+        --space-5: 20px;
+        --space-6: 24px;
+        --space-8: 32px;
+        --space-10: 40px;
+        --space-12: 48px;
+
+        /* Radii */
+        --radius-cards: 16px;
+        --radius-inputs: 8px;
+        --radius-pill: 9999px;
+
+        /* Fonts */
+        --font-arabic: 'IBM Plex Sans Arabic', 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        --font-mono: 'JetBrains Mono', 'Source Code Pro', ui-monospace, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        padding: var(--space-10) var(--space-5);
+        color: var(--color-snow);
+        background-color: var(--color-obsidian);
+        font-family: var(--font-arabic);
+        line-height: 1.7;
+        direction: rtl;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .container {
+        max-width: 1040px;
+        margin: 0 auto;
+        background: var(--color-obsidian);
+        border: 1px solid var(--color-charcoal);
+        border-radius: var(--radius-cards);
+        padding: var(--space-12);
+      }
+
+      /* Monospace numbers / Tabular */
+      .num-tabular, .stat-number, table td.col-num, .code-text, code, pre {
+        font-family: var(--font-mono);
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.04em;
+      }
+
+      /* ==========================================================================
+         HEADER & NAV BAR
+         ========================================================================== */
+      header {
+        border-bottom: 1px solid var(--color-charcoal);
+        padding-bottom: var(--space-8);
+        margin-bottom: var(--space-8);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: var(--space-5);
+      }
+
+      .header-info {
+        max-width: 720px;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 14px;
+        background: var(--color-ash);
+        color: var(--color-phosphor-green);
+        border: 1px solid var(--color-charcoal);
+        border-radius: var(--radius-pill);
+        font-size: 11.5px;
+        font-weight: 500;
+        font-family: var(--font-mono);
+        letter-spacing: 0.05em;
+        margin-bottom: var(--space-3);
+      }
+
+      .badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: var(--radius-pill);
+        background: var(--color-phosphor-green);
+      }
+
+      h1 {
+        margin: 0 0 var(--space-2);
+        font-size: 26px;
+        color: var(--color-snow);
+        font-weight: 500;
+        letter-spacing: -0.01em;
+        line-height: 1.3;
+      }
+
+      .lead {
+        font-size: 14.5px;
+        color: var(--color-silver-mist);
+        line-height: 1.65;
+        font-weight: 400;
+      }
+
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 18px;
+        border-radius: var(--radius-pill);
+        background: transparent;
+        border: 1px solid var(--color-slate);
+        color: var(--color-snow);
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.15s ease-out;
+        white-space: nowrap;
+      }
+
+      .back-link:hover {
+        border-color: var(--color-graphite);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--color-snow);
+      }
+
+      .back-link:active, .btn-copy:active {
+        transform: translateY(1px) scale(0.98);
+      }
+
+      /* Quick-Jump Section Navigation (Sticky Pill Strip) */
+      .quick-nav {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        overflow-x: auto;
+        padding: 8px 12px;
+        margin-bottom: var(--space-8);
+        border: 1px solid var(--color-charcoal);
+        border-radius: var(--radius-pill);
+        background: rgba(18, 18, 18, 0.88);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        position: sticky;
+        top: 14px;
+        z-index: 50;
+        scrollbar-width: none;
+      }
+      .quick-nav::-webkit-scrollbar { display: none; }
+
+      .quick-nav a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: var(--radius-pill);
+        background: var(--color-ash);
+        border: 1px solid var(--color-charcoal);
+        color: var(--color-silver-mist);
+        text-decoration: none;
+        font-size: 12px;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+      }
+
+      .quick-nav a:hover {
+        color: var(--color-snow);
+        border-color: var(--color-phosphor-green);
+        background: rgba(62, 207, 142, 0.06);
+      }
+
+      /* ==========================================================================
+         SECTION HEADINGS & SPATIAL RHYTHM
+         ========================================================================== */
+      section {
+        margin-bottom: var(--space-10);
+      }
+
+      h2 {
+        font-size: 18px;
+        color: var(--color-snow);
+        font-weight: 500;
+        margin: var(--space-8) 0 var(--space-4);
+        padding-bottom: var(--space-2);
+        border-bottom: 1px solid var(--color-charcoal);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: -0.007em;
+      }
+
+      h2 .tag-step {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 2px 10px;
+        border-radius: var(--radius-pill);
+        background: var(--color-ash);
+        border: 1px solid var(--color-charcoal);
+        color: var(--color-phosphor-green);
+        letter-spacing: 0.05em;
+      }
+
+      h3 {
+        font-size: 15px;
+        color: var(--color-snow);
+        font-weight: 500;
+        margin: var(--space-5) 0 var(--space-2);
+      }
+
+      p {
+        font-size: 14px;
+        color: var(--color-silver-mist);
+        margin-bottom: var(--space-3);
+        line-height: 1.7;
+      }
+
+      ul, ol {
+        margin: var(--space-3) var(--space-6) var(--space-5) 0;
+        color: var(--color-silver-mist);
+        font-size: 14px;
+        line-height: 1.75;
+      }
+
+      li {
+        margin-bottom: var(--space-2);
+      }
+
+      li strong {
+        color: var(--color-snow);
+        font-weight: 500;
+      }
+
+      /* ==========================================================================
+         DIAGRAM-DESIGN: VISUAL PIPELINE PROCESS ARCHITECTURE
+         ========================================================================== */
+      .pipeline-diagram {
+        background: var(--color-obsidian);
+        border: 1px solid var(--color-charcoal);
+        border-radius: var(--radius-cards);
+        padding: var(--space-6);
+        margin: var(--space-6) 0 var(--space-8);
+      }
+
+      .diagram-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-5);
+        padding-bottom: var(--space-3);
+        border-bottom: 1px solid var(--color-charcoal);
+      }
+
+      .diagram-title h4 {
+        font-size: 13.5px;
+        font-weight: 500;
+        color: var(--color-snow);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .diagram-caption {
+        font-size: 11.5px;
+        color: var(--color-smoke);
+        font-family: var(--font-mono);
+      }
+
+      .diagram-flow {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: var(--space-3);
+        position: relative;
+      }
+
+      @media (max-width: 860px) {
+        .diagram-flow {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .node-card {
+        background: var(--color-ash);
+        border: 1px solid var(--color-charcoal);
+        border-radius: var(--radius-inputs);
+        padding: var(--space-4);
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: all 0.2s ease;
+      }
+
+      .node-card:not(:last-child)::after {
+        content: "←";
+        position: absolute;
+        left: -11px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--color-phosphor-green);
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      @media (max-width: 860px) {
+        .node-card:not(:last-child)::after {
+          content: "↓";
+          left: 50%;
+          bottom: -15px;
+          top: auto;
+          transform: translateX(-50%);
+        }
+      }
+
+      .node-card:hover {
+        border-color: var(--color-phosphor-green);
+        transform: translateY(-2px);
+      }
+
+      .node-card.gate-node {
+        border-color: rgba(62, 207, 142, 0.4);
+        background: rgba(62, 207, 142, 0.02);
+      }
+
+      .node-card.sink-node {
+        border-color: rgba(62, 207, 142, 0.5);
+      }
+
+      .node-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-2);
+      }
+
+      .node-pill {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        padding: 2px 7px;
+        border-radius: var(--radius-pill);
+        background: var(--color-obsidian);
+        border: 1px solid var(--color-charcoal);
+        color: var(--color-phosphor-green);
+      }
+
+      .node-icon svg {
+        width: 16px;
+        height: 16px;
+        stroke: var(--color-phosphor-green);
+      }
+
+      .node-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-snow);
+        margin-bottom: 4px;
+      }
+
+      .node-desc {
+        font-size: 11.5px;
+        color: var(--color-silver-mist);
+        line-height: 1.45;
+      }
+
+      .node-badge-sub {
+        margin-top: var(--space-3);
+        padding-top: var(--space-2);
+        border-top: 1px dashed var(--color-charcoal);
+        font-family: var(--font-mono);
+        font-size: 10.5px;
+        color: var(--color-smoke);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      /* ==========================================================================
+         CALLOUT BOXES (Impeccable & UX Writing)
+         ========================================================================== */
+      .callout {
+        border-right: 3px solid var(--color-phosphor-green);
+        background: var(--color-obsidian);
+        border-top: 1px solid var(--color-charcoal);
+        border-bottom: 1px solid var(--color-charcoal);
+        border-left: 1px solid var(--color-charcoal);
+        padding: var(--space-4) var(--space-5);
+        border-radius: 0 var(--radius-inputs) var(--radius-inputs) 0;
+        margin: var(--space-5) 0;
+      }
+
+      .callout.tip {
+        border-right-color: var(--color-mint-pulse);
+        background: rgba(0, 197, 115, 0.02);
+      }
+
+      .callout.warning {
+        border-right-color: var(--color-amber);
+        background: rgba(255, 202, 22, 0.02);
+      }
+
+      .callout.danger {
+        border-right-color: var(--color-coral);
+        background: rgba(255, 100, 101, 0.02);
+      }
+
+      .callout-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--color-snow);
+        margin-bottom: 4px;
+      }
+
+      .callout.warning .callout-header { color: var(--color-amber); }
+      .callout.danger .callout-header { color: var(--color-coral); }
+      .callout.tip .callout-header { color: var(--color-mint-pulse); }
+
+      .callout p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--color-silver-mist);
+      }
+
+      /* ==========================================================================
+         DATA TABLES (Flat Hairline, Ash Headers, 16px Rounded)
+         ========================================================================== */
+      .table-wrapper {
+        border: 1px solid var(--color-charcoal);
+        border-radius: var(--radius-cards);
+        overflow-x: auto;
+        margin: var(--space-4) 0 var(--space-6);
+        background: var(--color-obsidian);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+
+      th, td {
+        padding: 12px 16px;
+        text-align: right;
+        border-bottom: 1px solid var(--color-charcoal);
+      }
+
+      th {
+        background: var(--color-ash);
+        font-weight: 500;
+        color: var(--color-silver-mist);
+        font-size: 12px;
+        letter-spacing: 0.02em;
+      }
+
+      td {
+        color: var(--color-snow);
+        vertical-align: middle;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      /* Status Badges */
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: var(--radius-pill);
+        font-weight: 500;
+        font-size: 11.5px;
+        font-family: var(--font-mono);
+        border: 1px solid transparent;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+      }
+
+      .status-pill-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: var(--radius-pill);
+      }
+
+      .status-accepted {
+        background: rgba(62, 207, 142, 0.08);
+        color: var(--color-phosphor-green);
+        border-color: rgba(62, 207, 142, 0.35);
+      }
+      .status-accepted .status-pill-dot { background: var(--color-phosphor-green); }
+
+      .status-review {
+        background: rgba(255, 202, 22, 0.08);
+        color: var(--color-amber);
+        border-color: rgba(255, 202, 22, 0.35);
+      }
+      .status-review .status-pill-dot { background: var(--color-amber); }
+
+      .status-rejected {
+        background: rgba(255, 100, 101, 0.08);
+        color: var(--color-coral);
+        border-color: rgba(255, 100, 101, 0.35);
+      }
+      .status-rejected .status-pill-dot { background: var(--color-coral); }
+
+      .status-uncertain {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--color-smoke);
+        border-color: var(--color-slate);
+      }
+      .status-uncertain .status-pill-dot { background: var(--color-smoke); }
+
+      /* ==========================================================================
+         CODE SNIPPETS & COPY BUTTONS (Terminal Native)
+         ========================================================================== */
+      .code-container {
+        position: relative;
+        margin: var(--space-3) 0 var(--space-5);
+      }
+
+      pre {
+        background: var(--color-obsidian);
+        color: var(--color-phosphor-green);
+        border: 1px solid var(--color-charcoal);
+        padding: 14px 18px;
+        padding-left: 90px;
+        border-radius: var(--radius-inputs);
+        overflow-x: auto;
+        direction: ltr;
+        text-align: left;
+        font-size: 12.5px;
+        line-height: 1.5;
+        letter-spacing: 0.05em;
+      }
+
+      .btn-copy {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: var(--color-ash);
+        border: 1px solid var(--color-charcoal);
+        color: var(--color-silver-mist);
+        font-size: 11px;
+        padding: 4px 10px;
+        border-radius: var(--radius-pill);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.15s ease;
+        font-family: var(--font-arabic);
+      }
+
+      .btn-copy:hover {
+        color: var(--color-snow);
+        border-color: var(--color-phosphor-green);
+      }
+
+      code.inline {
+        background: var(--color-ash);
+        color: var(--color-phosphor-green);
+        padding: 2px 8px;
+        border-radius: var(--radius-pill);
+        font-size: 12px;
+        border: 1px solid var(--color-charcoal);
+        direction: ltr;
+        display: inline-block;
+      }
+
+      /* ==========================================================================
+         TROUBLESHOOTING GRID (UX Writing & Problem Resolution - 2x2 Bento)
+         ========================================================================== */
+      .trouble-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--space-4);
+        margin: var(--space-4) 0;
+      }
+
+      @media (max-width: 720px) {
+        .trouble-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .trouble-card {
+        background: var(--color-obsidian);
+        border: 1px solid var(--color-charcoal);
+        border-radius: var(--radius-cards);
+        padding: var(--space-5);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .trouble-card-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: var(--space-2);
+      }
+
+      .trouble-code {
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        color: var(--color-coral);
+      }
+
+      .trouble-solution {
+        margin-top: var(--space-3);
+        padding-top: var(--space-2);
+        border-top: 1px solid var(--color-charcoal);
+        font-size: 12.5px;
+        color: var(--color-snow);
+      }
+
+      /* Toast Notification */
+      .toast {
+        position: fixed;
+        bottom: 24px;
+        left: 24px;
+        background: var(--color-ash);
+        border: 1px solid var(--color-phosphor-green);
+        color: var(--color-phosphor-green);
+        padding: 8px 16px;
+        border-radius: var(--radius-pill);
+        font-size: 12.5px;
+        display: none;
+        animation: fadeIn 0.2s ease;
+        z-index: 1000;
+      }
+
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      @media print {
+        body { padding: 0; background: white; color: black; }
+        .container { border: none; box-shadow: none; padding: 0; max-width: 100%; background: white; }
+        .quick-nav, .back-link, .btn-copy { display: none; }
+        pre { background: #f5f5f5; color: #111; border: 1px solid #ccc; padding: 10px; }
+        .node-card { border: 1px solid #ccc; background: #fafafa; color: black; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <!-- Header -->
+      <header>
+        <div class="header-info">
+          <span class="badge"><span class="badge-dot"></span> دليل التشغيل القياسي والامتثال • ODOO 19 HR PIPELINE</span>
+          <h1>دليل تشغيل استيراد الموظفين إلى Odoo</h1>
+          <p class="lead">المرجع التشغيلي الإرشادي لفحص واعتماد وإدخال بيانات الكوادر البشرية بأعلى درجات الأمان ومطابقة الحوكمة الرقمية، دون أي مخاطرة بازدواجية السجلات أو تلف البيانات.</p>
+        </div>
+        <a href="/" class="back-link">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="19" y1="12" x2="5" y2="12"/>
+            <polyline points="12 19 5 12 12 5"/>
+          </svg>
+          العودة إلى بوابة الأتمتة
+        </a>
+      </header>
+
+      <!-- Quick Navigation Strip -->
+      <nav class="quick-nav" aria-label="فهرس الدليل السريع">
+        <a href="#security-principle">المبدأ الأمني</a>
+        <a href="#pipeline-diagram">مخطط التدفق</a>
+        <a href="#step-1">1. تجهيز القالب</a>
+        <a href="#step-2">2. الفحص التجريبي</a>
+        <a href="#step-3">3. قراءة الحالات</a>
+        <a href="#step-4">4. الاعتماد البشري</a>
+        <a href="#step-5">5. الإنشاء المباشر</a>
+        <a href="#data-dictionary">حقول البيانات</a>
+        <a href="#troubleshooting">حل المشاكل الشائعة</a>
+      </nav>
+
+      <!-- Section: Security Principle -->
+      <section id="security-principle">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="1.8">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          المبدأ الأمني الحاكم: الفحص الكامل قبل الإنشاء (Path A)
+        </h2>
+        <p>
+          يقوم نظامنا على مبدأ هندسي صارم: <strong>لا كتابة عشوائية في Odoo دون موافقة بشرية خطية مسبقة.</strong>
+          يمر كل ملف بمرحلة تدقيق استباقي مقفلة برمجياً للقراءة فقط (Read-Only)، حيث تُفحص أسماء الموظفين، وأرقام هواتفهم، وبريدهم الإلكتروني، وتطابق وظائفهم مع المسميات والأقسام المسجلة رسمياً بالشركة المعنية في Odoo، دون إجراء أدنى تعديل على قاعدة البيانات الحية.
+        </p>
+        <div class="callout tip">
+          <div class="callout-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            قاعدة الأمان الاستباقي (Non-Destructive Dry-Run)
+          </div>
+          <p>يمكنك تشغيل الفحص التجريبي وتكراره عشرات المرات لأي ملف للتأكد من سلامته، فلن يتأثر نظام Odoo بأي شكل حتى يتم اعتماد الصفوف وتوقيعها رسمياً.</p>
+        </div>
+      </section>
+
+      <!-- Section: Process Pipeline Diagram (diagram-design-main) -->
+      <section id="pipeline-diagram">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="1.8">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          المخطط الانسيابي لمسار أتمتة البيانات (Data Pipeline Architecture)
+        </h2>
+        <p>يوضح هذا المخطط الهندسي تدفق بيانات الموظف من الملف المصدري وحتى كتابتها والتحقق منها مباشرة في قاعدة بيانات Odoo مع إشعار المسؤولين فورياً:</p>
+
+        <div class="pipeline-diagram">
+          <div class="diagram-title">
+            <h4>
+              <span class="badge-dot"></span>
+              مسار تدفق البيانات الحصري (Path A Architectural Topology)
+            </h4>
+            <span class="diagram-caption">Odoo 19 HR Integration Bridge</span>
+          </div>
+
+          <div class="diagram-flow">
+            <!-- Node 1: Input -->
+            <div class="node-card">
+              <div class="node-header">
+                <span class="node-pill">01</span>
+                <span class="node-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="node-label">ملف الإكسل (.xlsx)</div>
+              <div class="node-desc">إدخال البيانات بالقالب الرسمي المعتمد مع القوائم المنسدلة.</div>
+              <div class="node-badge-sub">مدخل غير ملوث</div>
+            </div>
+
+            <!-- Node 2: Gate 1 -->
+            <div class="node-card gate-node">
+              <div class="node-header">
+                <span class="node-pill">02</span>
+                <span class="node-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="node-label">الفحص التجريبي Dry-Run</div>
+              <div class="node-desc">فحص تطابق الأقسام والوظائف والبريد في وضع القراءة فقط.</div>
+              <div class="node-badge-sub">عزل أمني 100%</div>
+            </div>
+
+            <!-- Node 3: Review -->
+            <div class="node-card">
+              <div class="node-header">
+                <span class="node-pill">03</span>
+                <span class="node-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+                    <polyline points="2 17 12 22 22 17"/>
+                    <polyline points="2 12 12 17 22 12"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="node-label">تقرير التدقيق والفرز</div>
+              <div class="node-desc">تصنيف الصفوف إلى: مقبول، يحتاج مراجعة، أو مرفوض.</div>
+              <div class="node-badge-sub">تقرير شفاف ومفصل</div>
+            </div>
+
+            <!-- Node 4: Gate 2 (Approval) -->
+            <div class="node-card gate-node">
+              <div class="node-header">
+                <span class="node-pill">04</span>
+                <span class="node-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="node-label">الاعتماد البشري Four-Eyes</div>
+              <div class="node-desc">توقيع المسؤول على الصفوف السليمة وتوثيق اسمه في السجل.</div>
+              <div class="node-badge-sub">مسؤولية وتوقيع رسمي</div>
+            </div>
+
+            <!-- Node 5: Output -->
+            <div class="node-card sink-node">
+              <div class="node-header">
+                <span class="node-pill">05</span>
+                <span class="node-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="node-label">الإنشاء والتحقق في Odoo</div>
+              <div class="node-desc">توليد السجلات والتحقق الحي وقراءة ID وإرسال إشعار تيليقرام.</div>
+              <div class="node-badge-sub">توثيق نهائي مكتمل</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Step 01 -->
+      <section id="step-1">
+        <h2><span class="tag-step">01</span> الخطوة الأولى: تجهيز ملف الإكسل المعتمد (.xlsx)</h2>
+        <p>يجب دائماً استخدام القالب الرسمي الصادر من بوابة النظام لضمان صحة أسماء الأعمدة والتنسيقات. يتضمن القالب 3 أوراق عمل رئيسية:</p>
+        
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 140px;">ورقة العمل (Sheet)</th>
+                <th>الوظيفة والهدف</th>
+                <th style="width: 220px;">الإجراء المطلوب من المستخدم</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Employees</strong></td>
+                <td>الورقة التنفيذية المخصصة لإدخال بيانات الموظفين الجدد.</td>
+                <td>تعبئة صف لكل موظف وفق الحقول المحددة.</td>
+              </tr>
+              <tr>
+                <td><strong>Reference</strong></td>
+                <td>ورقة القوائم المرجعية لأسماء الشركات، والأقسام، والمسميات الوظيفية.</td>
+                <td>مرجع للقراءة فقط، تُبنى عليه القوائم المنسدلة تلقائياً.</td>
+              </tr>
+              <tr>
+                <td><strong>Instructions</strong></td>
+                <td>دليل الإرشادات السريعة مع أمثلة حية لكل حقل.</td>
+                <td>مراجعة صيغ التاريخ وأرقام الهواتف المقبولة.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="callout warning">
+          <div class="callout-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            تنبيه حاسم لاختيار الأقسام والوظائف
+          </div>
+          <p>يرجى اختيار القسم (Department) والمسمى الوظيفي (Job Position) حصراً من <strong>القوائم المنسدلة</strong> داخل ورقة Employees لتفادي رفض الصف أثناء الفحص بسبب اختلاف كتابة الهمزات أو المسافات.</p>
+        </div>
+      </section>
+
+      <!-- Step 02 -->
+      <section id="step-2">
+        <h2><span class="tag-step">02</span> الخطوة الثانية: تشغيل الفحص التجريبي الاستباقي (Dry-Run)</h2>
+        <p>يمكنك تشغيل الفحص التجريبي إما بالسحب والإفلات مباشرة في واجهة الويب، أو للمطورين عبر سطر الأوامر:</p>
+
+        <div class="code-container">
+          <button class="btn-copy" onclick="copyCode('cmd-dryrun', this)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            نسخ الأمر
+          </button>
+          <pre id="cmd-dryrun">python run_dry_run.py employees.xlsx</pre>
+        </div>
+
+        <h3>ماذا يفحص المحرك في هذه اللحظة؟</h3>
+        <ul>
+          <li><strong>وجود الشركة:</strong> التحقق من تفعيل الشركة المستهدفة في Odoo (افتراضياً: شركة النخبة الذكية 15).</li>
+          <li><strong>تطابق القسم والوظيفة:</strong> التأكد من أن القسم والمسمى الوظيفي ينتميان لنفس الشركة.</li>
+          <li><strong>صحة البريد الإلكتروني:</strong> التحقق من صيغة الإيميل وخلوه من التكرار داخل Odoo.</li>
+          <li><strong>صيغة أرقام الهواتف:</strong> التحقق من قبول أرقام الجوال وصيغتها المعيارية.</li>
+          <li><strong>صيغة تاريخ التعيين:</strong> التأكد من كتابة التاريخ بصيغة <code class="inline">YYYY-MM-DD</code>.</li>
+        </ul>
+      </section>
+
+      <!-- Step 03 -->
+      <section id="step-3">
+        <h2><span class="tag-step">03</span> الخطوة الثالثة: قراءة تقرير الفحص وفهم دلالات الحالات</h2>
+        <p>يفرز التقرير السجلات بدقة فائقة إلى أربع حالات قياسية محددة برمجياً:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 140px;">الحالة المعيارية</th>
+                <th style="width: 170px;">المعنى التشغيلي</th>
+                <th>الإجراء الموصى به</th>
+                <th style="width: 110px;">إمكانية الإنشاء</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <span class="status-pill status-accepted">
+                    <span class="status-pill-dot"></span>
+                    accepted
+                  </span>
+                </td>
+                <td>مطابق وسليم 100%</td>
+                <td>اجتاز جميع الاختبارات، وهو مجهز وجاهز لتحديد المربع الخاص به للاعتماد.</td>
+                <td><strong style="color: var(--color-phosphor-green);">مسموح فوراً</strong></td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="status-pill status-review">
+                    <span class="status-pill-dot"></span>
+                    needs_review
+                  </span>
+                </td>
+                <td>يحتاج مراجعة وانتباه</td>
+                <td>البيانات سليمة أساساً لكن ظهر تحذير ثانوي (مثل تشابه اسم مع موظف موجود، أو تنسيق هاتف بديل).</td>
+                <td><strong style="color: var(--color-amber);">بعد التحقق اليدوي</strong></td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="status-pill status-rejected">
+                    <span class="status-pill-dot"></span>
+                    rejected
+                  </span>
+                </td>
+                <td>مرفوض لعدم المطابقة</td>
+                <td>يوجد خطأ جوهري (بريد مستخدم بالفعل، قسم غير موجود بالشركة، أو اسم مفقود).</td>
+                <td><strong style="color: var(--color-coral);">محظور كلياً</strong></td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="status-pill status-uncertain">
+                    <span class="status-pill-dot"></span>
+                    outcome_uncertain
+                  </span>
+                </td>
+                <td>انقطاع غير محدد النتيجة</td>
+                <td>حالة نادرة سببها انقطاع شبكي مفاجئ أثناء الاتصال، يتم عزل السجل لحين التحقق اليدوي.</td>
+                <td><strong style="color: var(--color-smoke);">توقف أمان</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Step 04 -->
+      <section id="step-4">
+        <h2><span class="tag-step">04</span> الخطوة الرابعة: إصدار قرار الاعتماد البشري (Four-Eyes Principle)</h2>
+        <p>
+          تطبيقاً لمبدأ الحوكمة والرقابة المزدوجة، <strong>لا يتم إرسال أي أمر إنشاء لـ Odoo دون توليد ملف موافقة رسمي (<code class="inline">approval.json</code>)</strong> يحمل التوقيع المشفر لهاشات الصفوف المعتمدة واسم المسؤول.
+        </p>
+
+        <div class="code-container">
+          <button class="btn-copy" onclick="copyCode('cmd-approve', this)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            نسخ الأمر
+          </button>
+          <pre id="cmd-approve">python make_approval.py --report output/RUN_ID/dry_run_report.json --input employees.xlsx --approved-by "خالد (مدير HR)" --rows 2 3</pre>
+        </div>
+
+        <p>عبر واجهة الويب، تتم هذه الخطوة تلقائياً عبر تحديد الصفوف المقبولة وكتابة اسمك والضغط على زر الاعتماد.</p>
+      </section>
+
+      <!-- Step 05 -->
+      <section id="step-5">
+        <h2><span class="tag-step">05</span> الخطوة الخامسة: الإنشاء الفعلي والتحقق المباشر في Odoo</h2>
+        <p>
+          يقوم محرك الكتابة (<code class="inline">writer.py</code>) بإعادة التحقق الفوري من سلامة الموظف في اللحظة الزمنية للإنشاء (Just-In-Time Validation)، ثم إنشائه وقراءة معرفه (<code class="inline">odoo_id</code>) مباشرة من قاعدة البيانات.
+        </p>
+
+        <div class="code-container">
+          <button class="btn-copy" onclick="copyCode('cmd-writer', this)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            نسخ الأمر
+          </button>
+          <pre id="cmd-writer">python writer.py --input employees.xlsx --report output/RUN_ID/dry_run_report.json --approval approval.json --output-dir output/writer_run --company-id 15</pre>
+        </div>
+
+        <div class="callout tip">
+          <div class="callout-header">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 2L11 13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            التنبيه الآلي الفوري عبر تيليقرام (Telegram Automation)
+          </div>
+          <p>فور نجاح الإنشاء، يرسل النظام إشعاراً ملخصاً فورياً إلى قناة تيليقرام الرسمية للموارد البشرية موضحاً اسم الدفعة، وإجمالي السجلات المنشأة، وأسماء الموظفين الجدد ومعرفاتهم في أودو للتوثيق الإداري.</p>
+        </div>
+      </section>
+
+      <!-- Data Dictionary -->
+      <section id="data-dictionary">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="1.8">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <line x1="3" y1="9" x2="21" y2="9"/>
+            <line x1="9" y1="21" x2="9" y2="9"/>
+          </svg>
+          قاموس ومواصفات حقول البيانات المعتمدة
+        </h2>
+        <p>جدول تفصيلي يوضح شروط القبول والتنسيق المطلوب لكل عمود في ملف الإكسل:</p>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 140px;">اسم الحقل</th>
+                <th style="width: 130px;">المعرف التقني</th>
+                <th style="width: 90px;">الحالة</th>
+                <th>قواعد التحقق الصارمة</th>
+                <th style="width: 180px;">مثال صحيح</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>اسم الموظف</strong></td>
+                <td><code class="inline">name</code></td>
+                <td><strong style="color: var(--color-coral);">إلزامي</strong></td>
+                <td>نص عربي أو إنجليزي لا يقل عن كلمتين، بدون رموز خاصة.</td>
+                <td>سارة عبدالله الغامدي</td>
+              </tr>
+              <tr>
+                <td><strong>البريد الإلكتروني</strong></td>
+                <td><code class="inline">work_email</code></td>
+                <td><strong style="color: var(--color-coral);">إلزامي</strong></td>
+                <td>صيغة بريد قياسية، فريد 100% وغير مسجل مسبقاً في Odoo.</td>
+                <td>sara.alghamdi@company.com</td>
+              </tr>
+              <tr>
+                <td><strong>رقم الجوال</strong></td>
+                <td><code class="inline">mobile_phone</code></td>
+                <td>اختياري</td>
+                <td>يبدأ بـ 05 أو 9665 ويتكون من 10 إلى 12 رقماً.</td>
+                <td>0501234567</td>
+              </tr>
+              <tr>
+                <td><strong>الشركة</strong></td>
+                <td><code class="inline">company</code></td>
+                <td><strong style="color: var(--color-coral);">إلزامي</strong></td>
+                <td>يجب أن تطابق اسم الشركة الفعلي في Odoo (شركة النخبة الذكية).</td>
+                <td>شركة النخبة الذكية للتقنية</td>
+              </tr>
+              <tr>
+                <td><strong>القسم الإداري</strong></td>
+                <td><code class="inline">department</code></td>
+                <td><strong style="color: var(--color-coral);">إلزامي</strong></td>
+                <td>يجب أن ينتمي لنفس الشركة المختارة (من القائمة المنسدلة).</td>
+                <td>تقنية المعلومات</td>
+              </tr>
+              <tr>
+                <td><strong>المسمى الوظيفي</strong></td>
+                <td><code class="inline">job</code></td>
+                <td><strong style="color: var(--color-coral);">إلزامي</strong></td>
+                <td>يجب أن يكون مفعلاً ومعرفاً بنفس الشركة في Odoo.</td>
+                <td>مهندس برمجيات</td>
+              </tr>
+              <tr>
+                <td><strong>تاريخ التعيين</strong></td>
+                <td><code class="inline">hiring_date</code></td>
+                <td>اختياري</td>
+                <td>صيغة معيارية دولية <code class="inline">YYYY-MM-DD</code> حصراً.</td>
+                <td>2026-10-15</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Troubleshooting (UX Writing & Clear Resolutions) -->
+      <section id="troubleshooting">
+        <h2>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          دليل معالجة التنبيهات والأخطاء الشائعة
+        </h2>
+        <p>إذا ظهرت حالة أحد الصفوف باللون المرجاني (مرفوض) أو الكهرماني (يحتاج مراجعة)، اتبع الإجراء التصحيحي المباشر أدناه:</p>
+
+        <div class="trouble-grid">
+          <!-- Card 1 -->
+          <div class="trouble-card">
+            <div>
+              <div class="trouble-card-header">
+                <span class="status-pill status-rejected">مرفوض</span>
+                <span class="trouble-code">department_not_found</span>
+              </div>
+              <p>القسم المكتوب غير موجود تحت الشركة المحددة في Odoo.</p>
+            </div>
+            <div class="trouble-solution">
+              <strong>الإجراء:</strong> افتح القالب واختر القسم من <strong>القائمة المنسدلة</strong> في ورقة Reference، ولا تكتبه يدوياً.
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="trouble-card">
+            <div>
+              <div class="trouble-card-header">
+                <span class="status-pill status-rejected">مرفوض</span>
+                <span class="trouble-code">duplicate_work_email</span>
+              </div>
+              <p>البريد الإلكتروني مسجل مسبقاً لموظف آخر نشط داخل Odoo.</p>
+            </div>
+            <div class="trouble-solution">
+              <strong>الإجراء:</strong> تحقق من حساب الموظف في Odoo؛ إذا كان موظفاً جديداً فعدّل الإيميل في الإكسل، وتجنب التكرار.
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="trouble-card">
+            <div>
+              <div class="trouble-card-header">
+                <span class="status-pill status-review">مراجعة</span>
+                <span class="trouble-code">similar_name_found</span>
+              </div>
+              <p>يوجد موظف سابق يتطابق أو يتشابه اسمه بنسبة 85% فما فوق.</p>
+            </div>
+            <div class="trouble-solution">
+              <strong>الإجراء:</strong> تأكد أن الموظف شخص جديد يملك نفس الاسم، وإذا تأكدت يمكنك تحديد خيار اعتماده يدوياً بأمان.
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="trouble-card">
+            <div>
+              <div class="trouble-card-header">
+                <span class="status-pill status-rejected">مرفوض</span>
+                <span class="trouble-code">invalid_hiring_date</span>
+              </div>
+              <p>صيغة التاريخ غير متوافقة مع المعيار الدولي المطلوب.</p>
+            </div>
+            <div class="trouble-solution">
+              <strong>الإجراء:</strong> عدل صيغة الخلية في Excel إلى <code class="inline">YYYY-MM-DD</code> (مثال: 2026-10-06).
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Toast Component for Interactive Feedback -->
+    <div id="copyToast" class="toast">تم نسخ الأمر للحافظة بنجاح ✓</div>
+
+    <script>
+      function copyCode(elementId, btn) {
+        const pre = document.getElementById(elementId);
+        if (!pre) return;
+        const text = pre.innerText;
+        navigator.clipboard.writeText(text).then(() => {
+          const originalText = btn.innerHTML;
+          btn.innerHTML = `
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            تم النسخ ✓
+          `;
+          btn.style.borderColor = 'var(--color-phosphor-green)';
+          btn.style.color = 'var(--color-phosphor-green)';
+
+          const toast = document.getElementById('copyToast');
+          toast.style.display = 'block';
+          setTimeout(() => {
+            toast.style.display = 'none';
+            btn.innerHTML = originalText;
+            btn.style.borderColor = '';
+            btn.style.color = '';
+          }, 2200);
+        });
+      }
+    </script>
+  </body>
+</html>

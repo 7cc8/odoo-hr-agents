@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بوابة أتمتة إدخال الموظفين في Odoo | Odoo HR Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       SUPABASE DESIGN SYSTEM (Midnight Code Editor with Phosphor Green)
+       Based on .claude/skills/DESIGN-2.md
+       ========================================================================== */
+    :root {
+      /* Colors */
+      --color-obsidian: #121212;
+      --color-ash: #242424;
+      --color-charcoal: #2e2e2e;
+      --color-slate: #393939;
+      --color-graphite: #4d4d4d;
+      --color-snow: #fafafa;
+      --color-silver-mist: #b4b4b4;
+      --color-smoke: #898989;
+
+      /* Accents */
+      --color-phosphor-green: #3ecf8e;
+      --color-mint-pulse: #00c573;
+      --color-forest-depth: #1f4b37;
+      --color-midnight-emerald: #006239;
+
+      /* Semantics */
+      --color-amber: #ffca16;
+      --color-coral: #ff6465;
+
+      /* Spacing Scale (Strict 8px Grid - Impeccable) */
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 20px;
+      --space-6: 24px;
+      --space-8: 32px;
+      --space-10: 40px;
+      --space-12: 48px;
+
+      /* Radii */
+      --radius-cards: 16px;
+      --radius-inputs: 8px;
+      --radius-pill: 9999px;
+
+      /* Fonts */
+      --font-arabic: 'IBM Plex Sans Arabic', 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Source Code Pro', ui-monospace, monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--color-obsidian);
+      color: var(--color-snow);
+      font-family: var(--font-arabic);
+      min-height: 100vh;
+      padding: 40px 20px;
+      line-height: 1.6;
+      direction: rtl;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Monospace & Tabular Figures */
+    .num-tabular, .stat-number, table td.col-num, .code-text {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.05em;
+    }
+
+    /* ==========================================================================
+       HEADER & NAVIGATION (Sticky / Clean 64px Top Bar feel)
+       ========================================================================== */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--color-charcoal);
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+
+    .brand-area {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-inputs);
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s ease;
+    }
+
+    .brand-icon-box:hover {
+      border-color: var(--color-phosphor-green);
+    }
+
+    .brand-icon-box svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--color-phosphor-green);
+      fill: none;
+      stroke-width: 1.8;
+    }
+
+    .brand-meta .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-phosphor-green);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-meta .eyebrow-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-pill);
+      background: var(--color-phosphor-green);
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 500;
+      color: var(--color-snow);
+      letter-spacing: -0.007em;
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      font-size: 13.5px;
+      color: var(--color-silver-mist);
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* ==========================================================================
+       BUTTONS (Supabase Duality: 9999px Pill Buttons)
+       ========================================================================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 13.5px;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease-out;
+      border: 1px solid var(--color-slate);
+      background: transparent;
+      color: var(--color-snow);
+      white-space: nowrap;
+      user-select: none;
+      line-height: 1.43;
+    }
+
+    .btn:hover:not(:disabled) {
+      border-color: var(--color-graphite);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--color-snow);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      border-color: var(--color-charcoal) !important;
+    }
+
+    .btn svg {
+      width: 15px;
+      height: 15px;
+      stroke-width: 1.8;
+      flex-shrink: 0;
+    }
+
+    /* Primary CTA Button (Phosphor Green Pill) */
+    .btn-primary {
+      background: var(--color-phosphor-green);
+      color: #121212;
+      border: 1px solid var(--color-phosphor-green);
+      font-weight: 600;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--color-phosphor-green);
+      border-color: var(--color-forest-depth);
+      filter: brightness(1.04);
+      color: #121212;
+    }
+    .btn-primary:disabled {
+      background: var(--color-ash) !important;
+      color: var(--color-smoke) !important;
+      border-color: var(--color-charcoal) !important;
+      filter: none;
+      opacity: 0.55;
+    }
+
+    /* Secondary Elevated Button (Ash Pill) */
+    .btn-secondary {
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      color: var(--color-snow);
+    }
+    .btn-secondary:hover:not(:disabled) {
+      border-color: var(--color-graphite);
+      background: #2a2a2a;
+    }
+
+    /* ==========================================================================
+       PIPELINE STEPPER (16px Cards with 9999px Status Pills)
+       ========================================================================== */
+    .pipeline-stepper {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .step-item {
+      background: var(--color-obsidian);
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-cards);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: border-color 0.15s ease;
+    }
+
+    .step-item.is-active {
+      border-color: var(--color-phosphor-green);
+      background: rgba(62, 207, 142, 0.03);
+    }
+
+    .step-item.is-completed {
+      border-color: var(--color-phosphor-green);
+    }
+
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-pill);
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-silver-mist);
+      flex-shrink: 0;
+    }
+
+    .step-item.is-active .step-num {
+      border-color: var(--color-phosphor-green);
+      color: var(--color-phosphor-green);
+      background: rgba(62, 207, 142, 0.12);
+    }
+
+    .step-item.is-completed .step-num {
+      border-color: var(--color-phosphor-green);
+      color: var(--color-phosphor-green);
+      background: rgba(62, 207, 142, 0.12);
+    }
+
+    .step-text h4 {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--color-snow);
+    }
+
+    .step-text p {
+      font-size: 11.5px;
+      color: var(--color-smoke);
+      margin-top: 1px;
+    }
+
+    /* ==========================================================================
+       STATUS BAR TILES (Flat 16px Containers)
+       ========================================================================== */
+    .status-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    .status-box {
+      background: var(--color-obsidian);
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-cards);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .status-indicator {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-pill);
+      background: var(--color-phosphor-green);
+      flex-shrink: 0;
+    }
+    .status-indicator.amber {
+      background: var(--color-amber);
+    }
+    .status-indicator.red {
+      background: var(--color-coral);
+    }
+
+    .status-box-content h4 {
+      font-size: 11.5px;
+      color: var(--color-smoke);
+      font-weight: 400;
+    }
+    .status-box-content p {
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--color-snow);
+      margin-top: 1px;
+    }
+
+    /* ==========================================================================
+       CARDS & CONTAINERS (16px Radius, 1px #2e2e2e Border, Flat)
+       ========================================================================== */
+    .card {
+      background: var(--color-obsidian);
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-cards);
+      padding: 28px;
+      margin-bottom: 28px;
+    }
+
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 500;
+      color: var(--color-snow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      letter-spacing: -0.007em;
+    }
+
+    .tag-badge {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      color: var(--color-phosphor-green);
+      letter-spacing: 0.05em;
+    }
+
+    .card-desc {
+      color: var(--color-silver-mist);
+      font-size: 13.5px;
+      line-height: 1.6;
+      margin-bottom: 22px;
+      font-weight: 400;
+    }
+
+    /* ==========================================================================
+       DROP ZONE (16px Radius, Hairline Dashed Border)
+       ========================================================================== */
+    .drop-zone {
+      border: 1px dashed var(--color-slate);
+      border-radius: var(--radius-cards);
+      padding: 42px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s ease, background 0.2s ease;
+      background: var(--color-obsidian);
+    }
+
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--color-phosphor-green);
+      background: rgba(62, 207, 142, 0.03);
+    }
+
+    .drop-icon {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 16px;
+      border-radius: var(--radius-inputs);
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-phosphor-green);
+      transition: border-color 0.2s ease;
+    }
+
+    .drop-zone:hover .drop-icon {
+      border-color: var(--color-phosphor-green);
+    }
+
+    .drop-icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--color-phosphor-green);
+      fill: none;
+      stroke-width: 1.8;
+    }
+
+    .drop-title {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-snow);
+      margin-bottom: 6px;
+    }
+
+    .drop-sub {
+      color: var(--color-smoke);
+      font-size: 12.5px;
+    }
+
+    .file-badge-preview {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--color-ash);
+      border: 1px solid var(--color-phosphor-green);
+      font-size: 12.5px;
+      color: var(--color-phosphor-green);
+      font-family: var(--font-mono);
+    }
+
+    /* ==========================================================================
+       STATS TILES (16px Containers)
+       ========================================================================== */
+    .bento-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .bento-tile {
+      background: var(--color-obsidian);
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-cards);
+      padding: 16px 18px;
+    }
+
+    .bento-tile-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .bento-num {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--color-smoke);
+      letter-spacing: 0.1em;
+    }
+
+    .bento-label {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--color-silver-mist);
+    }
+
+    .bento-value {
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--color-snow);
+      line-height: 1.1;
+      letter-spacing: -0.007em;
+    }
+
+    .bento-tile.is-accepted {
+      border-color: rgba(62, 207, 142, 0.4);
+    }
+    .bento-tile.is-accepted .bento-label, .bento-tile.is-accepted .bento-value {
+      color: var(--color-phosphor-green);
+    }
+
+    .bento-tile.is-review {
+      border-color: rgba(255, 202, 22, 0.4);
+    }
+    .bento-tile.is-review .bento-label, .bento-tile.is-review .bento-value {
+      color: var(--color-amber);
+    }
+
+    .bento-tile.is-rejected {
+      border-color: rgba(255, 100, 101, 0.4);
+    }
+    .bento-tile.is-rejected .bento-label, .bento-tile.is-rejected .bento-value {
+      color: var(--color-coral);
+    }
+
+    /* ==========================================================================
+       DATA TABLES (16px Frame, #2e2e2e Borders, Ash Headers)
+       ========================================================================== */
+    .table-frame {
+      overflow-x: auto;
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-cards);
+      background: var(--color-obsidian);
+      margin-top: 16px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+      font-size: 13px;
+    }
+
+    th {
+      background: var(--color-ash);
+      padding: 12px 14px;
+      color: var(--color-silver-mist);
+      font-weight: 500;
+      border-bottom: 1px solid var(--color-charcoal);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+    }
+
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--color-charcoal);
+      color: var(--color-snow);
+      vertical-align: middle;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Status Badges (9999px Pill Shape) */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11.5px;
+      font-weight: 500;
+      white-space: nowrap;
+      border: 1px solid transparent;
+      font-family: var(--font-mono);
+      letter-spacing: 0.02em;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-pill);
+    }
+
+    .status-badge.is-accepted {
+      background: rgba(62, 207, 142, 0.08);
+      color: var(--color-phosphor-green);
+      border-color: rgba(62, 207, 142, 0.35);
+    }
+    .status-badge.is-accepted .status-dot {
+      background: var(--color-phosphor-green);
+    }
+
+    .status-badge.is-review {
+      background: rgba(255, 202, 22, 0.08);
+      color: var(--color-amber);
+      border-color: rgba(255, 202, 22, 0.35);
+    }
+    .status-badge.is-review .status-dot {
+      background: var(--color-amber);
+    }
+
+    .status-badge.is-rejected {
+      background: rgba(255, 100, 101, 0.08);
+      color: var(--color-coral);
+      border-color: rgba(255, 100, 101, 0.35);
+    }
+    .status-badge.is-rejected .status-dot {
+      background: var(--color-coral);
+    }
+
+    /* Checkbox (Flat 4px Radius) */
+    input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 17px;
+      height: 17px;
+      border-radius: 4px;
+      background: var(--color-obsidian);
+      border: 1px solid var(--color-slate);
+      cursor: pointer;
+      display: inline-grid;
+      place-content: center;
+      transition: all 0.15s ease;
+      vertical-align: middle;
+    }
+    input[type="checkbox"]:checked {
+      background: var(--color-phosphor-green);
+      border-color: var(--color-phosphor-green);
+    }
+    input[type="checkbox"]:checked::before {
+      content: "";
+      width: 8px;
+      height: 4px;
+      border-left: 2px solid #121212;
+      border-bottom: 2px solid #121212;
+      transform: rotate(-45deg) translate(1px, -1px);
+    }
+    input[type="checkbox"]:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+      border-color: var(--color-charcoal);
+    }
+
+    /* ==========================================================================
+       APPROVAL FORM BOX (16px Card, 8px Inputs)
+       ========================================================================== */
+    .approval-box {
+      margin-top: 24px;
+      padding: 24px;
+      background: var(--color-obsidian);
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-cards);
+    }
+
+    .approval-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .approval-header h4 {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-snow);
+    }
+
+    .approval-desc {
+      font-size: 12.5px;
+      color: var(--color-silver-mist);
+      margin-bottom: 18px;
+      line-height: 1.6;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-label {
+      font-size: 12px;
+      font-weight: 400;
+      color: var(--color-silver-mist);
+    }
+
+    .form-input {
+      padding: 10px 14px;
+      border-radius: var(--radius-inputs);
+      background: var(--color-obsidian);
+      border: 1px solid var(--color-slate);
+      color: var(--color-snow);
+      font-size: 13.5px;
+      outline: none;
+      transition: border-color 0.15s ease;
+      font-family: inherit;
+    }
+    .form-input:focus {
+      border-color: var(--color-phosphor-green);
+    }
+    .form-input[readonly] {
+      opacity: 0.55;
+      cursor: not-allowed;
+      color: var(--color-smoke);
+    }
+
+    /* ==========================================================================
+       TERMINAL CODE WINDOW (Audit Log Viewer)
+       ========================================================================== */
+    .terminal-window {
+      background: var(--color-obsidian);
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-cards);
+      margin-top: 18px;
+      overflow: hidden;
+    }
+
+    .terminal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--color-charcoal);
+      background: var(--color-ash);
+    }
+
+    .terminal-dots {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: var(--radius-pill);
+    }
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-smoke);
+    }
+
+    .log-box {
+      background: var(--color-obsidian);
+      padding: 18px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--color-phosphor-green);
+      max-height: 220px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      direction: ltr;
+      text-align: left;
+      line-height: 1.5;
+      letter-spacing: 0.05em;
+    }
+
+    /* Summary Banner */
+    .summary-banner {
+      padding: 16px 20px;
+      border-radius: var(--radius-cards);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(62, 207, 142, 0.06);
+      border: 1px solid rgba(62, 207, 142, 0.35);
+      color: var(--color-phosphor-green);
+    }
+
+    .summary-banner-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-pill);
+      background: rgba(62, 207, 142, 0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .summary-banner-text h3 {
+      font-size: 15px;
+      font-weight: 500;
+      margin-bottom: 2px;
+      color: var(--color-snow);
+    }
+
+    .summary-banner-text p {
+      font-size: 12.5px;
+      color: var(--color-silver-mist);
+    }
+
+    .footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--color-charcoal);
+      flex-wrap: wrap;
+      gap: 14px;
+    }
+
+    /* Utilities */
+    .hidden {
+      display: none !important;
+    }
+
+    .spinner {
+      width: 15px;
+      height: 15px;
+      border: 2px solid rgba(18, 18, 18, 0.3);
+      border-left-color: #121212;
+      border-radius: var(--radius-pill);
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Toast Notification (Supabase Flat Pill) */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast-item {
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      color: var(--color-snow);
+      padding: 10px 18px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: toastIn 0.2s ease-out;
+      max-width: 380px;
+      line-height: 1.4;
+    }
+
+    .toast-item.error {
+      border-color: var(--color-coral);
+      color: var(--color-coral);
+    }
+
+    .toast-item.success {
+      border-color: var(--color-phosphor-green);
+      color: var(--color-phosphor-green);
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header>
+      <div class="brand-area">
+        <div class="brand-icon-box">
+          <svg viewBox="0 0 24 24">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </div>
+        <div class="brand-meta">
+          <div class="eyebrow">
+            <span class="eyebrow-dot"></span>
+            منظومة الأتمتة والتدقيق • ODOO 19 HR PIPELINE
+          </div>
+          <h1>بوابة أتمتة إدخال الموظفين في Odoo</h1>
+          <p class="subtitle">المسار الآمن (A) • فحص استباقي، اعتماد بشري ثنائي، وتحقق فوري في النظام</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a href="/api/sijil/report/pdf" target="_blank" class="btn" style="border-color: rgba(146, 129, 247, 0.4); color: #b3a5ff; background: rgba(146, 129, 247, 0.08);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 16px; height: 16px;">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+          </svg>
+          تقرير الرقابة والتدقيق (PDF)
+        </a>
+        <a href="/guide" target="_blank" class="btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+          </svg>
+          دليل تشغيل استيراد الموظفين
+        </a>
+        <a href="/api/download-template" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          تنزيل القالب المعتمد (.xlsx)
+        </a>
+      </div>
+    </header>
+
+    <!-- Pipeline Stepper -->
+    <div class="pipeline-stepper" id="pipelineStepper">
+      <div class="step-item is-active" id="stepIndicator1">
+        <div class="step-num">01</div>
+        <div class="step-text">
+          <h4>الفحص التجريبي (Dry-Run)</h4>
+          <p>تحقق استباقي آمن دون تعديل في Odoo</p>
+        </div>
+      </div>
+      <div class="step-item" id="stepIndicator2">
+        <div class="step-num">02</div>
+        <div class="step-text">
+          <h4>المراجعة والاعتماد البشري</h4>
+          <p>قاعدة الموافقة الثنائية (Four-Eyes Rule)</p>
+        </div>
+      </div>
+      <div class="step-item" id="stepIndicator3">
+        <div class="step-num">03</div>
+        <div class="step-text">
+          <h4>الإنشاء الفعلي والتحقق</h4>
+          <p>توليد السجلات وإشعار تيليقرام الفوري</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="status-bar" id="statusBar">
+      <div class="status-box">
+        <div class="status-indicator" id="odooIndicator"></div>
+        <div class="status-box-content">
+          <h4>خادم Odoo المباشر</h4>
+          <p id="odooDbText" class="num-tabular">جارِ التحقق...</p>
+        </div>
+      </div>
+      <div class="status-box">
+        <div class="status-indicator"></div>
+        <div class="status-box-content">
+          <h4>الشركة المستهدفة (عزل الأمان)</h4>
+          <p id="companyText">شركة النخبة الذكية للتقنية (15)</p>
+        </div>
+      </div>
+      <div class="status-box">
+        <div class="status-indicator" id="tgIndicator"></div>
+        <div class="status-box-content">
+          <h4>منظومة إشعارات تيليقرام</h4>
+          <p id="tgText">فحص الإعدادات...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: Upload & Dry Run Card -->
+    <div class="card" id="stepUploadCard">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="tag-badge">01</span>
+          اختيار ملف الإكسل وإجراء الفحص التجريبي
+        </div>
+      </div>
+      <p class="card-desc">
+        هذا الفحص استباقي وآمن 100%: يختبر تطابق المسميات الوظيفية والأقسام، ويكتشف التكرارات والبيانات المفقودة، دون إجراء أي كتابة أو تعديل داخل قاعدة بيانات Odoo.
+      </p>
+
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="drop-icon">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="drop-title">اسحب ملف الإكسل (.xlsx) هنا، أو اضغط للتصفح</div>
+        <div class="drop-sub">يدعم ملفات القالب المعتمد employee_import_template_*.xlsx مع القوائم المنسدلة</div>
+        <div id="filePreviewArea" class="hidden">
+          <div class="file-badge-preview">
+            <span id="selectedFileName"></span>
+            <button type="button" class="btn-clear-file" onclick="clearSelectedFile(event)" title="إلغاء واختيار ملف آخر" style="background: none; border: none; color: var(--color-smoke); cursor: pointer; display: inline-flex; align-items: center; padding: 2px; margin-right: 6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx" style="display:none" onchange="handleFileSelect(event)">
+      </div>
+
+      <div style="margin-top: 22px; display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="btn btn-primary" id="btnDryRun" onclick="runDryRun()" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          بدء الفحص التجريبي الآمن (Dry-Run)
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Interactive Review Table -->
+    <div class="card hidden" id="stepReviewCard">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="tag-badge">02</span>
+          مراجعة نتائج التدقيق وتحديد المعتمدين
+        </div>
+        <div id="selectedCountBadge" class="status-badge is-accepted">
+          <span class="status-dot"></span>
+          تم تحديد 0 صفوف للاعتماد
+        </div>
+      </div>
+
+      <!-- Stats Tiles -->
+      <div class="bento-stats">
+        <div class="bento-tile">
+          <div class="bento-tile-head">
+            <span class="bento-label">إجمالي السجلات المفحوصة</span>
+            <span class="bento-num">01</span>
+          </div>
+          <div class="bento-value num-tabular" id="statTotal">0</div>
+        </div>
+        <div class="bento-tile is-accepted">
+          <div class="bento-tile-head">
+            <span class="bento-label">جاهز للاعتماد (accepted)</span>
+            <span class="bento-num">02</span>
+          </div>
+          <div class="bento-value num-tabular" id="statAccepted">0</div>
+        </div>
+        <div class="bento-tile is-review">
+          <div class="bento-tile-head">
+            <span class="bento-label">يحتاج مراجعة (needs_review)</span>
+            <span class="bento-num">03</span>
+          </div>
+          <div class="bento-value num-tabular" id="statReview">0</div>
+        </div>
+        <div class="bento-tile is-rejected">
+          <div class="bento-tile-head">
+            <span class="bento-label">مرفوض لعدم المطابقة (rejected)</span>
+            <span class="bento-num">04</span>
+          </div>
+          <div class="bento-value num-tabular" id="statRejected">0</div>
+        </div>
+      </div>
+
+      <!-- Interactive Table -->
+      <div class="table-frame">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 44px; text-align: center;">
+                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(event)">
+              </th>
+              <th style="width: 50px;">الصف</th>
+              <th>اسم الموظف</th>
+              <th>البريد الإلكتروني</th>
+              <th>المسمى والوظيفة</th>
+              <th>تاريخ التعيين</th>
+              <th>حالة الفحص</th>
+              <th>تفاصيل التدقيق</th>
+            </tr>
+          </thead>
+          <tbody id="rowsTableBody">
+            <!-- Dynamic rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Human Approval Decision Box -->
+      <div class="approval-box">
+        <div class="approval-header">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="1.8">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          <h4>توثيق قرار الاعتماد البشري (Two-Person Approval Rule)</h4>
+        </div>
+        <p class="approval-desc">
+          وفقاً لسياسة الامتثال والأمان المعتمدة، لا يتم إنشاء أي سجل موظف في أودو دون توثيق موافقة خطية من المسؤول المختص. يرجى تدوين اسمك للتسجيل في سجل التدقيق (Audit Log).
+        </p>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">اسم المسؤول المعتمد (approved_by) *</label>
+            <input type="text" class="form-input" id="approvedByName" value="خالد" placeholder="مثال: خالد (مدير الموارد البشرية)">
+          </div>
+          <div class="form-group">
+            <label class="form-label">الحد الأقصى للدفعة الواحدة (max-rows)</label>
+            <input type="number" class="form-input num-tabular" id="maxRowsInput" value="10">
+          </div>
+          <div class="form-group">
+            <label class="form-label">الشركة المستهدفة في Odoo</label>
+            <input type="number" class="form-input num-tabular" id="companyIdInput" value="15" readonly>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 12px;">
+          <button class="btn btn-primary" id="btnExecute" onclick="approveAndExecute()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            اعتماد وإنشاء الموظفين المحددين في Odoo
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Execution Log & Results -->
+    <div class="card hidden" id="stepResultCard">
+      <div class="card-head">
+        <div class="card-title">
+          <span class="tag-badge">03</span>
+          نتائج الإنشاء والتحقق المباشر في Odoo
+        </div>
+      </div>
+
+      <div class="summary-banner" id="executionSummaryBanner">
+        <div class="summary-banner-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="2">
+            <path d="M20 6L9 17l-5-5"/>
+          </svg>
+        </div>
+        <div class="summary-banner-text">
+          <h3 id="bannerTitle">اكتملت عملية الإنشاء بنجاح</h3>
+          <p id="bannerSub">تم التحقق من مطابقة السجلات في قاعدة البيانات وإرسال التنبيهات.</p>
+        </div>
+      </div>
+
+      <div class="table-frame">
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 50px;">الصف</th>
+              <th>اسم الموظف</th>
+              <th>البريد الإلكتروني</th>
+              <th>معرّف Odoo (Employee ID)</th>
+              <th>التحقق المباشر</th>
+              <th>النتيجة</th>
+            </tr>
+          </thead>
+          <tbody id="resultTableBody">
+            <!-- Dynamic result rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Terminal Window for Audit Log -->
+      <div class="terminal-window">
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="terminal-dot dot-red"></span>
+            <span class="terminal-dot dot-yellow"></span>
+            <span class="terminal-dot dot-green"></span>
+          </div>
+          <span class="terminal-title">audit_log_viewer.json</span>
+          <button class="btn" style="padding: 4px 12px; font-size: 11.5px;" onclick="copyAuditLog()">
+            نسخ السجل
+          </button>
+        </div>
+        <div class="log-box" id="rawLogBox">جارِ المتابعة...</div>
+      </div>
+
+      <div class="footer-bar">
+        <div style="font-size: 12.5px; color: var(--color-silver-mist); font-family: var(--font-mono);" id="resultsPathText"></div>
+        <button class="btn" onclick="resetForm()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M3 2v6h6"/>
+            <path d="M21 12A9 9 0 0 0 6 5.3L3 8"/>
+            <path d="M21 22v-6h-6"/>
+            <path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/>
+          </svg>
+          فحص دفعة جديدة
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    let currentReport = null;
+    let selectedFile = null;
+
+    // Toast helper
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast-item ${type}`;
+      toast.innerText = msg;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+      }, 4000);
+    }
+
+    // Load initial system status
+    async function loadStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        
+        document.getElementById('odooDbText').innerText = data.odoo.database || 'غير متصل';
+        if (!data.odoo.connected) {
+          document.getElementById('odooIndicator').className = 'status-indicator amber';
+        }
+        
+        if (data.telegram.configured) {
+          document.getElementById('tgText').innerText = 'مفعل وجاهز للإشعار المباشر';
+          document.getElementById('tgIndicator').className = 'status-indicator';
+        } else {
+          document.getElementById('tgText').innerText = 'غير مفعل (حفظ محلي فقط)';
+          document.getElementById('tgIndicator').className = 'status-indicator amber';
+        }
+      } catch (err) {
+        console.error('Status fetch failed', err);
+      }
+    }
+    loadStatus();
+
+    // File Drag & Drop
+    const dropZone = document.getElementById('dropZone');
+    ['dragenter', 'dragover'].forEach(name => {
+      dropZone.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(name => {
+      dropZone.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
+    });
+    dropZone.addEventListener('drop', (e) => {
+      if (e.dataTransfer.files.length) {
+        setFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    function handleFileSelect(e) {
+      if (e.target.files.length) {
+        setFile(e.target.files[0]);
+      }
+    }
+
+    function setFile(file) {
+      selectedFile = file;
+      document.getElementById('filePreviewArea').classList.remove('hidden');
+      document.getElementById('selectedFileName').innerText = 'الملف المحدد: ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+      document.getElementById('btnDryRun').disabled = false;
+      showToast('تم اختيار الملف بنجاح، يمكنك بدء الفحص التجريبي الآن', 'success');
+    }
+
+    function clearSelectedFile(e) {
+      if (e) e.stopPropagation();
+      selectedFile = null;
+      document.getElementById('fileInput').value = '';
+      document.getElementById('filePreviewArea').classList.add('hidden');
+      document.getElementById('btnDryRun').disabled = true;
+      showToast('تم إلغاء تحديد الملف', 'info');
+    }
+
+    // Run Dry Run
+    async function runDryRun() {
+      if (!selectedFile) return;
+      const btn = document.getElementById('btnDryRun');
+      btn.innerHTML = '<span class="spinner"></span> جارِ الفحص التجريبي والتدقيق...';
+      btn.disabled = true;
+
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
+
+      try {
+        const res = await fetch('/api/dry-run', {
+          method: 'POST',
+          body: formData,
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) {
+          let errorMsg = 'فشل الفحص التجريبي';
+          try {
+            const err = await res.json();
+            errorMsg = err.detail || errorMsg;
+          } catch (_) {
+            errorMsg = res.statusText || errorMsg;
+          }
+          throw new Error(errorMsg);
+        }
+
+        const data = await res.json();
+        currentReport = data;
+        renderReviewStep(data);
+        showToast('اكتمل الفحص التجريبي بنجاح! راجع النتائج أدناه.', 'success');
+      } catch (err) {
+        clearTimeout(timeoutId);
+        const isTimeout = err.name === 'AbortError';
+        const msg = isTimeout ? 'استغرق الفحص وقتاً أطول من المتوقع، يرجى المحاولة ثانية' : err.message;
+        console.error('Dry run error:', err);
+        showToast('خطأ أثناء الفحص: ' + msg, 'error');
+      } finally {
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          بدء الفحص التجريبي الآمن (Dry-Run)
+        `;
+        btn.disabled = false;
+      }
+    }
+
+    // Stepper updates
+    function updateStepper(step) {
+      for (let i = 1; i <= 3; i++) {
+        const item = document.getElementById(`stepIndicator${i}`);
+        item.classList.remove('is-active', 'is-completed');
+        if (i < step) {
+          item.classList.add('is-completed');
+        } else if (i === step) {
+          item.classList.add('is-active');
+        }
+      }
+    }
+
+    // Render Review Table
+    function renderReviewStep(report) {
+      updateStepper(2);
+      const summary = report.summary || {};
+      const statusCounts = summary.status_counts || {};
+
+      document.getElementById('statTotal').innerText = summary.row_count || report.rows.length;
+      document.getElementById('statAccepted').innerText = statusCounts.accepted || 0;
+      document.getElementById('statReview').innerText = statusCounts.needs_review || 0;
+      document.getElementById('statRejected').innerText = statusCounts.rejected || 0;
+
+      const tbody = document.getElementById('rowsTableBody');
+      tbody.innerHTML = '';
+
+      report.rows.forEach((row, idx) => {
+        const tr = document.createElement('tr');
+        const rowNum = (row.excel_row_number !== undefined && row.excel_row_number !== null)
+          ? row.excel_row_number
+          : ((row.row_number !== undefined && row.row_number !== null) ? row.row_number : (idx + 2));
+        const isAccepted = row.final_status === 'accepted';
+        const isReview = row.final_status === 'needs_review';
+        const isRejected = row.final_status === 'rejected';
+
+        let badgeClass = 'is-review';
+        let badgeLabel = 'يحتاج مراجعة';
+        if (isAccepted) {
+          badgeClass = 'is-accepted';
+          badgeLabel = 'مقبول (جاهز)';
+        } else if (isRejected) {
+          badgeClass = 'is-rejected';
+          badgeLabel = 'مرفوض';
+        }
+
+        // Details summary: White for accepted rows in Supabase style
+        let detailsHtml = '';
+        if (isAccepted) {
+          const msg = (row.reasons && row.reasons.length)
+            ? row.reasons.join('، ')
+            : 'اجتاز جميع فحوصات المطابقة والتحقق بنجاح';
+          detailsHtml = `<span style="color: var(--color-snow); font-size: 11.5px;">${msg}</span>`;
+        } else if (isReview) {
+          const warn = (row.warnings && row.warnings.length)
+            ? row.warnings.join('، ')
+            : ((row.reasons && row.reasons.length) ? row.reasons.join('، ') : 'يحتاج مراجعة وتدقيق');
+          detailsHtml = `<span style="color: var(--color-amber); font-size: 11.5px;">${warn}</span>`;
+        } else if (isRejected) {
+          const err = (row.reasons && row.reasons.length)
+            ? row.reasons.join('، ')
+            : 'مرفوض لعدم مطابقة الشروط';
+          detailsHtml = `<span style="color: var(--color-coral); font-size: 11.5px;">${err}</span>`;
+        } else {
+          detailsHtml = `<span style="color: var(--color-silver-mist); font-size: 11.5px;">—</span>`;
+        }
+
+        tr.innerHTML = `
+          <td style="text-align: center;">
+            <input type="checkbox" class="row-select-checkbox" data-row="${rowNum}" ${isAccepted ? 'checked' : 'disabled'} onchange="handleRowCheckboxChange()">
+          </td>
+          <td class="col-num">${rowNum}</td>
+          <td><strong>${row.display_name || '—'}</strong></td>
+          <td class="col-num" style="direction: ltr; text-align: right;">${row.display_email || '—'}</td>
+          <td>${row.display_job || '—'}</td>
+          <td class="col-num">${row.display_hiring_date || '—'}</td>
+          <td>
+            <span class="status-badge ${badgeClass}">
+              <span class="status-dot"></span>
+              ${badgeLabel}
+            </span>
+          </td>
+          <td>${detailsHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('stepReviewCard').classList.remove('hidden');
+      document.getElementById('stepReviewCard').scrollIntoView({ behavior: 'smooth' });
+      handleRowCheckboxChange();
+    }
+
+    function toggleSelectAll(e) {
+      const checked = e.target.checked;
+      const checkboxes = document.querySelectorAll('.row-select-checkbox:not(:disabled)');
+      checkboxes.forEach(cb => cb.checked = checked);
+      handleRowCheckboxChange();
+    }
+
+    function handleRowCheckboxChange() {
+      const selected = getSelectedRowNumbers();
+      const badge = document.getElementById('selectedCountBadge');
+      badge.innerHTML = `<span class="status-dot"></span> تم تحديد ${selected.length} صفوف للاعتماد`;
+
+      const btnExec = document.getElementById('btnExecute');
+      btnExec.disabled = selected.length === 0;
+    }
+
+    function getSelectedRowNumbers() {
+      const checkboxes = document.querySelectorAll('.row-select-checkbox:checked');
+      return Array.from(checkboxes).map(cb => parseInt(cb.getAttribute('data-row'), 10));
+    }
+
+    // Approve and Execute
+    async function approveAndExecute() {
+      const selectedRows = getSelectedRowNumbers();
+      if (!selectedRows.length) {
+        showToast('يرجى تحديد صف واحد على الأقل للاعتماد', 'error');
+        return;
+      }
+
+      const approverName = document.getElementById('approvedByName').value.trim();
+      if (!approverName) {
+        showToast('يرجى كتابة اسم المسؤول المعتمد للامتثال', 'error');
+        document.getElementById('approvedByName').focus();
+        return;
+      }
+
+      // Mandatory explicit confirmation dialog (Section 4.1 of Phase 7 Plan)
+      const confirmed = confirm(`⚠️ تنبيه أمان إلزامي (Four-Eyes Principle):\nأنت على وشك اعتماد وإنشاء (${selectedRows.length}) موظف(ين) حياً في Odoo ERP.\n\nهل تؤكد المتابعة والتنفيذ المباشر الآن؟`);
+      if (!confirmed) {
+        showToast('تم إلغاء عملية الاعتماد والتنفيذ', 'info');
+        return;
+      }
+
+      const btn = document.getElementById('btnExecute');
+      btn.innerHTML = '<span class="spinner"></span> جارِ الاعتماد وإنشاء السجلات في Odoo...';
+      btn.disabled = true;
+
+      try {
+        // Step 1: Approve
+        const approvePayload = {
+          report_path: currentReport.report_path,
+          input_path: currentReport.input_path,
+          approved_by: approverName,
+          rows: selectedRows
+        };
+
+        const approveRes = await fetch('/api/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(approvePayload)
+        });
+
+        if (!approveRes.ok) {
+          const err = await approveRes.json();
+          throw new Error('فشل توثيق الاعتماد: ' + (err.detail || 'غير معروف'));
+        }
+
+        const approveData = await approveRes.json();
+        showToast('تم توثيق الاعتماد البشري، جارِ التنفيذ في Odoo...', 'info');
+
+        // Step 2: Execute (calls POST /write with X-API-Key)
+        const maxRows = parseInt(document.getElementById('maxRowsInput').value, 10) || 10;
+        const companyId = parseInt(document.getElementById('companyIdInput').value, 10) || 15;
+
+        const execPayload = {
+          input_path: currentReport.input_path,
+          report_path: currentReport.report_path,
+          approval_path: approveData.approval_path,
+          company_id: companyId,
+          max_rows: maxRows
+        };
+
+        const execRes = await fetch('/write', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-API-Key': 'hr-write-secret-token'
+          },
+          body: JSON.stringify(execPayload)
+        });
+
+        if (!execRes.ok) {
+          const err = await execRes.json();
+          throw new Error('فشل الإنشاء في Odoo: ' + (err.detail || 'غير معروف'));
+        }
+
+        const execData = await execRes.json();
+        renderResultsStep(execData);
+        showToast('اكتملت عملية الإنشاء والتحقق في Odoo بنجاح!', 'success');
+
+      } catch (err) {
+        showToast(err.message, 'error');
+      } finally {
+        btn.innerHTML = `
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          اعتماد وإنشاء الموظفين المحددين في Odoo
+        `;
+        btn.disabled = false;
+      }
+    }
+
+    // Render Final Results
+    function renderResultsStep(data) {
+      updateStepper(3);
+      document.getElementById('stepResultCard').classList.remove('hidden');
+
+      const tbody = document.getElementById('resultTableBody');
+      tbody.innerHTML = '';
+
+      const createdCount = data.created_count || 0;
+      document.getElementById('bannerTitle').innerText = `تم إنشاء ${createdCount} موظف بنجاح والتحقق منهم في Odoo`;
+      
+      let tgNote = '';
+      if (data.telegram && data.telegram.sent) {
+        tgNote = ' • تم إرسال إشعار فوري إلى قناة التيليقرام بنجاح.';
+      }
+      document.getElementById('bannerSub').innerText = 'تم التحقق من تطابق السجلات الحية داخل قاعدة البيانات مباشرة' + tgNote;
+
+      const rows = (data.result && data.result.rows) || [];
+      rows.forEach((r, idx) => {
+        const tr = document.createElement('tr');
+        const isCreated = r.status === 'created';
+        const rowNum = (r.excel_row_number !== undefined && r.excel_row_number !== null)
+          ? r.excel_row_number
+          : ((r.row_number !== undefined && r.row_number !== null) ? r.row_number : (idx + 2));
+        const empName = r.employee_name || r.attempted_name || '—';
+        const empEmail = r.work_email || r.attempted_work_email || '—';
+        const odooId = r.odoo_id || r.odoo_employee_id || '—';
+        tr.innerHTML = `
+          <td class="col-num">${rowNum}</td>
+          <td><strong>${empName}</strong></td>
+          <td class="col-num" style="direction: ltr; text-align: right;">${empEmail}</td>
+          <td class="col-num">${odooId}</td>
+          <td>
+            <span style="color: var(--color-phosphor-green); font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              تم التحقق المباشر
+            </span>
+          </td>
+          <td>
+            <span class="status-badge ${isCreated ? 'is-accepted' : 'is-rejected'}">
+              <span class="status-dot"></span>
+              ${r.status}
+            </span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('rawLogBox').innerText = JSON.stringify(data.result, null, 2);
+      document.getElementById('resultsPathText').innerText = 'مسار النتائج: ' + (data.results_path || '');
+      document.getElementById('stepResultCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function copyAuditLog() {
+      const text = document.getElementById('rawLogBox').innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('تم نسخ سجل التدقيق للحافظة بنجاح', 'success');
+      });
+    }
+
+    function resetForm() {
+      document.getElementById('stepReviewCard').classList.add('hidden');
+      document.getElementById('stepResultCard').classList.add('hidden');
+      document.getElementById('fileInput').value = '';
+      document.getElementById('filePreviewArea').classList.add('hidden');
+      document.getElementById('btnDryRun').disabled = true;
+      selectedFile = null;
+      currentReport = null;
+      updateStepper(1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

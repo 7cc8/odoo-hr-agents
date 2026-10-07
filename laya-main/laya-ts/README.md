@@ -1,0 +1,231 @@
+# laya-ts
+
+TypeScript inference for Laya (`Agent.predict`, `Router`, `lang`, `email`, `presets`, `shortlist`, `hooks`) on Node and the browser via split ONNX (`encoder.onnx` + `head.onnx`). ESM-only (`"type": "module"`); no CJS build — import from ESM or bundle.
+
+## Export weights (once per checkpoint)
+
+```bash
+python laya-ts/scripts/export_onnx.py --model-dir <ckpt> --out-dir ./model
+# writes encoder.onnx, head.onnx + copies tokenizer.json, rl_agent_config.json
+# verifies torch vs ONNX match within 1e-4 (skip with --no-verify)
+```
+
+## Node (CPU/CUDA)
+
+```ts
+import { Agent, Router } from "laya-ts";
+
+const agent = await Agent.load("./model"); // local dir, or ("convaiinnovations/laya", { subfolder: "multilingual" })
+const router = new Router();
+router.attach("english", agent);
+const out = await router.predict({ body: "charged twice, refund please" }, {
+  intent: { type: "choice", instructions: "What does the customer want?", criteria: { refund: "money back", other: "anything else" } },
+});
+console.log(out.answers.intent);
+```
+
+CUDA: `Agent.load("./model", { device: "cuda" })` (falls back to CPU with a warning).
+
+## Browser (WebGPU → WASM fallback)
+
+```ts
+import { Agent } from "laya-ts";
+
+const agent = await Agent.load("https://example.com/models/laya"); // serves encoder.onnx, head.onnx, tokenizer.json, rl_agent_config.json
+const out = await agent.predict("charged twice", {
+  d: { type: "choice", instructions: "pick", criteria: { refund: "money back", other: "rest" } },
+});
+```
+
+`onnxruntime-node` / `onnxruntime-web` are optional peer deps, imported lazily behind the provider you use.
+
+## Hooks (observe or shape every decision)
+
+Port of the Python `laya.hooks` lifecycle. A hook is a `(ctx) => void` for `onPredictStart` /
+`onPredictEnd`, or an object implementing any subset of `onPredictStart`, `onPredictEnd`,
+`onRoute`, `onLoad`, `onEvict`, `onError`. A hook may be `async`: it is awaited, in order, before the
+call continues, and a rejection follows `hooksRaise` like a thrown error. `onRoute` runs inside the
+synchronous `route()`, so it is not awaited and a rejection there is only logged:
+
+```ts
+const tracer = {
+  onPredictStart(ctx) { console.time(ctx.runId); },
+  onPredictEnd(ctx) { console.timeEnd(ctx.runId); console.log(ctx.model, ctx.usage, ctx.elapsedMs); },
+};
+const router = new Router({ hooks: [tracer], hooksRaise: false }); // telemetry must not fail a request
+await router.withHooks([auditHook], () => router.predict(state, questions)); // scoped install
+
+// a start hook may rewrite ctx.states / ctx.questions, or serve a cached result:
+const cache = { onPredictStart(ctx) { const hit = lookup(ctx.states[0]); if (hit) ctx.skip([hit]); } };
+// an onRoute hook may replace ctx.decision (e.g. pin a checkpoint)
+
+// subclass BaseHook to override only the events you need:
+class MetricsHook extends BaseHook {
+  onPredictEnd(ctx) { record(ctx.usage); }
+}
+
+// process-wide defaults run before installed and per-call hooks for every Agent/Router,
+// so a tracer or metrics hook does not have to be threaded through every construction:
+setDefaultHooks([new MetricsHook()]);  // addDefaultHook(...) appends; clearDefaultHooks() resets
+```
+
+## Structured decisions (`decide`)
+
+Turn a JSON schema into typed values in one call — the port of Python's `laya.structured`
+(#280). Enum properties become choice questions, booleans become noul, bounded integers
+become scores; anything the fixed-option model cannot answer (free strings, arrays, nested
+objects, `$ref`) is rejected with a `SchemaError` naming the path:
+
+```ts
+import { Agent, decide } from "laya-ts";
+
+const agent = await Agent.load("./dist/laya");
+const values = await agent.decide(ticketText, {
+  type: "object",
+  properties: {
+    department: { type: "string", enum: ["billing", "support", "sales"] },
+    urgency: { type: "integer", minimum: 0, maximum: 2 },
+    needs_human: { type: "boolean" },
+  },
+});
+// { department: "billing", urgency: 2, needs_human: false }
+```
+
+`router.decide(...)` works the same way (routing options are forwarded to `predict`), and the
+free `decide(runner, state, schema, opts)` accepts anything with a `predict` method. Pass
+`{ returnDetails: true }` for per-field confidence and probabilities, or `{ questions }`
+instead of a schema to get raw answers. Zod/TypeBox users can pass `z.toJSONSchema(Model)` —
+any object with a `toJSONSchema()` method is accepted. `planFromJsonSchema`,
+`questionsFromJsonSchema` and `answersToJson` expose the planning and projection steps.
+
+## Truncation reporting
+
+The state is clamped to whatever token room a question's head leaves, and that budget moves
+with `max_len`, `head_max_len` and the rendered head — so `usage` reports it instead of letting
+you guess from character counts (issue #174; mirrors Python #181):
+
+```ts
+const out = await agent.predict(longState, questions);
+out.usage.truncated;             // true when any state token was dropped
+out.usage.state_tokens;          // encoded length of the full state
+out.usage.state_tokens_dropped;  // worst case across the questions
+out.usage.truncated_questions;   // ids of the questions whose head left too little room
+```
+
+The fields are absent only where no state was ever encoded (empty question schema, or a
+start hook that supplied the result).
+
+### Collapsed options
+
+The same budget also cuts the options themselves: each is capped at 48 tokens, and once they
+overflow `head_max_len` all of them are re-capped at `max(4, (head_max_len - 16) // n)`. Two
+options that share a prefix can come out of that cut as the *same* token span, so the question
+can no longer name them apart while still answering normally — and an answer chosen from 42
+distinguishable spans of 58 has an accuracy ceiling of 72% that nothing else in the response
+mentions (issue #538; mirrors Python `laya.common.collapsed_options`):
+
+```ts
+out.usage.options;   // absent when every option kept a span of its own
+out.usage.options?.intent;  // { total: 58, distinct: 42, tokens_per_option: 4 }
+```
+
+`total` is what the question defines, not the markers that reached the sequence, so a report
+cannot read "43 of 43" about a question whose missing options never entered the input at all.
+
+## Batching (many states, one call)
+
+Port of `Agent.predict_batch` / `Router.route_batch` / `Router.predict_batch`. The throughput
+path: states that share a question schema are collated into one shared forward pass (or one
+per `batchSize` chunk) instead of one pass per state.
+
+```ts
+// Agent: same questions over many states; results align with `states` by index.
+const results = await agent.predictBatch(states, questions, { batchSize: 32 });
+
+// Router: heterogeneous requests — route first, then each checkpoint scores its requests
+// in as few forward passes as possible. Results keep input order and carry `routing`.
+const decisions = router.routeBatch(requests);          // validate + route, nothing loads
+const routed = await router.predictBatch(requests, 32); // == router.predictMany(...)
+// Per-call hooks are composed like predict: installed hooks first, then this list,
+// then onPredictStart / onPredictEnd. null and [] add nothing. hooksRaise overrides
+// the Router's policy for this call. The list runs once per request, including onRoute.
+const traced = await router.predictBatch(requests, null, {
+  hooks: [tracer],
+  onPredictEnd(ctx) { console.log(ctx.usage); },
+  hooksRaise: false,
+});
+
+// requests routed to the same checkpoint still split into separate batches when their
+// question schemas differ (order-sensitively), when per-request start hooks set
+// different ctx.maxLen / ctx.headMaxLen overrides, or — for an agent carrying
+// lang_temperatures — when their languages differ: each request's effective language (an
+// explicit lang, otherwise the detected non-English one) is forwarded to the agent, so
+// the batched path scores exactly like predict. Router-level predict hooks run once per
+// request: ctx.decision is set, ctx.skip() serves a cached result, and onPredictEnd runs
+// per request even when the batch fails.
+```
+
+Python's `sort_by_length` grouping is not ported yet.
+
+## Shortlist (many labels)
+
+```ts
+import { shortlistChoice, predictShortlist, embedFnFromAgent } from "laya-ts";
+
+const keep = await shortlistChoice(state, bigCriteriaDict, embedFn, 20);
+const out = await predictShortlist(agent, state, questions, embedFn, 20);
+// out.shortlist[qid] = { labels, scores, k, n, passthrough }
+// embedFnFromAgent(agent) mean-pools the loaded encoder; a dedicated bi-encoder usually shortlists better.
+```
+
+## Per-language calibration (`lang_temperatures`)
+
+Port of the Python `Agent(lang_temperatures=...)` knob. A language override replaces the
+checkpoint's temperature for matching requests — keys normalise to the base subtag
+(`de-AT` → `de`), an omitted `temperature` inherits the base one, and
+`temperature_by_options` works per option-count bucket as usual:
+
+```ts
+const agent = await Agent.load("convaiinnovations/laya", {
+  lang_temperatures: {
+    de: { temperature: [1.2, 1.2, 1.2] },                 // fitted on German evals
+    ja: { temperature_by_options: { "choice:11+": 1.4 } }, // buckets only, base temperature kept
+  },
+});
+await agent.systemOne(state, questions, { lang: "de" });   // uses the German temperature
+await router.predict(state, questions);                    // Router forwards the detected language
+```
+
+`Router.predict` forwards an explicit `lang` verbatim and otherwise the detected language
+(never `"en"` — matching Python, where detection only names non-English languages), so an
+override applies exactly to the requests it was fitted on.
+
+
+## Example (repo root)
+
+```bash
+node laya-ts/examples/try-ml.mjs   # needs ./model-ml from the export step
+node laya-ts/examples/snake.mjs --ticks 50   # autonomous snake demo, headless smoke (live TUI without --ticks)
+```
+
+## Web demo (browser, WebGPU → WASM)
+
+No build step — serve the repo root over HTTP and open the page
+(`localhost` counts as a secure context for WebGPU):
+
+```bash
+python -m http.server 8000   # run at the repo root
+# open http://localhost:8000/laya-ts/examples/web/
+```
+
+The page loads `laya-ts/dist` (run `npm run build` inside `laya-ts/`
+first), pulls `onnxruntime-web` from a pinned CDN import map, and
+fetches the model from the URL in the box (default `../../../model-ml`,
+i.e. the exported `./model-ml` at the repo root). First load transfers ~1.3GB and is
+cached in CacheStorage afterwards; the encoder tries WebGPU and falls
+back to WASM automatically. Chrome/Edge for WebGPU, any modern
+browser for WASM.
+
+## Packaging
+
+ponytail: CJS/browser-field dual build + tsconfig tests-include deferred — Task 7 verified ESM-only; CJS needs second tsc config + export-map change, untested. Add when a CJS consumer or browser-field swap is requested.

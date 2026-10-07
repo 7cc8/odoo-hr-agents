@@ -1,0 +1,868 @@
+{
+  "id": "FnkQptJrIZaEsmCX",
+  "name": "Odoo HR Agents - Telegram Inbound & Approval Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "name": "Telegram",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        200,
+        300
+      ],
+      "id": "node-tg-trigger",
+      "credentials": {
+        "telegramApi": {
+          "id": "jCdlB4YPyJxECyUz",
+          "name": "Telegram account"
+        }
+      },
+      "notes": "Receives Excel files and button clicks from HR staff"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\nlet senderId = null;\nlet senderName = '';\nlet chatId = null;\nlet eventType = 'text';\nlet action = '';\nlet runId = '';\nlet fileId = '';\nlet fileName = '';\nlet text = '';\n\nif (item.callback_query) {\n  eventType = 'callback';\n  const cb = item.callback_query;\n  const cbId = cb.id;\n  senderId = cb.from ? String(cb.from.id) : null;\n  senderName = (cb.from ? (cb.from.first_name || cb.from.username || '') : '') || 'Telegram User';\n  chatId = cb.message && cb.message.chat ? String(cb.message.chat.id) : senderId;\n  const data = cb.data || '';\n  const idx = data.indexOf(':');\n  if (idx !== -1) {\n    action = data.slice(0, idx);\n    runId = data.slice(idx + 1);\n  } else {\n    action = data;\n  }\n  return [{\n    json: {\n      is_authorized: true,\n      event_type: eventType,\n      action: action,\n      run_id: runId,\n      callback_query_id: cbId,\n      chat_id: chatId,\n      sender_id: senderId,\n      sender_name: senderName\n    }\n  }];\n}\n\nif (item.message) {\n  const msg = item.message;\n  senderId = msg.from ? String(msg.from.id) : null;\n  senderName = (msg.from ? (msg.from.first_name || msg.from.username || '') : '') || 'Telegram User';\n  chatId = msg.chat ? String(msg.chat.id) : senderId;\n  \n  // Whitelist check: allow configured chat_id 696492053\n  const allowed = ['696492053'];\n  const isAuth = allowed.includes(String(chatId)) || allowed.includes(String(senderId));\n\n  if (msg.document) {\n    const fn = msg.document.file_name || 'upload.xlsx';\n    return [{\n      json: {\n        is_authorized: isAuth,\n        event_type: 'excel_upload',\n        file_id: msg.document.file_id,\n        file_name: fn,\n        chat_id: chatId,\n        sender_id: senderId,\n        sender_name: senderName\n      }\n    }];\n  }\n\n  return [{\n    json: {\n      is_authorized: isAuth,\n      event_type: 'text',\n      text: msg.text || '',\n      chat_id: chatId,\n      sessionId: chatId,\n      sender_id: senderId,\n      sender_name: senderName\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    is_authorized: false,\n    event_type: 'unknown',\n    chat_id: chatId\n  }\n}];\n"
+      },
+      "name": "Security & Event Parser",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        440,
+        300
+      ],
+      "id": "node-parser"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.is_authorized }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Is Authorized?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ],
+      "id": "node-is-auth"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "⛔ <b>عذراً، غير مصرح لك باستخدام هذا البوت.</b>\nحسابك غير مدرج في قائمة مسؤولي الموارد البشرية المعتمدين.",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "appendAttribution": false
+        }
+      },
+      "name": "Send Unauthorized",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        520
+      ],
+      "id": "node-send-unauthorized",
+      "credentials": {
+        "telegramApi": {
+          "id": "jCdlB4YPyJxECyUz",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.event_type }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "excel_upload",
+              "output": 0
+            },
+            {
+              "value2": "callback",
+              "output": 1
+            },
+            {
+              "value2": "text",
+              "output": 2
+            }
+          ]
+        }
+      },
+      "name": "Route Event Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        920,
+        240
+      ],
+      "id": "node-route-event"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "⏳ جارِ استلام وتحليل ملف <code>{{ $json.file_name }}</code> تجريبياً...",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "appendAttribution": false
+        }
+      },
+      "name": "Ack Upload",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1160,
+        100
+      ],
+      "id": "node-ack-upload",
+      "credentials": {
+        "telegramApi": {
+          "id": "jCdlB4YPyJxECyUz",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "get",
+        "fileId": "={{ $('Route Event Type').first().json.file_id }}",
+        "download": true,
+        "additionalFields": {}
+      },
+      "name": "Download Excel File",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1380,
+        100
+      ],
+      "id": "node-download-excel",
+      "credentials": {
+        "telegramApi": {
+          "id": "jCdlB4YPyJxECyUz",
+          "name": "Telegram account"
+        }
+      },
+      "notes": "Downloads binary stream securely using official Telegram API credentials"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8000/api/dry-run",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "name": "Run Dry-Run via API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        100
+      ],
+      "id": "node-run-dry-run",
+      "notes": "Executes dry_run_report via resilient API on host"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rep = $input.first().json;\nconst routeData = $('Route Event Type').first().json;\nconst chatId = routeData.chat_id;\nconst fileName = routeData.file_name;\n\nfunction escapeHtml(str) {\n  if (str === null || str === undefined) return '';\n  return String(str)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;')\n    .replace(/\"/g, '&quot;');\n}\n\nconst h = rep.header || {};\nconst s = rep.summary || {};\nconst counts = s.status_counts || {};\nconst rows = rep.rows || [];\nconst runId = h.run_id || rep.run_id || 'unknown';\n\nconst accepted = counts.accepted !== undefined ? counts.accepted : (s.accepted !== undefined ? s.accepted : 0);\nconst needsReview = counts.needs_review !== undefined ? counts.needs_review : (s.needs_review !== undefined ? s.needs_review : 0);\nconst rejected = counts.rejected !== undefined ? counts.rejected : (s.rejected !== undefined ? s.rejected : 0);\nconst total = s.row_count !== undefined ? s.row_count : (s.total_rows !== undefined ? s.total_rows : rows.length);\n\nlet previewRows = '';\nfor (const r of rows.slice(0, 8)) {\n  const ico = r.final_status === 'accepted' ? '✅' : r.final_status === 'rejected' ? '❌' : '⚠️';\n  const name = escapeHtml(r.display_name || ('صف ' + (r.excel_row_number || r.row_number)));\n  const job = r.display_job ? ` (${escapeHtml(r.display_job)})` : '';\n  const reason = (r.final_status !== 'accepted' && r.validation_messages && r.validation_messages.length > 0)\n    ? `\\n   ↳ <i>${escapeHtml(r.validation_messages[0])}</i>`\n    : '';\n  previewRows += `${ico} <b>${name}</b>${job}${reason}\\n`;\n}\n\nlet summaryText = [\n  `📊 <b>نتائج الفحص التجريبي (Dry-Run)</b>`,\n  `────────────────────`,\n  `📁 <b>الملف:</b> <code>${escapeHtml(fileName)}</code>`,\n  `🆔 <b>معرّف الفحص:</b> <code>${escapeHtml(runId)}</code>`,\n  `📈 <b>إجمالي الصفوف:</b> <b>${total}</b>`,\n  ``,\n  `  • جاهز للاعتماد (accepted): <b>${accepted}</b> ✅`,\n  `  • يحتاج مراجعة (needs_review): <b>${needsReview}</b> ⚠️`,\n  `  • مرفوض (rejected): <b>${rejected}</b> ❌`,\n  `────────────────────`,\n  previewRows ? `📋 <b>عينة من الصفوف والملاحظات:</b>\\n${previewRows}────────────────────` : ''\n].filter(Boolean).join('\\n');\n\nif (accepted > 0) {\n  summaryText += `\\n\\n🏢 <b>الشركة:</b> شركة النخبة الذكية للتقنية (15)\\nهل ترغب في اعتماد وإنشاء <b>(${accepted})</b> موظف(ين) في Odoo الآن؟`;\n} else {\n  summaryText += `\\n\\n⚠️ <i>لا توجد صفوف مقبولة للاعتماد. يرجى مراجعة الملاحظات وتصحيح الملف ثم إعادة إرساله، أو اكتب سؤالك هنا وسأساعدك في حله فوراً!</i>`;\n}\n\nreturn [{\n  json: {\n    chat_id: chatId,\n    run_id: runId,\n    has_accepted: accepted > 0,\n    accepted_count: accepted,\n    summary_text: summaryText\n  }\n}];\n"
+      },
+      "name": "Format Dry-Run Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1820,
+        100
+      ],
+      "id": "node-format-summary"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.has_accepted }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "name": "Has Accepted Rows?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        2040,
+        100
+      ],
+      "id": "node-has-accepted"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.summary_text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "={{ '🚀 اعتماد وإنشاء (' + $json.accepted_count + ') في Odoo' }}",
+                    "additionalFields": {
+                      "callback_data": "={{ 'approve:' + $json.run_id }}"
+                    }
+                  },
+                  {
+                    "text": "❌ إلغاء",
+                    "additionalFields": {
+                      "callback_data": "={{ 'cancel:' + $json.run_id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "appendAttribution": false
+        }
+      },
+      "name": "Send Dry-Run Summary & Approval Buttons",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2280,
+        20
+      ],
+      "id": "node-send-summary",
+      "credentials": {
+        "telegramApi": {
+          "id": "jCdlB4YPyJxECyUz",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.summary_text }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "❌ إغلاق التقرير",
+                    "additionalFields": {
+                      "callback_data": "={{ 'cancel:' + $json.run_id }}"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "appendAttribution": false
+        }
+      },
+      "name": "Send Rejection Notice",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2280,
+        180
+      ],
+      "id": "node-send-rejection",
+      "credentials": {
+        "telegramApi": {
+          "id": "jCdlB4YPyJxECyUz",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $('Route Event Type').first().json.action }}",
+              "value2": "approve",
+              "operation": "equal"
+            }
+          ]
+        }
+      },
+      "name": "Is Approve Action?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1160,
+        320
+      ],
+      "id": "node-is-approve"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Route Event Type').first().json.chat_id }}",
+        "text": "🚫 <b>تم إلغاء عملية الاعتماد للفحص:</b> <code>{{ $('Route Event Type').first().json.run_id }}</code>\nيمكنك إرسال ملف Excel جديد في أي وقت.",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "appendAttribution": false
+        }
+      },
+      "name": "Send Cancel Confirmation",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1400,
+        460
+      ],
+      "id": "node-send-cancel",
+      "credentials": {
+        "telegramApi": {
+          "id": "jCdlB4YPyJxECyUz",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Route Event Type').first().json.chat_id }}",
+        "text": "⏳ <b>جارِ الاعتماد والإنشاء في Odoo...</b>\nمعرّف الفحص: <code>{{ $('Route Event Type').first().json.run_id }}</code>\nيرجى الانتظار بضع ثوانٍ.",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "appendAttribution": false
+        }
+      },
+      "name": "Send Progress Update",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1400,
+        280
+      ],
+      "id": "node-send-progress",
+      "credentials": {
+        "telegramApi": {
+          "id": "jCdlB4YPyJxECyUz",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8000/api/approve-and-execute",
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={{ JSON.stringify({ run_id: $('Route Event Type').first().json.run_id, approved_by: $('Route Event Type').first().json.sender_name + ' (Telegram ID: ' + $('Route Event Type').first().json.sender_id + ')', company_id: 15, max_rows: 10 }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "name": "Execute in Odoo via API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1640,
+        280
+      ],
+      "id": "node-execute-api",
+      "notes": "Generates approval.json and runs writer.py with environment guard"
+    },
+    {
+      "parameters": {
+        "jsCode": "const res = $input.first().json;\nconst routeData = $('Route Event Type').first().json;\nconst chatId = routeData.chat_id;\n\nfunction escapeHtml(str) {\n  if (str === null || str === undefined) return '';\n  return String(str)\n    .replace(/&/g, '&amp;')\n    .replace(/</g, '&lt;')\n    .replace(/>/g, '&gt;')\n    .replace(/\"/g, '&quot;');\n}\n\nif (res.status !== 'success') {\n  return [{\n    json: {\n      chat_id: chatId,\n      text: `❌ <b>فشل الاعتماد أو الإنشاء في Odoo:</b>\\n<code>${escapeHtml(res.detail || JSON.stringify(res))}</code>`\n    }\n  }];\n}\n\nconst created = res.created_count || 0;\nconst failed = res.failed_count || 0;\nconst skipped = res.skipped_count || 0;\nconst items = res.created_items || [];\n\nlet namesList = '';\nfor (const it of items) {\n  namesList += `  • <b>${escapeHtml(it.name)}</b> (Odoo ID: <code>${escapeHtml(it.odoo_id)}</code>)\\n`;\n}\n\nconst text = [\n  `🎉 <b>تم اكتمال الإنشاء في Odoo بنجاح!</b>`,\n  `────────────────────`,\n  `🏢 <b>الشركة:</b> شركة النخبة الذكية للتقنية (15)`,\n  `🆔 <b>معرّف الفحص:</b> <code>${escapeHtml(res.run_id)}</code>`,\n  ``,\n  `✅ <b>تم إنشاؤهم بنجاح:</b> <b>${created}</b>`,\n  `❌ <b>فشل:</b> <b>${failed}</b>`,\n  `⏭️ <b>تم تخطيهم:</b> <b>${skipped}</b>`,\n  `────────────────────`,\n  items.length > 0 ? `👥 <b>الموظفون الجدد:</b>\\n${namesList}────────────────────` : '',\n  `✨ تم توثيق الاعتماد وتحديث قاعدة بيانات Odoo بأمان.`\n].filter(Boolean).join('\\n');\n\nreturn [{ json: { chat_id: chatId, text: text } }];\n"
+      },
+      "name": "Format Final Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1880,
+        280
+      ],
+      "id": "node-format-final"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "appendAttribution": false
+        }
+      },
+      "name": "Send Final Confirmation",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2120,
+        280
+      ],
+      "id": "node-send-final",
+      "credentials": {
+        "telegramApi": {
+          "id": "jCdlB4YPyJxECyUz",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {
+          "systemMessage": "أنت المساعد الذكي المعتمد لإدارة الموارد البشرية وأتمتة استيراد الموظفين في Odoo ERP لشركة النخبة الذكية للتقنية (Company ID: 15).\nلديك صلاحيات كاملة لمساعدة مسؤولي الموارد البشرية عبر الأدوات المتاحة لك:\n1. الإجابة عن حالة النظام والاتصال بقاعدة بيانات Odoo عبر أداة check_odoo_status.\n2. الاستعلام عن أحدث فحوصات الإكسل (Dry-Run) عبر أداة list_recent_runs.\n3. فحص وتحليل أي تقرير فحص بدقة بالغة وتوضيح أسباب رفض أو قبول الصفوف عبر أداة inspect_run_details (معرف الفحص run_id).\n4. تنفيذ الاعتماد وإنشاء الموظفين المقبولين في Odoo فورياً عند طلب المستخدم الصريح عبر أداة approve_and_create_employees.\n5. الإجابة على أي استفسارات تخص سياسات الإدخال، الحقول الإلزامية (الاسم، البريد الوظيفي، المسمى الوظيفي، الشركة، تاريخ التعيين)، وصيغ الهواتف المعتمدة عبر أداة hr_import_rules.\n\nقواعدك الأساسية:\n- تحدث دائماً باللغة العربية بأسلوب راقٍ واحترافي ومباشر.\n- استخدم أدواتك دائماً لجلب البيانات الحقيقية من النظام بدلاً من التخمين.\n- إذا طلب المستخدم اعتماد فحص معين بالاسم أو المعرف، نفذ ذلك عبر أداة الاعتماد وأخبره بالنتيجة وأرقام الموظفين الجدد التي تم إنشاؤها في Odoo.\n"
+        }
+      },
+      "name": "Odoo HR AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        1160,
+        560
+      ],
+      "id": "node-ai-agent"
+    },
+    {
+      "parameters": {
+        "model": "qwen/qwen3.8-27b:free",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "name": "OpenRouter Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        960,
+        780
+      ],
+      "id": "node-ai-model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "zqFny3jxESduKu51",
+          "name": "n8n Assistant model"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionKey": "telegram_admin_696492053",
+        "contextWindowLength": 10
+      },
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.1,
+      "position": [
+        1160,
+        780
+      ],
+      "id": "node-ai-memory"
+    },
+    {
+      "parameters": {
+        "name": "check_odoo_status",
+        "description": "فحص حالة الاتصال بنظام Odoo ERP والشركة النشطة وحالة قاعدة البيانات",
+        "jsCode": "let d;\ntry {\n  d = await (await fetch('http://host.docker.internal:8000/api/status')).json();\n} catch (e) {\n  d = { error: e.message };\n}\nreturn JSON.stringify(d);"
+      },
+      "name": "Tool: Odoo Status",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        1360,
+        760
+      ],
+      "id": "node-tool-status"
+    },
+    {
+      "parameters": {
+        "name": "list_recent_runs",
+        "description": "جلب قائمة أحدث عمليات الفحص التجريبي لملفات الموظفين ومعرفات الفحص (run_id) وعدد المقبول والمرفوض",
+        "jsCode": "let d;\ntry {\n  d = await (await fetch('http://host.docker.internal:8000/api/runs')).json();\n} catch (e) {\n  d = { error: e.message };\n}\nreturn JSON.stringify(d);"
+      },
+      "name": "Tool: Recent Runs",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        1520,
+        760
+      ],
+      "id": "node-tool-runs"
+    },
+    {
+      "parameters": {
+        "name": "inspect_run_details",
+        "description": "جلب تفاصيل فحص تجريبي معين بالكامل (أسباب الرفض، الصفوف المقبولة، التنبيهات) عبر معرف الفحص run_id. المدخل query هو معرف الفحص",
+        "jsCode": "const runId = (typeof query === 'string' ? query : (query.run_id || '')).trim();\ntry {\n  const d = await (await fetch(`http://host.docker.internal:8000/api/runs/${encodeURIComponent(runId)}`)).json();\n  return JSON.stringify(d);\n} catch (e) {\n  return JSON.stringify({ error: `تعذر جلب تفاصيل الفحص ${runId}: ${e.message}` });\n}"
+      },
+      "name": "Tool: Inspect Run",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        1680,
+        760
+      ],
+      "id": "node-tool-inspect"
+    },
+    {
+      "parameters": {
+        "name": "approve_and_create_employees",
+        "description": "اعتماد وإنشاء الموظفين المقبولين في نظام Odoo ERP للشركة 15. استخدم هذه الأداة عندما يطلب المستخدم صراحة اعتماد أو تنفيذ الفحص. المدخل هو معرف الفحص run_id",
+        "jsCode": "const runId = (typeof query === 'string' ? query : (query.run_id || '')).trim();\ntry {\n  const res = await fetch('http://host.docker.internal:8000/api/approve-and-execute', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ run_id: runId, approved_by: 'Telegram AI Assistant (User Confirmed)', company_id: 15, max_rows: 10 })\n  });\n  const d = await res.json();\n  return JSON.stringify(d);\n} catch (e) {\n  return JSON.stringify({ error: `فشل التنفيذ في Odoo: ${e.message}` });\n}"
+      },
+      "name": "Tool: Approve and Execute",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        1840,
+        760
+      ],
+      "id": "node-tool-approve"
+    },
+    {
+      "parameters": {
+        "name": "hr_import_rules",
+        "description": "قواعد وشروط استيراد ملفات الإكسل للموظفين (الحقول الإلزامية، صيغة الهواتف، الأقسام، شروط القبول والرفض)",
+        "jsCode": "return JSON.stringify({\n  required_fields: ['name (الاسم)', 'work_email (البريد الوظيفي)', 'job_title (المسمى الوظيفي)', 'company (اسم الشركة أو معرف 15)', 'hiring_date (تاريخ التعيين YYYY-MM-DD)'],\n  phone_rules: 'يجب أن يبدأ بـ 05 أو +966 ويتكون من 10 أرقام سعودية صحيحة',\n  email_rules: 'بريد فريد غير مكرر في Odoo أو داخل نفس الملف',\n  company_default: 'شركة النخبة الذكية للتقنية (معرف: 15)',\n  safety_rules: 'تطبيق قاعدة الشخصين للموافقة (Human Approval) وتحديد أقصى حد 10 موظفين عبر تيليقرام'\n});"
+      },
+      "name": "Tool: HR Rules",
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.1,
+      "position": [
+        2000,
+        760
+      ],
+      "id": "node-tool-rules"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Route Event Type').first().json.chat_id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "parse_mode": "None",
+          "appendAttribution": false
+        }
+      },
+      "name": "Send AI Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1460,
+        560
+      ],
+      "id": "node-send-ai-response",
+      "credentials": {
+        "telegramApi": {
+          "id": "jCdlB4YPyJxECyUz",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Telegram": {
+      "main": [
+        [
+          {
+            "node": "Security & Event Parser",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Security & Event Parser": {
+      "main": [
+        [
+          {
+            "node": "Is Authorized?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Authorized?": {
+      "main": [
+        [
+          {
+            "node": "Route Event Type",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Unauthorized",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Event Type": {
+      "main": [
+        [
+          {
+            "node": "Ack Upload",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Is Approve Action?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Odoo HR AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ack Upload": {
+      "main": [
+        [
+          {
+            "node": "Download Excel File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Excel File": {
+      "main": [
+        [
+          {
+            "node": "Run Dry-Run via API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Dry-Run via API": {
+      "main": [
+        [
+          {
+            "node": "Format Dry-Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Dry-Run Summary": {
+      "main": [
+        [
+          {
+            "node": "Has Accepted Rows?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Accepted Rows?": {
+      "main": [
+        [
+          {
+            "node": "Send Dry-Run Summary & Approval Buttons",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Rejection Notice",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Approve Action?": {
+      "main": [
+        [
+          {
+            "node": "Send Progress Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Cancel Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Progress Update": {
+      "main": [
+        [
+          {
+            "node": "Execute in Odoo via API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute in Odoo via API": {
+      "main": [
+        [
+          {
+            "node": "Format Final Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Final Result": {
+      "main": [
+        [
+          {
+            "node": "Send Final Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Odoo HR AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Odoo HR AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Odoo HR AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: Odoo Status": {
+      "ai_tool": [
+        [
+          {
+            "node": "Odoo HR AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: Recent Runs": {
+      "ai_tool": [
+        [
+          {
+            "node": "Odoo HR AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: Inspect Run": {
+      "ai_tool": [
+        [
+          {
+            "node": "Odoo HR AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: Approve and Execute": {
+      "ai_tool": [
+        [
+          {
+            "node": "Odoo HR AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tool: HR Rules": {
+      "ai_tool": [
+        [
+          {
+            "node": "Odoo HR AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true
+  },
+  "tags": [],
+  "pinData": {}
+}

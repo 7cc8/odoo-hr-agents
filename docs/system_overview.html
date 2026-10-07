@@ -1,0 +1,824 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>سراج | منظومة وكلاء Odoo HR</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f3f0e8;
+        --paper: #fffdf8;
+        --ink: #1d2b2a;
+        --muted: #6c7771;
+        --line: #d8d5c9;
+        --teal: #0e7774;
+        --teal-soft: #dcefed;
+        --amber: #c67a18;
+        --amber-soft: #fff0d3;
+        --red: #a84435;
+        --red-soft: #f9e3dd;
+        --green: #39734d;
+        --green-soft: #e1f0e4;
+        --shadow: 0 18px 45px rgba(43, 58, 54, 0.1);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--bg);
+        font-family: "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+        background-image:
+          linear-gradient(rgba(14, 119, 116, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(14, 119, 116, 0.035) 1px, transparent 1px);
+        background-size: 32px 32px;
+      }
+      .shell {
+        max-width: 1380px;
+        margin: 0 auto;
+        padding: 34px 24px 70px;
+      }
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 32px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .mark {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        background: var(--teal);
+        border-radius: 14px 4px 14px 4px;
+        font-weight: 700;
+        font-size: 22px;
+        box-shadow: 5px 5px 0 #b5d7d2;
+      }
+      .eyebrow {
+        color: var(--teal);
+        font:
+          600 12px "IBM Plex Mono",
+          monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+      h1 {
+        font-size: clamp(28px, 4vw, 52px);
+        line-height: 1.08;
+        margin: 8px 0 10px;
+        max-width: 760px;
+      }
+      h2 {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      h3 {
+        font-size: 17px;
+        margin-bottom: 7px;
+      }
+      .lead {
+        color: var(--muted);
+        max-width: 730px;
+        font-size: 17px;
+        line-height: 1.8;
+      }
+      .status-pill {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 10px 14px;
+        background: var(--paper);
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      .vision-banner {
+        margin-bottom: 22px;
+        padding: 13px 17px;
+        border: 1px solid #e6c27f;
+        border-right: 4px solid var(--amber);
+        border-radius: 8px;
+        background: var(--amber-soft);
+        color: #754605;
+        font-size: 13px;
+        line-height: 1.7;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: 1.3fr 0.7fr;
+        gap: 22px;
+        align-items: stretch;
+        margin-bottom: 22px;
+      }
+      .hero-copy,
+      .hero-note,
+      .panel,
+      .agent-card {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+      }
+      .hero-copy {
+        padding: 34px;
+        border-radius: 24px 6px 24px 6px;
+      }
+      .hero-note {
+        padding: 26px;
+        border-radius: 6px 24px 6px 24px;
+        background: var(--ink);
+        color: #f6f4ec;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero-note:after {
+        content: "";
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        border-radius: 50%;
+        left: -50px;
+        bottom: -80px;
+      }
+      .hero-note .eyebrow {
+        color: #e5b452;
+      }
+      .hero-note p {
+        color: #c6d0ca;
+        line-height: 1.8;
+      }
+      .principle {
+        border-top: 1px solid rgba(255, 255, 255, 0.18);
+        padding-top: 18px;
+        margin-top: 20px;
+        font-size: 14px;
+        line-height: 1.8;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+      .metric {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        padding: 18px;
+        border-radius: 12px 4px 12px 4px;
+      }
+      .metric strong {
+        display: block;
+        font-size: 29px;
+        color: var(--teal);
+        font-family: "IBM Plex Mono", monospace;
+      }
+      .metric span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 36px 0 14px;
+      }
+      .section-head p {
+        color: var(--muted);
+        margin: 0;
+        font-size: 14px;
+      }
+      .dashboard {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 22px;
+      }
+      .panel {
+        padding: 22px;
+        border-radius: 16px 5px 16px 5px;
+      }
+      .panel.wide {
+        grid-column: 1 / -1;
+      }
+      .panel-label {
+        color: var(--muted);
+        font:
+          500 11px "IBM Plex Mono",
+          monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 17px;
+      }
+      .upload-box {
+        border: 1px dashed #99bab5;
+        background: #f2faf8;
+        padding: 22px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .file-icon {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        border-radius: 9px;
+        background: var(--teal);
+        color: #fff;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 13px;
+      }
+      .upload-box strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+      .upload-box small {
+        color: var(--muted);
+      }
+      .action {
+        border: 0;
+        color: #fff;
+        background: var(--teal);
+        padding: 11px 17px;
+        border-radius: 8px;
+        font: 600 13px inherit;
+        cursor: pointer;
+        margin-right: auto;
+      }
+      .action:hover {
+        background: #095d5a;
+      }
+      .run-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .run-row:last-child {
+        border-bottom: 0;
+      }
+      .run-id {
+        font:
+          500 12px "IBM Plex Mono",
+          monospace;
+        color: var(--ink);
+      }
+      .run-meta {
+        margin-right: auto;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .badge {
+        display: inline-flex;
+        padding: 5px 9px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .accepted {
+        background: var(--green-soft);
+        color: var(--green);
+      }
+      .review {
+        background: var(--amber-soft);
+        color: #89500b;
+      }
+      .rejected {
+        background: var(--red-soft);
+        color: var(--red);
+      }
+      .pipeline {
+        display: grid;
+        grid-template-columns: repeat(8, minmax(120px, 1fr));
+        gap: 10px;
+        position: relative;
+      }
+      .agent-card {
+        min-height: 146px;
+        padding: 16px 13px;
+        border-radius: 12px 4px 12px 4px;
+        box-shadow: none;
+        position: relative;
+      }
+      .agent-card:not(:last-child):after {
+        content: "←";
+        position: absolute;
+        left: -17px;
+        top: 52px;
+        color: var(--amber);
+        font-size: 21px;
+        font-family: "IBM Plex Mono", monospace;
+      }
+      .agent-number {
+        color: var(--teal);
+        font:
+          600 11px "IBM Plex Mono",
+          monospace;
+      }
+      .agent-card h3 {
+        margin-top: 12px;
+      }
+      .agent-card p {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.65;
+        margin: 0;
+      }
+      .agent-card.manager {
+        background: var(--ink);
+        color: #fff;
+        border-color: var(--ink);
+      }
+      .agent-card.manager .agent-number {
+        color: #e5b452;
+      }
+      .agent-card.manager p {
+        color: #c6d0ca;
+      }
+      .agent-card.laya {
+        background: var(--amber-soft);
+        border-color: #e6c27f;
+      }
+      .agent-card.writer {
+        background: var(--teal-soft);
+        border-color: #a6d2cc;
+      }
+      .data-flow {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .flow-list {
+        display: grid;
+        gap: 9px;
+      }
+      .flow-step {
+        display: grid;
+        grid-template-columns: 38px 1fr auto;
+        align-items: center;
+        gap: 11px;
+        padding: 12px;
+        background: #faf9f3;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+      }
+      .flow-step .num {
+        width: 29px;
+        height: 29px;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        color: #fff;
+        background: var(--teal);
+        font:
+          600 12px "IBM Plex Mono",
+          monospace;
+      }
+      .flow-step strong {
+        display: block;
+        font-size: 13px;
+      }
+      .flow-step span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .flow-step em {
+        font-style: normal;
+        font:
+          500 10px "IBM Plex Mono",
+          monospace;
+        color: var(--muted);
+      }
+      .decision-box {
+        display: grid;
+        gap: 12px;
+      }
+      .decision {
+        display: grid;
+        grid-template-columns: 10px 1fr;
+        gap: 12px;
+        padding: 15px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #fff;
+      }
+      .decision .bar {
+        border-radius: 8px;
+        background: var(--green);
+      }
+      .decision.review-box .bar {
+        background: var(--amber);
+      }
+      .decision.reject-box .bar {
+        background: var(--red);
+      }
+      .decision strong {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+      .decision p {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+        margin: 0;
+      }
+      .security-note {
+        margin-top: 22px;
+        padding: 19px 22px;
+        border-right: 4px solid var(--amber);
+        background: var(--amber-soft);
+        border-radius: 7px;
+        line-height: 1.8;
+      }
+      .security-note strong {
+        color: #754605;
+      }
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding-top: 34px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      code {
+        font-family: "IBM Plex Mono", monospace;
+        color: var(--teal);
+      }
+      @media (max-width: 1050px) {
+        .pipeline {
+          grid-template-columns: repeat(4, 1fr);
+        }
+        .agent-card:not(:last-child):after {
+          display: none;
+        }
+      }
+      @media (max-width: 760px) {
+        .shell {
+          padding: 22px 14px 45px;
+        }
+        .topbar,
+        .section-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .hero,
+        .dashboard,
+        .data-flow {
+          grid-template-columns: 1fr;
+        }
+        .metrics {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .pipeline {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .panel.wide {
+          grid-column: auto;
+        }
+        .upload-box {
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+        .action {
+          margin-right: 0;
+        }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .hero-copy,
+        .hero-note,
+        .panel,
+        .agent-card {
+          animation: rise 0.55s both;
+        }
+        .agent-card:nth-child(2) {
+          animation-delay: 0.04s;
+        }
+        .agent-card:nth-child(3) {
+          animation-delay: 0.08s;
+        }
+        .agent-card:nth-child(4) {
+          animation-delay: 0.12s;
+        }
+        .agent-card:nth-child(5) {
+          animation-delay: 0.16s;
+        }
+        .agent-card:nth-child(6) {
+          animation-delay: 0.2s;
+        }
+        .agent-card:nth-child(7) {
+          animation-delay: 0.24s;
+        }
+        .agent-card:nth-child(8) {
+          animation-delay: 0.28s;
+        }
+        @keyframes rise {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="vision-banner">
+        <strong>رؤية مستقبلية:</strong> هذه اللوحة تصف الشكل المستهدف للمنظومة.
+        الأرقام والتشغيلات المعروضة توضيحية وليست بيانات تشغيل حقيقية.
+      </div>
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark">س</div>
+          <div>
+            <div class="eyebrow">Odoo HR agent system</div>
+            <strong>سراج · غرفة التحكم</strong>
+          </div>
+        </div>
+        <div class="status-pill">
+          <span class="dot" style="background: var(--amber)"></span> نموذج تصوري
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">single point of contact</div>
+          <h1>أنت تتحدث مع سراج.<br />وهو يدير الرؤية المستقبلية.</h1>
+          <p class="lead">
+            الشركة تعبئ قالب Odoo HR، وأنت تسلّم الملف إلى سراج. هو يفحصه، يوزع
+            المهام على الوكلاء المتخصصين، يجمع الأدلة، ويطلب تدخلك فقط عندما لا
+            تسمح القواعد بالقرار التلقائي.
+          </p>
+        </div>
+        <aside class="hero-note">
+          <div class="eyebrow">قاعدة التشغيل</div>
+          <h2>لا توجد كتابة قبل إثبات الصحة.</h2>
+          <p>
+            كل قرار يمر عبر بيانات منظمة، مطابقة مع Odoo، سياسة مخاطر، وموافقة
+            مرتبطة بنفس نسخة الملف.
+          </p>
+          <div class="principle">
+            <code>input_hash → row_decisions → approval → write → audit</code>
+          </div>
+        </aside>
+      </section>
+
+      <section class="metrics">
+        <div class="metric">
+          <strong>01</strong><span>واجهة المستخدم: سراج فقط</span>
+        </div>
+        <div class="metric">
+          <strong>08</strong><span>أدوار داخلية متخصصة</span>
+        </div>
+        <div class="metric"><strong>03</strong><span>نتائج لكل صف</span></div>
+        <div class="metric">
+          <strong>00</strong><span>كتابة قبل الموافقة</span>
+        </div>
+      </section>
+
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">your workspace</div>
+          <h2>واجهة سراج التي تراها</h2>
+        </div>
+        <p>الملف، حالة التشغيل، والتنبيهات في مكان واحد.</p>
+      </div>
+      <section class="dashboard">
+        <div class="panel">
+          <div class="panel-label">01 / intake</div>
+          <h3>تسليم ملف الشركة</h3>
+          <div class="upload-box">
+            <div class="file-icon">.XLSX</div>
+            <div>
+              <strong>employees_sep_2026.xlsx</strong
+              ><small>الشركة: Al Nukhba · 86 صفاً · قالب HR v1.0</small>
+            </div>
+            <button class="action" type="button">بدء المعالجة</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-label">02 / illustrative data</div>
+          <h3>أمثلة على تشغيلات مستقبلية</h3>
+          <div class="run-row">
+            <span class="dot"></span><span class="run-id">run_20260928_01</span
+            ><span class="run-meta">86 صفاً · منذ 4 دقائق</span
+            ><span class="badge review">مراجعة</span>
+          </div>
+          <div class="run-row">
+            <span class="dot" style="background: var(--green)"></span
+            ><span class="run-id">run_20260927_03</span
+            ><span class="run-meta">24 صفاً · أمس</span
+            ><span class="badge accepted">مكتمل</span>
+          </div>
+          <div class="run-row">
+            <span class="dot" style="background: var(--red)"></span
+            ><span class="run-id">run_20260925_02</span
+            ><span class="run-meta">41 صفاً · 25 سبتمبر</span
+            ><span class="badge rejected">متوقف</span>
+          </div>
+        </div>
+        <div class="panel wide">
+          <div class="panel-label">03 / active run · run_20260928_01</div>
+          <h3>ملخص قرار سراج</h3>
+          <div
+            class="metrics"
+            style="margin: 0; grid-template-columns: repeat(4, 1fr)"
+          >
+            <div class="metric">
+              <strong style="color: var(--green)">71</strong
+              ><span>جاهز للتنفيذ</span>
+            </div>
+            <div class="metric">
+              <strong style="color: var(--amber)">11</strong
+              ><span>تحتاج مراجعة</span>
+            </div>
+            <div class="metric">
+              <strong style="color: var(--red)">4</strong><span>مرفوضة</span>
+            </div>
+            <div class="metric">
+              <strong>86</strong><span>إجمالي الصفوف</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">inside the system</div>
+          <h2>التدفق الداخلي الكامل</h2>
+        </div>
+        <p>كل وكيل يستلم عقداً واضحاً ولا يبدأ إلا عند وصول دوره.</p>
+      </div>
+      <section class="panel wide">
+        <div class="pipeline">
+          <article class="agent-card manager">
+            <div class="agent-number">01 · MANAGER</div>
+            <h3>سراج</h3>
+            <p>يفهم الطلب، يوزع المهام، يجمع النتائج، ويتواصل معك وحدك.</p>
+          </article>
+          <article class="agent-card">
+            <div class="agent-number">02 · SCHEMA</div>
+            <h3>فاحص</h3>
+            <p>يتحقق من الملف، الورقة، الأعمدة، الصيغ، والحجم.</p>
+          </article>
+          <article class="agent-card">
+            <div class="agent-number">03 · DATA</div>
+            <h3>مدقق</h3>
+            <p>ينظف القيم، يتحقق من الحقول، ويكشف التكرار.</p>
+          </article>
+          <article class="agent-card">
+            <div class="agent-number">04 · RESOLVE</div>
+            <h3>موفّق</h3>
+            <p>يطابق الشركة والقسم والوظيفة مع سجلات Odoo.</p>
+          </article>
+          <article class="agent-card laya">
+            <div class="agent-number">05 · DECISION</div>
+            <h3>لبيب / Laya</h3>
+            <p>قرار typed مساعد عند الغموض، لا يملك صلاحية الكتابة.</p>
+          </article>
+          <article class="agent-card">
+            <div class="agent-number">06 · RISK</div>
+            <h3>حارس</h3>
+            <p>يطبق السياسة: تنفيذ، مراجعة، أو رفض.</p>
+          </article>
+          <article class="agent-card writer">
+            <div class="agent-number">07 · WRITE</div>
+            <h3>كاتب</h3>
+            <p>الوكيل المستهدف للكتابة، بعد الموافقة وفي بيئة مصرح بها.</p>
+          </article>
+          <article class="agent-card">
+            <div class="agent-number">08 · AUDIT</div>
+            <h3>سِجِلّ</h3>
+            <p>يحفظ القرار، الدليل، النتيجة، والخطأ إن وجد.</p>
+          </article>
+        </div>
+      </section>
+
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">decision paths</div>
+          <h2>ماذا يحدث لكل صف؟</h2>
+        </div>
+        <p>لا يتوقف الملف كله بسبب صف واحد غير واضح.</p>
+      </div>
+      <section class="data-flow">
+        <div class="panel">
+          <div class="panel-label">row lifecycle</div>
+          <div class="flow-list">
+            <div class="flow-step">
+              <span class="num">1</span>
+              <div>
+                <strong>استلام الصف</strong
+                ><span>يتم تثبيت row_hash و source_hash</span>
+              </div>
+              <em>INPUT</em>
+            </div>
+            <div class="flow-step">
+              <span class="num">2</span>
+              <div>
+                <strong>تحليل وتطبيع</strong
+                ><span>القيم تصبح قابلة للمقارنة</span>
+              </div>
+              <em>NORMALIZE</em>
+            </div>
+            <div class="flow-step">
+              <span class="num">3</span>
+              <div>
+                <strong>مطابقة Odoo</strong
+                ><span>العلاقات تتحول إلى IDs مؤكدة</span>
+              </div>
+              <em>RESOLVE</em>
+            </div>
+            <div class="flow-step">
+              <span class="num">4</span>
+              <div>
+                <strong>قرار حارس</strong><span>سياسة موحدة قبل أي كتابة</span>
+              </div>
+              <em>GATE</em>
+            </div>
+            <div class="flow-step">
+              <span class="num">5</span>
+              <div>
+                <strong>تسجيل النتيجة</strong><span>نجاح أو مراجعة أو رفض</span>
+              </div>
+              <em>AUDIT</em>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-label">decision outcomes</div>
+          <div class="decision-box">
+            <div class="decision">
+              <div class="bar"></div>
+              <div>
+                <strong>accepted · تنفيذ تلقائي</strong>
+                <p>كل الحقول صحيحة، والمراجع مؤكدة، ولا يوجد تكرار أو تعارض.</p>
+              </div>
+            </div>
+            <div class="decision review-box">
+              <div class="bar"></div>
+              <div>
+                <strong>needs_review · اسأل المستخدم</strong>
+                <p>يوجد غموض أو تطابق متعدد أو قرار حساس يحتاج اعتماداً.</p>
+              </div>
+            </div>
+            <div class="decision reject-box">
+              <div class="bar"></div>
+              <div>
+                <strong>rejected · توقف</strong>
+                <p>
+                  البيانات غير صالحة، أو المرجع غير موجود، أو السياسة تمنع
+                  التنفيذ.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="security-note">
+        <strong>حدود الأتمتة:</strong> في الرؤية المستهدفة، Laya تقترح، سراج
+        ينسق، حارس يطبق السياسة، وكاتب ينفذ فقط بعد تحقق الموافقة.
+      </div>
+      <footer class="footer">
+        <span>سراج · منظومة وكلاء Odoo HR</span
+        ><span>هذه الصفحة للرؤية المستقبلية، وليست لوحة حالة تشغيل حالية.</span>
+      </footer>
+    </main>
+  </body>
+</html>

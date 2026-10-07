@@ -1,0 +1,50 @@
+# Environments and secrets
+.env
+.env.*
+!.env.example
+.env.local
+*.env
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+*.egg-info/
+dist/
+build/
+
+# IDE, Agent tooling & generated caches
+.claude/
+.gitnexus/
+graphify-out/
+.idea/
+.vscode/
+
+# Node / JS
+node_modules/
+
+# Dry-run outputs, logs and writer results contain real employee data
+# (name, email, phone) and must never be committed.
+output/
+output_catalog/
+logs/
+*.log
+
+# Writer result files (may appear outside output/ during testing)
+writer_results_*.jsonl
+
+# Archives & Temporary files
+*.zip
+*.tar.gz
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

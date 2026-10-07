@@ -1,0 +1,5 @@
+{
+  "name": "hiring_date",
+  "required": false,
+  "type": "date"
+}

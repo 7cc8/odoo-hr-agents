@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>سراج | حالة MVP الحالية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f4f1e9;
+        --paper: #fffdf8;
+        --ink: #1d2b2a;
+        --muted: #6c7771;
+        --line: #d8d5c9;
+        --teal: #0e7774;
+        --teal-soft: #dcefed;
+        --amber: #c67a18;
+        --amber-soft: #fff0d3;
+        --red: #a84435;
+        --red-soft: #f9e3dd;
+        --green: #39734d;
+        --green-soft: #e1f0e4;
+        --shadow: 0 18px 45px rgba(43, 58, 54, 0.09);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background: var(--bg);
+        font-family: "IBM Plex Sans Arabic", "Segoe UI", sans-serif;
+        background-image:
+          linear-gradient(rgba(14, 119, 116, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(14, 119, 116, 0.035) 1px, transparent 1px);
+        background-size: 32px 32px;
+      }
+      .shell {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 32px 22px 64px;
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 24px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .mark {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        background: var(--teal);
+        border-radius: 14px 4px 14px 4px;
+        font-size: 22px;
+        font-weight: 700;
+        box-shadow: 5px 5px 0 #b5d7d2;
+      }
+      .eyebrow {
+        color: var(--teal);
+        font:
+          600 12px "IBM Plex Mono",
+          monospace;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+      h1 {
+        font-size: clamp(28px, 4vw, 48px);
+        line-height: 1.1;
+        margin: 8px 0 10px;
+      }
+      h2 {
+        font-size: 23px;
+        margin-bottom: 7px;
+      }
+      h3 {
+        font-size: 16px;
+        margin-bottom: 6px;
+      }
+      .lead {
+        color: var(--muted);
+        max-width: 760px;
+        font-size: 16px;
+        line-height: 1.8;
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border: 1px solid #a6d2cc;
+        border-radius: 999px;
+        background: var(--teal-soft);
+        color: var(--teal);
+        font-size: 13px;
+        white-space: nowrap;
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+      }
+      .truth {
+        padding: 14px 17px;
+        margin-bottom: 22px;
+        border: 1px solid #a6d2cc;
+        border-right: 4px solid var(--teal);
+        border-radius: 8px;
+        background: var(--teal-soft);
+        line-height: 1.8;
+        font-size: 13px;
+      }
+      .truth strong {
+        color: #075d5a;
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 22px;
+        margin-bottom: 22px;
+      }
+      .hero-copy,
+      .hero-note,
+      .panel {
+        background: var(--paper);
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow);
+      }
+      .hero-copy {
+        padding: 31px;
+        border-radius: 24px 6px 24px 6px;
+      }
+      .hero-note {
+        padding: 26px;
+        border-radius: 6px 24px 6px 24px;
+        background: var(--ink);
+        color: #f6f4ec;
+      }
+      .hero-note .eyebrow {
+        color: #e5b452;
+      }
+      .hero-note p {
+        color: #c6d0ca;
+        line-height: 1.8;
+      }
+      code {
+        font-family: "IBM Plex Mono", monospace;
+        color: var(--teal);
+      }
+      .hero-note code {
+        color: #e5b452;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .stat {
+        padding: 18px;
+        border: 1px solid var(--line);
+        background: var(--paper);
+        border-radius: 12px 4px 12px 4px;
+      }
+      .stat strong {
+        display: block;
+        color: var(--teal);
+        font:
+          600 28px "IBM Plex Mono",
+          monospace;
+      }
+      .stat span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .section-head {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        margin: 32px 0 14px;
+      }
+      .section-head p {
+        color: var(--muted);
+        margin: 0;
+        font-size: 13px;
+      }
+      .panel {
+        padding: 22px;
+        border-radius: 16px 5px 16px 5px;
+      }
+      .panel-label {
+        color: var(--muted);
+        margin-bottom: 16px;
+        font:
+          500 11px "IBM Plex Mono",
+          monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .module-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 11px;
+      }
+      .module {
+        min-height: 125px;
+        padding: 16px 14px;
+        border: 1px solid #a6d2cc;
+        border-radius: 11px 4px 11px 4px;
+        background: #f5fbf9;
+      }
+      .module .state {
+        display: inline-flex;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: var(--green-soft);
+        color: var(--green);
+        font-size: 10px;
+        font-weight: 600;
+        margin-bottom: 12px;
+      }
+      .module p {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.65;
+        margin: 0;
+      }
+      .evidence {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .checks {
+        display: grid;
+        gap: 9px;
+      }
+      .check {
+        display: grid;
+        grid-template-columns: 22px 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+      .check:last-child {
+        border-bottom: 0;
+      }
+      .check-mark {
+        width: 20px;
+        height: 20px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        background: var(--green);
+        border-radius: 50%;
+        font-size: 12px;
+      }
+      .check strong {
+        display: block;
+        font-size: 13px;
+      }
+      .check span {
+        color: var(--muted);
+        font-size: 11px;
+      }
+      .check code {
+        font-size: 10px;
+      }
+      .open {
+        display: grid;
+        gap: 10px;
+      }
+      .issue {
+        display: grid;
+        grid-template-columns: 10px 1fr;
+        gap: 11px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 9px;
+        background: #fff;
+      }
+      .issue .bar {
+        border-radius: 8px;
+        background: var(--amber);
+      }
+      .issue.red .bar {
+        background: var(--red);
+      }
+      .issue strong {
+        display: block;
+        font-size: 13px;
+        margin-bottom: 4px;
+      }
+      .issue p {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.6;
+        margin: 0;
+      }
+      .boundary {
+        margin-top: 22px;
+        padding: 18px 21px;
+        border-right: 4px solid var(--red);
+        border-radius: 7px;
+        background: var(--red-soft);
+        line-height: 1.8;
+        font-size: 13px;
+      }
+      .boundary strong {
+        color: #84352b;
+      }
+      .links {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+      }
+      .link {
+        display: inline-block;
+        padding: 10px 13px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+        color: var(--teal);
+        text-decoration: none;
+        font-size: 12px;
+      }
+      .link:hover {
+        border-color: var(--teal);
+      }
+      footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding-top: 30px;
+        color: var(--muted);
+        font-size: 11px;
+      }
+      @media (max-width: 850px) {
+        .hero,
+        .evidence {
+          grid-template-columns: 1fr;
+        }
+        .module-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 620px) {
+        .shell {
+          padding: 22px 14px 44px;
+        }
+        .topbar,
+        .section-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .module-grid {
+          grid-template-columns: 1fr;
+        }
+        footer {
+          flex-direction: column;
+        }
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .hero-copy,
+        .hero-note,
+        .panel,
+        .stat {
+          animation: rise 0.5s both;
+        }
+        @keyframes rise {
+          from {
+            opacity: 0;
+            transform: translateY(9px);
+          }
+          to {
+            opacity: 1;
+            transform: none;
+          }
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <div class="truth">
+        <strong>الحالة الفعلية الحالية:</strong> هذه لوحة MVP مبنية على حالة
+        الكود الحالية. لا تعرض تشغيلات وهمية ولا تدّعي أن منظومة الوكلاء
+        الثمانية مكتملة.
+      </div>
+      <header class="topbar">
+        <div class="brand">
+          <div class="mark">س</div>
+          <div>
+            <div class="eyebrow">current mvp status</div>
+            <strong>سراج · لوحة الحالة الحالية</strong>
+          </div>
+        </div>
+        <div class="status">
+          <span class="dot"></span> اختبارات المشروع ناجحة
+        </div>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">what is real today</div>
+          <h1>نواة تشغيل حقيقية،<br />وليست منظومة وكلاء مكتملة.</h1>
+          <p class="lead">
+            المشروع يملك مساراً برمجياً لاختبار واستيراد موظفين من Excel: تحليل،
+            تطبيع، مطابقة، تقرير، موافقة، ثم writer مقيد ببيئة اختبار. أما سراج
+            كمنسق وLaya وبقية الوكلاء فهي رؤية لاحقة.
+          </p>
+        </div>
+        <aside class="hero-note">
+          <div class="eyebrow">evidence boundary</div>
+          <h2>ما تم إثباته</h2>
+          <p>
+            107 اختباراً آلياً ناجحاً، مع تجارب Odoo حية منفصلة لإنشاء موظف
+            واختباره ثم تنظيفه. لم يُثبت بعد تشغيل writer الكامل من Excel إلى
+            Odoo الحقيقي.
+          </p>
+          <code>tested MVP ≠ production system</code>
+        </aside>
+      </section>
+
+      <section class="stats">
+        <div class="stat"><strong>107</strong><span>اختبار آلي ناجح</span></div>
+        <div class="stat">
+          <strong>12</strong><span>اختباراً لـ writer</span>
+        </div>
+        <div class="stat">
+          <strong>01</strong><span>قاعدة اختبار مسموحة للكتابة</span>
+        </div>
+        <div class="stat">
+          <strong>03</strong
+          ><span>نتائج الصف: created / failed / uncertain</span>
+        </div>
+      </section>
+
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">implemented modules</div>
+          <h2>ما هو مبني الآن</h2>
+        </div>
+        <p>الوحدات الحالية كما تظهر في المستودع.</p>
+      </div>
+      <section class="panel">
+        <div class="module-grid">
+          <article class="module">
+            <span class="state">مبني ومختبر</span>
+            <h3>Parser</h3>
+            <p>يفحص Excel، الأعمدة، الصفوف، الصيغ، ويولد hashes.</p>
+          </article>
+          <article class="module">
+            <span class="state">مبني ومختبر</span>
+            <h3>Normalization</h3>
+            <p>يوحد البريد، الأسماء، الهواتف، ومفاتيح المطابقة.</p>
+          </article>
+          <article class="module">
+            <span class="state">مبني ومختبر</span>
+            <h3>Validator</h3>
+            <p>يكشف التكرار ويربط الشركة والقسم والوظيفة ويقرر حالة الصف.</p>
+          </article>
+          <article class="module">
+            <span class="state">مبني ومختبر</span>
+            <h3>Dry-run report</h3>
+            <p>ينتج تقارير JSON وCSV وXLSX مع حماية CSV injection.</p>
+          </article>
+          <article class="module">
+            <span class="state">مبني ومختبر</span>
+            <h3>Approval schema</h3>
+            <p>يربط الموافقة بنفس الملف والـ run والصفوف المقبولة.</p>
+          </article>
+          <article class="module">
+            <span class="state">مبني ومختبر</span>
+            <h3>Writer</h3>
+            <p>يعيد التحقق وينشئ الموظف ويسجل النتيجة، في test DB فقط.</p>
+          </article>
+          <article class="module">
+            <span class="state">مبني ومختبر</span>
+            <h3>Write gateway</h3>
+            <p>
+              يسمح فقط بـ create وread ويمنع write وunlink والبيئات غير المصرح
+              بها.
+            </p>
+          </article>
+          <article class="module">
+            <span class="state">مبني ومختبر</span>
+            <h3>Environment policy</h3>
+            <p>تحدد قاعدة Odoo المسموح لها بعمليات mutation التجريبية.</p>
+          </article>
+        </div>
+      </section>
+
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">evidence & gaps</div>
+          <h2>الدليل والفجوات</h2>
+        </div>
+        <p>الاختبار المحلي والدليل الحي منفصلان بوضوح.</p>
+      </div>
+      <section class="evidence">
+        <div class="panel">
+          <div class="panel-label">verified</div>
+          <div class="checks">
+            <div class="check">
+              <span class="check-mark">✓</span>
+              <div>
+                <strong>اختبارات المشروع</strong
+                ><span>المجموعة الكاملة تمر بنجاح</span>
+              </div>
+              <code>107 / 107</code>
+            </div>
+            <div class="check">
+              <span class="check-mark">✓</span>
+              <div>
+                <strong>إنشاء موظف حي منفصل</strong
+                ><span>إنشاء، قراءة راجعة، ثم تنظيف سجل الاختبار</span>
+              </div>
+              <code>sandbox</code>
+            </div>
+            <div class="check">
+              <span class="check-mark">✓</span>
+              <div>
+                <strong>حواجز الكاتب</strong
+                ><span>رفض قاعدة غير مسموحة وإيقاف النتائج الموجودة</span>
+              </div>
+              <code>guarded</code>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-label">open before pilot</div>
+          <div class="open">
+            <div class="issue">
+              <div class="bar"></div>
+              <div>
+                <strong>اختبار writer حي من الطرف إلى الطرف</strong>
+                <p>
+                  تشغيل ملف Excel حقيقي مع تقرير وموافقة وgateway حقيقي في قاعدة
+                  اختبار.
+                </p>
+              </div>
+            </div>
+            <div class="issue">
+              <div class="bar"></div>
+              <div>
+                <strong>موافقة عملية لموظف HR</strong>
+                <p>
+                  حالياً JSON صحيح تقنياً، لكنه ليس واجهة اعتماد مناسبة
+                  للمستخدم.
+                </p>
+              </div>
+            </div>
+            <div class="issue red">
+              <div class="bar"></div>
+              <div>
+                <strong>تعدد الشركات والإنتاج</strong>
+                <p>
+                  لم يثبت multi-company حياً، والبوابة مقيدة حالياً بقاعدة
+                  اختبار واحدة.
+                </p>
+              </div>
+            </div>
+            <div class="issue red">
+              <div class="bar"></div>
+              <div>
+                <strong>حفظ البيانات والصلاحيات</strong>
+                <p>تحتاج سياسة احتفاظ وصلاحيات وحذف آمن لتقارير الموظفين.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="boundary">
+        <strong>حدود هذه اللوحة:</strong> لا يوجد هنا ادعاء بوجود سراج كمنسق
+        فعلي، أو Laya، أو حوار بين الوكلاء. هذه اللوحة تصف ما يثبته الكود الحالي
+        فقط.
+      </div>
+      <div class="links">
+        <a class="link" href="system_overview.html"
+          >فتح لوحة الرؤية المستقبلية ←</a
+        ><a class="link" href="../README.md">قراءة README ←</a>
+      </div>
+      <footer>
+        <span>سراج · حالة MVP الحالية</span
+        ><span>المصدر: الكود والاختبارات والسجلات الموجودة في المستودع</span>
+      </footer>
+    </main>
+  </body>
+</html>

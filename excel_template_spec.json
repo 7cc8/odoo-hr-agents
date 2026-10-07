@@ -1,0 +1,154 @@
+{
+  "format_version": "1.0",
+  "file_type": ".xlsx",
+  "max_file_size_bytes": 2097152,
+  "max_rows": 1000,
+  "sheets": {
+    "Employees": {
+      "required": true,
+      "locked": false,
+      "columns": [
+        {
+          "name": "name",
+          "required": true,
+          "type": "text"
+        },
+        {
+          "name": "work_email",
+          "required": false,
+          "type": "text"
+        },
+        {
+          "name": "work_phone",
+          "required": false,
+          "type": "text",
+          "excel_number_format": "@"
+        },
+        {
+          "name": "mobile_phone",
+          "required": false,
+          "type": "text",
+          "excel_number_format": "@"
+        },
+        {
+          "name": "job_title",
+          "required": false,
+          "type": "text"
+        },
+        {
+          "name": "hiring_date",
+          "required": false,
+          "type": "date"
+        },
+        {
+          "name": "company",
+          "required": true,
+          "type": "text"
+        },
+        {
+          "name": "department",
+          "required": false,
+          "type": "text",
+          "match_policy": "complete_name_only"
+        },
+        {
+          "name": "job",
+          "required": false,
+          "type": "text",
+          "match_policy": "name_only"
+        }
+      ]
+    },
+    "Reference": {
+      "required": true,
+      "locked": true,
+      "generated_at_field": "reference_generated_at",
+      "columns": [
+        {
+          "name": "reference_generated_at",
+          "required": true,
+          "type": "text"
+        },
+        {
+          "name": "entity_type",
+          "required": true,
+          "type": "text"
+        },
+        {
+          "name": "id",
+          "required": true,
+          "type": "text"
+        },
+        {
+          "name": "company_id",
+          "required": false,
+          "type": "text"
+        },
+        {
+          "name": "company_name",
+          "required": false,
+          "type": "text"
+        },
+        {
+          "name": "name",
+          "required": false,
+          "type": "text"
+        },
+        {
+          "name": "complete_name",
+          "required": false,
+          "type": "text"
+        },
+        {
+          "name": "active",
+          "required": false,
+          "type": "text"
+        }
+      ]
+    }
+  },
+  "header_normalization": {
+    "unicode_form": "NFC",
+    "remove_invisible": true,
+    "trim": true,
+    "collapse_spaces": true,
+    "reject_duplicate_headers_after_normalization": true
+  },
+  "cell_processing": {
+    "value_unicode_form": "NFC",
+    "remove_invisible_codepoints": [
+      "U+200E",
+      "U+200F",
+      "U+202A",
+      "U+202B",
+      "U+202C",
+      "U+202D",
+      "U+202E",
+      "U+00A0",
+      "U+200C"
+    ],
+    "value_cleanup": [
+      "trim",
+      "collapse_spaces"
+    ],
+    "match_key_additional_normalization": [
+      "arabic_digits_to_ascii",
+      "unify_alef_maqsura_ya",
+      "unify_kaf_variants",
+      "lowercase_for_email"
+    ]
+  },
+  "duplicate_rules": {
+    "duplicate_key": "normalized work_email match_key when present else None",
+    "possible_duplicate_fallback": "name.match_key + mobile_phone.match_key"
+  },
+  "report_safety": {
+    "escape_formula_like_prefixes": true,
+    "dangerous_prefixes": [
+      "=",
+      "+",
+      "-",
+      "@"
+    ]
+  }
+}

@@ -1,0 +1,11 @@
+venv/
+.venv/
+node_modules/
+output/
+output_catalog/
+logs/
+.git/
+__pycache__/
+.pytest_cache/
+graphify-out/
+.claude/
