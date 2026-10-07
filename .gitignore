@@ -37,8 +37,14 @@ output_catalog/
 logs/
 *.log
 
-# Writer result files (may appear outside output/ during testing)
+# Secrets & keys
+*.key
+
+# Writer result and audit files
 writer_results_*.jsonl
+*_audit_log.jsonl
+*_audit*.jsonl
+*_pending_approvals.json
 
 # Archives & Temporary files
 *.zip
