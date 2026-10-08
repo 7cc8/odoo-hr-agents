@@ -20,26 +20,12 @@ __pycache__/
 dist/
 build/
 
-# IDE, Agent tooling & generated caches
-.claude/
-.gitnexus/
-graphify-out/
-.idea/
-.vscode/
-laya-models/
-
 # Node / JS
 node_modules/
 
-# Dry-run outputs, logs and writer results contain real employee data
-# (name, email, phone) and must never be committed.
-output/
-output_catalog/
-logs/
-*.log
-
-# Writer result files (may appear outside output/ during testing)
-writer_results_*.jsonl
+# Large binary model and database files exceeding GitHub 100MB limit
+*.safetensors
+.gitnexus/lbug
 
 # Archives & Temporary files
 *.zip

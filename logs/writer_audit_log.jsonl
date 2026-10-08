@@ -1,0 +1,4 @@
+{"timestamp": "2026-10-08T15:45:54.168445+00:00", "stage": "katib_write", "action": "update_employee", "employee_id": 143, "values": {"active": false}, "status": "success"}
+{"timestamp": "2026-10-08T15:58:56.100689+00:00", "stage": "katib_write", "action": "update_employee", "employee_id": 14, "values": {"active": false}, "status": "success"}
+{"timestamp": "2026-10-08T16:00:40.653597+00:00", "stage": "katib_write", "action": "update_employee", "employee_id": 14, "values": {"active": false}, "status": "success"}
+{"timestamp": "2026-10-08T21:13:04.971687+00:00", "stage": "katib_write", "action": "update_employee", "employee_id": 15, "values": {"job_title": "مديرة توظيف"}, "status": "success"}

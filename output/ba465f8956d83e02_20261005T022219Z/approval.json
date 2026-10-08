@@ -1,0 +1,12 @@
+{
+  "run_id": "ba465f8956d83e02",
+  "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+  "source_file_name": "1791166937_test_employees_10.xlsx",
+  "approved_by": "خالد",
+  "approved_at": "2026-10-05T02:22:26Z",
+  "approved_row_hashes": [
+    "1dbb4fee6ad64d4e1c9d4250d6b7904b2dc41373eb94c0f26a4986b464eee6f0",
+    "d45139ea66231f2a8c3b69a58f89df0428f5277498f14b5f88431550ba4e2677",
+    "f4af89caeceb9f989c58c1ffd2770ee47736d9d276071eb51c199d47ad052139"
+  ]
+}

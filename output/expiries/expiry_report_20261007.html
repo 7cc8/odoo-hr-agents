@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>تقرير رصد صلاحيات الوثائق والهويات - 2026-10-07</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 10mm;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'IBM Plex Sans Arabic', -apple-system, sans-serif;
+        }
+        body {
+            background: #F8FAFC;
+            color: #0F172A;
+            padding: 24px;
+            font-size: 13px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            padding: 28px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #E2E8F0;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #0F172A;
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+        }
+        .title-section h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0F172A;
+            margin-bottom: 4px;
+        }
+        .title-section p {
+            font-size: 13px;
+            color: #64748B;
+        }
+        .meta-box {
+            text-align: left;
+            font-size: 12px;
+            color: #475569;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            padding: 14px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #E2E8F0;
+        }
+        .stat-card .num {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .stat-card .label {
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .card-total { background: #F1F5F9; color: #0F172A; }
+        .card-expired { background: #FEF2F2; color: #EF4444; border-color: #FCA5A5; }
+        .card-critical { background: #FFF7ED; color: #F97316; border-color: #FDBA74; }
+        .card-warning { background: #FFFBEB; color: #F59E0B; border-color: #FCD34D; }
+        .card-notice { background: #F0F9FF; color: #0284C7; border-color: #BAE6FD; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th {
+            background: #0F172A;
+            color: #FFFFFF;
+            padding: 10px 12px;
+            text-align: right;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #E2E8F0;
+            vertical-align: middle;
+        }
+        tr:hover td {
+            background: #F8FAFC;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge-expired { background: #FEF2F2; color: #B91C1C; border: 1px solid #F87171; }
+        .badge-critical { background: #FFF7ED; color: #C2410C; border: 1px solid #FB923C; }
+        .badge-warning { background: #FFFBEB; color: #B45309; border: 1px solid #FBBF24; }
+        .badge-notice { background: #F0F9FF; color: #0369A1; border: 1px solid #38BDF8; }
+
+        .footer {
+            margin-top: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #64748B;
+            border-top: 1px solid #E2E8F0;
+            padding-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title-section">
+                <h1>📋 تقرير الرصد الاستباقي لانتهاء الوثائق والصلاحيات</h1>
+                <p>مراقبة شاملة لبطاقات الهوية والإقامات وجوازات السفر وتصاريح العمل وفترات التجربة والعقود</p>
+            </div>
+            <div class="meta-box">
+                <div><b>تاريخ الفحص:</b> 2026-10-07</div>
+                <div><b>إجمالي المفحوصين:</b> 15 موظفاً</div>
+                <div><b>النظام:</b> Odoo ERP + أنظمة مقيم وقوى والعمل</div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card card-total">
+                <div class="num">0</div>
+                <div class="label">إجمالي التنبيهات المستحقة</div>
+            </div>
+            <div class="stat-card card-expired">
+                <div class="num">0</div>
+                <div class="label">منتهية الصلاحية (مخالفة)</div>
+            </div>
+            <div class="stat-card card-critical">
+                <div class="num">0</div>
+                <div class="label">حرجة (خلال 7 أيام)</div>
+            </div>
+            <div class="stat-card card-warning">
+                <div class="num">0</div>
+                <div class="label">تحذيرية (خلال 30 يوماً)</div>
+            </div>
+            <div class="stat-card card-notice">
+                <div class="num">0</div>
+                <div class="label">تنبيه مبكر (خلال 90 يوماً)</div>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 40px; text-align: center;">#</th>
+                    <th>الموظف والوظيفة</th>
+                    <th>الوثيقة / الصلاحية</th>
+                    <th>الإدارة / القسم</th>
+                    <th style="text-align: center;">تاريخ الانتهاء</th>
+                    <th style="text-align: center;">المهلة المتبقية</th>
+                    <th>السند والضابط النظامي</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 40px; color: #10B981; font-weight: 700;">
+                    ✅ لا توجد وثائق منتهية أو قاربت على الانتهاء خلال فترة الفحص المحددة.
+                </td>
+            </tr>
+            
+            </tbody>
+        </table>
+
+        <div class="footer">
+            <div>تم التوليد آلياً عبر محرك الرقابة والاستباق الإداري لسراج • Odoo HR System</div>
+            <div>مطابق للأنظمة السعودية: مقيم، قوى، التأمينات، ونظام العمل</div>
+        </div>
+    </div>
+</body>
+</html>

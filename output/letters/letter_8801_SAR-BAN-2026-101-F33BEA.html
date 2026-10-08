@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>خطاب مصرفي لفتح حساب أو تمويل - سعد بن خالد الدوسري</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1e293b;
+            background: #ffffff;
+            margin: 0;
+            padding: 20px;
+            font-size: 13.5px;
+            line-height: 1.7;
+        }
+        .letter-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #e2e8f0;
+            padding: 40px;
+            border-radius: 8px;
+            position: relative;
+            background: #ffffff;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #0f766e;
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
+        .company-ar {
+            text-align: right;
+        }
+        .company-en {
+            text-align: left;
+            direction: ltr;
+        }
+        .company-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f766e;
+            margin: 0;
+        }
+        .company-sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .logo-placeholder {
+            font-size: 26px;
+            font-weight: 800;
+            color: #0f766e;
+            text-align: center;
+            background: #f0fdfa;
+            border: 1px dashed #0f766e;
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
+        .doc-meta {
+            display: flex;
+            justify-content: space-between;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 10px 16px;
+            margin-bottom: 25px;
+            font-size: 12px;
+        }
+        .doc-title {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .doc-title h1 {
+            font-size: 20px;
+            color: #0f172a;
+            margin: 0;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #cbd5e1;
+            display: inline-block;
+        }
+        .doc-title h2 {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: normal;
+            margin: 4px 0 0 0;
+        }
+        .letter-text {
+            font-size: 14px;
+            line-height: 2;
+            color: #1e293b;
+            text-align: justify;
+        }
+        .bilingual-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+        .bilingual-container .col-ar,
+        .bilingual-container .col-en {
+            flex: 1;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+        }
+        .salary-card {
+            margin: 20px 0;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .salary-header {
+            background: #16a34a;
+            color: #ffffff;
+            padding: 8px 16px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .salary-grid {
+            padding: 12px 16px;
+        }
+        .salary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed #cbd5e1;
+            font-size: 13px;
+        }
+        .salary-row:last-child {
+            border-bottom: none;
+        }
+        .total-row {
+            font-weight: 700;
+            color: #15803d;
+            font-size: 14px;
+            border-top: 1px solid #16a34a;
+            margin-top: 6px;
+            padding-top: 8px;
+        }
+        .bank-box {
+            background: #f1f5f9;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12.5px;
+            margin-bottom: 15px;
+        }
+        .chamber-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin: 15px 0;
+            font-size: 12px;
+        }
+        .footer-signatures {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .seal-box {
+            text-align: center;
+            border: 2px dashed #0f766e;
+            padding: 12px 24px;
+            border-radius: 50%;
+            width: 110px;
+            height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #0f766e;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .signature-box {
+            text-align: center;
+            min-width: 180px;
+        }
+        .signature-title {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 30px;
+        }
+        .verif-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 11px;
+            color: #94a3b8;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="letter-container">
+        <div class="header">
+            <div class="company-ar">
+                <div class="company-name">شركة النخبة الذكية للتقنية</div>
+                <div class="company-sub">إدارة الموارد البشرية والعمليات</div>
+                <div class="company-sub">المملكة العربية السعودية - الرياض</div>
+            </div>
+            <div class="logo-placeholder">ELITE HR</div>
+            <div class="company-en">
+                <div class="company-name">Smart Elite Tech Co.</div>
+                <div class="company-sub">Human Resources Department</div>
+                <div class="company-sub">Riyadh, Kingdom of Saudi Arabia</div>
+            </div>
+        </div>
+
+        <div class="doc-meta">
+            <div><strong>تاريخ الإصدار / Date:</strong> 2026/10/07</div>
+            <div><strong>رقم الطلب / Request No:</strong> #8801</div>
+            <div><strong>رمز التحقق / Verification Code:</strong> <code>SAR-BAN-2026-101-F33BEA</code></div>
+        </div>
+
+        <div class="doc-title">
+            <h1>خطاب مصرفي لفتح حساب أو تمويل</h1>
+            <h2>Bank Request Letter</h2>
+        </div>
+
+        
+            <div class="letter-body" dir="rtl">
+                <p class="letter-text">تشهد إدارة الموارد البشرية بأن الموظف/ سعد بن خالد الدوسري (سعودي الجنسية)، وحامل الهوية الوطنية رقم (1098765432)، يعمل لدينا بمسمى وظيفي (مهندس برمجيات أول) بإدارة (إدارة تقنية المعلومات)، وذلك منذ تاريخ التحاقه بالعمل في (2022-01-15) ولا يزال على رأس العمل حتى تاريخه.<br><br>ويتقاضى الموظف راتباً شهرياً مفصلاً كالتالي:<br>- الراتب الأساسي: 12,000.00 ريال سعودي<br>- بدل السكن: 3,000.00 ريال سعودي<br>- بدل النقل: 1,200.00 ريال سعودي<br>- بدلات ومزايا أخرى: 800.00 ريال سعودي<br>• إجمالي الراتب الشهري: 17,000.00 ريال سعودي.<br><br>وقد أُعطي هذا الخطاب بناءً على طلبه لتقديمه إلى (بنك الإنماء) لغرض (فتح حساب راتب) دون أدنى مسؤولية أو التزام مالي على المنشأة تجاه الغير.</p>
+            </div>
+            
+        
+            <div class="salary-card">
+                <div class="salary-header">تفاصيل حزمة الأجر والبدلات المعتمدة / Compensation Details</div>
+                <div class="salary-grid">
+                    <div class="salary-row">
+                        <span class="label">الراتب الأساسي / Basic Wage:</span>
+                        <span class="value">12,000.00 ر.س</span>
+                    </div>
+                    <div class="salary-row">
+                        <span class="label">بدل السكن / Housing Allowance:</span>
+                        <span class="value">3,000.00 ر.س</span>
+                    </div>
+                    <div class="salary-row">
+                        <span class="label">بدل النقل / Transportation Allowance:</span>
+                        <span class="value">1,200.00 ر.س</span>
+                    </div>
+                    <div class='salary-row'><span class='label'>بدلات ومزايا أخرى / Other Allowances:</span><span class='value'>800.00 ر.س</span></div>
+                    <div class="salary-row total-row">
+                        <span class="label">إجمالي الراتب الشهري / Total Gross Salary:</span>
+                        <span class="value">17,000.00 ر.س</span>
+                    </div>
+                </div>
+            </div>
+            
+        
+        
+            <div class="chamber-box">
+                <div class="stamp-icon">🏛️</div>
+                <div class="stamp-text">
+                    <strong>تصديق الغرفة التجارية الصناعية</strong><br>
+                    تم توجيه هذا الخطاب لاعتماده وتصديقه إلكترونياً من الغرفة التجارية
+                </div>
+            </div>
+            
+
+        <div class="footer-signatures">
+            <div class="signature-box">
+                <div class="signature-title">الموظف المسؤول / Issued By</div>
+                <div>سراج — المساعد الذكي</div>
+                <div style="font-size: 11px; color: #64748b;">أنظمة الموارد البشرية</div>
+            </div>
+
+            <div class="seal-box">
+                <div>ختم المنشأة</div>
+                <div style="font-size: 9px; margin-top: 4px;">OFFICIAL SEAL</div>
+                <div style="font-size: 8px; margin-top: 2px;">2026/10/07</div>
+            </div>
+
+            <div class="signature-box">
+                <div class="signature-title">مدير الموارد البشرية / HR Director</div>
+                <div>الاعتماد الإلكتروني الموثق</div>
+                <div style="font-size: 11px; color: #64748b;">معتمد إلكترونياً</div>
+            </div>
+        </div>
+
+        <div class="verif-footer">
+            وثيقة رسمية صادرة إلكترونياً عبر منصة سراج لإدارة الموارد البشرية المتكاملة مع Odoo 19 • التحقق من صحة الوثيقة برمز: SAR-BAN-2026-101-F33BEA
+        </div>
+    </div>
+</body>
+</html>
+        

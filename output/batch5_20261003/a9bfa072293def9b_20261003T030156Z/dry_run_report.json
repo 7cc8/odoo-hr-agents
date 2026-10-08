@@ -1,0 +1,125 @@
+{
+  "header": {
+    "odoo_url": "https://odooprosys-hr19.odoo.com",
+    "odoo_db": "odooprosys-hr19-main-37916265",
+    "uid": 5,
+    "version": {
+      "server_version": "19.0+e",
+      "server_version_info": [
+        19,
+        0,
+        0,
+        "final",
+        0,
+        "e"
+      ],
+      "server_serie": "19.0",
+      "protocol_version": 1
+    },
+    "reference_counts": {
+      "companies": 4,
+      "departments": 6,
+      "jobs": 5
+    },
+    "run_id": "a9bfa072293def9b",
+    "source_hash": "a9bfa072293def9bb71eb6dfd9576196f7428234f7b00c2c4059593068518e00"
+  },
+  "summary": {
+    "status_counts": {
+      "accepted": 5
+    },
+    "row_count": 5
+  },
+  "rows": [
+    {
+      "excel_row_number": 2,
+      "final_status": "accepted",
+      "failure_code": null,
+      "reasons": [
+        "Row passed validator checks."
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": 8,
+        "job_id": 22,
+        "employee_match_id": null
+      },
+      "row_hash": "5e9b1e50fb64ebba39349bfa8f56cb0e1844830c207854c3d25ed0d45f309b89",
+      "run_id": "a9bfa072293def9b",
+      "source_hash": "a9bfa072293def9bb71eb6dfd9576196f7428234f7b00c2c4059593068518e00",
+      "parser_warnings": []
+    },
+    {
+      "excel_row_number": 3,
+      "final_status": "accepted",
+      "failure_code": null,
+      "reasons": [
+        "Row passed validator checks."
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": 8,
+        "job_id": 22,
+        "employee_match_id": null
+      },
+      "row_hash": "bf358a724128c24d56b8d439ffcc404890b12aece3d26258a27934faf5545c17",
+      "run_id": "a9bfa072293def9b",
+      "source_hash": "a9bfa072293def9bb71eb6dfd9576196f7428234f7b00c2c4059593068518e00",
+      "parser_warnings": []
+    },
+    {
+      "excel_row_number": 4,
+      "final_status": "accepted",
+      "failure_code": null,
+      "reasons": [
+        "Row passed validator checks."
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": 8,
+        "job_id": 22,
+        "employee_match_id": null
+      },
+      "row_hash": "69899bdc61252cf03476f50a04cd85f20947d765e75c186becab83e87d2f0b99",
+      "run_id": "a9bfa072293def9b",
+      "source_hash": "a9bfa072293def9bb71eb6dfd9576196f7428234f7b00c2c4059593068518e00",
+      "parser_warnings": []
+    },
+    {
+      "excel_row_number": 5,
+      "final_status": "accepted",
+      "failure_code": null,
+      "reasons": [
+        "Row passed validator checks."
+      ],
+      "resolved_ids": {
+        "company_id": 17,
+        "department_id": null,
+        "job_id": null,
+        "employee_match_id": null
+      },
+      "row_hash": "4944002b742b0b2894572810c57c3cde52ed3881b88ba023657dcc418c9152a3",
+      "run_id": "a9bfa072293def9b",
+      "source_hash": "a9bfa072293def9bb71eb6dfd9576196f7428234f7b00c2c4059593068518e00",
+      "parser_warnings": []
+    },
+    {
+      "excel_row_number": 6,
+      "final_status": "accepted",
+      "failure_code": null,
+      "reasons": [
+        "Row passed validator checks."
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": 8,
+        "job_id": 22,
+        "employee_match_id": null
+      },
+      "row_hash": "9be2a4afaa3be08d9525c56bfb8a706a237ce7321291112ba5de3d84ed6cd5b9",
+      "run_id": "a9bfa072293def9b",
+      "source_hash": "a9bfa072293def9bb71eb6dfd9576196f7428234f7b00c2c4059593068518e00",
+      "parser_warnings": []
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - CHANGELOG.md
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    if: ${{ !contains(github.event.head_commit.message, '[skip release]') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Detect version bump
+        id: ver
+        run: |
+          set -euo pipefail
+          CUR="$(node -p "require('./package.json').version")"
+          PREV="$(git show HEAD~1:package.json 2>/dev/null \
+            | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" 2>/dev/null || echo "")"
+          echo "current=$CUR" >> "$GITHUB_OUTPUT"
+          echo "previous=$PREV" >> "$GITHUB_OUTPUT"
+          if [ "$CUR" != "$PREV" ] && [ -n "$CUR" ]; then
+            echo "bumped=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bumped=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip if no version change
+        if: steps.ver.outputs.bumped != 'true'
+        run: echo "Version unchanged (${{ steps.ver.outputs.current }}); skipping release."
+
+      - name: Validate repo before release
+        if: steps.ver.outputs.bumped == 'true'
+        run: npm test
+
+      - name: Build release notes from CHANGELOG.md
+        if: steps.ver.outputs.bumped == 'true'
+        env:
+          VERSION: ${{ steps.ver.outputs.current }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os, re, sys
+          from pathlib import Path
+
+          version = os.environ["VERSION"]
+          tag = f"v{version}"
+          changelog = Path("CHANGELOG.md")
+          if not changelog.exists():
+              sys.exit("ERROR: CHANGELOG.md not found at repository root.")
+
+          lines = changelog.read_text(encoding="utf-8").splitlines()
+          patterns = [
+              re.compile(rf"^##\s+\[(?:v)?{re.escape(version)}\]\s*$"),
+              re.compile(rf"^##\s+(?:v)?{re.escape(version)}\s*$"),
+          ]
+          start = next(
+              (i for i, line in enumerate(lines) if any(p.match(line) for p in patterns)),
+              None,
+          )
+          if start is None:
+              sys.exit(
+                  f"ERROR: No section for {tag} in CHANGELOG.md. "
+                  f"Add a heading like '## [{version}]'."
+              )
+
+          end = len(lines)
+          for i in range(start + 1, len(lines)):
+              if re.match(r"^##\s+", lines[i]):
+                  end = i
+                  break
+
+          notes = "\n".join(lines[start + 1 : end]).strip() + "\n"
+          Path("release-notes.md").write_text(notes, encoding="utf-8")
+          print(f"Wrote release notes for {tag} ({end - start - 1} lines).")
+          PY
+
+      - name: Create tag and GitHub release
+        if: steps.ver.outputs.bumped == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.ver.outputs.current }}
+        run: |
+          set -euo pipefail
+          TAG="v${VERSION}"
+
+          git fetch --tags --force
+          if git rev-parse "$TAG" >/dev/null 2>&1 \
+             || git ls-remote --tags origin "refs/tags/$TAG" | grep -q .; then
+            echo "Tag $TAG already exists; updating release notes only."
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag -a "$TAG" -m "$TAG"
+            git push origin "$TAG"
+          fi
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "$TAG" --notes-file release-notes.md
+          else
+            gh release create "$TAG" --title "$TAG" --notes-file release-notes.md
+          fi

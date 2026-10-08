@@ -1,0 +1,41 @@
+{
+  "header": {
+    "odoo_url": "https://example.odoo.com",
+    "odoo_db": "test_db",
+    "uid": 1,
+    "version": "19.0",
+    "reference_counts": {
+      "companies": 1,
+      "departments": 1,
+      "jobs": 1
+    },
+    "run_id": "f94beedf84e55ede",
+    "source_hash": "f94beedf84e55ede89da11493d3edf36cc97ef4ad6297409b081505cebb30376"
+  },
+  "summary": {
+    "status_counts": {
+      "rejected": 1
+    },
+    "row_count": 1
+  },
+  "rows": [
+    {
+      "excel_row_number": 2,
+      "final_status": "rejected",
+      "failure_code": "reference_not_found",
+      "reasons": [
+        "Department not found for company: تقنية المعلومات"
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": null,
+        "job_id": null,
+        "employee_match_id": null
+      },
+      "row_hash": "0423f4a303b2e9f747d6950674a2b8650be9bd158fb2aaede3e9ceb756eb75d2",
+      "run_id": "f94beedf84e55ede",
+      "source_hash": "f94beedf84e55ede89da11493d3edf36cc97ef4ad6297409b081505cebb30376",
+      "parser_warnings": []
+    }
+  ]
+}

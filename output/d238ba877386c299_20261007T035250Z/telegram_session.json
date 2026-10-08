@@ -1,0 +1,12 @@
+{
+  "run_id": "d238ba877386c299",
+  "input_path": "output\\telegram_uploads\\1791345170_test.xlsx",
+  "report_path": "output\\d238ba877386c299_20261007T035250Z\\dry_run_report.json",
+  "folder": "output\\d238ba877386c299_20261007T035250Z",
+  "source_file_name": "test.xlsx",
+  "accepted_rows": [
+    2
+  ],
+  "user_id": "456",
+  "user_name": "خالد"
+}

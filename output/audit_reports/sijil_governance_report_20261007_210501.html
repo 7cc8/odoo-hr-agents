@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقرير الرقابة والتدقيق وسجل العمليات — الوكيل «سجل»</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ==========================================================================
+           Resend Black Velvet & Supabase Midnight Tokens (DESIGN.md / DESIGN-2.md)
+           ========================================================================== */
+        :root {
+            --color-void-black: #060708;
+            --color-obsidian-card: #0f1214;
+            --color-obsidian-elevated: #161a1e;
+            --color-hairline: #23282e;
+            --color-hairline-bright: #323942;
+            
+            --color-white: #ffffff;
+            --color-snow: #f4f6f8;
+            --color-bone: #e2e6eb;
+            --color-silver: #a0a8b2;
+            --color-smoke: #6e7782;
+            
+            --color-iris-violet: #9281f7;
+            --color-iris-glow: #b3a5ff;
+            --color-iris-gradient: linear-gradient(135deg, #9281f7 0%, #6e56cf 100%);
+            
+            --color-phosphor-green: #3ecf8e;
+            --color-pulse-green: #3ad389;
+            --color-green-soft: rgba(58, 211, 137, 0.12);
+            --color-signal-blue: #3b9eff;
+            --color-alarm-red: #ff5c5c;
+            --color-amber-warning: #ffb224;
+
+            --font-sans: 'IBM Plex Sans Arabic', 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Commit Mono', Consolas, Monaco, monospace;
+        }
+
+        @page {
+            size: A4 portrait;
+            margin: 10mm 12mm 12mm 12mm;
+            @bottom-right {
+                content: "تقرير الحوكمة والتدقيق — الوكيل «سجل»";
+                font-family: var(--font-sans);
+                font-size: 8pt;
+                color: #6e7782;
+            }
+            @bottom-left {
+                content: "الصفحة " counter(page) " من " counter(pages);
+                font-family: var(--font-mono);
+                font-size: 8pt;
+                color: #6e7782;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            background-color: var(--color-void-black);
+            color: var(--color-bone);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            line-height: 1.55;
+            direction: rtl;
+            text-align: right;
+            padding: 24px;
+        }
+
+        .mono {
+            font-family: var(--font-mono);
+            letter-spacing: -0.02em;
+        }
+
+        .bold { font-weight: 700; }
+        .font-xs { font-size: 11px; }
+        .font-sm { font-size: 12px; }
+
+        /* Container */
+        .report-wrapper {
+            max-width: 980px;
+            margin: 0 auto;
+        }
+
+        /* Header Header */
+        .report-header {
+            background: linear-gradient(180deg, #13171b 0%, #0c0e10 100%);
+            border: 1px solid var(--color-hairline);
+            border-radius: 12px;
+            padding: 24px 28px;
+            margin-bottom: 20px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--color-hairline);
+            padding-bottom: 16px;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(146, 129, 247, 0.12);
+            border: 1px solid rgba(146, 129, 247, 0.3);
+            color: var(--color-iris-glow);
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .brand-badge .badge-icon {
+            width: 7px;
+            height: 7px;
+            background: var(--color-iris-violet);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--color-iris-violet);
+        }
+
+        .title-h1 {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--color-white);
+            margin-bottom: 4px;
+            letter-spacing: -0.01em;
+        }
+
+        .title-sub {
+            color: var(--color-silver);
+            font-size: 13px;
+        }
+
+        .digest-box {
+            text-align: left;
+            direction: ltr;
+        }
+
+        .digest-label {
+            font-size: 10px;
+            color: var(--color-smoke);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 3px;
+        }
+
+        .digest-val {
+            font-size: 11px;
+            color: var(--color-phosphor-green);
+            background: #080a0c;
+            border: 1px solid var(--color-hairline);
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .header-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 12px;
+            color: var(--color-silver);
+        }
+
+        .meta-item strong {
+            color: var(--color-snow);
+        }
+
+        /* KPI Dashboard Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+
+        .kpi-card {
+            background: var(--color-obsidian-card);
+            border: 1px solid var(--color-hairline);
+            border-radius: 10px;
+            padding: 16px 18px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 2px;
+            background: var(--color-hairline-bright);
+        }
+
+        .kpi-card.accent-violet::before { background: var(--color-iris-gradient); }
+        .kpi-card.accent-green::before { background: var(--color-pulse-green); }
+        .kpi-card.accent-blue::before { background: var(--color-signal-blue); }
+        .kpi-card.accent-red::before { background: var(--color-alarm-red); }
+
+        .kpi-label {
+            font-size: 11px;
+            color: var(--color-silver);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .kpi-val {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--color-white);
+            margin-bottom: 4px;
+            line-height: 1.1;
+        }
+
+        .kpi-desc {
+            font-size: 10px;
+            color: var(--color-smoke);
+        }
+
+        /* Sections */
+        .report-section {
+            background: var(--color-obsidian-card);
+            border: 1px solid var(--color-hairline);
+            border-radius: 10px;
+            padding: 20px 22px;
+            margin-bottom: 22px;
+            page-break-inside: avoid;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--color-hairline);
+            padding-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--color-white);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Domains grid */
+        .domains-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .domain-stat-box {
+            background: #0b0d0f;
+            border: 1px solid var(--color-hairline);
+            border-radius: 8px;
+            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .domain-stat-name {
+            font-size: 11px;
+            color: var(--color-silver);
+        }
+
+        .domain-stat-count {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--color-snow);
+        }
+
+        .domain-stat-count small {
+            font-size: 10px;
+            color: var(--color-smoke);
+            font-weight: normal;
+        }
+
+        /* Table */
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        table.audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            text-align: right;
+        }
+
+        table.audit-table th {
+            background: #14181c;
+            color: var(--color-silver);
+            padding: 10px 12px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--color-hairline-bright);
+            font-size: 11px;
+        }
+
+        table.audit-table td {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--color-hairline);
+            color: var(--color-bone);
+            vertical-align: middle;
+        }
+
+        table.audit-table tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .domain-tag {
+            background: #191e24;
+            color: #d0d7de;
+            border: 1px solid var(--color-hairline-bright);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .token-cell {
+            color: var(--color-iris-glow);
+            background: rgba(146, 129, 247, 0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 8px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .status-verified {
+            background: rgba(58, 211, 137, 0.12);
+            color: var(--color-pulse-green);
+            border: 1px solid rgba(58, 211, 137, 0.3);
+        }
+
+        .status-alert {
+            background: rgba(255, 92, 92, 0.12);
+            color: var(--color-alarm-red);
+            border: 1px solid rgba(255, 92, 92, 0.3);
+        }
+
+        .status-neutral {
+            background: rgba(160, 168, 178, 0.1);
+            color: var(--color-silver);
+            border: 1px solid var(--color-hairline);
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+        .dot-green { background: var(--color-pulse-green); box-shadow: 0 0 5px var(--color-pulse-green); }
+        .dot-red { background: var(--color-alarm-red); }
+        .dot-gray { background: var(--color-silver); }
+
+        /* Security Seal & Signatures */
+        .seal-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 16px;
+            margin-top: 14px;
+            border-top: 1px solid var(--color-hairline);
+            padding-top: 16px;
+        }
+
+        .seal-statement {
+            font-size: 11px;
+            color: var(--color-smoke);
+            line-height: 1.6;
+        }
+
+        .agent-sig {
+            background: #090b0d;
+            border: 1px dashed var(--color-hairline-bright);
+            border-radius: 8px;
+            padding: 10px 14px;
+            text-align: center;
+        }
+
+        .agent-sig-title {
+            font-size: 10px;
+            color: var(--color-silver);
+            margin-bottom: 4px;
+        }
+
+        .agent-sig-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--color-white);
+        }
+
+        .agent-sig-status {
+            font-size: 9px;
+            color: var(--color-phosphor-green);
+            font-family: var(--font-mono);
+            margin-top: 2px;
+        }
+
+        /* Print overrides */
+        @media print {
+            body {
+                padding: 0;
+                background-color: #060708;
+            }
+            .report-section {
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="report-wrapper">
+    <!-- Header -->
+    <header class="report-header">
+        <div class="header-top">
+            <div>
+                <div class="brand-badge">
+                    <span class="badge-icon"></span>
+                    <span>منظومة وكلاء Odoo HR — وكيل الرقابة والتدقيق «سجل»</span>
+                </div>
+                <h1 class="title-h1">تقرير الحوكمة والتدقيق الرقابي المستمر</h1>
+                <p class="title-sub">سجل العمليات اللاتراجعي، اعتمادات التحقق المزدوج (Four-Eyes)، وشهادات المطابقة بعد الكتابة</p>
+            </div>
+            <div class="digest-box">
+                <div class="digest-label">Report Integrity Hash</div>
+                <div class="digest-val mono">SIJIL-SHA256-D236985C4F44A372</div>
+            </div>
+        </div>
+
+        <div class="header-meta-row">
+            <div class="meta-item">تاريخ الإصدار: <strong class="mono">2026-10-07 21:05:01 UTC</strong></div>
+            <div class="meta-item">بيئة العمل: <strong class="mono" style="color: var(--color-phosphor-green);">Active / Protected</strong></div>
+            <div class="meta-item">حارس البيئة: <strong style="color: var(--color-pulse-green);">ALLOWED_TEST_DBS (حظر الإنتاج التام)</strong></div>
+            <div class="meta-item">سياسة الحذف: <strong style="color: var(--color-iris-glow);">unlink محظور قطعياً</strong></div>
+        </div>
+    </header>
+
+    <!-- KPI Grid -->
+    <section class="kpi-grid">
+        <div class="kpi-card accent-green">
+            <div class="kpi-label">
+                <span>معدل التحقق بعد القراءة</span>
+                <span>🛡️</span>
+            </div>
+            <div class="kpi-val mono" style="color: var(--color-phosphor-green);">100.0%</div>
+            <div class="kpi-desc">مطابقة تامة لقاعدة بيانات Odoo حقلاً بحقل</div>
+        </div>
+
+        <div class="kpi-card accent-violet">
+            <div class="kpi-label">
+                <span>اعتمادات التحقق المزدوج</span>
+                <span>👥</span>
+            </div>
+            <div class="kpi-val mono" style="color: var(--color-iris-glow);">55</div>
+            <div class="kpi-desc">رموز تفويض تم تأكيدها كتابياً «تأكيد»</div>
+        </div>
+
+        <div class="kpi-card accent-blue">
+            <div class="kpi-label">
+                <span>إجمالي العمليات الموثقة</span>
+                <span>📊</span>
+            </div>
+            <div class="kpi-val mono">853</div>
+            <div class="kpi-desc">أحداث مسجلة في دفاتر التدقيق المستمرة</div>
+        </div>
+
+        <div class="kpi-card accent-red">
+            <div class="kpi-label">
+                <span>العمليات المحظورة أمنياً</span>
+                <span>🛑</span>
+            </div>
+            <div class="kpi-val mono" style="color: var(--color-alarm-red);">103</div>
+            <div class="kpi-desc">محاولات حذف وتعديل غير مصرح بها أُجهضت</div>
+        </div>
+    </section>
+
+    <!-- Domain Distribution -->
+    <section class="report-section">
+        <div class="section-header">
+            <div class="section-title">
+                <span>📂</span>
+                <span>توزيع العمليات الرقابية حسب مجالات الموارد البشرية</span>
+            </div>
+            <span class="mono font-xs" style="color: var(--color-silver);">5 مجالات نشطة</span>
+        </div>
+        <div class="domains-grid">
+            
+            <div class="domain-stat-box">
+                <span class="domain-stat-name">إجازات</span>
+                <span class="domain-stat-count mono">53 <small>عملية</small></span>
+            </div>
+            
+
+            <div class="domain-stat-box">
+                <span class="domain-stat-name">برقيات تيليجرام وتفويضات</span>
+                <span class="domain-stat-count mono">724 <small>عملية</small></span>
+            </div>
+            
+
+            <div class="domain-stat-box">
+                <span class="domain-stat-name">حضور وانصراف</span>
+                <span class="domain-stat-count mono">50 <small>عملية</small></span>
+            </div>
+            
+
+            <div class="domain-stat-box">
+                <span class="domain-stat-name">فحص حقول وأمان</span>
+                <span class="domain-stat-count mono">16 <small>عملية</small></span>
+            </div>
+            
+
+            <div class="domain-stat-box">
+                <span class="domain-stat-name">إدارة موظفين</span>
+                <span class="domain-stat-count mono">10 <small>عملية</small></span>
+            </div>
+            
+        </div>
+    </section>
+
+    <!-- Audited Transactions Table -->
+    <section class="report-section">
+        <div class="section-header">
+            <div class="section-title">
+                <span>📜</span>
+                <span>سجل أحدث العمليات والاعتمادات الموثقة (Audit Trail Ledger)</span>
+            </div>
+            <span class="status-pill status-verified">
+                <span class="dot dot-green"></span>
+                <span>سجل رقابي غير قابل للتعديل (Append-Only)</span>
+            </span>
+        </div>
+        <div class="table-responsive">
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;">#</th>
+                        <th style="width: 140px;">التوقيت (UTC)</th>
+                        <th style="width: 110px;">المجال</th>
+                        <th>نوع الإجراء (Action)</th>
+                        <th style="width: 70px;">المعرّف</th>
+                        <th style="width: 130px;">رمز التفويض (Token)</th>
+                        <th style="width: 110px;">التحقق الرقابي</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+            <tr>
+                <td class="mono font-xs">1</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 22:12:03</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-CCBEE9C6</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">2</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 22:11:10</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-76E9E594</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">3</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 22:10:28</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-4228259E</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">4</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 22:08:44</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-C104A9C1</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">5</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 22:07:53</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-C699182C</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">6</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 22:06:50</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-9883E91E</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">7</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 22:03:57</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-F2C65207</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">8</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 21:51:08</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-5B565957</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">9</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 21:45:48</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-9A0FB7F5</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">10</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 21:42:57</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-C519C4C8</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">11</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 21:03:10</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">cancel_clicked</td>
+                <td class="mono font-sm">696492053</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">12</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 20:59:18</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">musleh_batch_healed</td>
+                <td class="mono font-sm">696492053</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">13</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 20:59:08</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">dry_run_ready</td>
+                <td class="mono font-sm">696492053</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">14</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 20:40:41</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-417BABCE</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">15</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 20:40:17</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-D38137B4</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">16</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 20:39:44</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-960681C9</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">17</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 20:18:34</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-2DEE74F5</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">18</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 20:17:53</td>
+                <td><span class="domain-tag">إجازات</span></td>
+                <td class="mono font-sm bold">CREATE_LEAVE</td>
+                <td class="mono font-sm">100</td>
+                <td class="mono font-xs token-cell">LEAVE-12FA2148</td>
+                <td><span class="status-pill status-verified"><span class="dot dot-green"></span>مطابق 100%</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">19</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:12:15</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">attendance_checkin_confirm_requested</td>
+                <td class="mono font-sm">u123</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">20</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:12:15</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">dry_run_ready</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">21</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:12:15</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">voice_note_transcribed</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">22</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:12:13</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">odoo_config_updated</td>
+                <td class="mono font-sm">test_user_1</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">23</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:12:13</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">api_write_dispatched</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">24</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:12:13</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">api_write_success</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">25</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:12:13</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">cancel_clicked</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">26</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:12:13</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">written_confirm_requested</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">27</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:11:21</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">attendance_checkin_confirm_requested</td>
+                <td class="mono font-sm">u123</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">28</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:11:21</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">dry_run_ready</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">29</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:11:21</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">voice_note_transcribed</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">30</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:11:20</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">odoo_config_updated</td>
+                <td class="mono font-sm">test_user_1</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">31</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:11:20</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">api_write_dispatched</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">32</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:11:20</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">api_write_success</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">33</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:11:20</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">cancel_clicked</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">34</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:11:20</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">written_confirm_requested</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">35</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:08:55</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">attendance_checkin_confirm_requested</td>
+                <td class="mono font-sm">u123</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">36</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:08:55</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">dry_run_ready</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">37</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:08:55</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">voice_note_transcribed</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">38</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:08:54</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">odoo_config_updated</td>
+                <td class="mono font-sm">test_user_1</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">39</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:08:54</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">api_write_dispatched</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+
+            <tr>
+                <td class="mono font-xs">40</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">2026-10-07 19:08:54</td>
+                <td><span class="domain-tag">برقيات تيليجرام وتفويضات</span></td>
+                <td class="mono font-sm bold">api_write_success</td>
+                <td class="mono font-sm">456</td>
+                <td class="mono font-xs token-cell">تلقائي / آمن</td>
+                <td><span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span></td>
+            </tr>
+            
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Security & Signatures -->
+    <section class="report-section">
+        <div class="section-header">
+            <div class="section-title">
+                <span>🔏</span>
+                <span>شهادة المطابقة النظامية والختم الرقابي</span>
+            </div>
+            <span class="mono font-xs" style="color: var(--color-phosphor-green);">STATUS: CERTIFIED</span>
+        </div>
+        <div class="seal-grid">
+            <div class="seal-statement">
+                يشهد الوكيل <strong>«سجل»</strong> بأن كافة القيود والعمليات المذكورة أعلاه مسجلة ومحفوظة بنظام الدفاتر غير القابلة للتلاعب (Append-only JSONL)، وتمت مطابقتها بقاعدة بيانات Odoo عبر فحص القراءة المستقل (Readback Verification)، مع الالتزام التام بنظام العمل السعودي ولائحة التأمينات الاجتماعية وحظر استدعاء دوال الحذف التام (unlink).
+            </div>
+            <div class="agent-sig">
+                <div class="agent-sig-title">وكيل التدقيق والرقابة</div>
+                <div class="agent-sig-name">سِجِل (Sijil)</div>
+                <div class="agent-sig-status">DIGITALLY SIGNED</div>
+            </div>
+            <div class="agent-sig">
+                <div class="agent-sig-title">وكيل الأمان وعزل البيئات</div>
+                <div class="agent-sig-name">حَارِس (Hares)</div>
+                <div class="agent-sig-status">ENVIRONMENT SECURED</div>
+            </div>
+        </div>
+    </section>
+</div>
+
+</body>
+</html>

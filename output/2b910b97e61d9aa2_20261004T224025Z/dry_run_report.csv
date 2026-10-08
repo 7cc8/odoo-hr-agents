@@ -1,0 +1,2 @@
+﻿excel_row_number,final_status,failure_code,reasons,company_id,department_id,job_id,employee_match_id,row_hash,run_id,source_hash,parser_warnings
+2,rejected,reference_not_found,Department not found for company: الإدارة العليا,1,,,,70687fd4d0651c921121771f8ab97f481c47cf0870817e2f93bae81f8e37c9bd,2b910b97e61d9aa2,2b910b97e61d9aa284f216f35940aa804716439e30495c80955a433a899034b2,

@@ -1,0 +1,53 @@
+{
+  "header": {
+    "odoo_url": "https://odooprosys-hr19.odoo.com",
+    "odoo_db": "odooprosys-hr19-main-37916265",
+    "uid": 5,
+    "version": {
+      "server_version": "19.0+e",
+      "server_version_info": [
+        19,
+        0,
+        0,
+        "final",
+        0,
+        "e"
+      ],
+      "server_serie": "19.0",
+      "protocol_version": 1
+    },
+    "reference_counts": {
+      "companies": 4,
+      "departments": 6,
+      "jobs": 5
+    },
+    "run_id": "f191634198ccae65",
+    "source_hash": "f191634198ccae651bcef7fdb07986b406600af9b128ff48e29279932a3f4f55"
+  },
+  "summary": {
+    "status_counts": {
+      "accepted": 1
+    },
+    "row_count": 1
+  },
+  "rows": [
+    {
+      "excel_row_number": 2,
+      "final_status": "accepted",
+      "failure_code": null,
+      "reasons": [
+        "Row passed validator checks."
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": 11,
+        "job_id": 25,
+        "employee_match_id": null
+      },
+      "row_hash": "21ce5b61d050960c1a3ffc5da4754ff1c6579467f908b6b42e2079aaa1f713aa",
+      "run_id": "f191634198ccae65",
+      "source_hash": "f191634198ccae651bcef7fdb07986b406600af9b128ff48e29279932a3f4f55",
+      "parser_warnings": []
+    }
+  ]
+}

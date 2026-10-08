@@ -1,0 +1,53 @@
+{
+  "header": {
+    "odoo_url": "https://odooprosys-hr19.odoo.com",
+    "odoo_db": "odooprosys-hr19-main-37916265",
+    "uid": 5,
+    "version": {
+      "server_version": "19.0+e",
+      "server_version_info": [
+        19,
+        0,
+        0,
+        "final",
+        0,
+        "e"
+      ],
+      "server_serie": "19.0",
+      "protocol_version": 1
+    },
+    "reference_counts": {
+      "companies": 4,
+      "departments": 6,
+      "jobs": 5
+    },
+    "run_id": "2b910b97e61d9aa2",
+    "source_hash": "2b910b97e61d9aa284f216f35940aa804716439e30495c80955a433a899034b2"
+  },
+  "summary": {
+    "status_counts": {
+      "rejected": 1
+    },
+    "row_count": 1
+  },
+  "rows": [
+    {
+      "excel_row_number": 2,
+      "final_status": "rejected",
+      "failure_code": "reference_not_found",
+      "reasons": [
+        "Department not found for company: الإدارة العليا"
+      ],
+      "resolved_ids": {
+        "company_id": 1,
+        "department_id": null,
+        "job_id": null,
+        "employee_match_id": null
+      },
+      "row_hash": "d599937d0a9b01a51495690142ee7faf9cffc2034b209027fe10e6c46a816538",
+      "run_id": "2b910b97e61d9aa2",
+      "source_hash": "2b910b97e61d9aa284f216f35940aa804716439e30495c80955a433a899034b2",
+      "parser_warnings": []
+    }
+  ]
+}

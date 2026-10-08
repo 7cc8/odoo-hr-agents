@@ -1,0 +1,41 @@
+{
+  "header": {
+    "odoo_url": "https://example.odoo.com",
+    "odoo_db": "test_db",
+    "uid": 1,
+    "version": "19.0",
+    "reference_counts": {
+      "companies": 1,
+      "departments": 1,
+      "jobs": 1
+    },
+    "run_id": "342d83486cb32566",
+    "source_hash": "342d83486cb325662d383a72f292dcf8d9c2e6e86e38d1a7fa7dc8cf9e591afe"
+  },
+  "summary": {
+    "status_counts": {
+      "accepted": 1
+    },
+    "row_count": 1
+  },
+  "rows": [
+    {
+      "excel_row_number": 2,
+      "final_status": "accepted",
+      "failure_code": null,
+      "reasons": [
+        "Row passed validator checks."
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": 8,
+        "job_id": 22,
+        "employee_match_id": null
+      },
+      "row_hash": "0423f4a303b2e9f747d6950674a2b8650be9bd158fb2aaede3e9ceb756eb75d2",
+      "run_id": "342d83486cb32566",
+      "source_hash": "342d83486cb325662d383a72f292dcf8d9c2e6e86e38d1a7fa7dc8cf9e591afe",
+      "parser_warnings": []
+    }
+  ]
+}

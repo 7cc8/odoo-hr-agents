@@ -1,0 +1,25 @@
+{
+  "name": "@unclecat/agent-skills-cli",
+  "version": "1.0.13",
+  "description": "CLI and docs for installing agent skills by version.",
+  "bin": {
+    "agent-skills": "bin/agent-skills.js"
+  },
+  "scripts": {
+    "test": "node tests/test-skills.js",
+    "release:bump": "node bin/release-bump.js",
+    "release:bump:dry": "node bin/release-bump.js --dry-run"
+  },
+  "files": [
+    "bin",
+    "skills",
+    "commands",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "author": "UncleCat",
+  "engines": {
+    "node": ">=18"
+  }
+}

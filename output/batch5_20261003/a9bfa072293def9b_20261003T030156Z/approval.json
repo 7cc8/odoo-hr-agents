@@ -1,0 +1,14 @@
+{
+  "run_id": "a9bfa072293def9b",
+  "source_hash": "a9bfa072293def9bb71eb6dfd9576196f7428234f7b00c2c4059593068518e00",
+  "source_file_name": "batch5_test_20261003.xlsx",
+  "approved_by": "Abu Kholoud",
+  "approved_at": "2026-10-03T03:02:06Z",
+  "approved_row_hashes": [
+    "5e9b1e50fb64ebba39349bfa8f56cb0e1844830c207854c3d25ed0d45f309b89",
+    "bf358a724128c24d56b8d439ffcc404890b12aece3d26258a27934faf5545c17",
+    "69899bdc61252cf03476f50a04cd85f20947d765e75c186becab83e87d2f0b99",
+    "4944002b742b0b2894572810c57c3cde52ed3881b88ba023657dcc418c9152a3",
+    "9be2a4afaa3be08d9525c56bfb8a706a237ce7321291112ba5de3d84ed6cd5b9"
+  ]
+}

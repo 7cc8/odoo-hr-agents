@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>إنذار كتابي ثانٍ مع خصم - كريم عبدالحميد</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 15mm;
+        }
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #0f172a;
+            background: #ffffff;
+            margin: 0;
+            padding: 20px;
+            font-size: 13.5px;
+            line-height: 1.8;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid #b91c1c;
+            padding: 35px;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #b91c1c;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: #b91c1c;
+        }
+        .company-sub {
+            font-size: 11px;
+            color: #64748b;
+        }
+        .badge {
+            background: #fef2f2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .doc-meta {
+            display: flex;
+            justify-content: space-between;
+            background: #f8fafc;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .title {
+            text-align: center;
+            margin: 15px 0 25px 0;
+        }
+        .title h1 {
+            font-size: 20px;
+            color: #991b1b;
+            margin: 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #fecaca;
+            display: inline-block;
+        }
+        .title h2 {
+            font-size: 13px;
+            color: #64748b;
+            margin: 4px 0 0 0;
+            font-weight: normal;
+        }
+        .emp-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            font-size: 12.5px;
+        }
+        .emp-table td {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+        }
+        .emp-table td.label {
+            font-weight: bold;
+            background: #f1f5f9;
+            width: 25%;
+        }
+        .content {
+            font-size: 14px;
+            line-height: 2;
+            text-align: justify;
+            margin: 20px 0;
+        }
+        .deduction-box {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            border-radius: 6px;
+            padding: 14px;
+            margin: 20px 0;
+        }
+        .deduction-title {
+            color: #9f1239;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+        .deduction-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 12.5px;
+        }
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+        .sig-block {
+            text-align: center;
+            width: 200px;
+        }
+        .sig-title {
+            font-weight: bold;
+            margin-bottom: 40px;
+            color: #0f172a;
+        }
+        .footer-note {
+            margin-top: 30px;
+            font-size: 11px;
+            color: #94a3b8;
+            text-align: center;
+            border-top: 1px solid #f1f5f9;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <div class="company-name">شركة النخبة الذكية للتقنية</div>
+                <div class="company-sub">إدارة الموارد البشرية والتحقيقات الإدارية</div>
+            </div>
+            <div class="badge">إشعار تأديبي رسمي</div>
+        </div>
+
+        <div class="doc-meta">
+            <div><strong>التاريخ:</strong> 2026/10/08</div>
+            <div><strong>رقم القيد في Odoo:</strong> #9901</div>
+            <div><strong>الرقم المرجعي:</strong> <code>WARN-2026-202-0BF649</code></div>
+        </div>
+
+        <div class="title">
+            <h1>إنذار كتابي ثانٍ مع خصم</h1>
+            <h2>Second Written Warning with Deduction</h2>
+        </div>
+
+        <table class="emp-table">
+            <tr>
+                <td class="label">اسم الموظف:</td>
+                <td>كريم عبدالحميد</td>
+                <td class="label">الجنسية:</td>
+                <td>مقيم غير سعودي</td>
+            </tr>
+            <tr>
+                <td class="label">الهوية / الإقامة:</td>
+                <td>2387654321</td>
+                <td class="label">المسمى الوظيفي:</td>
+                <td>مندوب مبيعات ميداني</td>
+            </tr>
+            <tr>
+                <td class="label">الإدارة / القسم:</td>
+                <td>إدارة المبيعات والتسويق</td>
+                <td class="label">تاريخ الواقعة:</td>
+                <td>2026-10-08</td>
+            </tr>
+            <tr>
+                <td class="label">السند القانوني:</td>
+                <td colspan="3">المادة 66 (الفقرة 2) والمادة 71</td>
+            </tr>
+        </table>
+
+        <div class="content">
+            بناءً على الصلاحيات المخولة لإدارة الموارد البشرية، واستناداً إلى أحكام لائحة تنظيم العمل ونظام العمل السعودي (المادة 66 (الفقرة 2) والمادة 71):<br><br>تقرر توجيه (إنذار كتابي ثانٍ مع خصم) إلى الموظف/ كريم عبدالحميد، حامل الإقامة النظامية رقم (2387654321)، الشاغل لوظيفة (مندوب مبيعات ميداني) بإدارة (إدارة المبيعات والتسويق)، نظراً لارتكابه المخالفة التالية بتاريخ (2026-10-08):<br>«عدم تسليم العهدة في الموعد المحدد».<br><br>وعليه، فقد تقرر تطبيق جزاء الحسم من الأجر بمقدار (1.0 أيام) بقيمة إجمالية قدرها (200.00 ريال سعودي)، وذلك بما يتفق مع الحدود المقررة في المادة (71) من نظام العمل.<br><br>نهيب بالموظف ضرورة الالتزام بأنظمة وتعليمات المنشأة وتلافي تكرار المخالفة مستقبلاً، حيث سيترتب على العود تطبيق الجزاءات الأشد المنصوص عليها نظاماً وصولاً إلى إنهاء العقد.
+        </div>
+
+        
+            <div class="deduction-box">
+                <div class="deduction-title">⚠️ قرار الخصم من الأجر (مستند للمادة 71 من نظام العمل)</div>
+                <div class="deduction-row">
+                    <span>عدد أيام الخصم:</span>
+                    <strong>1.0 أيام عمل</strong>
+                </div>
+                <div class="deduction-row">
+                    <span>قيمة الخصم الإجمالية:</span>
+                    <strong>200.00 ر.س</strong>
+                </div>
+                <div class="deduction-row">
+                    <span>الأجر اليومي المعتمد:</span>
+                    <span>200.00 ر.س</span>
+                </div>
+            </div>
+            
+
+        <div class="signatures">
+            <div class="sig-block">
+                <div class="sig-title">المحقق الإداري / الموارد البشرية</div>
+                <div>........................................</div>
+            </div>
+            <div class="sig-block">
+                <div class="sig-title">توقيع الموظف بالعلم والاستلام</div>
+                <div>........................................</div>
+                <div style="font-size: 10px; color: #64748b; margin-top: 4px;">التوقيع لا يعني الإقرار بصحة الواقعة</div>
+            </div>
+            <div class="sig-block">
+                <div class="sig-title">اعتماد المدير العام / المفوض</div>
+                <div>........................................</div>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            تم توثيق هذا الإجراء رسمياً في سجلات المنشأة بنظام Odoo 19 • مرجع الوثيقة: WARN-2026-202-0BF649
+        </div>
+    </div>
+</body>
+</html>
+        

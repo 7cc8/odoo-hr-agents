@@ -1,0 +1,10 @@
+{
+  "run_id": "612143dc50bd79c6",
+  "input_path": "output\\telegram_uploads\\1791162656_employee_import_template_20261005.xlsx",
+  "report_path": "output\\612143dc50bd79c6_20261005T011102Z\\dry_run_report.json",
+  "folder": "output\\612143dc50bd79c6_20261005T011102Z",
+  "source_file_name": "employee_import_template_20261005.xlsx",
+  "accepted_rows": [],
+  "user_id": "696492053",
+  "user_name": "BoSs"
+}

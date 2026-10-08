@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(playwriter skill *)",
+      "Bash(playwriter session *)",
+      "Bash(claude plugin *)"
+    ]
+  }
+}

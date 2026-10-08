@@ -1,0 +1,222 @@
+{
+  "header": {
+    "odoo_url": "https://odooprosys-hr19.odoo.com",
+    "odoo_db": "odooprosys-hr19-main-37916265",
+    "uid": 5,
+    "version": {
+      "server_version": "19.0+e",
+      "server_version_info": [
+        19,
+        0,
+        0,
+        "final",
+        0,
+        "e"
+      ],
+      "server_serie": "19.0",
+      "protocol_version": 1
+    },
+    "reference_counts": {
+      "companies": 4,
+      "departments": 6,
+      "jobs": 5
+    },
+    "run_id": "ba465f8956d83e02",
+    "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d"
+  },
+  "summary": {
+    "status_counts": {
+      "needs_review": 7,
+      "rejected": 3
+    },
+    "row_count": 10
+  },
+  "rows": [
+    {
+      "excel_row_number": 2,
+      "final_status": "needs_review",
+      "failure_code": "duplicate_existing_employee",
+      "reasons": [
+        "Existing employee found by work_email: sara.test1@example.com"
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": 8,
+        "job_id": 22,
+        "employee_match_id": 162
+      },
+      "row_hash": "1dbb4fee6ad64d4e1c9d4250d6b7904b2dc41373eb94c0f26a4986b464eee6f0",
+      "run_id": "ba465f8956d83e02",
+      "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+      "parser_warnings": []
+    },
+    {
+      "excel_row_number": 3,
+      "final_status": "rejected",
+      "failure_code": "reference_not_found",
+      "reasons": [
+        "Department not found for company: قسم غير موجود"
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": null,
+        "job_id": null,
+        "employee_match_id": null
+      },
+      "row_hash": "98daac129a21397fad9ef90a4088128e5b28f02c9f387b166a754d298e04d84f",
+      "run_id": "ba465f8956d83e02",
+      "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+      "parser_warnings": []
+    },
+    {
+      "excel_row_number": 4,
+      "final_status": "rejected",
+      "failure_code": "reference_not_found",
+      "reasons": [
+        "Company not found: شركة غير موجودة"
+      ],
+      "resolved_ids": {
+        "company_id": null,
+        "department_id": null,
+        "job_id": null,
+        "employee_match_id": null
+      },
+      "row_hash": "261ed3d12f919859b304dd05e20c36a74301e9a7f597a9e3e2e93f0ed1df4b51",
+      "run_id": "ba465f8956d83e02",
+      "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+      "parser_warnings": []
+    },
+    {
+      "excel_row_number": 5,
+      "final_status": "needs_review",
+      "failure_code": "duplicate_existing_employee",
+      "reasons": [
+        "Existing employee found by work_email: sara.almutairi@alnokhba-tech.sa"
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": 8,
+        "job_id": 22,
+        "employee_match_id": 15
+      },
+      "row_hash": "b653e2786179633e7ed1c7de603e913624af47c94505e1a2f8c5e566f2ee999c",
+      "run_id": "ba465f8956d83e02",
+      "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+      "parser_warnings": []
+    },
+    {
+      "excel_row_number": 6,
+      "final_status": "rejected",
+      "failure_code": "invalid_work_email",
+      "reasons": [
+        "work_email does not match a valid format: fatima.example.com"
+      ],
+      "resolved_ids": {
+        "company_id": null,
+        "department_id": null,
+        "job_id": null,
+        "employee_match_id": null
+      },
+      "row_hash": "f0c1f66feaec82f20483e5473aa4968777e6ac8da521f53e31755628b1729c1e",
+      "run_id": "ba465f8956d83e02",
+      "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+      "parser_warnings": []
+    },
+    {
+      "excel_row_number": 7,
+      "final_status": "needs_review",
+      "failure_code": "duplicate_in_file",
+      "reasons": [
+        "Duplicate row detected within the same normalized file."
+      ],
+      "resolved_ids": {
+        "company_id": null,
+        "department_id": null,
+        "job_id": null,
+        "employee_match_id": null
+      },
+      "row_hash": "32673d9a6401d680206f712ce64891e0d88baf029c2f50b110c79d859ee8a6d8",
+      "run_id": "ba465f8956d83e02",
+      "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+      "parser_warnings": [
+        "duplicate_in_file"
+      ]
+    },
+    {
+      "excel_row_number": 8,
+      "final_status": "needs_review",
+      "failure_code": "duplicate_in_file",
+      "reasons": [
+        "Duplicate row detected within the same normalized file."
+      ],
+      "resolved_ids": {
+        "company_id": null,
+        "department_id": null,
+        "job_id": null,
+        "employee_match_id": null
+      },
+      "row_hash": "ffeac74ba94deaf41e29de01f5cc038067c60c1e8ff998773801f5f31ea99260",
+      "run_id": "ba465f8956d83e02",
+      "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+      "parser_warnings": [
+        "duplicate_in_file"
+      ]
+    },
+    {
+      "excel_row_number": 9,
+      "final_status": "needs_review",
+      "failure_code": "insufficient_duplicate_signal",
+      "reasons": [
+        "Row has neither work_email nor mobile_phone; cannot establish a reliable duplicate key."
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": null,
+        "job_id": null,
+        "employee_match_id": null
+      },
+      "row_hash": "7cfa6daba60c3719a3ed07fd1559e0962ba52efba23abea3fdb39a59047f4b1c",
+      "run_id": "ba465f8956d83e02",
+      "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+      "parser_warnings": []
+    },
+    {
+      "excel_row_number": 10,
+      "final_status": "needs_review",
+      "failure_code": "duplicate_existing_employee",
+      "reasons": [
+        "Existing employee found by work_email: bandar.test@example.com"
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": 8,
+        "job_id": 22,
+        "employee_match_id": 163
+      },
+      "row_hash": "d45139ea66231f2a8c3b69a58f89df0428f5277498f14b5f88431550ba4e2677",
+      "run_id": "ba465f8956d83e02",
+      "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+      "parser_warnings": [
+        "numeric_cell_in_text_column"
+      ]
+    },
+    {
+      "excel_row_number": 11,
+      "final_status": "needs_review",
+      "failure_code": "duplicate_existing_employee",
+      "reasons": [
+        "Existing employee found by work_email: noura.test@example.com"
+      ],
+      "resolved_ids": {
+        "company_id": 15,
+        "department_id": 8,
+        "job_id": 22,
+        "employee_match_id": 164
+      },
+      "row_hash": "f4af89caeceb9f989c58c1ffd2770ee47736d9d276071eb51c199d47ad052139",
+      "run_id": "ba465f8956d83e02",
+      "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
+      "parser_warnings": []
+    }
+  ]
+}

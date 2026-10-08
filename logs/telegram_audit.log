@@ -1,0 +1,740 @@
+{"timestamp": "2026-10-05T05:35:11Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-05T05:35:11Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-05T05:35:11Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-05T05:35:11Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-05T05:35:11Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "e970e34505e8905d", "accepted": 1}}
+{"timestamp": "2026-10-05T05:35:22Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-05T05:35:22Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-05T05:35:22Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-05T05:35:22Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-05T05:35:22Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "52304db65e753546", "accepted": 1}}
+{"timestamp": "2026-10-05T05:37:07Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-05T05:37:07Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-05T05:37:07Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-05T05:37:07Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-05T05:37:07Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "f88462045dfea9b2", "accepted": 1}}
+{"timestamp": "2026-10-05T05:37:42Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-05T05:37:42Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-05T05:37:42Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-05T05:37:42Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-05T05:37:42Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "190ca975fd2b7aa5", "accepted": 1}}
+{"timestamp": "2026-10-05T22:01:35Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-05T22:01:35Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-05T22:01:35Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-05T22:01:35Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-05T22:01:35Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "f434c93be70cc0be", "accepted": 1}}
+{"timestamp": "2026-10-06T00:45:07Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T00:45:07Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T00:45:07Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T00:45:07Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T00:45:07Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "f7f1c86d5abddf14", "accepted": 1}}
+{"timestamp": "2026-10-06T01:39:46Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:39:46Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T01:39:46Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T01:39:46Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:39:46Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "ab29cc3a9e203920", "accepted": 1}}
+{"timestamp": "2026-10-06T01:40:22Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T01:40:22Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:40:22Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T01:40:22Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T01:40:22Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:40:22Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "536937058fdbd80d", "accepted": 1}}
+{"timestamp": "2026-10-06T01:40:30Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T01:40:30Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:40:30Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T01:40:30Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T01:40:30Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:40:30Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "7a3604f2fda6455a", "accepted": 1}}
+{"timestamp": "2026-10-06T01:46:31Z", "user_id": "696492053", "chat_id": "696492053", "action": "template_sent", "details": {"template": "master"}}
+{"timestamp": "2026-10-06T01:49:16Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T01:49:16Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:49:16Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T01:49:16Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T01:49:16Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:49:16Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "0870870a63309bc9", "accepted": 1}}
+{"timestamp": "2026-10-06T01:49:35Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T01:49:35Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:49:35Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T01:49:35Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T01:49:35Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:49:35Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "f133abc4468473ae", "accepted": 1}}
+{"timestamp": "2026-10-06T01:49:46Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T01:49:46Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:49:46Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T01:49:46Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T01:49:46Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T01:49:46Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "3aac6f9d850a47dc", "accepted": 1}}
+{"timestamp": "2026-10-06T02:55:52Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T02:55:52Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T02:55:52Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T02:55:52Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T02:55:52Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T02:55:52Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "d4a076fa4dd10a37", "accepted": 1}}
+{"timestamp": "2026-10-06T02:58:39Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T02:58:39Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T02:58:39Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T02:58:39Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T02:58:39Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T02:58:39Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "02e6e482143db62f", "accepted": 1}}
+{"timestamp": "2026-10-06T03:05:40Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:05:40Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:05:40Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:05:40Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:05:40Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:05:40Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "0717e1127391280b", "accepted": 1}}
+{"timestamp": "2026-10-06T03:12:24Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:12:24Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:12:24Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:12:24Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:12:24Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:12:24Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "13bb7a4b84c8f7f6", "accepted": 1}}
+{"timestamp": "2026-10-06T03:12:51Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:12:51Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:12:51Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:12:52Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:12:52Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:12:52Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "0e313273101af89c", "accepted": 1}}
+{"timestamp": "2026-10-06T03:13:01Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:13:01Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:13:01Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:13:01Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:13:01Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:13:01Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "3196f82c71b313f5", "accepted": 1}}
+{"timestamp": "2026-10-06T03:14:54Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:14:54Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:14:54Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:14:54Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:14:54Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:14:54Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "3ffb12bc4d592f97", "accepted": 1}}
+{"timestamp": "2026-10-06T03:27:00Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:27:00Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:27:00Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:27:00Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:27:00Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:27:00Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T03:27:00Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "d1d0919fbf10e7d1", "accepted": 1}}
+{"timestamp": "2026-10-06T03:27:08Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:27:08Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:27:08Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:27:08Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:27:08Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:27:08Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T03:27:08Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "003256e0ea825d07", "accepted": 1}}
+{"timestamp": "2026-10-06T03:27:58Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:27:58Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:27:58Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:27:58Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:27:58Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:27:58Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T03:27:58Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "08c9d9595378a21c", "accepted": 1}}
+{"timestamp": "2026-10-06T03:47:52Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:47:52Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:47:52Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:47:52Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:47:52Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:47:52Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T03:47:52Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "48a365808ab5b758", "accepted": 1}}
+{"timestamp": "2026-10-06T03:48:03Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:48:04Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:48:04Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:48:04Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:48:04Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:48:04Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T03:48:04Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "b40ef05b19cf2428", "accepted": 1}}
+{"timestamp": "2026-10-06T03:50:42Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T03:50:42Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:50:42Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T03:50:42Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T03:50:42Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T03:50:42Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T03:50:42Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "d84852579da57afa", "accepted": 1}}
+{"timestamp": "2026-10-06T04:02:04Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:02:04Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:02:04Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:02:04Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:02:04Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:02:04Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:02:04Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "edcf846b3b6b487c", "accepted": 1}}
+{"timestamp": "2026-10-06T04:02:21Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:02:21Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:02:21Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:02:21Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:02:21Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:02:21Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:02:21Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "e4686336b3756c5b", "accepted": 1}}
+{"timestamp": "2026-10-06T04:02:31Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:02:31Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:02:31Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:02:31Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:02:31Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:02:31Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:02:31Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "334590d0e7e8639e", "accepted": 1}}
+{"timestamp": "2026-10-06T04:12:44Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:12:44Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:12:44Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:12:44Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:12:44Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:12:44Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:12:44Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "c5fc1ae46637fafe", "accepted": 1}}
+{"timestamp": "2026-10-06T04:12:52Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:12:52Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:12:52Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:12:52Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:12:52Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:12:52Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:12:52Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "4c8b281ecd53e981", "accepted": 1}}
+{"timestamp": "2026-10-06T04:22:22Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:22:22Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:22:22Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:22:22Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:22:22Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:22:22Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:22:22Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "a5c46717470134ef", "accepted": 1}}
+{"timestamp": "2026-10-06T04:22:34Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:22:34Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:22:34Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:22:34Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:22:34Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:22:34Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:22:34Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "4ef75cdab339ac01", "accepted": 1}}
+{"timestamp": "2026-10-06T04:37:18Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:37:18Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:37:18Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:37:18Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:37:18Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:37:18Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:37:18Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "a0942c75b1f2c0d0", "accepted": 1}}
+{"timestamp": "2026-10-06T04:37:28Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:37:28Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:37:28Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:37:28Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:37:28Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:37:28Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:37:28Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "99b90df9f7cd4726", "accepted": 1}}
+{"timestamp": "2026-10-06T04:46:09Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:46:09Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:46:09Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:46:09Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:46:09Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:46:09Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:46:09Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "478fcfb158c8b2bb", "accepted": 1}}
+{"timestamp": "2026-10-06T04:46:34Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:46:34Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:46:34Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:46:34Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:46:34Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:46:34Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:46:34Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "29c24f27aca6234b", "accepted": 1}}
+{"timestamp": "2026-10-06T04:46:44Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T04:46:44Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:46:44Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T04:46:44Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T04:46:44Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T04:46:44Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T04:46:44Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "66a8fd71a62a2645", "accepted": 1}}
+{"timestamp": "2026-10-06T05:01:55Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T05:01:55Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:01:55Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T05:01:55Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T05:01:55Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:01:55Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T05:01:56Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "8a0c21861afaeeae", "accepted": 1}}
+{"timestamp": "2026-10-06T05:02:06Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T05:02:06Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:02:06Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T05:02:06Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T05:02:06Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:02:06Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T05:02:06Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "eb06b714e9f80822", "accepted": 1}}
+{"timestamp": "2026-10-06T05:11:21Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T05:11:21Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:11:21Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T05:11:21Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T05:11:21Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:11:21Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T05:11:21Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "d13a931e5f93ebff", "accepted": 1}}
+{"timestamp": "2026-10-06T05:12:26Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T05:12:26Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:12:26Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T05:12:26Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T05:12:26Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:12:26Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T05:12:26Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "929fe6cc11a3bd49", "accepted": 1}}
+{"timestamp": "2026-10-06T05:12:34Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T05:12:34Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:12:34Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T05:12:34Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T05:12:34Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:12:34Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T05:12:34Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "29d1cb2f977ca446", "accepted": 1}}
+{"timestamp": "2026-10-06T05:26:18Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T05:26:18Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:26:18Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T05:26:18Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T05:26:18Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:26:18Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T05:26:18Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "c9ddca26c7e74171", "accepted": 1}}
+{"timestamp": "2026-10-06T05:26:29Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T05:26:29Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:26:29Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T05:26:29Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T05:26:29Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T05:26:29Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T05:26:29Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "78391e58705b7aa9", "accepted": 1}}
+{"timestamp": "2026-10-06T06:03:21Z", "user_id": "696492053", "chat_id": "696492053", "action": "template_sent", "details": {"template": "company"}}
+{"timestamp": "2026-10-06T06:03:27Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T06:03:27Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T06:03:27Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T06:03:27Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T06:03:27Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T06:03:27Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T06:03:27Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "b54f1b3b1fce642b", "accepted": 1}}
+{"timestamp": "2026-10-06T18:43:58Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T18:43:58Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T18:43:58Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T18:43:58Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T18:43:58Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T18:43:58Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T18:43:58Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "fdbb14a1d0d6ceec", "accepted": 1}}
+{"timestamp": "2026-10-06T18:49:54Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T18:49:54Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T18:49:54Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T18:49:54Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T18:49:54Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T18:49:54Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T18:49:54Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "625eb47ed90fdee4", "accepted": 1}}
+{"timestamp": "2026-10-06T18:52:01Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T18:52:01Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T18:52:01Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T18:52:01Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T18:52:01Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T18:52:01Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T18:52:01Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "f4d3382ccfd32d98", "accepted": 1}}
+{"timestamp": "2026-10-06T18:55:49Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T18:55:49Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T18:55:49Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T18:55:49Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T18:55:49Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T18:55:49Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T18:55:49Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "fac6b866312e5a6c", "accepted": 1}}
+{"timestamp": "2026-10-06T19:03:20Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T19:03:20Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:03:20Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T19:03:20Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T19:03:20Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:03:20Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T19:03:20Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "de056d3b1782ab7b", "accepted": 1}}
+{"timestamp": "2026-10-06T19:07:52Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T19:07:52Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:07:52Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T19:07:52Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T19:07:52Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:07:52Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T19:07:52Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "ef89030fe2120f24", "accepted": 1}}
+{"timestamp": "2026-10-06T19:15:55Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T19:15:55Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:15:55Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T19:15:55Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T19:15:55Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:15:55Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T19:15:55Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "bd31f0b6e4a69ac8", "accepted": 1}}
+{"timestamp": "2026-10-06T19:20:02Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T19:20:02Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:20:02Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T19:20:02Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T19:20:02Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:20:02Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T19:20:02Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "d6a141eae235a1c1", "accepted": 1}}
+{"timestamp": "2026-10-06T19:37:46Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T19:37:46Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:37:46Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T19:37:46Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T19:37:46Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:37:46Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T19:37:46Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "3a188c9601044721", "accepted": 1}}
+{"timestamp": "2026-10-06T19:39:29Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T19:39:29Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:39:29Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T19:39:29Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T19:39:29Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:39:29Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T19:39:29Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "6056564e2551c486", "accepted": 1}}
+{"timestamp": "2026-10-06T19:39:48Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T19:39:48Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:39:48Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T19:39:48Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T19:39:48Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T19:39:48Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T19:39:48Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "1bf497f62d256642", "accepted": 1}}
+{"timestamp": "2026-10-06T20:02:06Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-06T20:02:07Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T20:02:07Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-06T20:02:07Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-06T20:02:07Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-06T20:02:07Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-06T20:02:07Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "27bda9eff9da3db1", "accepted": 1}}
+{"timestamp": "2026-10-07T00:06:54Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T00:06:55Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T00:06:55Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T00:06:55Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T00:06:55Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T00:06:55Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T00:06:55Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "8e0b8075e2eb7e0c", "accepted": 1}}
+{"timestamp": "2026-10-07T02:17:59Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T02:17:59Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:17:59Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T02:17:59Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T02:17:59Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:17:59Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T02:17:59Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "ce4722c27e1f42fe", "accepted": 1}}
+{"timestamp": "2026-10-07T02:23:42Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T02:23:42Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:23:42Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T02:23:42Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T02:23:42Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:23:42Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T02:23:42Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "2f57988001a8645d", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T02:24:01Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T02:24:01Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:24:01Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T02:24:01Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T02:24:01Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:24:01Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T02:24:01Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "3f5e0640809d16ec", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T02:44:40Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T02:44:40Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:44:40Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T02:44:40Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T02:44:40Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:44:40Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T02:44:40Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "076b463f51cbd49b", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T02:49:33Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T02:49:33Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:49:33Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T02:49:33Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T02:49:33Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:49:33Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T02:49:33Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "531a88ae5c658d17", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T02:49:50Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T02:49:50Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:49:50Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T02:49:50Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T02:49:50Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T02:49:50Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T02:49:50Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "68e4669cd845ea8a", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T02:55:31Z", "user_id": "696492053", "chat_id": "696492053", "action": "autofix_disabled", "details": {"enabled": false}}
+{"timestamp": "2026-10-07T03:12:02Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T03:12:02Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:12:02Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T03:12:02Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T03:12:02Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:12:02Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T03:12:02Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "0b76a5fdc0c225f1", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T03:12:02Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:12:09Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T03:12:09Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:12:09Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T03:12:09Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T03:12:09Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:12:09Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T03:12:09Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "5501f693c329f1ce", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T03:12:09Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:12:28Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T03:12:28Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:12:28Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T03:12:28Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T03:12:28Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:12:28Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T03:12:28Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "4db896a62c344fb8", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T03:12:28Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:43:30Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:43:36Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:43:53Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T03:43:53Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:43:53Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T03:43:53Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T03:43:53Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:43:53Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T03:43:53Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "11a05cf59f1a97d8", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T03:43:53Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:45:39Z", "user_id": "696492053", "chat_id": "696492053", "action": "voice_note_transcribed", "details": {"duration": 1, "text": "ام الأممم", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:46:07Z", "user_id": "696492053", "chat_id": "696492053", "action": "voice_note_transcribed", "details": {"duration": 2, "text": "اهههههههه", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:52:05Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:52:50Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T03:52:50Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:52:50Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T03:52:50Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T03:52:50Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:52:50Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T03:52:50Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "d238ba877386c299", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T03:52:50Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:53:21Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T03:53:21Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:53:21Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T03:53:21Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T03:53:21Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:53:21Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T03:53:21Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "384aee3c74c4ed5f", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T03:53:21Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T03:59:00Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T03:59:00Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:59:00Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T03:59:00Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T03:59:00Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T03:59:00Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T03:59:00Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "388f365678bdce92", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T03:59:00Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T04:35:14Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T04:35:14Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T04:35:14Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T04:35:14Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T04:35:14Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T04:35:19Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "38b19ff92467020b", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T04:35:19Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T04:35:54Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T04:35:54Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T04:35:54Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T04:35:54Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T04:35:54Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T04:35:55Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T04:35:55Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "ae9d0f8746893b0f", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T04:35:55Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T04:36:14Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T04:36:14Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T04:36:14Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T04:36:14Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T04:36:14Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T04:36:15Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T04:36:15Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "4c55bec272521968", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T04:36:15Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T05:05:05Z", "user_id": "696492053", "chat_id": "696492053", "action": "leave_written_confirm_requested", "details": {"token": "LEAVE-D5F4CF12"}}
+{"timestamp": "2026-10-07T05:13:17Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T05:13:17Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T05:13:17Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T05:13:17Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T05:13:17Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T05:13:19Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T05:13:19Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "1ce8cba5a38a0d93", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T05:13:19Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T05:24:28Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T05:24:28Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T05:24:28Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T05:24:28Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T05:24:28Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T05:24:33Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T05:24:33Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "4944bf19f06eaf96", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T05:24:34Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T05:30:59Z", "user_id": "696492053", "chat_id": "696492053", "action": "leave_written_confirm_requested", "details": {"token": "LEAVE-82480158"}}
+{"timestamp": "2026-10-07T06:12:54Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T06:12:54Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T06:12:54Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T06:12:54Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T06:12:54Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T06:12:59Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T06:12:59Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "44d68feeece531b6", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T06:12:59Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T06:13:34Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T06:13:34Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T06:13:34Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T06:13:34Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T06:13:34Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T06:13:35Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T06:13:35Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "1236c837219e5b89", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T06:13:35Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T06:22:37Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T06:22:37Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T06:22:37Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T06:22:37Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T06:22:37Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T06:22:38Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T06:22:38Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "63ee17c0af2381f4", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T06:22:38Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T06:42:08Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T06:42:08Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T06:42:08Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T06:42:08Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T06:42:08Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T06:42:12Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T06:42:12Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "19207fa84472807c", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T06:42:12Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T06:49:02Z", "user_id": "696492053", "chat_id": "696492053", "action": "laya_deletion_blocked", "details": {"text": "احذف الموظف رقم 147 نهائياً من قاعدة البيانات"}}
+{"timestamp": "2026-10-07T06:56:23Z", "user_id": "696492053", "chat_id": "696492053", "action": "laya_deletion_blocked", "details": {"text": "احذف الموظف رقم 147 نهائياً من قاعدة البيانات"}}
+{"timestamp": "2026-10-07T07:02:25Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T07:02:25Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T07:02:25Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T07:02:25Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T07:02:25Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T07:02:30Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T07:02:31Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "182050e9b979e24e", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T07:02:31Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T07:06:25Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T07:06:25Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T07:06:25Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T07:06:25Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T07:06:25Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T07:06:30Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T07:06:30Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "2e3154558b65358d", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T07:06:30Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T07:07:49Z", "user_id": "696492053", "chat_id": "696492053", "action": "guardrails_deletion_blocked", "details": {"text": "احذف الموظف رقم 147 نهائياً من قاعدة البيانات"}}
+{"timestamp": "2026-10-07T07:11:47Z", "user_id": "696492053", "chat_id": "696492053", "action": "dry_run_ready", "details": {"run_id": "ba465f8956d83e02", "accepted": 0, "review": 7, "rejected": 3}}
+{"timestamp": "2026-10-07T07:11:55Z", "user_id": "696492053", "chat_id": "696492053", "action": "musleh_batch_healed", "details": {"run_id": "ba465f8956d83e02", "ready_count": 3, "auto_repair": false}}
+{"timestamp": "2026-10-07T07:13:08Z", "user_id": "696492053", "chat_id": "696492053", "action": "musleh_batch_healed", "details": {"run_id": "ba465f8956d83e02", "ready_count": 3, "auto_repair": false}}
+{"timestamp": "2026-10-07T07:19:25Z", "user_id": "696492053", "chat_id": "696492053", "action": "template_sent", "details": {"template": "company"}}
+{"timestamp": "2026-10-07T07:19:42Z", "user_id": "696492053", "chat_id": "696492053", "action": "template_sent", "details": {"template": "emp"}}
+{"timestamp": "2026-10-07T07:19:58Z", "user_id": "696492053", "chat_id": "696492053", "action": "template_sent", "details": {"template": "gr"}}
+{"timestamp": "2026-10-07T07:25:18Z", "user_id": "696492053", "chat_id": "696492053", "action": "voice_note_transcribed", "details": {"duration": 1, "text": "ألوم.", "backend": "faster_whisper_base"}}
+{"timestamp": "2026-10-07T07:25:49Z", "user_id": "696492053", "chat_id": "696492053", "action": "voice_note_transcribed", "details": {"duration": 2, "text": "نشلون سماً.", "backend": "faster_whisper_base"}}
+{"timestamp": "2026-10-07T08:19:48Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T08:19:48Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T08:19:48Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T08:19:48Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T08:19:48Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T08:19:49Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "2a10ee48de5d4e5f", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T08:19:49Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T08:21:12Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T08:21:12Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T08:21:12Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T08:21:12Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T08:21:12Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T08:21:13Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T08:21:13Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "9fd98d0e5b440036", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T08:21:13Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T17:18:11Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T17:18:11Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T17:18:11Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T17:18:11Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T17:18:11Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T17:18:12Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T17:18:12Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "cf3b7d40a22eeea7", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T17:18:12Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T17:18:44Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T17:18:44Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T17:18:44Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T17:18:44Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T17:18:44Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T17:18:45Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T17:18:45Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "349758e9ff5dca9b", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T17:18:45Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T17:40:01Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T17:40:01Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T17:40:01Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T17:40:01Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T17:40:01Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T17:40:02Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T17:40:02Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "6194bb640b3acff9", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T17:40:02Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T17:40:26Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T17:40:27Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T17:40:27Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T17:40:27Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T17:40:27Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T17:40:28Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T17:40:28Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "c0a29835ebbde2d4", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T17:40:28Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T17:40:51Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T17:40:51Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T17:40:51Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T17:40:51Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T17:40:51Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T17:40:52Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T17:40:52Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "a03ef722efe46b15", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T17:40:53Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T18:43:13Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T18:43:13Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T18:43:13Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T18:43:13Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T18:43:13Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T18:43:15Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T18:43:15Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "38cd0e59a894279d", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T18:43:15Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T18:45:58Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T18:45:58Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T18:45:58Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T18:45:58Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T18:45:58Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T18:45:59Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T18:45:59Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "ebaf0e7cacf5b0b5", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T18:45:59Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T18:51:18Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T18:51:18Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T18:51:18Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T18:51:18Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T18:51:18Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T18:51:19Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T18:51:19Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "46d0af0a6811de9c", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T18:51:19Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T18:59:37Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T18:59:37Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T18:59:37Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T18:59:37Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T18:59:37Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T18:59:38Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T18:59:38Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "a1bcd34648f8b478", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T18:59:38Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T19:04:11Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T19:04:11Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:04:11Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T19:04:11Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T19:04:11Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:04:13Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T19:04:13Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "632d2d1019c740e7", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T19:04:13Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T19:07:00Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T19:07:00Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:07:00Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T19:07:00Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T19:07:00Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:07:02Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T19:07:02Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "5e7152ff38f3dd70", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T19:07:02Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T19:08:03Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T19:08:03Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:08:03Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T19:08:03Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T19:08:03Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:08:05Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T19:08:05Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "55fae34318452cfd", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T19:08:05Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T19:08:54Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T19:08:54Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:08:54Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T19:08:54Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T19:08:54Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:08:55Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T19:08:55Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "daa562be8f01270a", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T19:08:55Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T19:11:20Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T19:11:20Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:11:20Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T19:11:20Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T19:11:20Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:11:21Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T19:11:21Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "4bc89b483ae7c651", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T19:11:21Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T19:12:13Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T19:12:13Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:12:13Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T19:12:13Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T19:12:13Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T19:12:15Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T19:12:15Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "d80a60b943604be9", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T19:12:15Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T20:59:08Z", "user_id": "696492053", "chat_id": "696492053", "action": "dry_run_ready", "details": {"run_id": "ba465f8956d83e02", "accepted": 0, "review": 7, "rejected": 3}}
+{"timestamp": "2026-10-07T20:59:18Z", "user_id": "696492053", "chat_id": "696492053", "action": "musleh_batch_healed", "details": {"run_id": "ba465f8956d83e02", "ready_count": 3, "auto_repair": false}}
+{"timestamp": "2026-10-07T21:03:10Z", "user_id": "696492053", "chat_id": "696492053", "action": "cancel_clicked", "details": {"run_id": "ba465f8956d83e02"}}
+{"timestamp": "2026-10-07T21:52:55Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T21:52:55Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T21:52:55Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T21:52:55Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T21:52:55Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T21:52:57Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T21:52:57Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "46dbbf71eec81e7c", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T21:52:57Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-07T22:37:50Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-07T22:37:50Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T22:37:50Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-07T22:37:50Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-07T22:37:50Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-07T22:37:51Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-07T22:37:51Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "56d3fe93617e87f8", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-07T22:37:51Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
