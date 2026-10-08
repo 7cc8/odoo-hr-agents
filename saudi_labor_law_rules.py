@@ -57,8 +57,8 @@ DISCIPLINARY_REPETITION_EXPIRY_DAYS = 180  # المادة 71: سقوط أثر ت
 DISCIPLINARY_DISCOVERY_LIMIT_DAYS = 30     # المادة 72: عدم جواز اتهام العامل بعد مضي 30 يوماً على كشف المخالفة
 DISCIPLINARY_DECISION_LIMIT_DAYS = 30      # المادة 72: عدم جواز توقيع الجزاء بعد مضي 30 يوماً على انتهاء التحقيق
 
-# المادة 92: القروض (قروض صاحب العمل بلا موافقة خطية سقفها 10%، وأي سقف أعلى يتطلب موافقة خطية موثقة)
-LOAN_DEDUCTION_MAX_PERCENTAGE = 0.10
+# المادة 92: القروض
+LOAN_DEDUCTION_MAX_PERCENTAGE = 0.10  # سقف استقطاع قروض صاحب العمل 10% من الأجر (محدث بموجب تعديل المادة 92 المعلن)
 
 # المادة 98: ساعات العمل
 STANDARD_DAILY_WORKING_HOURS = 8.0
@@ -493,7 +493,7 @@ def validate_loan_installment_cap(
 ) -> RuleValidationResult:
     """
     التحقق من سقف استقطاع أقساط قروض صاحب العمل وفق المادة 92 (فقرة 1):
-    لا يجوز أن يزيد ما يحسم من العامل وفاءً لقروض صاحب العمل على 25% من أجره الشهري.
+    لا يجوز أن يزيد ما يحسم من العامل وفاءً لقروض صاحب العمل على 10% من أجره الشهري (معدلة).
     """
     if monthly_wage <= 0:
         return RuleValidationResult(
@@ -506,23 +506,25 @@ def validate_loan_installment_cap(
 
     max_allowed = round(monthly_wage * LOAN_DEDUCTION_MAX_PERCENTAGE, 2)
     total_after_installment = round(current_active_installments + proposed_installment, 2)
+    cap_pct = int(round(LOAN_DEDUCTION_MAX_PERCENTAGE * 100))
 
     if total_after_installment > max_allowed:
         pct = round((total_after_installment / monthly_wage) * 100, 1)
         return RuleValidationResult(
             is_valid=False,
             article="المادة 92 فقرة (1)",
-            code="LOAN_DEDUCTION_EXCEEDS_10_PERCENT_CAP",
+            code="LOAN_DEDUCTION_EXCEEDS_STATUTORY_CAP",
             message_ar=(
                 f"مخالفة للمادة 92: القسط المقترح ({proposed_installment:,.2f} ر.س) مع الأقساط القائمة "
-                f"يمثل {pct}% من الأجر، متجاوزاً السقف النظامي الإلزامي البالغ 10% بلا موافقة خطية ({max_allowed:,.2f} ر.س)."
+                f"يمثل {pct}% من الأجر، متجاوزاً السقف النظامي الإلزامي البالغ {cap_pct}% ({max_allowed:,.2f} ر.س)."
             ),
             details={
                 "monthly_wage": monthly_wage,
                 "proposed_installment": proposed_installment,
                 "current_active_installments": current_active_installments,
                 "max_allowed_deduction": max_allowed,
-                "requested_percentage": pct
+                "requested_percentage": pct,
+                "cap_percentage": cap_pct,
             }
         )
 
@@ -531,12 +533,13 @@ def validate_loan_installment_cap(
         article="المادة 92 فقرة (1)",
         code="LOAN_INSTALLMENT_WITHIN_STATUTORY_CAP",
         message_ar=(
-            f"القسط المقترح ضمن السقف النظامي المسموح به (الحد الأقصى 25% = {max_allowed:,.2f} ر.س)."
+            f"القسط المقترح ضمن السقف النظامي المسموح به (الحد الأقصى {cap_pct}% = {max_allowed:,.2f} ر.س)."
         ),
         details={
             "monthly_wage": monthly_wage,
             "max_allowed_deduction": max_allowed,
-            "total_deduction": total_after_installment
+            "total_deduction": total_after_installment,
+            "cap_percentage": cap_pct,
         }
     )
 

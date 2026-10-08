@@ -22,15 +22,24 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-# إضافة مسار laya-main للاستفادة المباشرة من نواة Laya
+# مسار مستودع laya-main المحلي (للتوثيق والاحتياط)
 LAYA_REPO_PATH = Path(__file__).resolve().parent / "laya-main"
-if LAYA_REPO_PATH.exists() and str(LAYA_REPO_PATH) not in sys.path:
-    sys.path.insert(0, str(LAYA_REPO_PATH))
 
+# محاولة استيراد حزمة laya المثبتة في البيئة أولاً لمنع حجب الإصدار الأحدث (shadowing)
 try:
     import laya
     import laya.lang as laya_lang
     HAS_NATIVE_LAYA = True
+except ImportError:
+    # احتياطي فقط في حال عدم تثبيت حزمة laya في البيئة
+    if LAYA_REPO_PATH.exists() and str(LAYA_REPO_PATH) not in sys.path:
+        sys.path.append(str(LAYA_REPO_PATH))
+    try:
+        import laya
+        import laya.lang as laya_lang
+        HAS_NATIVE_LAYA = True
+    except Exception:
+        HAS_NATIVE_LAYA = False
 except Exception:
     HAS_NATIVE_LAYA = False
 
@@ -301,25 +310,40 @@ class LayaService:
         if id_match:
             entities["employee_id"] = int(id_match.group(1))
 
-        # استبعاد الاستفسارات القانونية والأسئلة العامة من البحث عن اسم الموظف
-        is_legal_or_general_inquiry = any(kw in text for kw in [
-            "نظام العمل", "المادة", "مادة", "ساعات العمل", "كم ساعات", "كيف يتم", "ما هي", "ماهي", "ما هو", "ماهو", "هل يجوز"
-        ])
+        # استبعاد الاستفسارات القانونية والأسئلة العامة والإحصائية من البحث عن اسم الموظف
+        general_question_markers = [
+            "نظام العمل", "المادة", "مادة", "ساعات العمل", "كم ساعات", "كيف يتم", "ما هي", "ماهي",
+            "ما هو", "ماهو", "هل يجوز", "كم عدد", "كم", "عدد", "احسب", "قائمة", "عرض", "الشركات",
+            "المؤرشفين", "المؤرشفة", "مؤرشف", "المنشآت", "تقرير", "كشف", "من هم", "أين", "اين",
+            "الشركة الثانية", "الشركة الأولى", "الشركة الثالثة", "الكل", "جميع الشركات"
+        ]
+        is_legal_or_general_inquiry = any(kw in text for kw in general_question_markers)
 
-        # استخراج اسم الموظف أو جزء من الاسم إذا ذُكر صراحة
-        # مثل: للموظف القحطاني / عن الموظف ناصر / رصيد إجازات القحطاني / حضور نورة
-        name_match = re.search(r"(?:للموظف|للموظفة|الموظف|الموظفة|عن الموظف|عن الموظفة)\s+([أ-ي\w\s]{2,25})", text)
-        if name_match and not is_legal_or_general_inquiry:
-            cand = name_match.group(1).strip()
-            # استبعاد الكلمات الوصفية الشائعة
-            if cand and len(cand) >= 2 and cand not in ("الجديد", "الحالي", "السابق", "العمل", "الشركة", "المنشأة"):
+        # 1. استخراج اسم الموظف إذا ذُكر صراحة بصيغة بحث أو تحديد
+        # مثل: ابحث عن موظف اسمه أحمد / عن الموظف ناصر / للموظف القحطاني / اسمه أحمد
+        search_match = re.search(r"(?:ابحث عن|بحث عن|عن)?\s*(?:موظف\s+)?(?:اسمه|اسمها)\s+([أ-ي\w\s]{2,25})", text)
+        if search_match and not is_legal_or_general_inquiry:
+            cand = search_match.group(1).strip().strip("؟?!.,")
+            if cand and len(cand) >= 2 and cand not in ("الجديد", "الحالي", "السابق", "العمل", "الشركة", "المنشأة", "موظف"):
                 entities["employee_query"] = cand
 
-        tokens = text.strip().split()
-        if 1 <= len(tokens) <= 3 and not entities.get("employee_id") and not entities.get("amount") and not is_legal_or_general_inquiry:
-            clean_token_str = text.strip()
-            if not any(clean_token_str.startswith(p) for p in ("/", "menu", "help", "cancel")):
-                entities.setdefault("employee_query", clean_token_str)
+        if not entities.get("employee_query"):
+            search_prefix_match = re.search(r"(?:ابحث عن|بحث عن)\s+(?:موظف\s+)?([أ-ي\w\s]{2,25})", text)
+            if search_prefix_match and not is_legal_or_general_inquiry:
+                cand = search_prefix_match.group(1).strip().strip("؟?!.,")
+                if cand and len(cand) >= 2 and cand not in ("الجديد", "الحالي", "السابق", "العمل", "الشركة", "المنشأة", "موظف"):
+                    entities["employee_query"] = cand
+
+        name_match = re.search(r"(?:للموظف|للموظفة|الموظف|الموظفة|عن الموظف|عن الموظفة)\s+([أ-ي\w\s]{2,25})", text)
+        if name_match and not is_legal_or_general_inquiry and not entities.get("employee_query"):
+            cand = name_match.group(1).strip()
+            # استبعاد الكلمات الوصفية الشائعة
+            if cand and len(cand) >= 2 and cand not in ("الجديد", "الحالي", "السابق", "العمل", "الشركة", "المنشأة", "المؤرشف", "المؤرشفين"):
+                entities["employee_query"] = cand
+
+        # استخراج اسم الموظف يتم فقط عند وجود دلالة لغوية صريحة (مثل: ابحث عن موظف اسمه X، عن الموظف X)
+        # ولا يتم افتراض أي نص أو رموز قصيرة كأسماء موظفين تجنباً لتحويل الأسئلة أو الاستعلامات إلى بحث بالاسم.
+        pass
 
         # عدد الأيام مثل 5 أيام
         days_match = re.search(r"(\d+)\s*(?:يوم|ايام|أيام|days)", text, re.IGNORECASE)

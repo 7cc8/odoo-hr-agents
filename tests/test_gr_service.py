@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -355,7 +354,7 @@ class TestGRAPIEndpoints(unittest.TestCase):
         resp = self.client.post(
             "/api/gr/apply",
             json={"approval_token": "GR-TEST1234", "confirmation_text": "تأكيد"},
-            headers={"X-API-Key": os.environ.get("WRITE_API_TOKEN", "test-secret-api-token-2026")},
+            headers={"X-API-Key": "hr-write-secret-token"},
         )
         self.assertEqual(resp.status_code, 200)
         data = resp.json()

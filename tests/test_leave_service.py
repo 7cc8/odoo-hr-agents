@@ -326,12 +326,11 @@ def test_api_leaves_endpoints(mock_readonly_repo, mock_write_gateway):
     assert token.startswith("LEAVE-")
 
     # 4. اختبار التطبيق بدون توكن أمان (401 Unauthorized)
-    unauth_client = TestClient(app, headers={})
-    resp_apply_no_auth = unauth_client.post("/api/leaves/apply", json={"approval_token": token, "confirmation_text": "تأكيد"})
+    resp_apply_no_auth = client.post("/api/leaves/apply", json={"approval_token": token, "confirmation_text": "تأكيد"})
     assert resp_apply_no_auth.status_code == 401
 
     # 5. اختبار التطبيق مع توكن الأمان وكلمة 'تأكيد'
-    headers = {"X-API-Key": os.environ.get("WRITE_API_TOKEN", "test-secret-api-token-2026")}
+    headers = {"X-API-Key": web_service.WRITE_API_TOKEN}
     resp_apply = client.post(
         "/api/leaves/apply",
         json={"approval_token": token, "confirmation_text": "تأكيد"},

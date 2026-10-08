@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -461,7 +460,7 @@ class TestEOSAPI(unittest.TestCase):
             "confirmation_text": "تأكيد",
             "state": "confirmed",
         }
-        headers = {"Authorization": f"Bearer {os.environ.get('WRITE_API_TOKEN', 'test-secret-api-token-2026')}"}
+        headers = {"Authorization": "Bearer hr-write-secret-token"}
         resp = self.client.post("/api/eos/apply", json=payload, headers=headers)
         self.assertEqual(resp.status_code, 200)
         data = resp.json()

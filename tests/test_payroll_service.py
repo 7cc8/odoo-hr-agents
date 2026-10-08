@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -404,7 +403,7 @@ class TestPayrollApiEndpoints(unittest.TestCase):
             "approval_token": "PAY-TEST999",
             "confirmation_text": "تأكيد",
         }
-        headers = {"X-API-Key": os.environ.get("WRITE_API_TOKEN", "test-secret-api-token-2026")}
+        headers = {"X-API-Key": "hr-write-secret-token"}
         response = self.client.post("/api/payroll/apply", json=payload, headers=headers)
         self.assertEqual(response.status_code, 200)
         data = response.json()
@@ -437,4 +436,5 @@ class TestPayrollApiEndpoints(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    unittest.main()
     unittest.main()

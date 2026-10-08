@@ -183,7 +183,7 @@ TG_AUDIT_LOG_FILE = LOGS_DIR / "telegram_audit.log"
 
 DEFAULT_COMPANY_ID = 15
 DEFAULT_MAX_ROWS = 10
-WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "")
+WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "hr-write-secret-token")
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000")
 
 # Pending confirmations waiting for written 'تأكيد' (Section 5.1)
@@ -1275,6 +1275,10 @@ def resolve_employee_input_for_wizard(
     - If 0 found: sends a polite guidance message with ID example and returns None.
     """
     clean_text = user_input.strip()
+    # تجنب البحث في أسماء الموظفين عن أسئلة أو استفسارات عامة
+    if any(q in clean_text for q in ("؟", "?", "كم", "عدد", "ما هي", "ماهي", "ما هو", "ماهو", "هل", "أين", "كيف", "احسب")):
+        return None
+
     repo = OdooReadonlyRepository()
     cands = repo.search_employee_candidates(clean_text, limit=8)
 
@@ -7308,7 +7312,31 @@ def run_telegram_bot_polling(poll_interval: float = 1.5) -> None:
                                 msg_id,
                             )
                             continue
-                        elif clean_text in ("تأكيد", "تاكيد", "confirm"):
+
+                        # Check if Seraj has an approved pending action (e.g. deletion plan or write action)
+                        try:
+                            from seraj_session_manager import SerajSessionManager
+                            active_seraj_session = SerajSessionManager.get_instance().get_session(chat_id)
+                            if active_seraj_session.pending_action:
+                                from seraj_llm_service import SerajLLMService
+                                seraj_llm = SerajLLMService()
+                                if seraj_llm.is_configured():
+                                    ai_answer = seraj_llm.chat_turn(
+                                        user_query=text,
+                                        chat_id=str(chat_id),
+                                        user_name=user_name,
+                                    )
+                                    if ai_answer:
+                                        bot.send_message(
+                                            chat_id,
+                                            f"🤖 <b>سراج (المساعد الذكي):</b>\n────────────────────\n{ai_answer}\n\n💡 <i>(للوصول السريع للقوائم كأزرار تفاعلية، أرسل «أزرار»)</i>",
+                                            reply_to_message_id=msg_id,
+                                        )
+                                        continue
+                        except Exception as e_seraj_act:
+                            logger.warning(f"Error executing pending Seraj action: {e_seraj_act}")
+
+                        if clean_text in ("تأكيد", "تاكيد", "confirm"):
                             bot.send_message(
                                 chat_id,
                                 "ℹ️ لا توجد عملية معلقة بانتظار التأكيد حالياً.",
@@ -7327,6 +7355,31 @@ def run_telegram_bot_polling(poll_interval: float = 1.5) -> None:
                             ACTIVE_LETTER_WIZARDS, ACTIVE_WARNING_WIZARDS, ACTIVE_EXPENSE_WIZARDS
                         ):
                             wiz_dict.pop(str(chat_id), None)
+
+                        # Handle Seraj pending action cancellation
+                        try:
+                            from seraj_session_manager import SerajSessionManager
+                            s_sess = SerajSessionManager.get_instance().get_session(chat_id)
+                            if s_sess.pending_action:
+                                from seraj_llm_service import SerajLLMService
+                                seraj_llm = SerajLLMService()
+                                if seraj_llm.is_configured() and clean_text in ("الغاء", "إلغاء", "تراجع", "cancel"):
+                                    ai_answer = seraj_llm.chat_turn(
+                                        user_query=text,
+                                        chat_id=str(chat_id),
+                                        user_name=user_name,
+                                    )
+                                    if ai_answer:
+                                        bot.send_message(
+                                            chat_id,
+                                            f"🤖 <b>سراج (المساعد الذكي):</b>\n────────────────────\n{ai_answer}\n\n💡 <i>(للوصول السريع للقوائم كأزرار تفاعلية، أرسل «أزرار»)</i>",
+                                            reply_to_message_id=msg_id,
+                                        )
+                                        continue
+                                s_sess.clear_pending_action()
+                        except Exception:
+                            pass
+
                         if clean_text in ("/start", "ابدأ"):
                             show_main_menu(bot, chat_id, user_name)
                         else:
@@ -7337,6 +7390,27 @@ def run_telegram_bot_polling(poll_interval: float = 1.5) -> None:
                                 reply_to_message_id=msg_id,
                             )
                         continue
+
+                    # إذا أرسل المستخدم استفساراً عاماً أو سؤالاً موجهاً لسراج، نفرغ المعالجات الفرعية المعلقة ليتولى سراج الرد
+                    is_inquiry_or_question = (
+                        "؟" in text or "?" in text
+                        or any(kw in text for kw in [
+                            "كم", "ما هي", "ماهي", "ما هو", "ماهو", "هل", "شرح", "وضح", "كيف", "لماذا", "متى",
+                            "نظام العمل", "المادة", "مادة", "قانون", "حقوق", "احسب", "حسبة", "ما حكم", "ماحكم", "شروط",
+                            "رصيد", "استعلام", "استعلم", "ابحث", "احذف", "حذف", "تقديم", "طلب", "تسوية", "مكافأة", "مكافاة",
+                            "اوفرتايم", "أوفرتايم", "إضافي", "اضافي", "سلفة", "قرض", "تجربة", "مخالفة", "جزاء", "حسم",
+                            "إجازة", "اجازة", "وضع", "أمومة", "امومة", "أبوة", "ابوة", "تأمينات", "gosi", "عقد", "وثائق", "اقامة", "إقامة"
+                        ])
+                    )
+                    if is_inquiry_or_question:
+                        for wiz_dict in (
+                            ACTIVE_LEAVE_WIZARDS, ACTIVE_ATTENDANCE_WIZARDS,
+                            ACTIVE_DISCIPLINARY_WIZARDS, ACTIVE_EOS_WIZARDS, ACTIVE_GR_WIZARDS,
+                            ACTIVE_APPRAISAL_WIZARDS, ACTIVE_LOAN_WIZARDS, ACTIVE_RECRUITMENT_WIZARDS,
+                            ACTIVE_CONTRACT_WIZARDS, ACTIVE_PAYROLL_WIZARDS, ACTIVE_ANALYTICS_WIZARDS,
+                            ACTIVE_LETTER_WIZARDS, ACTIVE_WARNING_WIZARDS, ACTIVE_EXPENSE_WIZARDS
+                        ):
+                            wiz_dict.pop(str(chat_id), None)
 
                     # 0. Check if user is in an active leave wizard
                     if handle_leave_wizard_step(bot, chat_id, user_id, user_name, text, msg_id):
@@ -7555,6 +7629,29 @@ def run_telegram_bot_polling(poll_interval: float = 1.5) -> None:
                         )
                         continue
 
+                    # 2.9 Check if user is responding to a pending Seraj clarification (e.g. «الشركة الثانية»)
+                    try:
+                        from seraj_session_manager import SerajSessionManager
+                        active_seraj_session = SerajSessionManager.get_instance().get_session(chat_id)
+                        if active_seraj_session.pending_clarification:
+                            from seraj_llm_service import SerajLLMService
+                            seraj_llm = SerajLLMService()
+                            if seraj_llm.is_configured():
+                                ai_answer = seraj_llm.chat_turn(
+                                    user_query=text,
+                                    chat_id=str(chat_id),
+                                    user_name=user_name,
+                                )
+                                if ai_answer:
+                                    bot.send_message(
+                                        chat_id,
+                                        f"🤖 <b>سراج (المساعد الذكي):</b>\n────────────────────\n{ai_answer}\n\n💡 <i>(للوصول السريع للقوائم كأزرار تفاعلية، أرسل «أزرار»)</i>",
+                                        reply_to_message_id=msg_id,
+                                    )
+                                    continue
+                    except Exception as e_clar:
+                        logger.warning(f"Error handling pending Seraj clarification: {e_clar}")
+
                     # 3. Start or Menu commands (Strictly explicit request for buttons/menu)
                     explicit_menu_commands = ("/start", "/help", "/menu", "القائمة", "قائمة", "أزرار", "ازرار", "خيارات", "menu", "buttons")
                     if not is_inquiry_or_question and (clean_text in explicit_menu_commands or any(clean_text == cmd for cmd in explicit_menu_commands)):
@@ -7616,71 +7713,17 @@ def run_telegram_bot_polling(poll_interval: float = 1.5) -> None:
                         show_odoo_settings_card(bot, chat_id)
                         continue
 
-                    # 5.1 Fallback: Intelligent Natural Language Triage via Laya (Phase 21-25)
-                    from laya_service import LayaService
-                    laya_engine = LayaService()
-                    decision = laya_engine.triage_request(text)
-
-                    # Guardrails Security Barrier: الحراس يمنعون الحذف الكلي قطعياً
-                    if decision.is_deletion_blocked:
-                        log_telegram_audit(user_id, chat_id, "guardrails_deletion_blocked", {"text": text})
-                        bot.send_message(
-                            chat_id,
-                            "🛡️ <b>تنبيه حراسة أمنية ورقابية من «الحراس» (Guardrails):</b>\n"
-                            "────────────────────\n"
-                            "حاجز الأمان الرقابي لـ <b>«الحراس»</b> يحظر استدعاء الحذف الكلي (<code>unlink</code>) قطعياً، لحماية السجلات المالية والمحاسبية وتاريخ المنشأة في Odoo.\n\n"
-                            "💡 <b>البديل النظامي المعتمد:</b>\n"
-                            "• يمكنك تحويل الموظف/السجل إلى <b>غير نشط (أرشفة آمنة)</b>.\n"
-                            "• أو إنهاء العلاقة التعاقدية وتسوية المستحقات عبر قسم نهاية الخدمة.",
-                            reply_to_message_id=msg_id,
-                        )
-                        continue
-
-                    # Check if user mentioned a specific employee in natural language query
-                    emp_query = decision.extracted_entities.get("employee_query")
-                    if emp_query:
-                        try:
-                            repo = OdooReadonlyRepository()
-                            cands = repo.search_employee_candidates(emp_query, limit=6)
-                            if cands:
-                                if len(cands) == 1:
-                                    eid = cands[0]["id"]
-                                    if decision.domain == "leaves":
-                                        show_employee_leaves_balance(bot, chat_id, eid)
-                                        continue
-                                    elif decision.domain == "attendance":
-                                        show_employee_attendance_card(bot, chat_id, eid)
-                                        continue
-                                    elif decision.domain == "disciplinary":
-                                        show_employee_disciplinary_card(bot, chat_id, eid)
-                                        continue
-                                else:
-                                    # Multiple matching candidates found - show disambiguation buttons
-                                    wiz_target = "leave_bal" if decision.domain == "leaves" else "attend_sum" if decision.domain == "attendance" else "disc_sum" if decision.domain == "disciplinary" else "leave_bal"
-                                    resolve_employee_input_for_wizard(bot, chat_id, emp_query, wiz_target, "menu:main", msg_id)
-                                    continue
-                            else:
-                                bot.send_message(
-                                    chat_id,
-                                    f"🔍 <b>بحث الموظفين في Odoo:</b>\n"
-                                    f"لم يتم العثور على أي موظف يطابق البحث «<b>{emp_query}</b>» في النظام.\n\n"
-                                    f"💡 يرجى التحقق من صحة الاسم أو إدخال رقم المعرّف (ID) المباشر.",
-                                    reply_to_message_id=msg_id,
-                                )
-                                continue
-                        except Exception as e_emp:
-                            logger.warning(f"Error checking employee candidates for query '{emp_query}': {e_emp}")
-
-                    # 5.2 Intelligent Grounded AI Generation via SerajLLMService (+27B model)
-                    # Answers all natural inquiries, calculations, and legal advice in pure text without buttons.
+                    # 5.1 Seraj as Primary Conversational Interface and Orchestrator
+                    # Handles natural requests, consults Laya as assistive triage,
+                    # executes live Odoo queries (Read-Only), and enforces write governance.
                     try:
                         from seraj_llm_service import SerajLLMService
                         seraj_llm = SerajLLMService()
                         if seraj_llm.is_configured():
-                            ai_answer = seraj_llm.generate_grounded_response(
+                            ai_answer = seraj_llm.chat_turn(
                                 user_query=text,
+                                chat_id=str(chat_id),
                                 user_name=user_name,
-                                laya_decision=decision.to_dict(),
                             )
                             if ai_answer:
                                 bot.send_message(

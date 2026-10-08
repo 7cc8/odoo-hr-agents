@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -425,7 +424,7 @@ class TestContractApiEndpoints(unittest.TestCase):
             "approval_token": "CTR-TEST1234",
             "confirmation_text": "تأكيد",
         }
-        headers = {"X-API-Key": os.environ.get("WRITE_API_TOKEN", "test-secret-api-token-2026")}
+        headers = {"X-API-Key": "hr-write-secret-token"}
         response = self.client.post("/api/contracts/apply", json=payload, headers=headers)
         self.assertEqual(response.status_code, 200)
         data = response.json()

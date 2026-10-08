@@ -266,7 +266,7 @@ def test_eosb_article_87_female_resignation_exceptions():
 # =============================================================================
 
 def test_article_92_loan_cap_10_percent():
-    """المادة 92: حظر تجاوز استقطاع قروض صاحب العمل لسقف 10% من الأجر بلا موافقة خطية"""
+    """المادة 92: حظر تجاوز استقطاع قروض صاحب العمل لسقف 10% من الأجر (محدث)"""
     monthly_wage = 10000.0  # السقف 10% = 1,000 ريال
     
     # قسط 800 ريال -> مقبول
@@ -277,7 +277,7 @@ def test_article_92_loan_cap_10_percent():
     # قسط 1,200 ريال -> مرفوض لتجاوز السقف
     res_invalid = validate_loan_installment_cap(monthly_wage, 1200.0)
     assert res_invalid.is_valid is False
-    assert res_invalid.code == "LOAN_DEDUCTION_EXCEEDS_10_PERCENT_CAP"
+    assert res_invalid.code == "LOAN_DEDUCTION_EXCEEDS_STATUTORY_CAP"
 
     # قسط 600 مع وجود أقساط سابقة 500 = 1,100 -> مرفوض
     res_combined = validate_loan_installment_cap(monthly_wage, 600.0, current_active_installments=500.0)

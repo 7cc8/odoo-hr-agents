@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -389,7 +388,7 @@ class TestLoanAPIEndpoints(unittest.TestCase):
         resp = self.client.post(
             "/api/loans/apply",
             json=payload,
-            headers={"X-API-Key": os.environ.get("WRITE_API_TOKEN", "test-secret-api-token-2026")},
+            headers={"X-API-Key": "hr-write-secret-token"},
         )
         self.assertEqual(resp.status_code, 200)
         data = resp.json()
@@ -398,4 +397,5 @@ class TestLoanAPIEndpoints(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    unittest.main()
     unittest.main()

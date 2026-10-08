@@ -146,7 +146,7 @@ class TestSeraj20Scenarios(unittest.TestCase):
         self.assertIn("المادة 72", val.article)
 
     def test_scenario_08_loan_deduction_ceiling_article_92(self):
-        """سيناريو 8: سقف قسط سلفة صاحب العمل لا يتجاوز 10% من الراتب بلا موافقة خطية (المادة 92)."""
+        """سيناريو 8: سقف قسط سلفة صاحب العمل لا يتجاوز 10% من الراتب (المادة 92 المعدلة)."""
         val_fail = validate_loan_installment_cap(
             monthly_wage=8000.0,
             proposed_installment=1200.0,  # 15% > 10%

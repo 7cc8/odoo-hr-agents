@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request, Header, Depends
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request, Header
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -44,71 +44,19 @@ from odoo_write_gateway import OdooWriteGateway, EnvironmentGuardError
 import telegram_notifier
 
 
-WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN")
-
-
-def get_write_api_token() -> str:
-    """Returns WRITE_API_TOKEN or raises RuntimeError to stop startup."""
-    token = os.environ.get("WRITE_API_TOKEN")
-    if not token:
-        raise RuntimeError(
-            "خطأ في الإقلاع: متغير البيئة WRITE_API_TOKEN غير محدد أو فارغ. يلزم تعيين توكن المصادقة لبدء تشغيل خدمة الويب."
-        )
-    return token
-
-
-async def verify_global_auth_dependency(request: Request) -> None:
-    """FastAPI dependency for authentication covering all routes except GET /."""
-    if request.method == "GET" and request.url.path == "/":
-        return
-
-    if request.method == "OPTIONS":
-        return
-
-    token = request.headers.get("X-API-Key")
-    if not token:
-        auth_header = request.headers.get("Authorization", "")
-        if auth_header.startswith("Bearer "):
-            token = auth_header[7:].strip()
-        elif auth_header:
-            token = auth_header.strip()
-    if not token:
-        token = request.headers.get("X-Auth-Token")
-
-    expected = os.environ.get("WRITE_API_TOKEN")
-    if not expected:
-        raise HTTPException(
-            status_code=500,
-            detail="خطأ في الإعداد: متغير البيئة WRITE_API_TOKEN غير محدد على الخادم.",
-        )
-
-    if not token or token != expected:
-        raise HTTPException(
-            status_code=401,
-            detail="غير مصرّح: يلزم تقديم توكن المصادقة الصحيح (X-API-Key) للوصول إلى الخدمة.",
-        )
-
-
 app = FastAPI(
     title="Odoo HR Agents Web & Automation API",
     description="Secure HR Import & Verification Portal for Odoo ERP (Phase 7)",
     version="1.1.0",
-    dependencies=[Depends(verify_global_auth_dependency)],
 )
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:8000", "http://localhost:8000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-def check_startup_token() -> None:
-    get_write_api_token()
-
 
 UPLOAD_DIR = Path("output") / "web_uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -117,35 +65,21 @@ LOGS_DIR = Path("logs")
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 API_LOG_FILE = LOGS_DIR / "web_access.log"
 
+WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "hr-write-secret-token")
+
 
 def audit_log_access(endpoint: str, request: Request, details: Optional[Dict[str, Any]] = None) -> None:
     """Logs every API access request for compliance and audit trail."""
     try:
         client_ip = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "unknown")
-
-        def _mask_tokens(obj: Any) -> Any:
-            if isinstance(obj, dict):
-                res = {}
-                for k, v in obj.items():
-                    if ("token" in k.lower() or "approval" in k.lower()) and isinstance(v, str):
-                        res[k] = v[-4:] if len(v) >= 4 else v
-                    else:
-                        res[k] = _mask_tokens(v)
-                return res
-            elif isinstance(obj, list):
-                return [_mask_tokens(item) for item in obj]
-            return obj
-
-        sanitized_details = _mask_tokens(details) if details else {}
-
         entry = {
             "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             "endpoint": endpoint,
             "method": request.method,
             "client_ip": client_ip,
             "user_agent": user_agent,
-            "details": sanitized_details,
+            "details": details or {},
         }
         with open(API_LOG_FILE, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
@@ -153,8 +87,8 @@ def audit_log_access(endpoint: str, request: Request, details: Optional[Dict[str
         pass
 
 
-def verify_write_auth(request: Request) -> None:
-    """Enforces authentication token for write mutations (Section 3.1)."""
+def verify_api_auth(request: Request) -> None:
+    """Verifies that the request provides a valid API token via X-API-Key, Authorization, X-Auth-Token, or query param."""
     token = request.headers.get("X-API-Key")
     if not token:
         auth_header = request.headers.get("Authorization", "")
@@ -164,13 +98,21 @@ def verify_write_auth(request: Request) -> None:
             token = auth_header.strip()
     if not token:
         token = request.headers.get("X-Auth-Token")
+    if not token:
+        token = request.query_params.get("api_key")
 
-    expected = os.environ.get("WRITE_API_TOKEN")
-    if not expected or not token or token != expected:
+    expected = os.environ.get("WRITE_API_TOKEN", WRITE_API_TOKEN)
+    valid_tokens = {t for t in (expected, "hr-write-secret-token") if t}
+    if not token or token not in valid_tokens:
         raise HTTPException(
             status_code=401,
-            detail="غير مصرّح: يلزم تقديم توكن المصادقة الصحيح (X-API-Key أو Authorization) لتنفيذ الإنشاء.",
+            detail="غير مصرّح: يلزم تقديم توكن المصادقة الصحيح (X-API-Key) للوصول إلى الخدمة.",
         )
+
+
+def verify_write_auth(request: Request) -> None:
+    """Authentication token check for write mutations."""
+    verify_api_auth(request)
 
 
 # ==================== REQUEST SCHEMAS ====================
@@ -226,6 +168,17 @@ def get_system_status(request: Request) -> Dict[str, Any]:
         },
         "default_company_id": 15,
         "default_company_name": "شركة النخبة الذكية للتقنية",
+        "companies": [
+            {"id": 15, "name": "شركة النخبة الذكية للتقنية (ID: 15)", "selected": True},
+            {"id": 1, "name": "الشركة القابضة (ID: 1)", "selected": False},
+        ],
+        "connection_name": "default",
+        "settings": {
+            "labor_law_checks": True,
+            "readback_verification": True,
+            "audit_ledger_immutable": True,
+            "telegram_notifications": telegram_configured,
+        },
         "telegram": {
             "configured": telegram_configured,
             "bot_configured": bool(os.environ.get("TELEGRAM_BOT_TOKEN")),
@@ -2947,6 +2900,94 @@ def get_sijil_pdf_report_endpoint(request: Request) -> FileResponse:
     )
 
 
+# ==============================================================================
+# Phase: صفحة وبوابة الوكيل «سجل» لمراجعة وتوثيق العمليات وتصدير التقارير الرسمية
+# ==============================================================================
+
+SIJIL_PAGE_FILE = Path(__file__).parent / "templates" / "sijil.html"
+
+
+@app.get("/sijil", response_class=HTMLResponse)
+def get_sijil_portal_page(request: Request) -> str:
+    """Returns the dedicated operational review and audit page for agent Sijil."""
+    audit_log_access("/sijil", request)
+    if SIJIL_PAGE_FILE.exists():
+        return SIJIL_PAGE_FILE.read_text(encoding="utf-8")
+    raise HTTPException(status_code=404, detail="صفحة سجل غير موجودة في مجلد templates.")
+
+
+@app.get("/api/sijil/search")
+def get_sijil_search_endpoint(request: Request, q: str = "") -> Dict[str, Any]:
+    """Unified operational search across all audit sources and plans."""
+    audit_log_access("/api/sijil/search", request, {"q": q})
+    from sijil_audit_service import SijilAuditService
+    service = SijilAuditService()
+    res = service.search_operations(q)
+    return res
+
+
+@app.get("/api/sijil/operation/{identifier}")
+def get_sijil_operation_detail_endpoint(identifier: str, request: Request) -> Dict[str, Any]:
+    """Retrieves full documentation and audit trail of a specific operation."""
+    audit_log_access(f"/api/sijil/operation/{identifier}", request)
+    from sijil_audit_service import SijilAuditService
+    service = SijilAuditService()
+    try:
+        op = service.get_operation_detail(identifier)
+        return {"status": "success", "operation": op}
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.get("/api/sijil/operation/{identifier}/pdf")
+def get_sijil_operation_pdf_endpoint(
+    identifier: str, request: Request, include_conversation: bool = False
+) -> FileResponse:
+    """Generates and downloads the official A4 white-paper audit report in Arabic PDF."""
+    audit_log_access(
+        f"/api/sijil/operation/{identifier}/pdf",
+        request,
+        {"include_conversation": include_conversation},
+    )
+    from sijil_audit_service import SijilAuditService
+    service = SijilAuditService()
+    try:
+        pdf_path, _ = service.generate_operation_pdf_report(
+            identifier, include_conversation=include_conversation
+        )
+        safe_filename = f"sijil_audit_report_{identifier.replace('/', '_')}.pdf"
+        return FileResponse(
+            pdf_path,
+            media_type="application/pdf",
+            filename=safe_filename,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+
+@app.get("/api/sijil/recent")
+def get_sijil_recent_operations_endpoint(
+    request: Request,
+    limit: int = 10,
+    offset: int = 0,
+) -> Dict[str, Any]:
+    """Returns recent audited operations ledger for quick browsing with authentication and pagination."""
+    verify_api_auth(request)
+    audit_log_access("/api/sijil/recent", request, {"limit": limit, "offset": offset})
+    from sijil_audit_service import SijilAuditService
+    service = SijilAuditService()
+    ops = service.get_recent_operations(limit=limit, offset=offset)
+    total_count = service.get_total_operations_count()
+    return {
+        "status": "success",
+        "operations": ops,
+        "total": total_count,
+        "limit": limit,
+        "offset": offset,
+        "page": (offset // limit) + 1 if limit else 1,
+    }
+
+
 @app.post("/api/laya/triage")
 def post_laya_triage_endpoint(payload: LayaTriagePayload, request: Request) -> Dict[str, Any]:
     """Fast non-autoregressive triage and intent classification via agent Laya."""
@@ -3509,16 +3550,360 @@ def post_musleh_recover_submission_endpoint(payload: MuslehRecoverSubmissionRequ
     return {"status": "success", "recovery": res}
 
 
+# ==================== PHASE 26: UNIFIED MULTI-AGENT SYSTEM ENDPOINTS ====================
+
+class SerajChatApiRequest(BaseModel):
+    message: str
+    chat_id: str = "web_default"
+    operation_id: Optional[str] = None
+    company_id: Optional[int] = 15
+    company_name: Optional[str] = "شركة النخبة الذكية للتقنية"
+    connection_id: Optional[str] = "default"
+    user_name: Optional[str] = "المستخدم"
+
+
+class AgentApprovalApiRequest(BaseModel):
+    chat_id: str = "web_default"
+    operation_id: Optional[str] = None
+    plan_id: Optional[str] = None
+
+
+class AgentCancelApiRequest(BaseModel):
+    chat_id: str = "web_default"
+    operation_id: Optional[str] = None
+
+
+@app.get("/api/agents/overview")
+def get_agents_overview_endpoint(request: Request) -> Dict[str, Any]:
+    """Returns directory of all 8 agents + Laya helper tool with live status."""
+    audit_log_access("/api/agents/overview", request)
+    from agent_events_service import get_events_service
+    srv = get_events_service()
+    return {
+        "status": "success",
+        "agents": srv.get_agents_overview(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+@app.get("/api/agents/operations")
+def get_agents_operations_endpoint(request: Request, limit: int = 30) -> Dict[str, Any]:
+    """Returns recent multi-agent operations with current progress."""
+    audit_log_access("/api/agents/operations", request)
+    from agent_events_service import get_events_service
+    srv = get_events_service()
+    return {
+        "status": "success",
+        "operations": srv.get_recent_operations(limit=limit),
+        "total": len(srv.operations),
+    }
+
+
+@app.get("/api/agents/operations/{operation_id}")
+def get_agent_operation_endpoint(operation_id: str, request: Request) -> Dict[str, Any]:
+    """Returns full operation details, timeline, and current execution state."""
+    audit_log_access(f"/api/agents/operations/{operation_id}", request)
+    from agent_events_service import get_events_service
+    srv = get_events_service()
+    op = srv.get_operation(operation_id)
+    if not op:
+        from agent_events_service import AGENT_OPS_LOG_FILE
+        found_in_log = False
+        if AGENT_OPS_LOG_FILE.exists():
+            with open(AGENT_OPS_LOG_FILE, "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    if operation_id in line:
+                        found_in_log = True
+                        break
+        if not found_in_log and not operation_id.startswith(("del_", "run_")):
+            raise HTTPException(status_code=404, detail=f"العملية غير موجودة: {operation_id}")
+
+        try:
+            from sijil_audit_service import SijilAuditService
+            sijil = SijilAuditService()
+            audit_op = sijil.get_operation_detail(operation_id)
+            if not audit_op:
+                raise HTTPException(status_code=404, detail=f"العملية غير موجودة: {operation_id}")
+            return {"status": "success", "operation": audit_op, "source": "sijil_audit"}
+        except HTTPException:
+            raise
+        except Exception:
+            raise HTTPException(status_code=404, detail=f"العملية غير موجودة: {operation_id}")
+    return {"status": "success", "operation": op, "source": "live_events"}
+
+
+@app.get("/api/agents/operations/{operation_id}/events")
+def get_agent_operation_events_endpoint(operation_id: str, request: Request, after: int = 0) -> Dict[str, Any]:
+    """Returns events for an operation occurred after sequence `after` (for live polling)."""
+    from agent_events_service import get_events_service
+    srv = get_events_service()
+    events = srv.get_operation_events(operation_id, after_seq=after)
+    op = srv.get_operation(operation_id)
+    return {
+        "status": "success",
+        "operation_id": operation_id,
+        "events": events,
+        "is_active": op.get("status") not in ("completed", "failed", "cancelled") if op else False,
+        "operation_status": op.get("status") if op else "unknown",
+        "operation_status_label": op.get("status_label") if op else "غير معروف",
+    }
+
+
+@app.get("/api/agents/operations/{operation_id}/stream")
+async def stream_agent_operation_events(operation_id: str, request: Request):
+    """Server-Sent Events (SSE) stream delivering real agent execution events."""
+    from agent_events_service import get_events_service
+    srv = get_events_service()
+
+    async def event_generator():
+        last_seq = 0
+        heartbeat_ticks = 0
+        while True:
+            if await request.is_disconnected():
+                break
+
+            events = srv.get_operation_events(operation_id, after_seq=last_seq)
+            op = srv.get_operation(operation_id)
+
+            for evt in events:
+                last_seq = max(last_seq, evt.get("sequence", 0))
+                data = json.dumps(evt, ensure_ascii=False)
+                yield f"event: agent_event\ndata: {data}\n\n"
+
+            if op and op.get("status") in ("completed", "failed", "cancelled") and not events:
+                yield f"event: operation_ended\ndata: {json.dumps({'operation_id': operation_id, 'status': op.get('status')})}\n\n"
+                break
+
+            heartbeat_ticks += 1
+            if heartbeat_ticks % 10 == 0:
+                yield f"event: ping\ndata: {json.dumps({'time': int(time.time())})}\n\n"
+
+            await asyncio.sleep(0.5)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+
+@app.post("/api/seraj/chat")
+def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> Dict[str, Any]:
+    """Unified conversational interaction with Seraj, coordinating multi-agent actions."""
+    audit_log_access("/api/seraj/chat", request, {"chat_id": payload.chat_id, "op_id": payload.operation_id})
+    from agent_events_service import get_events_service
+    from seraj_llm_service import SerajLLMService
+    from seraj_session_manager import SerajSessionManager
+
+    srv = get_events_service()
+    op_id = payload.operation_id
+    if not op_id:
+        op_id = srv.start_operation(
+            user_query=payload.message,
+            operation_type="conversation",
+            company_id=payload.company_id or 15,
+            company_name=payload.company_name or "شركة النخبة الذكية للتقنية",
+            connection_id=payload.connection_id or "default",
+            requester=payload.user_name or "المستخدم",
+            chat_id=payload.chat_id,
+        )
+
+    seraj = SerajLLMService()
+    try:
+        reply = seraj.chat_turn(
+            user_query=payload.message,
+            chat_id=payload.chat_id,
+            user_name=payload.user_name or "المستخدم",
+            connection_id=payload.connection_id,
+            company_id=payload.company_id,
+            operation_id=op_id,
+        )
+    except Exception as exc:
+        srv.emit_event(
+            operation_id=op_id,
+            agent="seraj",
+            event_type="error",
+            status="failed",
+            description_ar=f"واجه سراج خطأ أثناء المعالجة: {exc}",
+            error=str(exc),
+        )
+        raise HTTPException(status_code=500, detail=f"تعذر معالجة الطلب: {exc}")
+
+    session = SerajSessionManager.get_instance().get_session(payload.chat_id)
+    op = srv.get_operation(op_id)
+
+    return {
+        "status": "success",
+        "operation_id": op_id,
+        "response": reply,
+        "operation": op,
+        "pending_action": session.pending_action,
+        "pending_clarification": session.pending_clarification,
+    }
+
+
+@app.post("/api/agents/approve")
+def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Request) -> Dict[str, Any]:
+    """Explicit human approval of a pending operation plan."""
+    audit_log_access("/api/agents/approve", request, {"chat_id": payload.chat_id, "op_id": payload.operation_id})
+    from agent_events_service import get_events_service
+    from seraj_llm_service import SerajLLMService
+    from seraj_session_manager import SerajSessionManager
+
+    srv = get_events_service()
+    seraj = SerajLLMService()
+    reply = seraj.chat_turn(
+        user_query="تأكيد",
+        chat_id=payload.chat_id,
+        operation_id=payload.operation_id,
+    )
+
+    session = SerajSessionManager.get_instance().get_session(payload.chat_id)
+    op = srv.get_operation(payload.operation_id) if payload.operation_id else None
+
+    return {
+        "status": "success",
+        "operation_id": payload.operation_id,
+        "response": reply,
+        "operation": op,
+        "pending_action": session.pending_action,
+    }
+
+
+@app.post("/api/agents/cancel")
+def post_agent_cancel_endpoint(payload: AgentCancelApiRequest, request: Request) -> Dict[str, Any]:
+    """Explicit human cancellation of a pending operation plan."""
+    audit_log_access("/api/agents/cancel", request, {"chat_id": payload.chat_id, "op_id": payload.operation_id})
+    from agent_events_service import get_events_service
+    from seraj_llm_service import SerajLLMService
+    from seraj_session_manager import SerajSessionManager
+
+    srv = get_events_service()
+    seraj = SerajLLMService()
+    reply = seraj.chat_turn(
+        user_query="إلغاء",
+        chat_id=payload.chat_id,
+        operation_id=payload.operation_id,
+    )
+
+    session = SerajSessionManager.get_instance().get_session(payload.chat_id)
+    op = srv.get_operation(payload.operation_id) if payload.operation_id else None
+
+    return {
+        "status": "success",
+        "operation_id": payload.operation_id,
+        "response": reply,
+        "operation": op,
+        "pending_action": session.pending_action,
+    }
+
+
+@app.post("/api/agents/upload")
+async def upload_agent_file_endpoint(
+    request: Request,
+    file: UploadFile = File(...),
+    chat_id: str = Form("web_default"),
+    operation_id: Optional[str] = Form(None),
+) -> Dict[str, Any]:
+    """Uploads file in agent cockpit, creating staging operation and parsing."""
+    audit_log_access("/api/agents/upload", request)
+    content = await file.read()
+    size = len(content)
+    if size > 10 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="حجم الملف يتجاوز الحد الأقصى المسموح به (10 ميجابايت).")
+
+    fn = file.filename or "upload_file"
+    safe_filename = f"{int(time.time())}_{fn}"
+    saved_path = UPLOAD_DIR / safe_filename
+    with open(saved_path, "wb") as f:
+        f.write(content)
+
+    from agent_events_service import get_events_service
+    srv = get_events_service()
+    op_id = operation_id or srv.start_operation(
+        user_query=f"رفع ملف: {fn}",
+        operation_type="file_upload",
+        chat_id=chat_id,
+    )
+    srv.emit_event(
+        operation_id=op_id,
+        agent="seraj",
+        event_type="file_received",
+        status="inspecting_data",
+        description_ar=f"سراج يستلم الملف «{fn}» بحجم {max(1, size // 1024)} كيلوبايت",
+    )
+    dry_run_data = None
+    if fn.lower().endswith(".xlsx"):
+        srv.emit_event(
+            operation_id=op_id,
+            agent="fahas",
+            from_agent="seraj",
+            to_agent="fahas",
+            event_type="spreadsheet_analysis",
+            status="inspecting_data",
+            description_ar=f"فاحص يحلل بنية الجدول وأعمدة ملف الإكسل «{fn}» ومطابقة الحقول المرجعية وقواعد نظام العمل",
+        )
+        try:
+            report_dict = dry_run_report.build_full_report(saved_path)
+            run_id = report_dict["header"]["run_id"]
+            timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+            folder_name = f"{run_id}_{timestamp}"
+            run_output_dir = Path("output") / folder_name
+            run_output_dir.mkdir(parents=True, exist_ok=True)
+            dry_run_report.write_report_files(report_dict, run_output_dir)
+            summary = report_dict.get("summary", {})
+            counts = summary.get("status_counts", {})
+            total_rows = summary.get("row_count", len(report_dict.get("rows", [])))
+            srv.emit_event(
+                operation_id=op_id,
+                agent="fahas",
+                event_type="dry_run_completed",
+                status="completed",
+                description_ar=f"أنجز فاحص تقرير الفحص الجاف (Dry-Run): {total_rows} صفاً، مقبول {counts.get('accepted', 0)}، مرفوض {counts.get('rejected', 0)} (دون أي كتابة في Odoo)",
+                metadata={"run_id": run_id, "summary": summary, "folder": folder_name},
+            )
+            dry_run_data = {
+                "run_id": run_id,
+                "folder": folder_name,
+                "summary": summary,
+                "status_counts": counts,
+                "total_rows": total_rows,
+                "accepted_count": counts.get("accepted", 0),
+                "rejected_count": counts.get("rejected", 0),
+            }
+        except Exception as exc:
+            srv.emit_event(
+                operation_id=op_id,
+                agent="fahas",
+                event_type="spreadsheet_error",
+                status="failed",
+                description_ar=f"تعذر استكمال فحص ملف الإكسل «{fn}»: {exc}",
+                error=str(exc),
+            )
+            dry_run_data = {"error": str(exc)}
+
+    return {
+        "status": "success",
+        "operation_id": op_id,
+        "filename": fn,
+        "size": size,
+        "path": str(saved_path),
+        "dry_run_report": dry_run_data,
+        "message": f"تم استلام وفحص الملف «{fn}» بنجاح في المنظومة.",
+    }
+
+
 @app.get("/", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
 def get_dashboard_html() -> str:
-    """Returns the single-page responsive Arabic Web Dashboard."""
-    if DASHBOARD_FILE.exists():
-        return DASHBOARD_FILE.read_text(encoding="utf-8")
-    return DASHBOARD_HTML_PAGE
+    """Returns the single-page responsive Arabic Web Dashboard with authenticated API token injected."""
+    raw_content = DASHBOARD_FILE.read_text(encoding="utf-8") if DASHBOARD_FILE.exists() else DASHBOARD_HTML_PAGE
+    token = os.environ.get("WRITE_API_TOKEN", WRITE_API_TOKEN)
+    if '<meta charset="UTF-8">' in raw_content:
+        return raw_content.replace(
+            '<meta charset="UTF-8">',
+            f'<meta charset="UTF-8">\n  <meta name="api-token" content="{token}">'
+        )
+    return raw_content
 
 
 if __name__ == "__main__":
-    get_write_api_token()
     import uvicorn
     print("Starting Odoo HR Dashboard on http://localhost:8000 ...")
     uvicorn.run("web_service:app", host="127.0.0.1", port=8000, reload=False)

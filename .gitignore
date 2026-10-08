@@ -26,6 +26,7 @@ build/
 graphify-out/
 .idea/
 .vscode/
+laya-models/
 
 # Node / JS
 node_modules/
@@ -37,14 +38,8 @@ output_catalog/
 logs/
 *.log
 
-# Secrets & keys
-*.key
-
-# Writer result and audit files
+# Writer result files (may appear outside output/ during testing)
 writer_results_*.jsonl
-*_audit_log.jsonl
-*_audit*.jsonl
-*_pending_approvals.json
 
 # Archives & Temporary files
 *.zip

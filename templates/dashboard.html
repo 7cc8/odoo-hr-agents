@@ -3,19 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>بوابة أتمتة إدخال الموظفين في Odoo | Odoo HR Portal</title>
+  <title>مركز عمليات منظومة وكلاء Odoo HR | بوابة أتمتة إدخال الموظفين في Odoo</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     /* ==========================================================================
-       SUPABASE DESIGN SYSTEM (Midnight Code Editor with Phosphor Green)
-       Based on .claude/skills/DESIGN-2.md
+       SUPABASE MIDNIGHT DESIGN SYSTEM (.claude/skills/DESIGN-2.md)
+       Unified Multi-Agent Cockpit with 8 Agent Personalities & Iris Violet / Phosphor Green
        ========================================================================== */
     :root {
-      /* Colors */
+      /* Surfaces */
       --color-obsidian: #121212;
-      --color-ash: #242424;
+      --color-ash: #181818;
+      --color-card: #202020;
+      --color-card-elevated: #282828;
       --color-charcoal: #2e2e2e;
       --color-slate: #393939;
       --color-graphite: #4d4d4d;
@@ -23,17 +25,31 @@
       --color-silver-mist: #b4b4b4;
       --color-smoke: #898989;
 
-      /* Accents */
+      /* Primary Brand Accents */
       --color-phosphor-green: #3ecf8e;
       --color-mint-pulse: #00c573;
       --color-forest-depth: #1f4b37;
       --color-midnight-emerald: #006239;
+      --color-iris-violet: #9281f7;
+      --color-iris-glow: #b3a5ff;
 
       /* Semantics */
       --color-amber: #ffca16;
       --color-coral: #ff6465;
+      --color-blue: #38bdf8;
 
-      /* Spacing Scale (Strict 8px Grid - Impeccable) */
+      /* Agent Signatures */
+      --agent-seraj: #38bdf8;
+      --agent-fahas: #06b6d4;
+      --agent-modaqeq: #6366f1;
+      --agent-mowafaq: #ec4899;
+      --agent-hares: #ef4444;
+      --agent-musleh: #f59e0b;
+      --agent-katib: #10b981;
+      --agent-sijil: #9281f7;
+      --agent-laya: #c084fc;
+
+      /* Spacing Scale (8px Grid) */
       --space-1: 4px;
       --space-2: 8px;
       --space-3: 12px;
@@ -42,16 +58,15 @@
       --space-6: 24px;
       --space-8: 32px;
       --space-10: 40px;
-      --space-12: 48px;
 
       /* Radii */
-      --radius-cards: 16px;
+      --radius-cards: 14px;
       --radius-inputs: 8px;
       --radius-pill: 9999px;
 
       /* Fonts */
-      --font-arabic: 'IBM Plex Sans Arabic', 'Cairo', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      --font-mono: 'JetBrains Mono', 'Source Code Pro', ui-monospace, monospace;
+      --font-arabic: 'IBM Plex Sans Arabic', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Source Code Pro', monospace;
     }
 
     * {
@@ -65,1575 +80,2829 @@
       color: var(--color-snow);
       font-family: var(--font-arabic);
       min-height: 100vh;
-      padding: 40px 20px;
       line-height: 1.6;
       direction: rtl;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
+    /* Accessibility: Respect Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+      .pulse-ring, .particle-dot, .dot-pulse {
+        display: none !important;
+      }
+      .typing-dot {
+        animation: none !important;
+        opacity: 0.8 !important;
+        transform: none !important;
+        background: var(--agent-seraj) !important;
+      }
     }
 
-    /* Monospace & Tabular Figures */
-    .num-tabular, .stat-number, table td.col-num, .code-text {
+    /* ========== TYPING INDICATOR ========== */
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 0;
+    }
+    .typing-indicator.is-visible {
+      display: flex;
+    }
+    .typing-indicator .msg-avatar {
+      flex-shrink: 0;
+    }
+    .typing-dots {
+      display: flex;
+      gap: 5px;
+      padding: 10px 14px;
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      border-radius: 12px;
+      border-top-right-radius: 4px;
+    }
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--color-smoke);
+      animation: typing-bounce 1.4s ease-in-out infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing-bounce {
+      0%, 60%, 100% { transform: translateY(0); background: var(--color-smoke); }
+      30% { transform: translateY(-6px); background: var(--agent-seraj); }
+    }
+
+    /* ========== OPERATION DETAIL MODAL ========== */
+    .op-modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .op-modal-overlay.is-open {
+      display: flex;
+    }
+    .op-modal {
+      background: var(--color-card);
+      border: 1px solid var(--color-charcoal);
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%;
+      max-width: 660px;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+    .op-modal-close {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: transparent;
+      border: none;
+      color: var(--color-smoke);
+      cursor: pointer;
+      font-size: 20px;
+      line-height: 1;
+      padding: 4px 8px;
+    }
+    .op-modal-close:hover { color: var(--color-snow); }
+    .op-modal-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-snow);
+      margin-bottom: 20px;
+      padding-left: 32px;
+    }
+    .op-detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-charcoal);
+      font-size: 13px;
+    }
+    .op-detail-row:last-child { border-bottom: none; }
+    .op-detail-label {
+      color: var(--color-smoke);
+      min-width: 130px;
+      flex-shrink: 0;
+    }
+    .op-detail-value {
+      color: var(--color-snow);
+      text-align: left;
+      word-break: break-all;
+    }
+
+    body.reduce-motion-forced *,
+    body.reduce-motion-forced *::before,
+    body.reduce-motion-forced *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+
+    .mono {
       font-family: var(--font-mono);
       font-variant-numeric: tabular-nums;
-      letter-spacing: 0.05em;
+      direction: ltr;
+      display: inline-block;
     }
 
     /* ==========================================================================
-       HEADER & NAVIGATION (Sticky / Clean 64px Top Bar feel)
+       FIXED TOP NAVIGATION (Sticky 68px Clean Bar)
        ========================================================================== */
-    header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-bottom: 24px;
-      margin-bottom: 32px;
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(18, 18, 18, 0.94);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
       border-bottom: 1px solid var(--color-charcoal);
-      flex-wrap: wrap;
-      gap: 18px;
-    }
-
-    .brand-area {
+      height: 68px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
       gap: 16px;
     }
 
-    .brand-icon-box {
-      width: 44px;
-      height: 44px;
-      border-radius: var(--radius-inputs);
+    .nav-brand-area {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .nav-brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
       background: var(--color-ash);
       border: 1px solid var(--color-charcoal);
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: border-color 0.15s ease;
+      position: relative;
     }
 
-    .brand-icon-box:hover {
-      border-color: var(--color-phosphor-green);
-    }
-
-    .brand-icon-box svg {
+    .nav-brand-icon svg {
       width: 22px;
       height: 22px;
       stroke: var(--color-phosphor-green);
+      stroke-width: 2;
       fill: none;
-      stroke-width: 1.8;
     }
 
-    .brand-meta .eyebrow {
-      font-family: var(--font-mono);
+    .nav-brand-pulse {
+      position: absolute;
+      top: -2px;
+      right: -2px;
+      width: 9px;
+      height: 9px;
+      border-radius: var(--radius-pill);
+      background: var(--color-phosphor-green);
+      box-shadow: 0 0 8px var(--color-phosphor-green);
+    }
+
+    .nav-brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--color-snow);
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .nav-brand-subtitle {
       font-size: 11px;
-      color: var(--color-phosphor-green);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 3px;
+      color: var(--color-silver-mist);
+      font-family: var(--font-mono);
+      margin-top: 2px;
+    }
+
+    /* Nav Center Tabs */
+    .nav-tabs {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      background: var(--color-ash);
+      padding: 4px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--color-charcoal);
     }
 
-    .brand-meta .eyebrow-dot {
+    .nav-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      border: none;
+      background: transparent;
+      color: var(--color-silver-mist);
+      font-size: 13px;
+      font-family: var(--font-arabic);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .nav-tab-btn:hover {
+      color: var(--color-snow);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .nav-tab-btn.is-active {
+      background: var(--color-card-elevated);
+      color: var(--color-phosphor-green);
+      border: 1px solid var(--color-slate);
+      font-weight: 600;
+    }
+
+    .nav-tab-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2;
+    }
+
+    /* Nav Controls & Scope Badges */
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .scope-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      font-size: 12px;
+      color: var(--color-snow);
+    }
+
+    .scope-pill svg {
+      width: 13px;
+      height: 13px;
+      stroke: var(--color-silver-mist);
+    }
+
+    .scope-pill select {
+      background: transparent;
+      border: none;
+      color: var(--color-snow);
+      font-family: var(--font-arabic);
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .scope-pill select option {
+      background: var(--color-card);
+      color: var(--color-snow);
+    }
+
+    .stream-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-family: var(--font-mono);
+      background: rgba(62, 207, 142, 0.1);
+      border: 1px solid rgba(62, 207, 142, 0.3);
+      color: var(--color-phosphor-green);
+    }
+
+    .stream-status-pill.is-disconnected {
+      background: rgba(255, 202, 22, 0.1);
+      border-color: rgba(255, 202, 22, 0.4);
+      color: var(--color-amber);
+    }
+
+    .stream-dot {
       width: 6px;
       height: 6px;
       border-radius: var(--radius-pill);
       background: var(--color-phosphor-green);
     }
 
-    h1 {
-      font-size: 22px;
-      font-weight: 500;
-      color: var(--color-snow);
-      letter-spacing: -0.007em;
-      line-height: 1.3;
+    .stream-status-pill.is-disconnected .stream-dot {
+      background: var(--color-amber);
     }
 
-    .subtitle {
-      font-size: 13.5px;
-      color: var(--color-silver-mist);
-      margin-top: 4px;
-      font-weight: 400;
+    /* ==========================================================================
+       CONTAINER & VIEWS
+       ========================================================================== */
+    .main-wrapper {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 20px 60px 20px;
     }
 
-    .header-actions {
+    .view-section {
+      display: none;
+    }
+
+    .view-section.is-visible {
+      display: block;
+    }
+
+    /* ==========================================================================
+       VIEW 1: المحادثة والتشغيل (Split Cockpit)
+       ========================================================================== */
+    .cockpit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    @media (max-width: 1024px) {
+      .cockpit-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Common Card Surface */
+    .panel-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-cards);
+      padding: 20px;
+      position: relative;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--color-charcoal);
+    }
+
+    .panel-title-group {
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    /* ==========================================================================
-       BUTTONS (Supabase Duality: 9999px Pill Buttons)
-       ========================================================================== */
+    .panel-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-snow);
+    }
+
+    /* CHAT STREAM */
+    .chat-box {
+      display: flex;
+      flex-direction: column;
+      height: 720px;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 4px 16px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+
+    .msg-bubble {
+      display: flex;
+      gap: 12px;
+      max-width: 90%;
+      line-height: 1.55;
+    }
+
+    .msg-bubble.msg-user {
+      align-self: flex-start;
+      flex-direction: row;
+    }
+
+    .msg-bubble.msg-assistant {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+      max-width: 96%;
+    }
+
+    .msg-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .msg-avatar svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 1.8;
+    }
+
+    .msg-user .msg-avatar {
+      border-color: var(--color-slate);
+      background: #252525;
+    }
+    .msg-user .msg-avatar svg {
+      stroke: var(--color-silver-mist);
+    }
+
+    .msg-assistant .msg-avatar {
+      border-color: var(--agent-seraj);
+      background: rgba(56, 189, 248, 0.1);
+    }
+    .msg-assistant .msg-avatar svg {
+      stroke: var(--agent-seraj);
+    }
+
+    .msg-content-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .msg-meta {
+      font-size: 11px;
+      color: var(--color-smoke);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .msg-card {
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      word-break: break-word;
+    }
+
+    .msg-user .msg-card {
+      background: #232323;
+      border: 1px solid var(--color-charcoal);
+      color: var(--color-snow);
+    }
+
+    .msg-assistant .msg-card {
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      border-right: 3px solid var(--agent-seraj);
+      color: var(--color-snow);
+    }
+
+    .msg-card pre, .msg-card code {
+      font-family: var(--font-mono);
+      background: #141414;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      direction: ltr;
+      display: inline-block;
+    }
+    .msg-card pre {
+      display: block;
+      padding: 10px;
+      margin: 8px 0;
+      overflow-x: auto;
+    }
+
+    /* Interactive Cards inside Chat */
+    .chat-action-card {
+      background: #191919;
+      border: 1px solid var(--color-charcoal);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 10px;
+    }
+
+    .chat-action-card.card-approval {
+      border-right: 4px solid var(--color-amber);
+      background: rgba(255, 202, 22, 0.03);
+    }
+
+    .chat-action-card.card-completed {
+      border-right: 4px solid var(--color-phosphor-green);
+      background: rgba(62, 207, 142, 0.03);
+    }
+
+    .action-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .action-card-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--color-snow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-card-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      font-size: 12.5px;
+      margin-bottom: 14px;
+      background: #141414;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--color-charcoal);
+    }
+
+    .action-card-grid div {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .action-card-grid span.label {
+      color: var(--color-smoke);
+      font-size: 11px;
+    }
+
+    .action-card-grid span.val {
+      color: var(--color-snow);
+      font-weight: 500;
+    }
+
+    .action-buttons-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 8px 18px;
+      padding: 7px 16px;
       border-radius: var(--radius-pill);
-      font-size: 13.5px;
+      font-size: 13px;
+      font-family: var(--font-arabic);
       font-weight: 500;
       cursor: pointer;
       text-decoration: none;
-      transition: all 0.15s ease-out;
       border: 1px solid var(--color-slate);
       background: transparent;
       color: var(--color-snow);
-      white-space: nowrap;
+      transition: all 0.15s ease;
       user-select: none;
-      line-height: 1.43;
     }
 
     .btn:hover:not(:disabled) {
       border-color: var(--color-graphite);
       background: rgba(255, 255, 255, 0.04);
-      color: var(--color-snow);
     }
 
     .btn:active:not(:disabled) {
-      transform: translateY(1px) scale(0.99);
+      transform: translateY(1px);
     }
 
     .btn:disabled {
-      opacity: 0.35;
+      opacity: 0.4;
       cursor: not-allowed;
-      border-color: var(--color-charcoal) !important;
     }
 
-    .btn svg {
-      width: 15px;
-      height: 15px;
-      stroke-width: 1.8;
-      flex-shrink: 0;
-    }
-
-    /* Primary CTA Button (Phosphor Green Pill) */
     .btn-primary {
       background: var(--color-phosphor-green);
       color: #121212;
-      border: 1px solid var(--color-phosphor-green);
+      border-color: var(--color-phosphor-green);
       font-weight: 600;
     }
     .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.05);
       background: var(--color-phosphor-green);
-      border-color: var(--color-forest-depth);
-      filter: brightness(1.04);
       color: #121212;
     }
-    .btn-primary:disabled {
-      background: var(--color-ash) !important;
-      color: var(--color-smoke) !important;
-      border-color: var(--color-charcoal) !important;
-      filter: none;
-      opacity: 0.55;
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: var(--color-coral);
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--color-coral);
     }
 
-    /* Secondary Elevated Button (Ash Pill) */
-    .btn-secondary {
+    .btn-iris {
+      background: rgba(146, 129, 247, 0.12);
+      border-color: rgba(146, 129, 247, 0.35);
+      color: var(--color-iris-glow);
+    }
+    .btn-iris:hover:not(:disabled) {
+      background: rgba(146, 129, 247, 0.22);
+      border-color: var(--color-iris-glow);
+    }
+
+    .btn-sm {
+      padding: 4px 12px;
+      font-size: 11.5px;
+    }
+
+    /* Chat Input Area */
+    .chat-input-area {
+      margin-top: 14px;
+      border-top: 1px solid var(--color-charcoal);
+      padding-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-suggestions {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: thin;
+    }
+
+    .suggestion-chip {
+      font-size: 11.5px;
+      color: var(--color-silver-mist);
       background: var(--color-ash);
       border: 1px solid var(--color-charcoal);
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .suggestion-chip:hover {
       color: var(--color-snow);
-    }
-    .btn-secondary:hover:not(:disabled) {
-      border-color: var(--color-graphite);
-      background: #2a2a2a;
+      border-color: var(--color-slate);
+      background: #252525;
     }
 
-    /* ==========================================================================
-       PIPELINE STEPPER (16px Cards with 9999px Status Pills)
-       ========================================================================== */
-    .pipeline-stepper {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-
-    .step-item {
-      background: var(--color-obsidian);
-      border: 1px solid var(--color-charcoal);
-      border-radius: var(--radius-cards);
-      padding: 16px 20px;
+    .chat-form {
       display: flex;
-      align-items: center;
-      gap: 14px;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .chat-textarea-box {
+      flex: 1;
+      position: relative;
+    }
+
+    .chat-textarea {
+      width: 100%;
+      min-height: 44px;
+      max-height: 120px;
+      background: var(--color-ash);
+      border: 1px solid var(--color-slate);
+      border-radius: 10px;
+      color: var(--color-snow);
+      font-family: var(--font-arabic);
+      font-size: 13.5px;
+      padding: 10px 14px;
+      resize: none;
+      outline: none;
+      line-height: 1.5;
       transition: border-color 0.15s ease;
     }
 
-    .step-item.is-active {
-      border-color: var(--color-phosphor-green);
-      background: rgba(62, 207, 142, 0.03);
-    }
-
-    .step-item.is-completed {
+    .chat-textarea:focus {
       border-color: var(--color-phosphor-green);
     }
 
-    .step-num {
-      width: 28px;
-      height: 28px;
-      border-radius: var(--radius-pill);
+    .file-upload-label {
+      cursor: pointer;
+      padding: 10px 12px;
       background: var(--color-ash);
       border: 1px solid var(--color-charcoal);
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      font-weight: 500;
       color: var(--color-silver-mist);
-      flex-shrink: 0;
+      transition: all 0.15s ease;
     }
 
-    .step-item.is-active .step-num {
-      border-color: var(--color-phosphor-green);
-      color: var(--color-phosphor-green);
-      background: rgba(62, 207, 142, 0.12);
-    }
-
-    .step-item.is-completed .step-num {
-      border-color: var(--color-phosphor-green);
-      color: var(--color-phosphor-green);
-      background: rgba(62, 207, 142, 0.12);
-    }
-
-    .step-text h4 {
-      font-size: 13.5px;
-      font-weight: 500;
+    .file-upload-label:hover {
       color: var(--color-snow);
+      border-color: var(--color-slate);
     }
 
-    .step-text p {
-      font-size: 11.5px;
-      color: var(--color-smoke);
-      margin-top: 1px;
+    .file-upload-label svg {
+      width: 18px;
+      height: 18px;
     }
 
     /* ==========================================================================
-       STATUS BAR TILES (Flat 16px Containers)
+       LEFT SIDE: خريطة الوكلاء وسير العملية
        ========================================================================== */
-    .status-bar {
+    .process-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* AGENT CHARACTERS STRIP (8 AGENTS + LAYA) */
+    .agents-strip {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 12px;
-      margin-bottom: 28px;
-    }
-
-    .status-box {
-      background: var(--color-obsidian);
-      border: 1px solid var(--color-charcoal);
-      border-radius: var(--radius-cards);
-      padding: 14px 18px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-
-    .status-indicator {
-      width: 8px;
-      height: 8px;
-      border-radius: var(--radius-pill);
-      background: var(--color-phosphor-green);
-      flex-shrink: 0;
-    }
-    .status-indicator.amber {
-      background: var(--color-amber);
-    }
-    .status-indicator.red {
-      background: var(--color-coral);
-    }
-
-    .status-box-content h4 {
-      font-size: 11.5px;
-      color: var(--color-smoke);
-      font-weight: 400;
-    }
-    .status-box-content p {
-      font-size: 13.5px;
-      font-weight: 500;
-      color: var(--color-snow);
-      margin-top: 1px;
-    }
-
-    /* ==========================================================================
-       CARDS & CONTAINERS (16px Radius, 1px #2e2e2e Border, Flat)
-       ========================================================================== */
-    .card {
-      background: var(--color-obsidian);
-      border: 1px solid var(--color-charcoal);
-      border-radius: var(--radius-cards);
-      padding: 28px;
-      margin-bottom: 28px;
-    }
-
-    .card-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .card-title {
-      font-size: 17px;
-      font-weight: 500;
-      color: var(--color-snow);
-      display: flex;
-      align-items: center;
+      grid-template-columns: repeat(4, 1fr);
       gap: 10px;
-      letter-spacing: -0.007em;
     }
 
-    .tag-badge {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      padding: 2px 10px;
-      border-radius: var(--radius-pill);
+    @media (max-width: 600px) {
+      .agents-strip {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .agent-character-card {
       background: var(--color-ash);
       border: 1px solid var(--color-charcoal);
-      color: var(--color-phosphor-green);
-      letter-spacing: 0.05em;
-    }
-
-    .card-desc {
-      color: var(--color-silver-mist);
-      font-size: 13.5px;
-      line-height: 1.6;
-      margin-bottom: 22px;
-      font-weight: 400;
-    }
-
-    /* ==========================================================================
-       DROP ZONE (16px Radius, Hairline Dashed Border)
-       ========================================================================== */
-    .drop-zone {
-      border: 1px dashed var(--color-slate);
-      border-radius: var(--radius-cards);
-      padding: 42px 24px;
+      border-radius: 12px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       text-align: center;
+      position: relative;
       cursor: pointer;
-      transition: border-color 0.2s ease, background 0.2s ease;
-      background: var(--color-obsidian);
+      transition: all 0.2s ease;
     }
 
-    .drop-zone:hover, .drop-zone.dragover {
-      border-color: var(--color-phosphor-green);
-      background: rgba(62, 207, 142, 0.03);
+    .agent-character-card:hover {
+      border-color: var(--color-graphite);
+      transform: translateY(-2px);
     }
 
-    .drop-icon {
+    .agent-character-card.is-active {
+      border-color: var(--agent-color, var(--color-phosphor-green));
+      box-shadow: 0 0 16px rgba(62, 207, 142, 0.15);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .agent-character-card.is-active::after {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      border-radius: 14px;
+      border: 1px solid var(--agent-color, var(--color-phosphor-green));
+      opacity: 0.6;
+      animation: pulse-ring 2s infinite ease-out;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.98); opacity: 0.8; }
+      50% { transform: scale(1.02); opacity: 0.2; }
+      100% { transform: scale(0.98); opacity: 0.8; }
+    }
+
+    .agent-avatar-wrap {
       width: 44px;
       height: 44px;
-      margin: 0 auto 16px;
-      border-radius: var(--radius-inputs);
+      border-radius: 12px;
+      background: #141414;
+      border: 1.5px solid var(--agent-color, var(--color-charcoal));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      position: relative;
+    }
+
+    .agent-avatar-wrap svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--agent-color, var(--color-snow));
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .agent-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--color-snow);
+      line-height: 1.2;
+    }
+
+    .agent-role-short {
+      font-size: 10px;
+      color: var(--color-smoke);
+      margin-top: 2px;
+      height: 26px;
+      overflow: hidden;
+      line-height: 1.3;
+    }
+
+    .agent-status-bubble {
+      margin-top: 6px;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 10px;
+      font-weight: 500;
+      white-space: nowrap;
+      background: #1a1a1a;
+      border: 1px solid var(--color-charcoal);
+      color: var(--color-silver-mist);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .agent-character-card.is-active .agent-status-bubble {
+      background: rgba(62, 207, 142, 0.12);
+      border-color: var(--agent-color, var(--color-phosphor-green));
+      color: var(--agent-color, var(--color-phosphor-green));
+      font-weight: 600;
+    }
+
+    /* Dynamic Stepper */
+    .stepper-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .step-node {
       background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      border-radius: 12px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      position: relative;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+
+    .step-node:hover {
+      border-color: var(--color-slate);
+      background: #232323;
+    }
+
+    .step-node.is-completed {
+      border-color: rgba(62, 207, 142, 0.35);
+    }
+
+    .step-node.is-active {
+      border-color: var(--color-phosphor-green);
+      background: rgba(62, 207, 142, 0.04);
+    }
+
+    .step-node.is-waiting {
+      border-color: var(--color-amber);
+      background: rgba(255, 202, 22, 0.04);
+    }
+
+    .step-node.is-future {
+      border-style: dashed;
+      opacity: 0.55;
+    }
+
+    .step-icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-pill);
+      background: #141414;
       border: 1px solid var(--color-charcoal);
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--color-phosphor-green);
-      transition: border-color 0.2s ease;
-    }
-
-    .drop-zone:hover .drop-icon {
-      border-color: var(--color-phosphor-green);
-    }
-
-    .drop-icon svg {
-      width: 22px;
-      height: 22px;
-      stroke: var(--color-phosphor-green);
-      fill: none;
-      stroke-width: 1.8;
-    }
-
-    .drop-title {
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--color-snow);
-      margin-bottom: 6px;
-    }
-
-    .drop-sub {
-      color: var(--color-smoke);
-      font-size: 12.5px;
-    }
-
-    .file-badge-preview {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 16px;
-      padding: 6px 14px;
-      border-radius: var(--radius-pill);
-      background: var(--color-ash);
-      border: 1px solid var(--color-phosphor-green);
-      font-size: 12.5px;
-      color: var(--color-phosphor-green);
+      flex-shrink: 0;
       font-family: var(--font-mono);
-    }
-
-    /* ==========================================================================
-       STATS TILES (16px Containers)
-       ========================================================================== */
-    .bento-stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-
-    .bento-tile {
-      background: var(--color-obsidian);
-      border: 1px solid var(--color-charcoal);
-      border-radius: var(--radius-cards);
-      padding: 16px 18px;
-    }
-
-    .bento-tile-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .bento-num {
-      font-family: var(--font-mono);
-      font-size: 10px;
-      color: var(--color-smoke);
-      letter-spacing: 0.1em;
-    }
-
-    .bento-label {
       font-size: 12px;
-      font-weight: 400;
-      color: var(--color-silver-mist);
     }
 
-    .bento-value {
-      font-size: 28px;
-      font-weight: 500;
-      color: var(--color-snow);
-      line-height: 1.1;
-      letter-spacing: -0.007em;
-    }
-
-    .bento-tile.is-accepted {
-      border-color: rgba(62, 207, 142, 0.4);
-    }
-    .bento-tile.is-accepted .bento-label, .bento-tile.is-accepted .bento-value {
+    .step-node.is-completed .step-icon-box {
+      background: rgba(62, 207, 142, 0.15);
+      border-color: var(--color-phosphor-green);
       color: var(--color-phosphor-green);
     }
 
-    .bento-tile.is-review {
-      border-color: rgba(255, 202, 22, 0.4);
+    .step-node.is-active .step-icon-box {
+      background: rgba(62, 207, 142, 0.25);
+      border-color: var(--color-phosphor-green);
+      color: var(--color-phosphor-green);
     }
-    .bento-tile.is-review .bento-label, .bento-tile.is-review .bento-value {
+
+    .step-node.is-waiting .step-icon-box {
+      background: rgba(255, 202, 22, 0.15);
+      border-color: var(--color-amber);
       color: var(--color-amber);
     }
 
-    .bento-tile.is-rejected {
-      border-color: rgba(255, 100, 101, 0.4);
+    .step-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
     }
-    .bento-tile.is-rejected .bento-label, .bento-tile.is-rejected .bento-value {
-      color: var(--color-coral);
+
+    .step-header-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .step-agent-tag {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--color-silver-mist);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .step-time {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-smoke);
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: var(--color-snow);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .step-detail-link {
+      font-size: 11px;
+      color: var(--color-phosphor-green);
+      margin-top: 4px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
 
     /* ==========================================================================
-       DATA TABLES (16px Frame, #2e2e2e Borders, Ash Headers)
+       COLLAPSIBLE DETAILS DRAWER (Modal / Slide-in Sheet)
        ========================================================================== */
-    .table-frame {
-      overflow-x: auto;
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .drawer-overlay.is-open {
+      display: flex;
+    }
+
+    .drawer-sheet {
+      width: 620px;
+      max-width: 95vw;
+      height: auto;
+      max-height: 85vh;
+      background: var(--color-ash);
       border: 1px solid var(--color-charcoal);
-      border-radius: var(--radius-cards);
-      background: var(--color-obsidian);
+      border-radius: 16px;
+      box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--color-charcoal);
+    }
+
+    .drawer-close-btn {
+      background: transparent;
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-pill);
+      width: 32px;
+      height: 32px;
+      color: var(--color-snow);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ==========================================================================
+       VIEW 2: العمليات (Operations Table)
+       ========================================================================== */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
       margin-top: 16px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: right;
-      font-size: 13px;
-    }
-
-    th {
-      background: var(--color-ash);
-      padding: 12px 14px;
+    .data-table th {
+      background: #191919;
       color: var(--color-silver-mist);
+      padding: 12px 14px;
+      text-align: right;
       font-weight: 500;
       border-bottom: 1px solid var(--color-charcoal);
-      font-size: 12px;
-      letter-spacing: 0.02em;
+      white-space: nowrap;
     }
 
-    td {
+    .data-table td {
       padding: 12px 14px;
       border-bottom: 1px solid var(--color-charcoal);
       color: var(--color-snow);
       vertical-align: middle;
     }
 
-    tr:hover td {
+    .data-table tr:hover td {
       background: rgba(255, 255, 255, 0.02);
     }
 
-    /* Status Badges (9999px Pill Shape) */
-    .status-badge {
+    /* Badges */
+    .badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 3px 10px;
       border-radius: var(--radius-pill);
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 500;
       white-space: nowrap;
       border: 1px solid transparent;
-      font-family: var(--font-mono);
-      letter-spacing: 0.02em;
     }
 
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: var(--radius-pill);
-    }
-
-    .status-badge.is-accepted {
-      background: rgba(62, 207, 142, 0.08);
-      color: var(--color-phosphor-green);
+    .badge-success {
+      background: rgba(62, 207, 142, 0.12);
       border-color: rgba(62, 207, 142, 0.35);
-    }
-    .status-badge.is-accepted .status-dot {
-      background: var(--color-phosphor-green);
+      color: var(--color-phosphor-green);
     }
 
-    .status-badge.is-review {
-      background: rgba(255, 202, 22, 0.08);
-      color: var(--color-amber);
+    .badge-warning {
+      background: rgba(255, 202, 22, 0.12);
       border-color: rgba(255, 202, 22, 0.35);
-    }
-    .status-badge.is-review .status-dot {
-      background: var(--color-amber);
+      color: var(--color-amber);
     }
 
-    .status-badge.is-rejected {
-      background: rgba(255, 100, 101, 0.08);
-      color: var(--color-coral);
+    .badge-error {
+      background: rgba(255, 100, 101, 0.12);
       border-color: rgba(255, 100, 101, 0.35);
-    }
-    .status-badge.is-rejected .status-dot {
-      background: var(--color-coral);
-    }
-
-    /* Checkbox (Flat 4px Radius) */
-    input[type="checkbox"] {
-      appearance: none;
-      -webkit-appearance: none;
-      width: 17px;
-      height: 17px;
-      border-radius: 4px;
-      background: var(--color-obsidian);
-      border: 1px solid var(--color-slate);
-      cursor: pointer;
-      display: inline-grid;
-      place-content: center;
-      transition: all 0.15s ease;
-      vertical-align: middle;
-    }
-    input[type="checkbox"]:checked {
-      background: var(--color-phosphor-green);
-      border-color: var(--color-phosphor-green);
-    }
-    input[type="checkbox"]:checked::before {
-      content: "";
-      width: 8px;
-      height: 4px;
-      border-left: 2px solid #121212;
-      border-bottom: 2px solid #121212;
-      transform: rotate(-45deg) translate(1px, -1px);
-    }
-    input[type="checkbox"]:disabled {
-      opacity: 0.25;
-      cursor: not-allowed;
-      border-color: var(--color-charcoal);
-    }
-
-    /* ==========================================================================
-       APPROVAL FORM BOX (16px Card, 8px Inputs)
-       ========================================================================== */
-    .approval-box {
-      margin-top: 24px;
-      padding: 24px;
-      background: var(--color-obsidian);
-      border: 1px solid var(--color-charcoal);
-      border-radius: var(--radius-cards);
-    }
-
-    .approval-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .approval-header h4 {
-      font-size: 15px;
-      font-weight: 500;
-      color: var(--color-snow);
-    }
-
-    .approval-desc {
-      font-size: 12.5px;
-      color: var(--color-silver-mist);
-      margin-bottom: 18px;
-      line-height: 1.6;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-label {
-      font-size: 12px;
-      font-weight: 400;
-      color: var(--color-silver-mist);
-    }
-
-    .form-input {
-      padding: 10px 14px;
-      border-radius: var(--radius-inputs);
-      background: var(--color-obsidian);
-      border: 1px solid var(--color-slate);
-      color: var(--color-snow);
-      font-size: 13.5px;
-      outline: none;
-      transition: border-color 0.15s ease;
-      font-family: inherit;
-    }
-    .form-input:focus {
-      border-color: var(--color-phosphor-green);
-    }
-    .form-input[readonly] {
-      opacity: 0.55;
-      cursor: not-allowed;
-      color: var(--color-smoke);
-    }
-
-    /* ==========================================================================
-       TERMINAL CODE WINDOW (Audit Log Viewer)
-       ========================================================================== */
-    .terminal-window {
-      background: var(--color-obsidian);
-      border: 1px solid var(--color-charcoal);
-      border-radius: var(--radius-cards);
-      margin-top: 18px;
-      overflow: hidden;
-    }
-
-    .terminal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 16px;
-      border-bottom: 1px solid var(--color-charcoal);
-      background: var(--color-ash);
-    }
-
-    .terminal-dots {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .terminal-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: var(--radius-pill);
-    }
-    .dot-red { background: #ff5f56; }
-    .dot-yellow { background: #ffbd2e; }
-    .dot-green { background: #27c93f; }
-
-    .terminal-title {
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--color-smoke);
-    }
-
-    .log-box {
-      background: var(--color-obsidian);
-      padding: 18px;
-      font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--color-phosphor-green);
-      max-height: 220px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      direction: ltr;
-      text-align: left;
-      line-height: 1.5;
-      letter-spacing: 0.05em;
-    }
-
-    /* Summary Banner */
-    .summary-banner {
-      padding: 16px 20px;
-      border-radius: var(--radius-cards);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: rgba(62, 207, 142, 0.06);
-      border: 1px solid rgba(62, 207, 142, 0.35);
-      color: var(--color-phosphor-green);
-    }
-
-    .summary-banner-icon {
-      width: 32px;
-      height: 32px;
-      border-radius: var(--radius-pill);
-      background: rgba(62, 207, 142, 0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .summary-banner-text h3 {
-      font-size: 15px;
-      font-weight: 500;
-      margin-bottom: 2px;
-      color: var(--color-snow);
-    }
-
-    .summary-banner-text p {
-      font-size: 12.5px;
-      color: var(--color-silver-mist);
-    }
-
-    .footer-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 24px;
-      padding-top: 18px;
-      border-top: 1px solid var(--color-charcoal);
-      flex-wrap: wrap;
-      gap: 14px;
-    }
-
-    /* Utilities */
-    .hidden {
-      display: none !important;
-    }
-
-    .spinner {
-      width: 15px;
-      height: 15px;
-      border: 2px solid rgba(18, 18, 18, 0.3);
-      border-left-color: #121212;
-      border-radius: var(--radius-pill);
-      animation: spin 0.8s linear infinite;
-      display: inline-block;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-    /* Toast Notification (Supabase Flat Pill) */
-    .toast-container {
-      position: fixed;
-      bottom: 24px;
-      left: 24px;
-      z-index: 1000;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .toast-item {
-      background: var(--color-ash);
-      border: 1px solid var(--color-charcoal);
-      color: var(--color-snow);
-      padding: 10px 18px;
-      border-radius: var(--radius-pill);
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      animation: toastIn 0.2s ease-out;
-      max-width: 380px;
-      line-height: 1.4;
-    }
-
-    .toast-item.error {
-      border-color: var(--color-coral);
       color: var(--color-coral);
     }
 
-    .toast-item.success {
-      border-color: var(--color-phosphor-green);
-      color: var(--color-phosphor-green);
+    .badge-neutral {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: var(--color-slate);
+      color: var(--color-silver-mist);
     }
 
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* ==========================================================================
+       VIEW 3: الوكلاء (Agent Cards Hub)
+       ========================================================================== */
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    @media (max-width: 900px) {
+      .agents-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .agent-full-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-cards);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      transition: all 0.2s ease;
+    }
+
+    .agent-full-card:hover {
+      border-color: var(--color-graphite);
+      transform: translateY(-2px);
+    }
+
+    .agent-full-card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* ==========================================================================
+       VIEW 4: سجل والتقارير (Embedded Sijil Audit & PDF Portal)
+       ========================================================================== */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    @media (max-width: 800px) {
+      .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .metric-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-charcoal);
+      border-radius: var(--radius-cards);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .metric-title {
+      font-size: 11.5px;
+      color: var(--color-silver-mist);
+      font-weight: 500;
+    }
+
+    .metric-value {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--color-snow);
+    }
+
+    .metric-hint {
+      font-size: 11px;
+      color: var(--color-smoke);
+    }
+
+    .search-bar-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .search-input {
+      flex: 1;
+      height: 44px;
+      background: var(--color-card);
+      border: 1px solid var(--color-slate);
+      border-radius: 10px;
+      padding: 0 16px;
+      color: var(--color-snow);
+      font-family: var(--font-arabic);
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--color-iris-glow);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <header>
-      <div class="brand-area">
-        <div class="brand-icon-box">
-          <svg viewBox="0 0 24 24">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-        </div>
-        <div class="brand-meta">
-          <div class="eyebrow">
-            <span class="eyebrow-dot"></span>
-            منظومة الأتمتة والتدقيق • ODOO 19 HR PIPELINE
+
+  <!-- ==================== FIXED TOP NAVIGATION ==================== -->
+  <header class="top-nav">
+    <a href="/" class="nav-brand-area">
+      <div class="nav-brand-icon">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span class="nav-brand-pulse"></span>
+      </div>
+      <div>
+        <div class="nav-brand-title">مركز عمليات منظومة الوكلاء</div>
+        <div class="nav-brand-subtitle">ODOO HR MULTI-AGENT GOVERNANCE</div>
+      </div>
+    </a>
+
+    <!-- Top Navigation Tabs -->
+    <nav class="nav-tabs" role="tablist">
+      <button class="nav-tab-btn is-active" data-view="view-cockpit" onclick="switchView('view-cockpit')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        <span>المحادثة والتشغيل</span>
+      </button>
+      <button class="nav-tab-btn" data-view="view-operations" onclick="switchView('view-operations')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+        <span>العمليات</span>
+      </button>
+      <button class="nav-tab-btn" data-view="view-agents" onclick="switchView('view-agents')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>الوكلاء</span>
+      </button>
+      <button class="nav-tab-btn" data-view="view-sijil" onclick="switchView('view-sijil')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        <span>سجل والتقارير</span>
+      </button>
+      <button class="nav-tab-btn" data-view="view-settings" onclick="switchView('view-settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>الإعدادات</span>
+      </button>
+    </nav>
+
+    <!-- Scope Pills -->
+    <div class="nav-controls">
+      <div class="scope-pill" title="اتصال Odoo المعتمد">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20"></path></svg>
+        <span class="mono" id="connectionScopePillText">default</span>
+      </div>
+
+      <div class="scope-pill" title="المنشأة المحددة">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 21h18"></path><path d="M9 8h1"></path><path d="M9 12h1"></path><path d="M9 16h1"></path><path d="M14 8h1"></path><path d="M14 12h1"></path><path d="M14 16h1"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path></svg>
+        <select id="companySelector" onchange="handleCompanyChange(this.value)">
+          <option value="15" selected>شركة النخبة الذكية (ID: 15)</option>
+          <option value="1">الشركة القابضة (ID: 1)</option>
+        </select>
+      </div>
+
+      <div id="liveStreamBadge" class="stream-status-pill">
+        <span class="stream-dot"></span>
+        <span id="streamStatusText">البث متصل</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN CONTENT ==================== -->
+  <main class="main-wrapper">
+
+    <!-- ==================== VIEW 1: المحادثة والتشغيل (Cockpit) ==================== -->
+    <section id="view-cockpit" class="view-section is-visible">
+      <div class="cockpit-grid">
+
+        <!-- RIGHT: غرفة محادثة سراج -->
+        <div class="panel-card chat-box">
+          <div class="panel-header">
+            <div class="panel-title-group">
+              <div class="msg-avatar" style="border-color: var(--agent-seraj); background: rgba(56, 189, 248, 0.1);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </div>
+              <div>
+                <div class="panel-title">المحادثة مع «سراج» — المنسق العام</div>
+                <div style="font-size: 11px; color: var(--color-silver-mist);">تنسيق المهام • التحاور • شرح النتائج والاعتمادات</div>
+              </div>
+            </div>
+            <div id="serajStateBadge" class="badge badge-neutral">جاهز</div>
           </div>
-          <h1>بوابة أتمتة إدخال الموظفين في Odoo</h1>
-          <p class="subtitle">المسار الآمن (A) • فحص استباقي، اعتماد بشري ثنائي، وتحقق فوري في النظام</p>
-        </div>
-      </div>
-      <div class="header-actions">
-        <a href="/api/sijil/report/pdf" target="_blank" class="btn" style="border-color: rgba(146, 129, 247, 0.4); color: #b3a5ff; background: rgba(146, 129, 247, 0.08);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 16px; height: 16px;">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-          </svg>
-          تقرير الرقابة والتدقيق (PDF)
-        </a>
-        <a href="/guide" target="_blank" class="btn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-          </svg>
-          دليل تشغيل استيراد الموظفين
-        </a>
-        <a href="/api/download-template" class="btn btn-secondary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="7 10 12 15 17 10"/>
-            <line x1="12" y1="15" x2="12" y2="3"/>
-          </svg>
-          تنزيل القالب المعتمد (.xlsx)
-        </a>
-      </div>
-    </header>
 
-    <!-- Pipeline Stepper -->
-    <div class="pipeline-stepper" id="pipelineStepper">
-      <div class="step-item is-active" id="stepIndicator1">
-        <div class="step-num">01</div>
-        <div class="step-text">
-          <h4>الفحص التجريبي (Dry-Run)</h4>
-          <p>تحقق استباقي آمن دون تعديل في Odoo</p>
-        </div>
-      </div>
-      <div class="step-item" id="stepIndicator2">
-        <div class="step-num">02</div>
-        <div class="step-text">
-          <h4>المراجعة والاعتماد البشري</h4>
-          <p>قاعدة الموافقة الثنائية (Four-Eyes Rule)</p>
-        </div>
-      </div>
-      <div class="step-item" id="stepIndicator3">
-        <div class="step-num">03</div>
-        <div class="step-text">
-          <h4>الإنشاء الفعلي والتحقق</h4>
-          <p>توليد السجلات وإشعار تيليقرام الفوري</p>
-        </div>
-      </div>
-    </div>
+          <!-- Messages Container -->
+          <div id="chatMessages" class="chat-messages">
+            <!-- Welcome Message -->
+            <div class="msg-bubble msg-assistant">
+              <div class="msg-avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </div>
+              <div class="msg-content-wrapper">
+                <div class="msg-meta">
+                  <span>سراج</span> • <span class="mono">الآن</span>
+                </div>
+                <div class="msg-card">
+                  مرحباً بك! أنا «سراج» المنسق والمحاور العام لمنظومة وكلاء Odoo HR.<br>
+                  يمكنك سؤالي عن نظام العمل السعودي، الاستعلام عن الموظفين، طلب تعديل البيانات أو أرشفتها، أو رفع ملفات إكسل.<br>
+                  تخضع كل عملية للتدقيق الصارم ولا يتم التنفيذ إلا عبر مسار محكوم وموثق لدى «سجل».
+                </div>
+              </div>
+            </div>
+            <!-- Typing Indicator (hidden by default) -->
+            <div id="typingIndicator" class="typing-indicator msg-bubble">
+              <div class="msg-avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              </div>
+              <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+              </div>
+            </div>
+          </div>
 
-    <!-- Status Bar -->
-    <div class="status-bar" id="statusBar">
-      <div class="status-box">
-        <div class="status-indicator" id="odooIndicator"></div>
-        <div class="status-box-content">
-          <h4>خادم Odoo المباشر</h4>
-          <p id="odooDbText" class="num-tabular">جارِ التحقق...</p>
-        </div>
-      </div>
-      <div class="status-box">
-        <div class="status-indicator"></div>
-        <div class="status-box-content">
-          <h4>الشركة المستهدفة (عزل الأمان)</h4>
-          <p id="companyText">شركة النخبة الذكية للتقنية (15)</p>
-        </div>
-      </div>
-      <div class="status-box">
-        <div class="status-indicator" id="tgIndicator"></div>
-        <div class="status-box-content">
-          <h4>منظومة إشعارات تيليقرام</h4>
-          <p id="tgText">فحص الإعدادات...</p>
-        </div>
-      </div>
-    </div>
+          <!-- Chat Input Area -->
+          <div class="chat-input-area">
+            <div class="chat-suggestions">
+              <div class="suggestion-chip" onclick="sendQuickPrompt('كم ساعات العمل الرسمية في رمضان للمسلمين؟')">ساعات رمضان (المادة 98)</div>
+              <div class="suggestion-chip" onclick="sendQuickPrompt('استعلم عن الموظفة سارة في Odoo')">استعلام عن موظف</div>
+              <div class="suggestion-chip" onclick="sendQuickPrompt('عدل مسمى سارة إلى مديرة توظيف')">تعديل مسمى وظيفي</div>
+              <div class="suggestion-chip" onclick="sendQuickPrompt('أرشفة الموظف فهد')">طلب أرشفة</div>
+              <div class="suggestion-chip" onclick="sendQuickPrompt('فحص الوثائق والإقامات المنتهية')">رصد الوثائق المنتهية</div>
+            </div>
 
-    <!-- Step 1: Upload & Dry Run Card -->
-    <div class="card" id="stepUploadCard">
-      <div class="card-head">
-        <div class="card-title">
-          <span class="tag-badge">01</span>
-          اختيار ملف الإكسل وإجراء الفحص التجريبي
+            <form id="chatForm" class="chat-form" onsubmit="handleChatSubmit(event)">
+              <label class="file-upload-label" title="رفع ملف إكسل أو مستند">
+                <input type="file" id="chatFileInput" accept=".xlsx,.pdf,.csv" style="display: none;" onchange="handleFileUpload(this)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+              </label>
+
+              <div class="chat-textarea-box">
+                <textarea id="chatInput" class="chat-textarea" placeholder="اكتب طلبك أو استفسارك هنا… (Enter للإرسال، Shift+Enter لسطر جديد)" rows="1" onkeydown="handleTextareaKeyDown(event)" oninput="autoResizeTextarea(this)"></textarea>
+              </div>
+
+              <button type="submit" id="chatSendBtn" class="btn btn-primary" style="height: 44px; padding: 0 20px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 16px; height: 16px; transform: rotate(180deg);"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                <span>إرسال</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- LEFT: خريطة الوكلاء وسير العملية -->
+        <div class="process-panel">
+
+          <!-- Operation Header Bar -->
+          <div class="panel-card" style="padding: 14px 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 13px; font-weight: 600; color: var(--color-silver-mist);">العملية الحالية:</span>
+                <span id="activeOpIdBadge" class="badge badge-neutral mono">—</span>
+              </div>
+              <div style="display: flex; gap: 8px;">
+                <span id="activeOpAgentBadge" class="badge badge-neutral">سراج</span>
+                <span id="activeOpStatusBadge" class="badge badge-success">جاهز</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AGENT CHARACTERS STRIP (8 AGENTS + LAYA) -->
+          <div class="panel-card">
+            <div class="panel-header" style="margin-bottom: 12px;">
+              <div class="panel-title">منظومة الوكلاء الثمانية</div>
+              <span style="font-size: 11px; color: var(--color-smoke);">الحالات التشغيلية المباشرة</span>
+            </div>
+
+            <div class="agents-strip" id="agentsStrip">
+              <!-- Agents generated dynamically via JavaScript -->
+            </div>
+          </div>
+
+          <!-- DYNAMIC REAL PROCESS STEPPER -->
+          <div class="panel-card">
+            <div class="panel-header" style="margin-bottom: 12px;">
+              <div class="panel-title">خط سير العملية الفعلي (Process Flow)</div>
+              <span id="processStepCount" style="font-size: 11px; color: var(--color-smoke); font-family: var(--font-mono);">0 خطوات</span>
+            </div>
+
+            <div id="processStepper" class="stepper-container">
+              <div style="padding: 24px; text-align: center; color: var(--color-smoke); font-size: 13px;">
+                لا توجد عملية نشطة حالياً. اكتب طلباً في المحادثة لبدء تتبع سير العملية.
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
-      <p class="card-desc">
-        هذا الفحص استباقي وآمن 100%: يختبر تطابق المسميات الوظيفية والأقسام، ويكتشف التكرارات والبيانات المفقودة، دون إجراء أي كتابة أو تعديل داخل قاعدة بيانات Odoo.
-      </p>
+    </section>
 
-      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-        <div class="drop-icon">
-          <svg viewBox="0 0 24 24">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
+    <!-- ==================== VIEW 2: العمليات (Operations) ==================== -->
+    <section id="view-operations" class="view-section">
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">سجل العمليات التشغيلية للمنظومة</div>
+          <button class="btn btn-sm btn-secondary" onclick="loadOperationsList()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 13px; height: 13px;"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+            <span>تحديث</span>
+          </button>
         </div>
-        <div class="drop-title">اسحب ملف الإكسل (.xlsx) هنا، أو اضغط للتصفح</div>
-        <div class="drop-sub">يدعم ملفات القالب المعتمد employee_import_template_*.xlsx مع القوائم المنسدلة</div>
-        <div id="filePreviewArea" class="hidden">
-          <div class="file-badge-preview">
-            <span id="selectedFileName"></span>
-            <button type="button" class="btn-clear-file" onclick="clearSelectedFile(event)" title="إلغاء واختيار ملف آخر" style="background: none; border: none; color: var(--color-smoke); cursor: pointer; display: inline-flex; align-items: center; padding: 2px; margin-right: 6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
+
+        <div style="overflow-x: auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>معرف العملية</th>
+                <th>نوع العملية</th>
+                <th>المستخدم / الطالب</th>
+                <th>المنشأة</th>
+                <th>الوكيل المسؤول</th>
+                <th>الحالة</th>
+                <th>تاريخ البدء</th>
+                <th>إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="operationsTableBody">
+              <tr>
+                <td colspan="8" style="text-align: center; color: var(--color-smoke); padding: 30px;">جاري تحميل العمليات...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: الوكلاء (Agents Directory) ==================== -->
+    <section id="view-agents" class="view-section">
+      <div class="panel-card" style="margin-bottom: 20px;">
+        <div class="panel-title" style="font-size: 17px; margin-bottom: 6px;">دليل أدوار وصلاحيات وكلاء المنظومة</div>
+        <div style="font-size: 13px; color: var(--color-silver-mist); line-height: 1.6;">
+          تعمل المنظومة وفق مبدأ الفصل المعماري والرقابة المتبادلة (Segregation of Duties). لا يملك أي وكيل سلطة منفردة للدمج أو التعديل، وتمر كافة الكتابات عبر بوابة «كاتب» المعتمدة وتُوثق في «سجل».
+        </div>
+      </div>
+
+      <div class="agents-grid" id="agentsFullGrid">
+        <!-- Rendered via JavaScript -->
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: سجل والتقارير (Integrated Sijil Audit) ==================== -->
+    <section id="view-sijil" class="view-section">
+      <!-- Sijil Governance Metrics -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <span class="metric-title">نسبة التحقق الراجع (Readback)</span>
+          <span class="metric-value" style="color: var(--color-phosphor-green);">100%</span>
+          <span class="metric-hint">تأكيد مستقل بعد التنفيذ</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">مبدأ التحقق المزدوج (Four-Eyes)</span>
+          <span class="metric-value" style="color: var(--color-iris-glow);">100%</span>
+          <span class="metric-hint">اعتماد صريح قبل الكتابة</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">محاولات الحذف المحبطة</span>
+          <span class="metric-value mono" id="metricBlockedDeletions" style="color: var(--color-coral);">0</span>
+          <span class="metric-hint">حماية التكامل المرجعي</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-title">سلامة عزل النماذج</span>
+          <span class="metric-value" style="color: var(--color-phosphor-green);">100%</span>
+          <span class="metric-hint">Model Isolation Guard</span>
+        </div>
+      </div>
+
+      <!-- Sijil Search & Export -->
+      <div class="panel-card">
+        <div class="panel-header">
+          <div class="panel-title">البحث في الدفتر اللاتراجعي واستخراج تقارير PDF</div>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-sm btn-iris" onclick="exportFullSijilPdf()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 14px; height: 14px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <span>تصدير تقرير الحوكمة الشامل PDF</span>
             </button>
           </div>
         </div>
-        <input type="file" id="fileInput" accept=".xlsx" style="display:none" onchange="handleFileSelect(event)">
-      </div>
 
-      <div style="margin-top: 22px; display: flex; justify-content: flex-end; gap: 12px;">
-        <button class="btn btn-primary" id="btnDryRun" onclick="runDryRun()" disabled>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          بدء الفحص التجريبي الآمن (Dry-Run)
-        </button>
-      </div>
-    </div>
-
-    <!-- Step 2: Interactive Review Table -->
-    <div class="card hidden" id="stepReviewCard">
-      <div class="card-head">
-        <div class="card-title">
-          <span class="tag-badge">02</span>
-          مراجعة نتائج التدقيق وتحديد المعتمدين
-        </div>
-        <div id="selectedCountBadge" class="status-badge is-accepted">
-          <span class="status-dot"></span>
-          تم تحديد 0 صفوف للاعتماد
-        </div>
-      </div>
-
-      <!-- Stats Tiles -->
-      <div class="bento-stats">
-        <div class="bento-tile">
-          <div class="bento-tile-head">
-            <span class="bento-label">إجمالي السجلات المفحوصة</span>
-            <span class="bento-num">01</span>
-          </div>
-          <div class="bento-value num-tabular" id="statTotal">0</div>
-        </div>
-        <div class="bento-tile is-accepted">
-          <div class="bento-tile-head">
-            <span class="bento-label">جاهز للاعتماد (accepted)</span>
-            <span class="bento-num">02</span>
-          </div>
-          <div class="bento-value num-tabular" id="statAccepted">0</div>
-        </div>
-        <div class="bento-tile is-review">
-          <div class="bento-tile-head">
-            <span class="bento-label">يحتاج مراجعة (needs_review)</span>
-            <span class="bento-num">03</span>
-          </div>
-          <div class="bento-value num-tabular" id="statReview">0</div>
-        </div>
-        <div class="bento-tile is-rejected">
-          <div class="bento-tile-head">
-            <span class="bento-label">مرفوض لعدم المطابقة (rejected)</span>
-            <span class="bento-num">04</span>
-          </div>
-          <div class="bento-value num-tabular" id="statRejected">0</div>
-        </div>
-      </div>
-
-      <!-- Interactive Table -->
-      <div class="table-frame">
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 44px; text-align: center;">
-                <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(event)">
-              </th>
-              <th style="width: 50px;">الصف</th>
-              <th>اسم الموظف</th>
-              <th>البريد الإلكتروني</th>
-              <th>المسمى والوظيفة</th>
-              <th>تاريخ التعيين</th>
-              <th>حالة الفحص</th>
-              <th>تفاصيل التدقيق</th>
-            </tr>
-          </thead>
-          <tbody id="rowsTableBody">
-            <!-- Dynamic rows -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Human Approval Decision Box -->
-      <div class="approval-box">
-        <div class="approval-header">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="1.8">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          </svg>
-          <h4>توثيق قرار الاعتماد البشري (Two-Person Approval Rule)</h4>
-        </div>
-        <p class="approval-desc">
-          وفقاً لسياسة الامتثال والأمان المعتمدة، لا يتم إنشاء أي سجل موظف في أودو دون توثيق موافقة خطية من المسؤول المختص. يرجى تدوين اسمك للتسجيل في سجل التدقيق (Audit Log).
-        </p>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">اسم المسؤول المعتمد (approved_by) *</label>
-            <input type="text" class="form-input" id="approvedByName" value="خالد" placeholder="مثال: خالد (مدير الموارد البشرية)">
-          </div>
-          <div class="form-group">
-            <label class="form-label">الحد الأقصى للدفعة الواحدة (max-rows)</label>
-            <input type="number" class="form-input num-tabular" id="maxRowsInput" value="10">
-          </div>
-          <div class="form-group">
-            <label class="form-label">الشركة المستهدفة في Odoo</label>
-            <input type="number" class="form-input num-tabular" id="companyIdInput" value="15" readonly>
-          </div>
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; gap: 12px;">
-          <button class="btn btn-primary" id="btnExecute" onclick="approveAndExecute()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            اعتماد وإنشاء الموظفين المحددين في Odoo
+        <div class="search-bar-box">
+          <input type="text" id="sijilSearchInput" class="search-input" placeholder="ابحث برقم الخطة (plan_id)، معرف العملية (OP-...)، أو اسم الموظف..." onkeydown="if(event.key==='Enter') executeSijilSearch()">
+          <button class="btn btn-primary" onclick="executeSijilSearch()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 14px; height: 14px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <span>بحث فوري</span>
           </button>
         </div>
-      </div>
-    </div>
 
-    <!-- Step 3: Execution Log & Results -->
-    <div class="card hidden" id="stepResultCard">
-      <div class="card-head">
-        <div class="card-title">
-          <span class="tag-badge">03</span>
-          نتائج الإنشاء والتحقق المباشر في Odoo
-        </div>
-      </div>
+        <!-- Sijil Search Result Area -->
+        <div id="sijilSearchResultBox" style="display: none; margin-bottom: 24px;"></div>
 
-      <div class="summary-banner" id="executionSummaryBanner">
-        <div class="summary-banner-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="2">
-            <path d="M20 6L9 17l-5-5"/>
-          </svg>
-        </div>
-        <div class="summary-banner-text">
-          <h3 id="bannerTitle">اكتملت عملية الإنشاء بنجاح</h3>
-          <p id="bannerSub">تم التحقق من مطابقة السجلات في قاعدة البيانات وإرسال التنبيهات.</p>
-        </div>
-      </div>
-
-      <div class="table-frame">
-        <table>
-          <thead>
-            <tr>
-              <th style="width: 50px;">الصف</th>
-              <th>اسم الموظف</th>
-              <th>البريد الإلكتروني</th>
-              <th>معرّف Odoo (Employee ID)</th>
-              <th>التحقق المباشر</th>
-              <th>النتيجة</th>
-            </tr>
-          </thead>
-          <tbody id="resultTableBody">
-            <!-- Dynamic result rows -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Terminal Window for Audit Log -->
-      <div class="terminal-window">
-        <div class="terminal-header">
-          <div class="terminal-dots">
-            <span class="terminal-dot dot-red"></span>
-            <span class="terminal-dot dot-yellow"></span>
-            <span class="terminal-dot dot-green"></span>
+        <!-- Recent Audit Log Table -->
+        <div style="margin-top: 10px;">
+          <div style="font-size: 13.5px; font-weight: 600; color: var(--color-silver-mist); margin-bottom: 12px;">أحدث قيود التدقيق الموثقة في سجل</div>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>معرف السجل</th>
+                  <th>المجال</th>
+                  <th>الإجراء المتخذ</th>
+                  <th>الهدف</th>
+                  <th>التحقق الراجع</th>
+                  <th>التوقيت</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody id="sijilRecentTableBody">
+                <tr>
+                  <td colspan="7" style="text-align: center; color: var(--color-smoke); padding: 30px;">جاري تحميل سجلات التدقيق...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <span class="terminal-title">audit_log_viewer.json</span>
-          <button class="btn" style="padding: 4px 12px; font-size: 11.5px;" onclick="copyAuditLog()">
-            نسخ السجل
-          </button>
+
+          <!-- Sijil Server-Side Pagination Controls -->
+          <div id="sijilPaginationControls" style="display: flex; justify-content: space-between; align-items: center; padding: 14px 4px; border-top: 1px solid var(--color-charcoal); margin-top: 8px;">
+            <div style="font-size: 12.5px; color: var(--color-silver-mist);" id="sijilPaginationInfo">
+              الصفحة 1 (إجمالي 0 سجل)
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button id="sijilPrevBtn" class="btn btn-sm btn-secondary" onclick="changeSijilPage(-1)" disabled>السابق</button>
+              <span id="sijilPageBadge" class="badge badge-neutral mono" style="font-size: 12px; padding: 4px 10px;">1</span>
+              <button id="sijilNextBtn" class="btn btn-sm btn-secondary" onclick="changeSijilPage(1)">التالي</button>
+            </div>
+          </div>
         </div>
-        <div class="log-box" id="rawLogBox">جارِ المتابعة...</div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 5: الإعدادات (Settings) ==================== -->
+    <section id="view-settings" class="view-section">
+      <div class="panel-card" style="max-width: 800px; margin: 0 auto;">
+        <div class="panel-header">
+          <div class="panel-title">إعدادات المنظومة وبيئة التشغيل المسموح بها</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+          <div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--color-snow); margin-bottom: 6px;">حواجز الأمان وبيئة التشغيل</div>
+            <div id="systemSettingsInfoBox" style="background: #161616; padding: 14px; border-radius: 10px; border: 1px solid var(--color-charcoal); font-size: 13px; line-height: 1.6;">
+              • وضع التشغيل: <span class="badge badge-success">test_safe (آمن ومحمي)</span><br>
+              • عزل بيئة الإنتاج: <span class="mono">ODOO_ENVIRONMENT_POLICY = safe_test_only</span><br>
+              • مفتاح التعديل في أودو: <span class="mono">Write Gateway Guard Active</span>
+            </div>
+          </div>
+
+          <div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--color-snow); margin-bottom: 6px;">خيارات إمكانية الوصول والأداء</div>
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13.5px; color: var(--color-silver-mist);">
+              <input type="checkbox" id="reduceMotionToggle" onchange="toggleReduceMotion(this.checked)" style="width: 18px; height: 18px; accent-color: var(--color-phosphor-green);">
+              <span>تفعيل وضع تقليل الحركة (Reduce Motion) وإيقاف المؤثرات البصرية</span>
+            </label>
+          </div>
+
+          <div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--color-snow); margin-bottom: 6px;">بيانات الربط مع Odoo ERP (للقراءة فقط)</div>
+            <div style="background: #161616; padding: 14px; border-radius: 10px; border: 1px solid var(--color-charcoal); font-size: 13px;">
+              • خادم Odoo: <span class="mono">https://odooprosys-hr19-main-37916265.dev.odoo.com</span><br>
+              • قاعدة البيانات: <span class="mono">odooprosys-hr19-main-37916265</span><br>
+              • المنشأة الافتراضية: <span class="mono">شركة النخبة الذكية للتقنية (ID: 15)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== DETAILS DRAWER ==================== -->
+  <div id="detailsDrawerOverlay" class="drawer-overlay" onclick="closeDetailsDrawer(event)">
+    <div class="drawer-sheet" onclick="event.stopPropagation()">
+      <div class="drawer-header">
+        <div>
+          <div id="drawerTitle" style="font-size: 16px; font-weight: 700; color: var(--color-snow);">تفاصيل الحدث</div>
+          <div id="drawerSubtitle" style="font-size: 11px; color: var(--color-silver-mist); font-family: var(--font-mono); margin-top: 2px;">EVENT DETAILS & AUDIT PROOF</div>
+        </div>
+        <button class="drawer-close-btn" onclick="closeDetailsDrawer()">✕</button>
       </div>
 
-      <div class="footer-bar">
-        <div style="font-size: 12.5px; color: var(--color-silver-mist); font-family: var(--font-mono);" id="resultsPathText"></div>
-        <button class="btn" onclick="resetForm()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M3 2v6h6"/>
-            <path d="M21 12A9 9 0 0 0 6 5.3L3 8"/>
-            <path d="M21 22v-6h-6"/>
-            <path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/>
-          </svg>
-          فحص دفعة جديدة
-        </button>
+      <div id="drawerBody" style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
+        <!-- Filled dynamically -->
       </div>
     </div>
-
   </div>
 
-  <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer"></div>
-
+  <!-- ==================== LOGIC & REAL-TIME STATE ENGINE ==================== -->
   <script>
-    let currentReport = null;
-    let selectedFile = null;
-
-    // Toast helper
-    function showToast(msg, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast-item ${type}`;
-      toast.innerText = msg;
-      container.appendChild(toast);
-      setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transition = 'opacity 0.25s ease';
-        setTimeout(() => toast.remove(), 250);
-      }, 4000);
+    // =========================================================================
+    // 1. AUTHENTICATION & SECURE API FETCH
+    // =========================================================================
+    function getApiToken() {
+      const meta = document.querySelector('meta[name="api-token"]');
+      return meta ? meta.getAttribute('content') : (window.ODDO_API_TOKEN || "");
     }
 
-    // Load initial system status
-    async function loadStatus() {
-      try {
-        const res = await fetch('/api/status');
-        const data = await res.json();
-        
-        document.getElementById('odooDbText').innerText = data.odoo.database || 'غير متصل';
-        if (!data.odoo.connected) {
-          document.getElementById('odooIndicator').className = 'status-indicator amber';
-        }
-        
-        if (data.telegram.configured) {
-          document.getElementById('tgText').innerText = 'مفعل وجاهز للإشعار المباشر';
-          document.getElementById('tgIndicator').className = 'status-indicator';
+    async function apiFetch(url, options = {}) {
+      const token = getApiToken();
+      options.headers = options.headers || {};
+      if (token) {
+        if (options.headers instanceof Headers) {
+          if (!options.headers.has("X-API-Key")) options.headers.set("X-API-Key", token);
         } else {
-          document.getElementById('tgText').innerText = 'غير مفعل (حفظ محلي فقط)';
-          document.getElementById('tgIndicator').className = 'status-indicator amber';
+          if (!options.headers["X-API-Key"]) options.headers["X-API-Key"] = token;
         }
-      } catch (err) {
-        console.error('Status fetch failed', err);
       }
+      return fetch(url, options);
     }
-    loadStatus();
 
-    // File Drag & Drop
-    const dropZone = document.getElementById('dropZone');
-    ['dragenter', 'dragover'].forEach(name => {
-      dropZone.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    // =========================================================================
+    // 2. GLOBAL STATE
+    // =========================================================================
+    let currentOperationId = null;
+    let lastEventSequence = 0;
+    let pollingInterval = null;
+    let selectedCompanyId = 15;
+    let activeAgentsData = [];
+    let streamConsecutiveErrors = 0;
+
+    // Sijil Server-Side Pagination State
+    let sijilPage = 1;
+    let sijilLimit = 10;
+    let sijilTotal = 0;
+
+    const AGENTS_META = {
+      seraj: { name_ar: "سراج", color: "var(--agent-seraj)", role: "المنسق والمحاور ومتابع المهام", icon: "sparkles" },
+      fahas: { name_ar: "فاحص", color: "var(--agent-fahas)", role: "القراءة والتحقق من بيانات Odoo", icon: "search" },
+      modaqeq: { name_ar: "مدقق", color: "var(--agent-modaqeq)", role: "التحقق من البيانات والقواعد", icon: "shield-check" },
+      mowafaq: { name_ar: "موفق", color: "var(--agent-mowafaq)", role: "المطابقة عند الحاجة", icon: "git-merge" },
+      hares: { name_ar: "حارس", color: "var(--agent-hares)", role: "الصلاحيات والسياسات والاعتماد", icon: "lock" },
+      musleh: { name_ar: "مصلح", color: "var(--agent-musleh)", role: "التشخيص والمعالجة ضمن الحدود", icon: "wrench" },
+      katib: { name_ar: "كاتب", color: "var(--agent-katib)", role: "تنفيذ العملية المعتمدة في Odoo", icon: "pencil" },
+      sijil: { name_ar: "سجل", color: "var(--agent-sijil)", role: "توثيق الأحداث والنتائج وإصدار PDF", icon: "book-open" },
+      laya: { name_ar: "لايا", color: "var(--agent-laya)", role: "أداة استشارية مساعدة للتوجيه والذكاء", icon: "cpu", is_helper: true }
+    };
+
+    const STATUS_MAP_AR = {
+      idle: "جاهز",
+      ready: "جاهز",
+      analyzing_request: "يحلل الطلب",
+      querying_odoo: "يستعلم من Odoo",
+      inspecting_data: "يفحص البيانات",
+      matching_references: "يقارن المراجع",
+      verifying_permissions: "يتحقق من الصلاحيات",
+      waiting_user_clarification: "ينتظر توضيح المستخدم",
+      waiting_clarification: "ينتظر توضيح المستخدم",
+      waiting_approval: "ينتظر الاعتماد",
+      executing_write: "ينفذ التعديل",
+      verifying_result: "يتحقق من النتيجة",
+      documenting_audit: "يوثق العملية",
+      completed: "اكتمل",
+      failed: "تعذر التنفيذ",
+      inconclusive: "النتيجة غير محسومة",
+      disconnected: "انقطع اتصال متابعة الأحداث"
+    };
+
+    // =========================================================================
+    // 3. INITIALIZATION
+    // =========================================================================
+    document.addEventListener("DOMContentLoaded", () => {
+      renderAgentsStrip();
+      loadSystemStatus();
+      loadAgentsOverview();
+      loadRecentAuditMetrics();
+      loadOperationsList();
+      checkSavedMotionPreference();
+
+      const ta = document.getElementById('chatInput');
+      if (ta) ta.addEventListener('input', () => autoResizeTextarea(ta));
     });
-    ['dragleave', 'drop'].forEach(name => {
-      dropZone.addEventListener(name, (e) => { e.preventDefault(); dropZone.classList.remove('dragover'); });
-    });
-    dropZone.addEventListener('drop', (e) => {
-      if (e.dataTransfer.files.length) {
-        setFile(e.dataTransfer.files[0]);
-      }
-    });
 
-    function handleFileSelect(e) {
-      if (e.target.files.length) {
-        setFile(e.target.files[0]);
-      }
+    // View Switching
+    function switchView(viewId) {
+      document.querySelectorAll(".view-section").forEach(el => el.classList.remove("is-visible"));
+      document.querySelectorAll(".nav-tab-btn").forEach(el => el.classList.remove("is-active"));
+
+      const target = document.getElementById(viewId);
+      if (target) target.classList.add("is-visible");
+
+      const btn = document.querySelector(`.nav-tab-btn[data-view="${viewId}"]`);
+      if (btn) btn.classList.add("is-active");
+
+      if (viewId === "view-operations") loadOperationsList();
+      if (viewId === "view-sijil") loadRecentAuditMetrics();
+      if (viewId === "view-settings") loadSystemStatus();
     }
 
-    function setFile(file) {
-      selectedFile = file;
-      document.getElementById('filePreviewArea').classList.remove('hidden');
-      document.getElementById('selectedFileName').innerText = 'الملف المحدد: ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
-      document.getElementById('btnDryRun').disabled = false;
-      showToast('تم اختيار الملف بنجاح، يمكنك بدء الفحص التجريبي الآن', 'success');
-    }
-
-    function clearSelectedFile(e) {
-      if (e) e.stopPropagation();
-      selectedFile = null;
-      document.getElementById('fileInput').value = '';
-      document.getElementById('filePreviewArea').classList.add('hidden');
-      document.getElementById('btnDryRun').disabled = true;
-      showToast('تم إلغاء تحديد الملف', 'info');
-    }
-
-    // Run Dry Run
-    async function runDryRun() {
-      if (!selectedFile) return;
-      const btn = document.getElementById('btnDryRun');
-      btn.innerHTML = '<span class="spinner"></span> جارِ الفحص التجريبي والتدقيق...';
-      btn.disabled = true;
-
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000);
-
+    // =========================================================================
+    // 4. SYSTEM STATUS & CONNECTION (LIVE SOURCE)
+    // =========================================================================
+    async function loadSystemStatus() {
       try {
-        const res = await fetch('/api/dry-run', {
-          method: 'POST',
-          body: formData,
-          signal: controller.signal
-        });
-        clearTimeout(timeoutId);
-
-        if (!res.ok) {
-          let errorMsg = 'فشل الفحص التجريبي';
-          try {
-            const err = await res.json();
-            errorMsg = err.detail || errorMsg;
-          } catch (_) {
-            errorMsg = res.statusText || errorMsg;
+        const res = await apiFetch("/api/status");
+        const data = await res.json();
+        if (data.status === "online" || data.status === "success") {
+          const connEl = document.getElementById("connectionScopePillText");
+          if (connEl) {
+            connEl.textContent = data.connection_name || (data.odoo?.database ? `odoo (${data.odoo.database})` : "default");
           }
-          throw new Error(errorMsg);
-        }
 
-        const data = await res.json();
-        currentReport = data;
-        renderReviewStep(data);
-        showToast('اكتمل الفحص التجريبي بنجاح! راجع النتائج أدناه.', 'success');
+          const compSelect = document.getElementById("companySelector");
+          if (compSelect && data.companies && data.companies.length > 0) {
+            compSelect.innerHTML = data.companies.map(c => `
+              <option value="${c.id}" ${c.selected || c.id === selectedCompanyId ? 'selected' : ''}>
+                ${escapeHtml(c.name)}
+              </option>
+            `).join("");
+            if (data.selected_company_id) {
+              selectedCompanyId = data.selected_company_id;
+            }
+          }
+
+          const settingsBox = document.getElementById("systemSettingsInfoBox");
+          if (settingsBox) {
+            settingsBox.innerHTML = `
+              • وضع التشغيل: <span class="badge badge-success">${escapeHtml(data.mode || 'test_safe (آمن ومحمي)')}</span><br>
+              • خادم Odoo: <span class="mono">${escapeHtml(data.odoo?.url || 'متصل')} (${escapeHtml(data.odoo?.database || 'hr_db')})</span><br>
+              • مفتاح التعديل في أودو: <span class="mono">Write Gateway Guard Active</span><br>
+              • الفحص الرقابي المستقل: <span class="badge badge-success">Readback Active (فاحص)</span><br>
+              • دفتر السجلات اللاتراجعي: <span class="badge badge-success">Append-Only Active (سجل)</span>
+            `;
+          }
+        }
       } catch (err) {
-        clearTimeout(timeoutId);
-        const isTimeout = err.name === 'AbortError';
-        const msg = isTimeout ? 'استغرق الفحص وقتاً أطول من المتوقع، يرجى المحاولة ثانية' : err.message;
-        console.error('Dry run error:', err);
-        showToast('خطأ أثناء الفحص: ' + msg, 'error');
-      } finally {
-        btn.innerHTML = `
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="11" cy="11" r="8"/>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
-          بدء الفحص التجريبي الآمن (Dry-Run)
-        `;
-        btn.disabled = false;
+        console.warn("System status error:", err);
       }
     }
 
-    // Stepper updates
-    function updateStepper(step) {
-      for (let i = 1; i <= 3; i++) {
-        const item = document.getElementById(`stepIndicator${i}`);
-        item.classList.remove('is-active', 'is-completed');
-        if (i < step) {
-          item.classList.add('is-completed');
-        } else if (i === step) {
-          item.classList.add('is-active');
+    function handleCompanyChange(newCompanyId) {
+      if (currentOperationId) {
+        const confirmChange = confirm(
+          "⚠️ تنبيه حوكمة:\nتوجد عملية جارية حالياً برقم (" + currentOperationId + ").\n" +
+          "تغيير الشركة الآن لن يغير نطاق العملية الجارية بصمت.\n" +
+          "هل ترغب بتغيير نطاق العمليات الجديدة فقط؟"
+        );
+        if (!confirmChange) {
+          document.getElementById("companySelector").value = selectedCompanyId;
+          return;
         }
       }
+      selectedCompanyId = parseInt(newCompanyId, 10);
     }
 
-    // Render Review Table
-    function renderReviewStep(report) {
-      updateStepper(2);
-      const summary = report.summary || {};
-      const statusCounts = summary.status_counts || {};
-
-      document.getElementById('statTotal').innerText = summary.row_count || report.rows.length;
-      document.getElementById('statAccepted').innerText = statusCounts.accepted || 0;
-      document.getElementById('statReview').innerText = statusCounts.needs_review || 0;
-      document.getElementById('statRejected').innerText = statusCounts.rejected || 0;
-
-      const tbody = document.getElementById('rowsTableBody');
-      tbody.innerHTML = '';
-
-      report.rows.forEach((row, idx) => {
-        const tr = document.createElement('tr');
-        const rowNum = (row.excel_row_number !== undefined && row.excel_row_number !== null)
-          ? row.excel_row_number
-          : ((row.row_number !== undefined && row.row_number !== null) ? row.row_number : (idx + 2));
-        const isAccepted = row.final_status === 'accepted';
-        const isReview = row.final_status === 'needs_review';
-        const isRejected = row.final_status === 'rejected';
-
-        let badgeClass = 'is-review';
-        let badgeLabel = 'يحتاج مراجعة';
-        if (isAccepted) {
-          badgeClass = 'is-accepted';
-          badgeLabel = 'مقبول (جاهز)';
-        } else if (isRejected) {
-          badgeClass = 'is-rejected';
-          badgeLabel = 'مرفوض';
-        }
-
-        // Details summary: White for accepted rows in Supabase style
-        let detailsHtml = '';
-        if (isAccepted) {
-          const msg = (row.reasons && row.reasons.length)
-            ? row.reasons.join('، ')
-            : 'اجتاز جميع فحوصات المطابقة والتحقق بنجاح';
-          detailsHtml = `<span style="color: var(--color-snow); font-size: 11.5px;">${msg}</span>`;
-        } else if (isReview) {
-          const warn = (row.warnings && row.warnings.length)
-            ? row.warnings.join('، ')
-            : ((row.reasons && row.reasons.length) ? row.reasons.join('، ') : 'يحتاج مراجعة وتدقيق');
-          detailsHtml = `<span style="color: var(--color-amber); font-size: 11.5px;">${warn}</span>`;
-        } else if (isRejected) {
-          const err = (row.reasons && row.reasons.length)
-            ? row.reasons.join('، ')
-            : 'مرفوض لعدم مطابقة الشروط';
-          detailsHtml = `<span style="color: var(--color-coral); font-size: 11.5px;">${err}</span>`;
-        } else {
-          detailsHtml = `<span style="color: var(--color-silver-mist); font-size: 11.5px;">—</span>`;
-        }
-
-        tr.innerHTML = `
-          <td style="text-align: center;">
-            <input type="checkbox" class="row-select-checkbox" data-row="${rowNum}" ${isAccepted ? 'checked' : 'disabled'} onchange="handleRowCheckboxChange()">
-          </td>
-          <td class="col-num">${rowNum}</td>
-          <td><strong>${row.display_name || '—'}</strong></td>
-          <td class="col-num" style="direction: ltr; text-align: right;">${row.display_email || '—'}</td>
-          <td>${row.display_job || '—'}</td>
-          <td class="col-num">${row.display_hiring_date || '—'}</td>
-          <td>
-            <span class="status-badge ${badgeClass}">
-              <span class="status-dot"></span>
-              ${badgeLabel}
-            </span>
-          </td>
-          <td>${detailsHtml}</td>
-        `;
-        tbody.appendChild(tr);
+    // =========================================================================
+    // 5. AGENTS STRIP & CHARACTERS (PROPER TERMINATION)
+    // =========================================================================
+    function resetAllAgentsToIdle() {
+      document.querySelectorAll(".agent-character-card").forEach(c => {
+        c.classList.remove("is-active");
       });
-
-      document.getElementById('stepReviewCard').classList.remove('hidden');
-      document.getElementById('stepReviewCard').scrollIntoView({ behavior: 'smooth' });
-      handleRowCheckboxChange();
+      document.querySelectorAll("[id^='agentStatusBubble_']").forEach(b => {
+        b.textContent = "جاهز";
+      });
     }
 
-    function toggleSelectAll(e) {
-      const checked = e.target.checked;
-      const checkboxes = document.querySelectorAll('.row-select-checkbox:not(:disabled)');
-      checkboxes.forEach(cb => cb.checked = checked);
-      handleRowCheckboxChange();
+    function renderAgentsStrip() {
+      const container = document.getElementById("agentsStrip");
+      if (!container) return;
+      container.innerHTML = "";
+
+      Object.entries(AGENTS_META).forEach(([key, meta]) => {
+        const card = document.createElement("div");
+        card.className = "agent-character-card";
+        card.id = `agentCard_${key}`;
+        card.style.setProperty("--agent-color", meta.color);
+        card.onclick = () => openAgentDetails(key);
+
+        card.innerHTML = `
+          <div class="agent-avatar-wrap">
+            ${getAgentSvg(meta.icon)}
+          </div>
+          <div class="agent-name">${meta.name_ar} ${meta.is_helper ? '<span style="font-size: 9px; color: var(--color-silver-mist); font-weight: normal;">(أداة)</span>' : ''}</div>
+          <div class="agent-role-short">${meta.role}</div>
+          <div class="agent-status-bubble" id="agentStatusBubble_${key}">جاهز</div>
+        `;
+        container.appendChild(card);
+      });
     }
 
-    function handleRowCheckboxChange() {
-      const selected = getSelectedRowNumbers();
-      const badge = document.getElementById('selectedCountBadge');
-      badge.innerHTML = `<span class="status-dot"></span> تم تحديد ${selected.length} صفوف للاعتماد`;
-
-      const btnExec = document.getElementById('btnExecute');
-      btnExec.disabled = selected.length === 0;
-    }
-
-    function getSelectedRowNumbers() {
-      const checkboxes = document.querySelectorAll('.row-select-checkbox:checked');
-      return Array.from(checkboxes).map(cb => parseInt(cb.getAttribute('data-row'), 10));
-    }
-
-    // Approve and Execute
-    async function approveAndExecute() {
-      const selectedRows = getSelectedRowNumbers();
-      if (!selectedRows.length) {
-        showToast('يرجى تحديد صف واحد على الأقل للاعتماد', 'error');
-        return;
+    function getAgentSvg(iconName) {
+      switch(iconName) {
+        case "sparkles":
+          return `<svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`;
+        case "search":
+          return `<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>`;
+        case "shield-check":
+          return `<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>`;
+        case "git-merge":
+          return `<svg viewBox="0 0 24 24"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M6 21V9a9 9 0 0 0 9 9"></path></svg>`;
+        case "lock":
+          return `<svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`;
+        case "wrench":
+          return `<svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>`;
+        case "pencil":
+          return `<svg viewBox="0 0 24 24"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>`;
+        case "book-open":
+          return `<svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>`;
+        case "cpu":
+          return `<svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>`;
+        default:
+          return `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle></svg>`;
       }
+    }
 
-      const approverName = document.getElementById('approvedByName').value.trim();
-      if (!approverName) {
-        showToast('يرجى كتابة اسم المسؤول المعتمد للامتثال', 'error');
-        document.getElementById('approvedByName').focus();
-        return;
+    async function loadAgentsOverview() {
+      try {
+        const res = await apiFetch("/api/agents/overview");
+        const data = await res.json();
+        if (data.status === "success") {
+          activeAgentsData = data.agents;
+          updateAgentsStripDisplay(data.agents);
+          renderAgentsFullGrid(data.agents);
+        }
+      } catch (err) {
+        console.warn("Agents overview load:", err);
       }
+    }
 
-      // Mandatory explicit confirmation dialog (Section 4.1 of Phase 7 Plan)
-      const confirmed = confirm(`⚠️ تنبيه أمان إلزامي (Four-Eyes Principle):\nأنت على وشك اعتماد وإنشاء (${selectedRows.length}) موظف(ين) حياً في Odoo ERP.\n\nهل تؤكد المتابعة والتنفيذ المباشر الآن؟`);
-      if (!confirmed) {
-        showToast('تم إلغاء عملية الاعتماد والتنفيذ', 'info');
-        return;
+    function updateAgentsStripDisplay(agents) {
+      agents.forEach(a => {
+        const bubble = document.getElementById(`agentStatusBubble_${a.id}`);
+        const card = document.getElementById(`agentCard_${a.id}`);
+        if (bubble) bubble.textContent = a.status_label || STATUS_MAP_AR[a.status_code] || "جاهز";
+        if (card) {
+          if (a.status_code !== "ready" && a.status_code !== "completed" && a.status_code !== "failed") {
+            card.classList.add("is-active");
+          } else {
+            card.classList.remove("is-active");
+          }
+        }
+      });
+    }
+
+    function renderAgentsFullGrid(agents) {
+      const grid = document.getElementById("agentsFullGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+
+      agents.forEach(a => {
+        const meta = AGENTS_META[a.id] || { color: "var(--color-phosphor-green)", icon: "sparkles" };
+        const card = document.createElement("div");
+        card.className = "agent-full-card";
+        card.onclick = () => openAgentDetails(a.id);
+        card.style.cursor = "pointer";
+        card.innerHTML = `
+          <div class="agent-full-card-header">
+            <div class="agent-avatar-wrap" style="border-color: ${meta.color}; width: 48px; height: 48px;">
+              ${getAgentSvg(meta.icon)}
+            </div>
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: var(--color-snow);">${a.name_ar}</div>
+              <div style="font-size: 11px; color: var(--color-silver-mist);">${a.title_ar || meta.role}</div>
+            </div>
+            <span class="badge ${a.status_code === 'ready' ? 'badge-neutral' : 'badge-success'}" style="margin-right: auto;">
+              ${a.status_label || STATUS_MAP_AR[a.status_code] || "جاهز"}
+            </span>
+          </div>
+          <div style="font-size: 12.5px; color: var(--color-silver-mist); line-height: 1.5;">${a.description_short || meta.role}</div>
+          <div style="font-size: 11.5px; background: #181818; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-charcoal);">
+            <span style="color: var(--color-smoke);">آخر مهمة:</span>
+            <span style="color: var(--color-snow); font-weight: 500;"> ${escapeHtml(a.last_task || "في انتظار المهام")}</span>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // =========================================================================
+    // 6. CHAT & CONVERSATION HANDLERS
+    // =========================================================================
+    function handleTextareaKeyDown(e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        handleChatSubmit(e);
       }
+    }
 
-      const btn = document.getElementById('btnExecute');
-      btn.innerHTML = '<span class="spinner"></span> جارِ الاعتماد وإنشاء السجلات في Odoo...';
-      btn.disabled = true;
+    function sendQuickPrompt(promptText) {
+      const input = document.getElementById("chatInput");
+      input.value = promptText;
+      handleChatSubmit(new Event("submit"));
+    }
+
+    async function handleChatSubmit(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById("chatInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = "";
+      autoResizeTextarea(input);
+      appendUserMessage(text);
+      showTypingIndicator();
+      setSerajBusy("سراج يعالج الطلب…");
 
       try {
-        // Step 1: Approve
-        const approvePayload = {
-          report_path: currentReport.report_path,
-          input_path: currentReport.input_path,
-          approved_by: approverName,
-          rows: selectedRows
+        const payload = {
+          message: text,
+          chat_id: "web_cockpit_user",
+          operation_id: currentOperationId,
+          company_id: selectedCompanyId,
         };
 
-        const approveRes = await fetch('/api/approve', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(approvePayload)
+        const res = await apiFetch("/api/seraj/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         });
 
-        if (!approveRes.ok) {
-          const err = await approveRes.json();
-          throw new Error('فشل توثيق الاعتماد: ' + (err.detail || 'غير معروف'));
+        const data = await res.json();
+        if (data.status === "success") {
+          currentOperationId = data.operation_id;
+          document.getElementById("activeOpIdBadge").textContent = currentOperationId;
+
+          appendSerajMessage(data.response, data.pending_action, data.pending_clarification, data.operation);
+          if (data.operation) {
+            updateProcessStepper(data.operation.events || []);
+            updateOperationBadges(data.operation);
+          }
+          startLiveEventPolling(currentOperationId);
+        } else {
+          appendSerajMessage("⚠️ عذراً، واجه سراج صعوبة في معالجة طلبك: " + (data.detail || "خطأ غير معروف"));
         }
-
-        const approveData = await approveRes.json();
-        showToast('تم توثيق الاعتماد البشري، جارِ التنفيذ في Odoo...', 'info');
-
-        // Step 2: Execute (calls POST /write with X-API-Key)
-        const maxRows = parseInt(document.getElementById('maxRowsInput').value, 10) || 10;
-        const companyId = parseInt(document.getElementById('companyIdInput').value, 10) || 15;
-
-        const execPayload = {
-          input_path: currentReport.input_path,
-          report_path: currentReport.report_path,
-          approval_path: approveData.approval_path,
-          company_id: companyId,
-          max_rows: maxRows
-        };
-
-        const execRes = await fetch('/write', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-API-Key': 'hr-write-secret-token'
-          },
-          body: JSON.stringify(execPayload)
-        });
-
-        if (!execRes.ok) {
-          const err = await execRes.json();
-          throw new Error('فشل الإنشاء في Odoo: ' + (err.detail || 'غير معروف'));
-        }
-
-        const execData = await execRes.json();
-        renderResultsStep(execData);
-        showToast('اكتملت عملية الإنشاء والتحقق في Odoo بنجاح!', 'success');
-
       } catch (err) {
-        showToast(err.message, 'error');
+        appendSerajMessage("❌ تعذر الاتصال بخادم المنظومة: " + err.message);
       } finally {
-        btn.innerHTML = `
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-          اعتماد وإنشاء الموظفين المحددين في Odoo
-        `;
-        btn.disabled = false;
+        hideTypingIndicator();
+        setSerajIdle();
+        loadAgentsOverview();
       }
     }
 
-    // Render Final Results
-    function renderResultsStep(data) {
-      updateStepper(3);
-      document.getElementById('stepResultCard').classList.remove('hidden');
+    async function handleApprovePlan() {
+      if (!currentOperationId) return;
+      appendUserMessage("تأكيد");
+      showTypingIndicator();
+      setSerajBusy("جاري تنفيذ العملية المعتمدة عبر «كاتب»…");
 
-      const tbody = document.getElementById('resultTableBody');
-      tbody.innerHTML = '';
-
-      const createdCount = data.created_count || 0;
-      document.getElementById('bannerTitle').innerText = `تم إنشاء ${createdCount} موظف بنجاح والتحقق منهم في Odoo`;
-      
-      let tgNote = '';
-      if (data.telegram && data.telegram.sent) {
-        tgNote = ' • تم إرسال إشعار فوري إلى قناة التيليقرام بنجاح.';
+      try {
+        const res = await apiFetch("/api/agents/approve", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: "web_cockpit_user", operation_id: currentOperationId }),
+        });
+        const data = await res.json();
+        appendSerajMessage(data.response, null, null, data.operation);
+        if (data.operation) {
+          updateProcessStepper(data.operation.events || []);
+          updateOperationBadges(data.operation);
+        }
+      } catch (err) {
+        appendSerajMessage("❌ تعذر إتمام الاعتماد: " + err.message);
+      } finally {
+        hideTypingIndicator();
+        setSerajIdle();
+        loadAgentsOverview();
       }
-      document.getElementById('bannerSub').innerText = 'تم التحقق من تطابق السجلات الحية داخل قاعدة البيانات مباشرة' + tgNote;
+    }
 
-      const rows = (data.result && data.result.rows) || [];
-      rows.forEach((r, idx) => {
-        const tr = document.createElement('tr');
-        const isCreated = r.status === 'created';
-        const rowNum = (r.excel_row_number !== undefined && r.excel_row_number !== null)
-          ? r.excel_row_number
-          : ((r.row_number !== undefined && r.row_number !== null) ? r.row_number : (idx + 2));
-        const empName = r.employee_name || r.attempted_name || '—';
-        const empEmail = r.work_email || r.attempted_work_email || '—';
-        const odooId = r.odoo_id || r.odoo_employee_id || '—';
-        tr.innerHTML = `
-          <td class="col-num">${rowNum}</td>
-          <td><strong>${empName}</strong></td>
-          <td class="col-num" style="direction: ltr; text-align: right;">${empEmail}</td>
-          <td class="col-num">${odooId}</td>
-          <td>
-            <span style="color: var(--color-phosphor-green); font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"/>
-              </svg>
-              تم التحقق المباشر
-            </span>
-          </td>
-          <td>
-            <span class="status-badge ${isCreated ? 'is-accepted' : 'is-rejected'}">
-              <span class="status-dot"></span>
-              ${r.status}
-            </span>
-          </td>
+    async function handleCancelPlan() {
+      if (!currentOperationId) return;
+      appendUserMessage("إلغاء");
+      showTypingIndicator();
+      setSerajBusy("جاري إلغاء العملية…");
+
+      try {
+        const res = await apiFetch("/api/agents/cancel", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: "web_cockpit_user", operation_id: currentOperationId }),
+        });
+        const data = await res.json();
+        appendSerajMessage(data.response, null, null, data.operation);
+        if (data.operation) {
+          updateProcessStepper(data.operation.events || []);
+          updateOperationBadges(data.operation);
+        }
+        resetAllAgentsToIdle();
+      } catch (err) {
+        appendSerajMessage("❌ تعذر إلغاء العملية: " + err.message);
+      } finally {
+        hideTypingIndicator();
+        setSerajIdle();
+        loadAgentsOverview();
+      }
+    }
+
+    // =========================================================================
+    // 7. EXCEL UPLOAD & CONTROLLED DRY-RUN INSPECTION
+    // =========================================================================
+    async function handleFileUpload(input) {
+      if (!input.files || !input.files[0]) return;
+      const file = input.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("chat_id", "web_cockpit_user");
+      if (currentOperationId) formData.append("operation_id", currentOperationId);
+
+      appendUserMessage(`📎 تم إرفاق الملف: «${file.name}» (${Math.round(file.size / 1024)} KB)`);
+      showTypingIndicator();
+      setSerajBusy("سراج وفاحص يستلمان الملف ويفحصان محتواه…");
+
+      try {
+        const res = await apiFetch("/api/agents/upload", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json();
+        if (data.status === "success") {
+          currentOperationId = data.operation_id;
+          document.getElementById("activeOpIdBadge").textContent = currentOperationId;
+
+          if (data.dry_run_report) {
+            if (data.dry_run_report.summary) {
+              const r = data.dry_run_report;
+              const repMsg = `✅ ${data.message}\n\n` +
+                `📋 **تقرير الفحص الأولي المحكوم (Dry-Run)** لملف «${data.filename}»:\n` +
+                `• إجمالي الصفوف المفحوصة: ${r.total_rows}\n` +
+                `• الصفوف المقبولة والمطابقة: ${r.accepted_count}\n` +
+                `• الصفوف المرفوضة أو غير المطابقة: ${r.rejected_count}\n` +
+                `🔒 جرى الفحص بصورة جافة وآمنة دون إجراء أي كتابة أو تعديل غير معتمد في Odoo.`;
+              appendSerajMessage(repMsg);
+            } else if (data.dry_run_report.error) {
+              appendSerajMessage(`❌ تعذر استكمال فحص ملف الإكسل «${data.filename}»:\n${data.dry_run_report.error}`);
+            }
+          } else {
+            appendSerajMessage(`✅ ${data.message}\nجاري متابعة معالجة الملف في المنظومة.`);
+          }
+          startLiveEventPolling(currentOperationId);
+        } else {
+          appendSerajMessage("❌ فشل رفع الملف: " + (data.detail || "خطأ"));
+        }
+      } catch (err) {
+        appendSerajMessage("❌ تعذر رفع الملف: " + err.message);
+      } finally {
+        hideTypingIndicator();
+        setSerajIdle();
+        input.value = "";
+      }
+    }
+
+    // =========================================================================
+    // 8. CHAT DOM HELPERS
+    // =========================================================================
+    function appendUserMessage(text) {
+      const container = document.getElementById("chatMessages");
+      const msg = document.createElement("div");
+      msg.className = "msg-bubble msg-user";
+      msg.innerHTML = `
+        <div class="msg-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        </div>
+        <div class="msg-content-wrapper">
+          <div class="msg-meta"><span>أنت</span> • <span class="mono">${getTimeStr()}</span></div>
+          <div class="msg-card">${escapeHtml(text)}</div>
+        </div>
+      `;
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function appendSerajMessage(text, pendingAction, pendingClarification, opData) {
+      const container = document.getElementById("chatMessages");
+      const msg = document.createElement("div");
+      msg.className = "msg-bubble msg-assistant";
+
+      let actionCardHtml = "";
+
+      if (pendingClarification && pendingClarification.type === "clarify_delete_or_archive") {
+        const target = pendingClarification.target || "السجل";
+        actionCardHtml = `
+          <div class="chat-action-card">
+            <div class="action-card-header">
+              <span class="action-card-title">❓ تحديد نوع الإجراء المطلوب نظاماً</span>
+            </div>
+            <div style="font-size: 12.5px; color: var(--color-silver-mist); margin-bottom: 10px;">
+              يرجى اختيار أحد الإجراءين المعتمدين بخصوص «${escapeHtml(target)}»:
+            </div>
+            <div class="action-buttons-group">
+              <button class="btn btn-sm btn-primary" onclick="handleClarificationChoice('أرشفة')">أرشفة آمنة (المسار الموصى به)</button>
+              <button class="btn btn-sm btn-danger" onclick="handleClarificationChoice('حذف نهائي')">حذف نهائي محكوم</button>
+            </div>
+          </div>
         `;
-        tbody.appendChild(tr);
-      });
+      } else if (pendingAction) {
+        actionCardHtml = `
+          <div class="chat-action-card card-approval">
+            <div class="action-card-header">
+              <span class="action-card-title">⚠️ يتطلب اعتماد بشري قبل التنفيذ</span>
+              <span class="badge badge-warning">بانتظار الاعتماد</span>
+            </div>
+            <div class="action-card-grid">
+              <div><span class="label">الإجراء:</span><span class="val">${escapeHtml(pendingAction.action || 'تعديل سجل')}</span></div>
+              <div><span class="label">المستهدف:</span><span class="val">${escapeHtml(pendingAction.target || 'Odoo')}</span></div>
+              <div><span class="label">المنفذ:</span><span class="val">كاتب (بإشراف حارس)</span></div>
+              <div><span class="label">البيئة:</span><span class="val mono">${selectedCompanyId === 15 ? 'النخبة (15)' : 'شركة ' + selectedCompanyId}</span></div>
+            </div>
+            <div class="action-buttons-group">
+              <button class="btn btn-sm btn-success" onclick="handleApprovePlan()">تأكيد واعتماد الخطة</button>
+              <button class="btn btn-sm btn-secondary" onclick="handleCancelPlan()">إلغاء الأمر</button>
+            </div>
+          </div>
+        `;
+      }
 
-      document.getElementById('rawLogBox').innerText = JSON.stringify(data.result, null, 2);
-      document.getElementById('resultsPathText').innerText = 'مسار النتائج: ' + (data.results_path || '');
-      document.getElementById('stepResultCard').scrollIntoView({ behavior: 'smooth' });
+      msg.innerHTML = `
+        <div class="msg-avatar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </div>
+        <div class="msg-content-wrapper">
+          <div class="msg-meta"><span style="color: var(--agent-seraj); font-weight: 600;">سراج</span> • <span class="mono">${getTimeStr()}</span></div>
+          <div class="msg-card">${formatMarkdownText(text)} ${actionCardHtml}</div>
+        </div>
+      `;
+      container.appendChild(msg);
+      container.scrollTop = container.scrollHeight;
     }
 
-    function copyAuditLog() {
-      const text = document.getElementById('rawLogBox').innerText;
-      navigator.clipboard.writeText(text).then(() => {
-        showToast('تم نسخ سجل التدقيق للحافظة بنجاح', 'success');
+    function handleClarificationChoice(choice) {
+      appendUserMessage(choice);
+      showTypingIndicator();
+      setSerajBusy("سراج يوجه الإجراء المحدد…");
+      apiFetch("/api/seraj/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: choice, chat_id: "web_cockpit_user", operation_id: currentOperationId, company_id: selectedCompanyId }),
+      })
+      .then(r => r.json())
+      .then(data => {
+        appendSerajMessage(data.response, data.pending_action, data.pending_clarification, data.operation);
+        if (data.operation) updateProcessStepper(data.operation.events || []);
+        startLiveEventPolling(currentOperationId);
+      })
+      .catch(err => appendSerajMessage("❌ تعذر التوجيه: " + err.message))
+      .finally(() => { hideTypingIndicator(); setSerajIdle(); });
+    }
+
+    function setSerajBusy(text) {
+      const bubble = document.getElementById("agentStatusBubble_seraj");
+      if (bubble) bubble.textContent = text || "يعمل الآن…";
+      const card = document.getElementById("agentCard_seraj");
+      if (card) card.classList.add("is-active");
+    }
+
+    function setSerajIdle() {
+      const bubble = document.getElementById("agentStatusBubble_seraj");
+      if (bubble) bubble.textContent = "جاهز";
+      const card = document.getElementById("agentCard_seraj");
+      if (card) card.classList.remove("is-active");
+    }
+
+    function showTypingIndicator() {
+      const el = document.getElementById("typingIndicator");
+      if (el) {
+        el.classList.add("is-visible");
+        const container = document.getElementById("chatMessages");
+        if (container) container.scrollTop = container.scrollHeight;
+      }
+    }
+
+    function hideTypingIndicator() {
+      const el = document.getElementById("typingIndicator");
+      if (el) el.classList.remove("is-visible");
+    }
+
+    function autoResizeTextarea(el) {
+      el.style.height = "auto";
+      el.style.height = Math.min(el.scrollHeight, 140) + "px";
+    }
+
+    // =========================================================================
+    // 9. REAL-TIME EVENT STREAMING & ROBUST POLLING (NO ARBITRARY 30S TIMEOUT)
+    // =========================================================================
+    function startLiveEventPolling(opId) {
+      if (!opId) return;
+      if (pollingInterval) clearInterval(pollingInterval);
+      streamConsecutiveErrors = 0;
+      setStreamConnected(true, "المتابعة نشطة ومستمرة");
+
+      let snapshotCycleCounter = 0;
+
+      pollingInterval = setInterval(async () => {
+        try {
+          // A. Fetch incremental events since last sequence
+          const res = await apiFetch(`/api/agents/operations/${opId}/events?after=${lastEventSequence}`);
+          const data = await res.json();
+          let op = null;
+
+          if (data.status === "success") {
+            streamConsecutiveErrors = 0;
+
+            if (data.events && data.events.length > 0) {
+              data.events.forEach(evt => {
+                lastEventSequence = Math.max(lastEventSequence, evt.sequence || 0);
+              });
+              const opRes = await apiFetch(`/api/agents/operations/${opId}`);
+              const opData = await opRes.json();
+              if (opData.status === "success" && opData.operation) {
+                op = opData.operation;
+                updateProcessStepper(op.events || []);
+                updateOperationBadges(op);
+              }
+            } else {
+              // Periodic snapshot verification every 4 cycles (~6s) to ensure ground truth
+              snapshotCycleCounter++;
+              if (snapshotCycleCounter % 4 === 0) {
+                const opRes = await apiFetch(`/api/agents/operations/${opId}`);
+                const opData = await opRes.json();
+                if (opData.status === "success" && opData.operation) {
+                  op = opData.operation;
+                  updateOperationBadges(op);
+                }
+              }
+            }
+
+            // B. Strictly terminate ONLY when reaching a confirmed terminal state
+            const terminalStatuses = ["completed", "failed", "cancelled"];
+            if (op && terminalStatuses.includes(op.status)) {
+              clearInterval(pollingInterval);
+              pollingInterval = null;
+              resetAllAgentsToIdle();
+              updateProcessStepper(op.events || []);
+              updateOperationBadges(op);
+              setStreamConnected(true, "اكتملت العملية");
+              return;
+            }
+
+            // NOTE: If no events arrive for 30s or longer, do NOT declare completion!
+            // The operation is still tracked until confirmed terminal state.
+            setStreamConnected(true, "المتابعة نشطة ومستمرة");
+          } else {
+            throw new Error(data.detail || "تعذر استلام بيانات المتابعة");
+          }
+        } catch (err) {
+          streamConsecutiveErrors++;
+          setStreamConnected(false, `انقطع الاتصال بالمتابعة (${err.message})`);
+          if (streamConsecutiveErrors >= 8) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+            showStreamRecoveryOption(opId);
+          }
+        }
+      }, 1500);
+    }
+
+    function setStreamConnected(isConnected, customText) {
+      const badge = document.getElementById("liveStreamBadge");
+      const text = document.getElementById("streamStatusText");
+      if (!badge || !text) return;
+      if (isConnected) {
+        badge.className = "stream-status-pill";
+        text.textContent = customText || "البث متصل";
+      } else {
+        badge.className = "stream-status-pill is-disconnected";
+        text.textContent = customText || "تعذر تحديث الحالة";
+      }
+    }
+
+    function showStreamRecoveryOption(opId) {
+      const badge = document.getElementById("liveStreamBadge");
+      const text = document.getElementById("streamStatusText");
+      if (badge && text) {
+        badge.className = "stream-status-pill is-disconnected";
+        text.innerHTML = `انقطع الاتصال بالمتابعة • <a href="javascript:void(0)" onclick="resumeLiveEventPolling('${opId}')" style="color:var(--color-amber);text-decoration:underline;font-weight:700;">استئناف المتابعة</a>`;
+      }
+    }
+
+    function resumeLiveEventPolling(opId) {
+      streamConsecutiveErrors = 0;
+      setStreamConnected(true, "جاري استئناف المتابعة…");
+      startLiveEventPolling(opId || currentOperationId);
+    }
+
+    function updateOperationBadges(op) {
+      const stBadge = document.getElementById("activeOpStatusBadge");
+      const agBadge = document.getElementById("activeOpAgentBadge");
+      if (stBadge) {
+        stBadge.textContent = op.status_label || STATUS_MAP_AR[op.status] || op.status;
+        stBadge.className = `badge ${op.status === 'completed' ? 'badge-success' : (op.status === 'failed' ? 'badge-error' : 'badge-warning')}`;
+      }
+      if (agBadge) agBadge.textContent = op.active_agent || "سراج";
+
+      document.querySelectorAll(".agent-character-card").forEach(c => c.classList.remove("is-active"));
+      if (op.active_agent && op.status !== "completed" && op.status !== "failed") {
+        const card = document.getElementById(`agentCard_${op.active_agent}`);
+        if (card) card.classList.add("is-active");
+      }
+    }
+
+    function updateProcessStepper(events) {
+      const stepper = document.getElementById("processStepper");
+      const countEl = document.getElementById("processStepCount");
+      if (!stepper) return;
+
+      if (!events || events.length === 0) {
+        stepper.innerHTML = `
+          <div style="padding: 24px; text-align: center; color: var(--color-smoke); font-size: 13px;">
+            في انتظار بدء مهام العملية...
+          </div>
+        `;
+        if (countEl) countEl.textContent = "0 خطوات";
+        return;
+      }
+
+      if (countEl) countEl.textContent = `${events.length} خطوات منجزة`;
+      stepper.innerHTML = "";
+
+      events.forEach((evt, idx) => {
+        const meta = AGENTS_META[evt.agent] || { name_ar: evt.agent, color: "var(--color-silver-mist)" };
+        const isLatest = idx === events.length - 1;
+        const isCompleted = evt.status === "completed" || !isLatest;
+        const isWaiting = evt.status === "waiting_approval" || evt.status === "waiting_clarification";
+
+        const node = document.createElement("div");
+        node.className = `step-node ${isWaiting ? 'is-waiting' : (isCompleted ? 'is-completed' : 'is-active')}`;
+        node.onclick = () => openEventDetails(evt);
+
+        node.innerHTML = `
+          <div class="step-icon-box" style="border-color: ${meta.color}; color: ${meta.color};">
+            ${idx + 1}
+          </div>
+          <div class="step-content">
+            <div class="step-header">
+              <span class="step-agent-badge" style="color: ${meta.color}; border: 1px solid ${meta.color}; font-size: 11px; padding: 1px 6px; border-radius: 4px;">
+                ${meta.name_ar}
+              </span>
+              <span class="step-status-tag" style="font-size: 11px; color: var(--color-smoke);">
+                ${evt.status_label || STATUS_MAP_AR[evt.status] || evt.status}
+              </span>
+            </div>
+            <div class="step-desc">${escapeHtml(evt.description_ar || evt.event_type)}</div>
+            <div class="step-time mono">${evt.timestamp ? evt.timestamp.substring(11, 19) : ''}</div>
+          </div>
+        `;
+        stepper.appendChild(node);
       });
     }
 
-    function resetForm() {
-      document.getElementById('stepReviewCard').classList.add('hidden');
-      document.getElementById('stepResultCard').classList.add('hidden');
-      document.getElementById('fileInput').value = '';
-      document.getElementById('filePreviewArea').classList.add('hidden');
-      document.getElementById('btnDryRun').disabled = true;
-      selectedFile = null;
-      currentReport = null;
-      updateStepper(1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    function openEventDetails(evt) {
+      const overlay = document.getElementById("detailsDrawerOverlay");
+      const title = document.getElementById("drawerTitle");
+      const body = document.getElementById("drawerBody");
+      if (!overlay || !body) return;
+
+      title.textContent = `تفاصيل الخطوة: «${evt.description_ar || evt.event_type}»`;
+      body.innerHTML = `
+        <div style="background: #141414; padding: 16px; border-radius: 12px; border: 1px solid var(--color-charcoal);">
+          <div style="font-size: 12px; color: var(--color-smoke); margin-bottom: 6px;">الوكيل المنفذ</div>
+          <div style="font-size: 16px; font-weight: 700; color: var(--color-snow);">${AGENTS_META[evt.agent]?.name_ar || evt.agent}</div>
+        </div>
+        <div style="background: #141414; padding: 16px; border-radius: 12px; border: 1px solid var(--color-charcoal);">
+          <div style="font-size: 12px; color: var(--color-smoke); margin-bottom: 6px;">الحالة والمعرف</div>
+          <div class="mono" style="font-size: 13px; color: var(--color-silver-mist);">Sequence: #${evt.sequence || '—'} | Status: ${evt.status}</div>
+        </div>
+        <div style="background: #141414; padding: 16px; border-radius: 12px; border: 1px solid var(--color-charcoal);">
+          <div style="font-size: 12px; color: var(--color-smoke); margin-bottom: 6px;">البيانات الفنية والتحقق</div>
+          <pre style="margin: 0; font-size: 11.5px; color: var(--color-snow); max-height: 200px; overflow-y: auto;">${escapeHtml(JSON.stringify(evt.metadata || {}, null, 2))}</pre>
+        </div>
+      `;
+      overlay.classList.add("is-open");
+    }
+
+    // =========================================================================
+    // 10. AGENT DRAWER DETAILS (CENTERED MODAL)
+    // =========================================================================
+    function openAgentDetails(agentKey) {
+      const meta = AGENTS_META[agentKey] || {};
+      const agentData = activeAgentsData.find(a => a.id === agentKey) || {};
+      const overlay = document.getElementById("detailsDrawerOverlay");
+      const title = document.getElementById("drawerTitle");
+      const body = document.getElementById("drawerBody");
+      if (!overlay || !body) return;
+
+      title.textContent = `بطاقة الوكيل: «${meta.name_ar}»`;
+
+      body.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 14px; background: #141414; padding: 16px; border-radius: 12px; border: 1px solid var(--color-charcoal);">
+          <div class="agent-avatar-wrap" style="border-color: ${meta.color}; width: 50px; height: 50px; margin: 0;">
+            ${getAgentSvg(meta.icon)}
+          </div>
+          <div>
+            <div style="font-size: 17px; font-weight: 700; color: var(--color-snow);">${meta.name_ar}</div>
+            <div style="font-size: 12px; color: var(--color-silver-mist);">${meta.role}</div>
+          </div>
+        </div>
+
+        <div style="background: #141414; padding: 14px; border-radius: 10px; border: 1px solid var(--color-charcoal);">
+          <div style="font-size: 11px; color: var(--color-smoke); margin-bottom: 4px;">الحالة التشغيلية الآن</div>
+          <span class="badge ${agentData.status_code === 'ready' ? 'badge-neutral' : 'badge-success'}">
+            ${agentData.status_label || STATUS_MAP_AR[agentData.status_code] || 'جاهز'}
+          </span>
+        </div>
+
+        <div style="background: #141414; padding: 14px; border-radius: 10px; border: 1px solid var(--color-charcoal);">
+          <div style="font-size: 11px; color: var(--color-smoke); margin-bottom: 4px;">المهمة الحالية / الأخيرة</div>
+          <div style="font-size: 13.5px; color: var(--color-snow); line-height: 1.5;">${escapeHtml(agentData.last_task || 'في انتظار استلام المهام')}</div>
+        </div>
+
+        <div style="background: #141414; padding: 14px; border-radius: 10px; border: 1px solid var(--color-charcoal);">
+          <div style="font-size: 11px; color: var(--color-smoke); margin-bottom: 4px;">الصلاحيات والحدود المعمارية</div>
+          <div style="font-size: 12.5px; color: var(--color-silver-mist); line-height: 1.6;">
+            ${agentKey === 'fahas' ? '• قراءة واستعلام فقط (Read-Only) في Odoo.<br>• التحقق المستقل بعد التنفيذ (Readback Verification).<br>• لا يملك أي صلاحيات كتابة أو تعديل.' : ''}
+            ${agentKey === 'katib' ? '• المنفذ الحصري لعمليات الكتابة في Odoo.<br>• لا يُنفذ أي أمر إلا بعد التحقق المزدوج واعتماد الخطة.<br>• يُحظر الحذف الكلي غير المحكوم حماية للبيانات.' : ''}
+            ${agentKey === 'seraj' ? '• واجهة المحادثة والتنسيق العام بين كافة الوكلاء.<br>• استلام الطلبات وشرح النتائج بلغة طبيعية.<br>• لا يقرأ أو يكتب في Odoo مباشرة دون الوكلاء المختصين.' : ''}
+            ${agentKey === 'sijil' ? '• الرقابة والتدقيق غير القابل للتلاعب (Append-only).<br>• توثيق البصمات الرقمية وتوليد تقارير PDF الرسمية.<br>• قياس مؤشرات الحوكمة ونسب المطابقة.' : ''}
+            ${agentKey === 'laya' ? '• التصنيف السريع للطلبات ومطابقة المقاصد الذكية.<br>• التحقق من سياسة منع الحذف التلقائي.<br>• استشارة معرفية فورية غير متزامنة.' : ''}
+            ${!['fahas', 'katib', 'seraj', 'sijil', 'laya'].includes(agentKey) ? '• يعمل ضمن منظومة التحقق والحوكمة المعتمدة.<br>• لا يتدخل في المحادثة المباشرة مع المستخدم بل يفوض الرد لسراج.' : ''}
+          </div>
+        </div>
+      `;
+
+      overlay.classList.add("is-open");
+    }
+
+    function closeDetailsDrawer(e) {
+      const overlay = document.getElementById("detailsDrawerOverlay");
+      if (overlay) overlay.classList.remove("is-open");
+    }
+
+    // =========================================================================
+    // 11. OPERATIONS DIRECTORY & "متابعة" ACTION
+    // =========================================================================
+    async function loadOperationsList() {
+      const tbody = document.getElementById("operationsTableBody");
+      if (!tbody) return;
+
+      try {
+        const res = await apiFetch("/api/agents/operations");
+        const data = await res.json();
+        if (data.status === "success" && data.operations) {
+          if (data.operations.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--color-smoke); padding: 30px;">لا توجد عمليات مسجلة حتى الآن.</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = data.operations.map(op => `
+            <tr>
+              <td class="mono" style="font-weight: 600; color: var(--color-snow);">${escapeHtml(op.operation_id)}</td>
+              <td>${escapeHtml(op.operation_type || 'محادثة')}</td>
+              <td>${escapeHtml(op.requester || 'المستخدم')}</td>
+              <td>${escapeHtml(op.company_name || 'شركة النخبة (15)')}</td>
+              <td><span style="color: ${AGENTS_META[op.active_agent]?.color || 'var(--color-silver-mist)'}; font-weight: 600;">${AGENTS_META[op.active_agent]?.name_ar || op.active_agent}</span></td>
+              <td><span class="badge ${op.status === 'completed' ? 'badge-success' : (op.status === 'failed' ? 'badge-error' : 'badge-warning')}">${op.status_label || STATUS_MAP_AR[op.status] || op.status}</span></td>
+              <td class="mono" style="font-size: 11px;">${op.created_at ? op.created_at.substring(0, 19).replace('T', ' ') : '—'}</td>
+              <td>
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn btn-sm btn-secondary" onclick="resumeOperationInCockpit('${op.operation_id}')">متابعة</button>
+                  <button class="btn btn-sm btn-iris" onclick="openOperationInSijil('${op.operation_id}')">سجل</button>
+                  <button class="btn btn-sm btn-secondary" onclick="exportSingleOpPdf('${op.operation_id}')">PDF</button>
+                </div>
+              </td>
+            </tr>
+          `).join("");
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--color-coral); padding: 20px;">تعذر تحميل العمليات: ${err.message}</td></tr>`;
+      }
+    }
+
+    async function resumeOperationInCockpit(opId) {
+      if (!opId) return;
+      currentOperationId = opId;
+      document.getElementById("activeOpIdBadge").textContent = opId;
+      switchView("view-cockpit");
+
+      try {
+        const res = await apiFetch(`/api/agents/operations/${opId}`);
+        const data = await res.json();
+        if (data.status === "success" && data.operation) {
+          const op = data.operation;
+
+          // A. Restore conversation messages
+          const chatContainer = document.getElementById("chatMessages");
+          if (chatContainer) {
+            chatContainer.innerHTML = "";
+            if (op.user_query) {
+              appendUserMessage(op.user_query);
+            }
+
+            const events = op.events || [];
+            let lastDesc = null;
+            events.forEach(evt => {
+              if (evt.description_ar && evt.event_type !== "start") {
+                lastDesc = evt.description_ar;
+              }
+            });
+
+            if (op.status === "completed") {
+              appendSerajMessage(lastDesc || `تم إنجاز العملية «${op.user_query}» ومطابقتها رقابياً بنجاح.`, null, null, op);
+            } else {
+              appendSerajMessage(lastDesc || `جاري متابعة معالجة العملية «${op.user_query}» في مركز العمليات.`, null, null, op);
+            }
+          }
+
+          // B. Update stepper & badges
+          updateProcessStepper(op.events || []);
+          updateOperationBadges(op);
+
+          // C. Handle active or terminal state
+          const terminalStatuses = ["completed", "failed", "cancelled"];
+          if (terminalStatuses.includes(op.status)) {
+            resetAllAgentsToIdle();
+            setStreamConnected(true, "العملية مكتملة");
+          } else {
+            startLiveEventPolling(opId);
+          }
+        }
+      } catch (err) {
+        console.warn("Resume operation error:", err);
+      }
+    }
+
+    // =========================================================================
+    // 12. SIJIL AUDIT LEDGER, PAGINATION & PDF EXPORT
+    // =========================================================================
+    async function loadRecentAuditMetrics() {
+      const tbody = document.getElementById("sijilRecentTableBody");
+      if (!tbody) return;
+
+      try {
+        const offset = (sijilPage - 1) * sijilLimit;
+        const res = await apiFetch(`/api/sijil/recent?limit=${sijilLimit}&offset=${offset}`);
+        const data = await res.json();
+
+        const records = data.operations || data.records || [];
+        sijilTotal = data.total || records.length;
+
+        if (data.status === "success" && records.length > 0) {
+          tbody.innerHTML = records.map(r => {
+            const ident = r.identifier || r.record_id || r.operation_id || r.plan_id || '—';
+            const typeLabel = r.type || r.domain_ar || r.domain || 'عملية موثقة';
+            const statusOk = r.status_raw === 'success' || r.readback_verified;
+            let ts = '—';
+            if (r.timestamp) {
+              const raw = String(r.timestamp);
+              if (raw.includes('-')) {
+                ts = raw.substring(0, 19).replace('T', ' ');
+              } else if (raw.length >= 15) {
+                ts = `${raw.substring(0,4)}-${raw.substring(4,6)}-${raw.substring(6,8)} ${raw.substring(9,11)}:${raw.substring(11,13)}:${raw.substring(13,15)}`;
+              } else {
+                ts = raw;
+              }
+            }
+            return `
+            <tr>
+              <td class="mono" style="font-size: 11.5px; color: var(--color-iris-glow);">${escapeHtml(ident)}</td>
+              <td><span class="badge badge-neutral">${escapeHtml(typeLabel)}</span></td>
+              <td>${escapeHtml(r.action || r.operation_type || 'قيد نظامي')}</td>
+              <td>${escapeHtml(r.target || r.user_query || '—')}</td>
+              <td><span class="badge ${statusOk ? 'badge-success' : 'badge-warning'}">${escapeHtml(r.status || (statusOk ? 'ناجحة' : 'قيد المراجعة'))}</span></td>
+              <td class="mono" style="font-size: 11px;">${ts}</td>
+              <td>
+                <div style="display: flex; gap: 6px;">
+                  <button class="btn btn-sm btn-iris" onclick="openOperationInSijil('${ident}')">سجل</button>
+                  <button class="btn btn-sm btn-secondary" onclick="exportSingleOpPdf('${ident}')">PDF</button>
+                </div>
+              </td>
+            </tr>
+          `;
+          }).join("");
+        } else if (data.status === "success") {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--color-smoke); padding: 20px;">لا توجد عمليات موثقة بعد.</td></tr>';
+        } else {
+          tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--color-coral); padding: 20px;">خطأ: ${escapeHtml(data.detail || 'تعذر تحميل سجلات التدقيق')}</td></tr>`;
+        }
+
+        // Update pagination controls
+        const totalPages = Math.max(1, Math.ceil(sijilTotal / sijilLimit));
+        const infoEl = document.getElementById("sijilPaginationInfo");
+        const pageBadge = document.getElementById("sijilPageBadge");
+        const prevBtn = document.getElementById("sijilPrevBtn");
+        const nextBtn = document.getElementById("sijilNextBtn");
+
+        if (infoEl) infoEl.textContent = `الصفحة ${sijilPage} من ${totalPages} (إجمالي ${sijilTotal} سجل)`;
+        if (pageBadge) pageBadge.textContent = sijilPage;
+        if (prevBtn) prevBtn.disabled = sijilPage <= 1;
+        if (nextBtn) nextBtn.disabled = sijilPage >= totalPages;
+
+        // Load summary metrics
+        const sRes = await apiFetch("/api/sijil/summary");
+        const sData = await sRes.json();
+        if (sData.status === "success") {
+          const el = document.getElementById("metricBlockedDeletions");
+          if (el) el.textContent = sData.summary.blocked_deletions_count || 0;
+        }
+      } catch (err) {
+        console.warn("Sijil metrics error:", err);
+      }
+    }
+
+    function changeSijilPage(delta) {
+      const totalPages = Math.max(1, Math.ceil(sijilTotal / sijilLimit));
+      const newPage = sijilPage + delta;
+      if (newPage >= 1 && newPage <= totalPages) {
+        sijilPage = newPage;
+        loadRecentAuditMetrics();
+      }
+    }
+
+    async function executeSijilSearch() {
+      const q = document.getElementById("sijilSearchInput").value.trim();
+      const resultBox = document.getElementById("sijilSearchResultBox");
+      if (!q || !resultBox) return;
+
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `<div style="text-align: center; color: var(--color-smoke); padding: 20px;">جاري استعلام الدفتر اللاتراجعي...</div>`;
+
+      try {
+        const res = await apiFetch(`/api/sijil/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (data.status === "success" && data.match_type === "single" && data.operation) {
+          const op = data.operation;
+          resultBox.innerHTML = `
+            <div style="background: #181818; border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="font-size: 15px; font-weight: 700; color: var(--color-snow);">نتيجة المطابقة: ${escapeHtml(op.operation_type || 'عملية موثقة')}</div>
+                <div style="display: flex; gap: 8px;">
+                  <button class="btn btn-sm btn-iris" onclick="openOperationInSijil('${op.operation_id || op.plan_id}')">عرض السجل الكامل</button>
+                  <button class="btn btn-sm btn-secondary" onclick="exportSingleOpPdf('${op.plan_id || op.operation_id}')">تحميل PDF</button>
+                </div>
+              </div>
+              <div style="font-size: 13px; color: var(--color-silver-mist); line-height: 1.6;">
+                • معرف العملية: <span class="mono">${escapeHtml(op.operation_id)}</span><br>
+                • رمز الخطة: <span class="mono">${escapeHtml(op.plan_id || '—')}</span><br>
+                • السجل المستهدف: ${escapeHtml(op.scope?.target_record_name || '—')}<br>
+                • البصمة الرقمية: <span class="mono" style="color: var(--color-iris-glow);">${escapeHtml(op.technical_details?.sha256_digest || '—')}</span>
+              </div>
+            </div>
+          `;
+        } else if (data.status === "multiple_matches" || (data.status === "success" && data.candidates)) {
+          const list = (data.candidates || []).slice(0, 5).map(c => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--color-charcoal);">
+              <div>
+                <span class="mono" style="color: var(--color-iris-glow);">${escapeHtml(c.record_id || c.operation_id)}</span>
+                <span style="color: var(--color-snow); margin-right: 8px;">${escapeHtml(c.target || c.title || 'سجل')}</span>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn btn-sm btn-iris" onclick="openOperationInSijil('${c.record_id || c.operation_id}')">سجل</button>
+                <button class="btn btn-sm btn-secondary" onclick="exportSingleOpPdf('${c.record_id || c.operation_id}')">PDF</button>
+              </div>
+            </div>
+          `).join("");
+          resultBox.innerHTML = `
+            <div style="background: #181818; border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px;">
+              <div style="font-size: 14px; font-weight: 700; color: var(--color-amber); margin-bottom: 10px;">عُثر على عدة سجلات متطابقة:</div>
+              <div>${list}</div>
+            </div>
+          `;
+        } else {
+          resultBox.innerHTML = `
+            <div style="background: #181818; border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; text-align: center; color: var(--color-coral);">
+              ${escapeHtml(data.message || 'لم يُعثر على سجل مطابق لمعيار البحث في دفتر سجل.')}
+            </div>
+          `;
+        }
+      } catch (err) {
+        resultBox.innerHTML = `<div style="text-align: center; color: var(--color-coral); padding: 20px;">خطأ في البحث: ${err.message}</div>`;
+      }
+    }
+
+    async function openOperationInSijil(ident) {
+      if (!ident || ident === '—') return;
+      const overlay = document.getElementById("opDetailModalOverlay");
+      const body = document.getElementById("opDetailModalBody");
+      if (!overlay || !body) {
+        switchView("view-sijil");
+        const input = document.getElementById("sijilSearchInput");
+        if (input) { input.value = ident; executeSijilSearch(); }
+        return;
+      }
+
+      body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--color-smoke);">جاري تحميل التوثيق…</div>';
+      overlay.classList.add("is-open");
+
+      try {
+        const res = await apiFetch(`/api/sijil/operation/${encodeURIComponent(ident)}`);
+        if (res.status === 404) {
+          const res2 = await apiFetch(`/api/agents/operations/${encodeURIComponent(ident)}`);
+          const d2 = await res2.json();
+          if (d2.status === "success" && d2.operation) {
+            renderOpDetailModal(d2.operation, ident);
+            return;
+          }
+          body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--color-coral);">لم يُعثر على توثيق لهذا المعرف في سجل.</div>';
+          return;
+        }
+        const data = await res.json();
+        if (data.status === "success" && data.operation) {
+          renderOpDetailModal(data.operation, ident);
+        } else {
+          body.innerHTML = '<div style="text-align:center;padding:30px;color:var(--color-coral);">لم يُعثر على توثيق لهذا المعرف في سجل.</div>';
+        }
+      } catch (err) {
+        body.innerHTML = `<div style="text-align:center;padding:30px;color:var(--color-coral);">خطأ: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function renderOpDetailModal(op, ident) {
+      const body = document.getElementById("opDetailModalBody");
+      const opIdentifier = op.operation_id || op.plan_id || ident;
+      const rows = [
+        ['نوع العملية', op.operation_type || op.type || '—'],
+        ['معرف العملية', opIdentifier],
+        ['رمز الخطة', op.plan_id || '—'],
+        ['الحالة', op.final_status || op.status || 'معتمدة ومطابقة'],
+        ['الطلب الأصلي', op.user_query || op.request_summary || '—'],
+        ['الوكيل المنفذ', op.executing_agent || op.active_agent || '—'],
+        ['وقت الإنشاء', op.created_at ? op.created_at.substring(0,19).replace('T',' ') : (op.timestamp || '—')],
+        ['المستهدف', op.scope?.target_record_name || op.target || '—'],
+        ['البصمة الرقمية', op.technical_details?.sha256_digest || '—'],
+      ];
+      const rowsHtml = rows.map(([label, val]) =>
+        `<div class="op-detail-row">
+          <span class="op-detail-label">${label}</span>
+          <span class="op-detail-value mono" style="font-size:12px;">${escapeHtml(String(val))}</span>
+         </div>`
+      ).join('');
+
+      body.innerHTML = `
+        <div>${rowsHtml}</div>
+        <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
+          <button class="btn btn-sm btn-iris" onclick="exportSingleOpPdf('${escapeHtml(opIdentifier)}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:13px;height:13px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            تصدير تقرير PDF أبيض A4
+          </button>
+          <button class="btn btn-sm btn-secondary" onclick="resumeOperationInCockpit('${escapeHtml(opIdentifier)}')">
+            متابعة في لوحة التحكم
+          </button>
+          <button class="btn btn-sm btn-secondary" onclick="document.getElementById('opDetailModalOverlay').classList.remove('is-open')">
+            إغلاق
+          </button>
+        </div>
+      `;
+    }
+
+    function exportFullSijilPdf() {
+      const token = getApiToken();
+      const url = "/api/sijil/report/pdf" + (token ? "?api_key=" + encodeURIComponent(token) : "");
+      window.open(url, "_blank");
+    }
+
+    function exportSingleOpPdf(ident) {
+      if (!ident) return;
+      const token = getApiToken();
+      const url = `/api/sijil/operation/${encodeURIComponent(ident)}/pdf` + (token ? "?api_key=" + encodeURIComponent(token) : "");
+      window.open(url, "_blank");
+    }
+
+    // =========================================================================
+    // 13. ACCESSIBILITY & MOTION PREFERENCES
+    // =========================================================================
+    function toggleReduceMotion(enabled) {
+      if (enabled) {
+        document.body.classList.add("reduce-motion-forced");
+        localStorage.setItem("odoo_hr_reduce_motion", "true");
+      } else {
+        document.body.classList.remove("reduce-motion-forced");
+        localStorage.setItem("odoo_hr_reduce_motion", "false");
+      }
+    }
+
+    function checkSavedMotionPreference() {
+      const saved = localStorage.getItem("odoo_hr_reduce_motion");
+      const toggle = document.getElementById("reduceMotionToggle");
+      if (saved === "true") {
+        document.body.classList.add("reduce-motion-forced");
+        if (toggle) toggle.checked = true;
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function formatMarkdownText(text) {
+      if (!text) return "";
+      let html = escapeHtml(text);
+      html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+      html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+      html = html.replace(/\n/g, '<br>');
+      return html;
+    }
+
+    function getTimeStr() {
+      const now = new Date();
+      return now.toTimeString().substring(0, 8);
     }
   </script>
+
+  <!-- ==================== OPERATION DETAIL MODAL (CENTERED) ==================== -->
+  <div id="opDetailModalOverlay" class="op-modal-overlay" onclick="if(event.target===this)this.classList.remove('is-open')">
+    <div class="op-modal" role="dialog" aria-modal="true" aria-label="تفاصيل التوثيق">
+      <button class="op-modal-close" onclick="document.getElementById('opDetailModalOverlay').classList.remove('is-open')" title="إغلاق">×</button>
+      <div class="op-modal-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-sijil)" style="width:18px;height:18px;vertical-align:middle;margin-left:8px;"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+        توثيق العملية — الوكيل «سجل»
+      </div>
+      <div id="opDetailModalBody">
+        <div style="text-align:center;padding:30px;color:var(--color-smoke);">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
