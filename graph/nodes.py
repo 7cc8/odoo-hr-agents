@@ -5,13 +5,14 @@ Design rules:
 - Everything on the write path is deterministic code.
 - The LLM never receives a write tool. Writes happen only in katib_execute,
   after policy_gate + human_approval.
+- Memory: nodes return only NEW messages; the reducer appends them per thread.
 """
 from __future__ import annotations
 
 import json
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from langgraph.types import interrupt
 
@@ -20,6 +21,7 @@ from graph.state import SerajState
 logger = logging.getLogger("graph.nodes")
 
 MAX_TURNS = 5
+HISTORY_LIMIT = 12
 ENABLE_WRITE_PATH = os.environ.get("ENABLE_WRITE_PATH", "0") == "1"
 
 _service = None
@@ -35,8 +37,64 @@ def _seraj():
 
 
 # --------------------------------------------------------------------------
-# Routing
+# History helpers
 # --------------------------------------------------------------------------
+def sanitize_history(msgs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Drop assistant tool_calls without full tool replies, and orphan tool messages."""
+    n = len(msgs)
+    kept: List[Dict[str, Any]] = []
+    for i, m in enumerate(msgs):
+        if m.get("role") == "assistant" and m.get("tool_calls"):
+            ids = {tc.get("id") or "call_1" for tc in m["tool_calls"]}
+            got = set()
+            j = i + 1
+            while j < n and msgs[j].get("role") == "tool":
+                got.add(msgs[j].get("tool_call_id"))
+                j += 1
+            if not ids <= got:
+                continue
+        kept.append(m)
+
+    valid_ids = set()
+    for m in kept:
+        if m.get("role") == "assistant" and m.get("tool_calls"):
+            valid_ids |= {tc.get("id") or "call_1" for tc in m["tool_calls"]}
+    return [m for m in kept if m.get("role") != "tool" or m.get("tool_call_id") in valid_ids]
+
+
+def trim_history(msgs: List[Dict[str, Any]], limit: int = HISTORY_LIMIT) -> List[Dict[str, Any]]:
+    """Last `limit` clean messages, always starting at a user message."""
+    clean = sanitize_history(msgs)
+    window = clean[-limit:]
+    while window and window[0].get("role") != "user":
+        window = window[1:]
+    if not window:
+        for m in reversed(clean):
+            if m.get("role") == "user":
+                return [m]
+    return window
+
+
+# --------------------------------------------------------------------------
+# Entry / routing
+# --------------------------------------------------------------------------
+def ingest_user_message(state: SerajState) -> Dict[str, Any]:
+    """Appends the new user query to history and resets per-run scratch fields."""
+    query = (state.get("user_query") or "").strip()
+    update: Dict[str, Any] = {
+        "turns": 0,
+        "last_tool_error": None,
+        "last_assistant": {},
+        "error": None,
+        "answer": None,
+    }
+    if query:
+        update["messages"] = [{"role": "user", "content": query}]
+    else:
+        update["error"] = "empty_query"
+    return update
+
+
 def classify_intent(state: SerajState) -> Dict[str, Any]:
     """Phase 1: everything is 'read'.
 
@@ -44,7 +102,11 @@ def classify_intent(state: SerajState) -> Dict[str, Any]:
         {intent, action, target, negated}  -> deterministic validation after.
     Until then, write requests stay on the legacy chat_turn path.
     """
-    return {"intent": "read", "turns": 0, "last_tool_error": None}
+    return {"intent": "read"}
+
+
+def route_after_ingest(state: SerajState) -> str:
+    return "finalize" if state.get("error") else "classify_intent"
 
 
 def route_intent(state: SerajState) -> str:
@@ -60,14 +122,9 @@ def seraj_think(state: SerajState) -> Dict[str, Any]:
     from odoo_agent_tools import SERAJ_ODOO_TOOLS_SCHEMA
 
     svc = _seraj()
-    messages = state.get("messages")
-    if not messages:
-        session = svc.session_manager.get_session(state.get("chat_id", "default"))
-        system_prompt = svc._build_system_prompt(session, state.get("user_name", "مستخدم"), None)
-        messages = [{"role": "system", "content": system_prompt}]
-        for m in session.history[-6:]:
-            messages.append({"role": m["role"], "content": m["content"]})
-        messages.append({"role": "user", "content": state["user_query"]})
+    session = svc.session_manager.get_session(state.get("chat_id", "default"))
+    system_prompt = svc._build_system_prompt(session, state.get("user_name", "مستخدم"), None)
+    messages = [{"role": "system", "content": system_prompt}] + trim_history(state.get("messages", []))
 
     msg = svc._call_openrouter(
         model_name=svc.model,
@@ -79,14 +136,14 @@ def seraj_think(state: SerajState) -> Dict[str, Any]:
     if isinstance(msg, str):
         msg = {"content": msg}
 
-    new_messages = list(messages)
+    entry: Dict[str, Any] = {"role": "assistant", "content": msg.get("content") or ""}
     if msg.get("tool_calls"):
-        new_messages.append({
-            "role": "assistant",
-            "content": msg.get("content") or "",
-            "tool_calls": msg["tool_calls"],
-        })
-    return {"messages": new_messages, "last_assistant": msg, "turns": state.get("turns", 0) + 1}
+        entry["tool_calls"] = msg["tool_calls"]
+    return {
+        "messages": [entry],
+        "last_assistant": msg,
+        "turns": state.get("turns", 0) + 1,
+    }
 
 
 def route_after_think(state: SerajState) -> str:
@@ -104,7 +161,7 @@ def fahas_tools(state: SerajState) -> Dict[str, Any]:
     from odoo_agent_tools import OdooToolExecutionError, OdooToolSecurityError
 
     fahas = get_fahas_agent()
-    messages = list(state.get("messages", []))
+    new_msgs: List[Dict[str, Any]] = []
     last_error: Optional[str] = state.get("last_tool_error")
 
     for tc in (state.get("last_assistant") or {}).get("tool_calls", []):
@@ -134,15 +191,18 @@ def fahas_tools(state: SerajState) -> Dict[str, Any]:
             last_error = f"خطأ في الاتصال بقاعدة بيانات Odoo: {e}"
             result_str = json.dumps({"status": "error", "error": str(e)}, ensure_ascii=False)
 
-        messages.append({"role": "tool", "tool_call_id": call_id, "name": name, "content": result_str})
+        new_msgs.append({"role": "tool", "tool_call_id": call_id, "name": name, "content": result_str})
 
-    return {"messages": messages, "last_tool_error": last_error}
+    return {"messages": new_msgs, "last_tool_error": last_error}
 
 
 def finalize(state: SerajState) -> Dict[str, Any]:
     from seraj_llm_service import clean_math_formatting
 
-    if state.get("error"):
+    err_code = state.get("error")
+    if err_code == "empty_query":
+        return {"answer": "اكتب سؤالك أولاً لأساعدك."}
+    if err_code:
         return {"answer": "⚠️ واجهت صعوبة في معالجة طلبك حالياً. يرجى إعادة المحاولة."}
 
     content = ((state.get("last_assistant") or {}).get("content") or "").strip()

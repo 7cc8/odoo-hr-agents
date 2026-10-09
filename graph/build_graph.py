@@ -1,6 +1,6 @@
 """Graph assembly.
 
-read : classify_intent -> seraj_think <-> fahas_tools -> finalize
+read : ingest_user_message -> classify_intent -> seraj_think <-> fahas_tools -> finalize
 write: prepare_plan -> policy_gate -> human_approval(interrupt) -> katib_execute
        -> fahas_verify -> sijil_log -> finalize_write
 """
@@ -15,6 +15,7 @@ from graph.state import SerajState
 def build_graph(checkpointer=None):
     g = StateGraph(SerajState)
 
+    g.add_node("ingest_user_message", n.ingest_user_message)
     g.add_node("classify_intent", n.classify_intent)
     g.add_node("seraj_think", n.seraj_think)
     g.add_node("fahas_tools", n.fahas_tools)
@@ -28,7 +29,8 @@ def build_graph(checkpointer=None):
     g.add_node("sijil_log", n.sijil_log)
     g.add_node("finalize_write", n.finalize_write)
 
-    g.add_edge(START, "classify_intent")
+    g.add_edge(START, "ingest_user_message")
+    g.add_conditional_edges("ingest_user_message", n.route_after_ingest, ["classify_intent", "finalize"])
     g.add_conditional_edges("classify_intent", n.route_intent, ["seraj_think", "prepare_plan"])
 
     g.add_conditional_edges("seraj_think", n.route_after_think, ["fahas_tools", "finalize"])
