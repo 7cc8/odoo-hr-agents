@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "seraj": "./graph/graph.py:graph"
+  },
+  "env": ".env"
+}

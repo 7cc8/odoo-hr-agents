@@ -1,0 +1,3 @@
+-r requirements.txt
+langgraph>=1.0
+langgraph-cli[inmem]
