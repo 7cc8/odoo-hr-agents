@@ -23,6 +23,7 @@ import os
 import sys
 import json
 import hashlib
+import html
 import re
 import shutil
 import subprocess
@@ -668,13 +669,45 @@ class SijilAuditService:
         }}
 
         /* Print overrides */
+        /* Paper-first report: the same white A4 document on screen and in PDF. */
+        :root {{
+            --color-void-black: #ffffff;
+            --color-obsidian-card: #ffffff;
+            --color-snow: #111827;
+            --color-silver: #475569;
+            --color-iris-violet: #4338ca;
+            --color-phosphor-green: #166534;
+        }}
+        body, .report-wrapper {{ background: #fff !important; color: #111827 !important; }}
+        .report-wrapper {{ max-width: 186mm; margin: auto; }}
+        .report-wrapper * {{ box-shadow: none !important; text-shadow: none !important; }}
+        .digest-val {{ background: #f3f4f6 !important; color: #111827 !important; }}
+        .kpi-val, .header-meta-row span {{ color: #111827 !important; }}
+        .report-header, .report-section, .kpi-card, .domain-stat-box,
+        .digest-box, .agent-signature, .report-footer {{
+            background: #fff !important; color: #111827 !important; border-color: #d1d5db !important;
+        }}
+        .report-wrapper h1, .report-wrapper h2, .report-wrapper h3,
+        .report-wrapper p, .report-wrapper span, .report-wrapper td {{ color: #111827 !important; }}
+        thead, th, .domain-tag, .status-pill {{ background: #f3f4f6 !important; color: #111827 !important; }}
+        tr {{ break-inside: avoid; }}
+        thead {{ display: table-header-group; }}
+        table {{ width: 100%; table-layout: fixed; }}
+        td, th {{ overflow-wrap: anywhere; }}
+        th:nth-child(1) {{ width: 4%; }}
+        th:nth-child(2) {{ width: 19%; }}
+        th:nth-child(3) {{ width: 16%; }}
+        th:nth-child(4) {{ width: 20%; }}
+        th:nth-child(5) {{ width: 7%; }}
+        th:nth-child(6) {{ width: 18%; }}
+        th:nth-child(7) {{ width: 16%; }}
         @media print {{
             body {{
                 padding: 0;
-                background-color: #060708;
+                background-color: #ffffff;
             }}
             .report-section {{
-                page-break-inside: avoid;
+                page-break-inside: auto;
             }}
         }}
     </style>
@@ -886,11 +919,8 @@ class SijilAuditService:
             except Exception as exc:
                 print(f"Browser PDF generation error: {exc}", file=sys.stderr)
 
-        # 3. Fallback placeholder
-        placeholder = b"%PDF-1.4\n%Fallback placeholder generated when no browser is available\n"
-        with open(pdf_path, "wb") as f:
-            f.write(placeholder)
-        return placeholder
+        # Never advertise a broken placeholder as an exported PDF.
+        raise RuntimeError("تعذر توليد PDF. ثبّت Playwright وChromium أو Chrome/Edge ثم أعد التصدير.")
 
     def generate_pdf_report(self, output_filename: Optional[str] = None) -> Tuple[str, bytes]:
         """
@@ -990,7 +1020,7 @@ class SijilAuditService:
         try:
             from agent_events_service import get_events_service
             evt_srv = get_events_service()
-            recent_agent_ops = evt_srv.list_operations(limit=50)
+            recent_agent_ops = evt_srv.get_recent_operations(limit=len(evt_srv.operations))
             for a_op in recent_agent_ops:
                 op_id = str(a_op.get("operation_id") or "").lower()
                 p_id = str(a_op.get("plan_id") or "").lower()
@@ -1224,6 +1254,7 @@ class SijilAuditService:
             }
         elif len(unique_matches) == 1:
             detail = self.get_operation_detail(unique_matches[0]["identifier"])
+            detail["identifier"] = unique_matches[0]["identifier"]
             return {
                 "status": "success",
                 "match_type": "single",
@@ -1249,6 +1280,23 @@ class SijilAuditService:
         - التفاصيل التقنية وبصمات الأدلة الرقمية
         """
         ident = str(identifier).strip()
+        if ident.startswith("OP-AGENTS-"):
+            ident = ident[len("OP-AGENTS-"):]
+        elif ident.startswith("OP-DEL-"):
+            ident = "del_" + ident[len("OP-DEL-"):]
+        else:
+            for domain in ("leave", "attendance", "warning", "letter", "expense"):
+                legacy_prefix = f"OP-{domain.upper()}-"
+                if ident.startswith(legacy_prefix):
+                    ident = domain + "_" + ident[len(legacy_prefix):]
+                    break
+        # Exact plan aliases resolve to the operation's canonical id.
+        from agent_events_service import get_events_service
+        srv = get_events_service()
+        for op in srv.get_recent_operations(limit=len(srv.operations)):
+            if ident == op.get("plan_id"):
+                ident = op["operation_id"]
+                break
         parts = ident.split("_")
         prefix = parts[0]
 
@@ -1415,6 +1463,7 @@ class SijilAuditService:
             digest = hashlib.sha256(digest_src.encode("utf-8")).hexdigest()[:24].upper()
 
             return {
+                "identifier": ident,
                 "operation_id": f"OP-DEL-{matched_rec.get('plan_id', line_found)}",
                 "user_query": matched_rec.get("original_request") or f"طلب {action_ar_map.get(action, action)} على {model_label} #{rec_id}",
                 "plan_id": matched_rec.get("plan_id", "—"),
@@ -1739,8 +1788,8 @@ class SijilAuditService:
                     "title": evt.get("description_ar", "حدث تشغيلي"),
                     "description": evt.get("description_ar", "حدث تشغيلي"),
                     "inputs": f"نوع الحدث: {evt.get('event_type')}",
-                    "outputs": json.dumps(evt.get("result_ref"), ensure_ascii=False) if evt.get("result_ref") else "اكتمل بنجاح دون أخطاء",
-                    "status": "error" if evt.get("status") in ("failed", "odoo_rejected") else "success",
+                    "outputs": json.dumps(evt.get("result_ref"), ensure_ascii=False) if evt.get("result_ref") else "لا توجد نتيجة منفصلة مسجلة لهذا الحدث",
+                    "status": evt.get("status", "unknown"),
                     "source": f"agent_events_service ({evt.get('event_id', f'seq_{idx}')})",
                 })
 
@@ -1751,14 +1800,15 @@ class SijilAuditService:
             digest = hashlib.sha256(digest_src.encode("utf-8")).hexdigest()[:24].upper()
 
             return {
-                "operation_id": f"OP-AGENTS-{ident}",
+                "identifier": ident,
+                "operation_id": ident,
                 "user_query": agent_op.get("user_query", "عملية منظومة الوكلاء"),
                 "plan_id": agent_op.get("plan_id") or ident,
                 "plan_version": "v1.0 (معتمدة)",
                 "operation_type": f"عملية وكلاء ({agent_op.get('operation_type', 'استعلام وتنسيق')})",
                 "operation_type_code": agent_op.get("operation_type", "agents_op"),
                 "final_status": agent_op.get("status_label", "مكتملة وموثقة"),
-                "final_status_code": "success" if is_success else "failed",
+                "final_status_code": "success" if is_success else final_status_code,
                 "scope": {
                     "connection_id": agent_op.get("connection_id", "default"),
                     "database": "odooprosys-hr19-main-37916265",
@@ -1785,18 +1835,18 @@ class SijilAuditService:
                     "details": agent_op.get("error") or "تمت معالجة كافة الخطوات وتوثيقها دون انقطاع.",
                 },
                 "verification_result": {
-                    "verified": True,
-                    "label": "مطابق 100% للواقع التقني بسجلات التدقيق",
-                    "details": "تم توثيق كافة الأحداث والتحقق المستقل بعد التنفيذ.",
+                    "verified": any(
+                        e.get("result_ref", {}).get("verified") is True
+                        for e in events if isinstance(e.get("result_ref"), dict)
+                    ),
+                    "label": "تعرض المطابقة بحسب الأدلة المسجلة فقط",
+                    "details": "حفظ الحدث في السجل لا يعني إجراء تحقق مستقل من بيانات Odoo.",
                 },
                 "timeline": timeline,
                 "conversation": {
-                    "available": True,
-                    "messages": [
-                        {"role": "user", "content": agent_op.get("user_query", "")},
-                        {"role": "assistant", "content": f"تمت معالجة الطلب عبر المنظومة وتوثيقه تحت المعرف {ident}."},
-                    ],
-                    "unavailable_notice": "",
+                    "available": bool(agent_op.get("messages")),
+                    "messages": agent_op.get("messages", []),
+                    "unavailable_notice": "" if agent_op.get("messages") else "المحادثة القديمة غير محفوظة؛ الأحداث الفعلية متاحة في الخط الزمني.",
                 },
                 "change_details": {
                     "type": "agent_operation",
@@ -1912,6 +1962,7 @@ class SijilAuditService:
             digest = hashlib.sha256(digest_src.encode("utf-8")).hexdigest()[:24].upper()
 
             return {
+                "identifier": ident,
                 "operation_id": f"OP-{dom_key.upper()}-{line_target}",
                 "user_query": f"طلب {op_label} للموظف {emp_name} ({emp_id})",
                 "plan_id": ref_code,
@@ -1970,6 +2021,21 @@ class SijilAuditService:
     def get_recent_operations(self, limit: int = 30, offset: int = 0) -> List[Dict[str, Any]]:
         """الحصول على قائمة حديثة من أحدث العمليات الموثقة للتصفح السريع."""
         ops = []
+        # Include real agent operations, not only legacy domain audit ledgers.
+        from agent_events_service import get_events_service
+        srv = get_events_service()
+        for op in srv.get_recent_operations(limit=len(srv.operations)):
+            ops.append({
+                "identifier": op["operation_id"],
+                "operation_id": op["operation_id"],
+                "plan_id": op.get("plan_id"),
+                "type": "عملية وكلاء",
+                "action": op.get("operation_type"),
+                "target": op.get("user_query"),
+                "timestamp": op.get("updated_at"),
+                "status": op.get("status_label"),
+                "status_raw": op.get("status"),
+            })
         # 1. Deletions / Archives
         del_log = self.logs_dir / "deletion_audit_log.jsonl"
         if del_log.exists():
@@ -1995,7 +2061,10 @@ class SijilAuditService:
 
         # 2. Batch runs
         run_dirs = glob.glob(str(ROOT_DIR / "output" / "*_2026*"))
-        for r_dir in run_dirs[:15]:
+        for r_dir in run_dirs:
+            report_path = Path(r_dir) / "dry_run_report.json"
+            if not report_path.exists():
+                continue
             dirname = os.path.basename(r_dir)
             parts = dirname.split("_")
             r_id = parts[0]
@@ -2011,12 +2080,12 @@ class SijilAuditService:
                 "identifier": f"run_{r_id}",
                 "plan_id": r_id,
                 "operation_id": r_id,
-                "type": "استيراد دفعة موظفين",
-                "action": "import_batch",
-                "target": f"دفعة استيراد {r_id[:8]}",
+                "type": "فحص ملف Excel",
+                "action": "dry_run",
+                "target": f"تقرير فحص {r_id[:8]}",
                 "timestamp": iso_ts,
-                "status": "مكتملة ومحققة 100%",
-                "status_raw": "success",
+                "status": "تقرير فحص متاح؛ لا يثبت الاستيراد",
+                "status_raw": "dry_run",
             })
 
         # 3. Warnings & Letters
@@ -2050,7 +2119,13 @@ class SijilAuditService:
                             continue
 
         def _get_ts(e: Dict[str, Any]) -> str:
-            return str(e.get("timestamp") or "")
+            raw = str(e.get("timestamp") or "")
+            for fmt in ("%Y%m%dT%H%M%SZ", "%Y%m%d"):
+                try:
+                    return datetime.strptime(raw, fmt).isoformat()
+                except ValueError:
+                    pass
+            return raw
 
         ops.sort(key=_get_ts, reverse=True)
         if offset > 0:
@@ -2097,10 +2172,13 @@ class SijilAuditService:
 
         timeline_rows_list = []
         for idx, step in enumerate(op.get("timeline", []), start=1):
-            st_badge = '<span class="badge badge-success">ناجحة</span>'
-            if step.get("status") == "error":
+            status = str(step.get("status") or "غير محسومة")
+            st_badge = f'<span class="badge">{html.escape(status)}</span>'
+            if status in {"success", "completed"}:
+                st_badge = '<span class="badge badge-success">ناجحة</span>'
+            elif status in {"error", "failed", "odoo_rejected"}:
                 st_badge = '<span class="badge badge-danger">مرفوضة / خطأ</span>'
-            elif step.get("status") == "warning":
+            elif status in {"warning", "inconclusive"}:
                 st_badge = '<span class="badge badge-warning">تنبيه / غير محسومة</span>'
 
             timeline_rows_list.append(f"""
@@ -2679,4 +2757,3 @@ if __name__ == "__main__":
     service = SijilAuditService()
     pdf_file, data = service.generate_pdf_report()
     print(f"Generated PDF: {pdf_file} ({len(data):,} bytes)")
-

@@ -64,19 +64,32 @@ def test_odoo_connection(url: str, db: str, username: str, api_key: str, timeout
         return {"ok": False, "error": "جميع الحقول (الرابط، اسم القاعدة، اسم المستخدم، مفتاح API) مطلوبة."}
 
     try:
-        common = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/common", allow_none=True)
+        class TimeoutTransport(xmlrpc.client.Transport):
+            def make_connection(self, host):
+                connection = super().make_connection(host)
+                connection.timeout = timeout
+                return connection
+
+        class TimeoutSafeTransport(xmlrpc.client.SafeTransport):
+            def make_connection(self, host):
+                connection = super().make_connection(host)
+                connection.timeout = timeout
+                return connection
+
+        transport_class = TimeoutSafeTransport if url.startswith("https://") else TimeoutTransport
+        common = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/common", allow_none=True, transport=transport_class())
         uid = common.authenticate(db, username, api_key, {})
         if not uid:
             return {"ok": False, "error": "فشل التحقق: اسم المستخدم أو مفتاح API غير صحيح لقاعدة البيانات المحددة."}
 
-        models = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/object", allow_none=True)
+        models = xmlrpc.client.ServerProxy(f"{url}/xmlrpc/2/object", allow_none=True, transport=transport_class())
         version = common.version()
 
         # Query companies & branches
         companies = models.execute_kw(
             db, uid, api_key,
             "res.company", "search_read", [[]],
-            {"fields": ["id", "name", "child_ids"], "limit": 20}
+            {"fields": ["id", "name", "child_ids"], "context": {"active_test": False}}
         )
 
         emp_count = 0
