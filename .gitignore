@@ -35,3 +35,7 @@ node_modules/
 *~
 .DS_Store
 Thumbs.db
+
+# LangGraph API artifacts
+.langgraph_api/
+traces/
