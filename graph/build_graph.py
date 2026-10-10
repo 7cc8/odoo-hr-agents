@@ -29,7 +29,7 @@ def build_graph(checkpointer=None):
     g.add_node("seraj_meta_orchestration", an.seraj_meta_orchestration)  # ✅ جديد: Meta-Agent
     g.add_node("seraj_think", n.seraj_think)
     g.add_node("fahas_tools", n.fahas_tools)
-    g.add_node("fahas_agentic", an.fahas_agentic_query)  # ✅ الوكيل الذكي الجديد
+    # fahas_agentic: حُذفت - نستخدم fahas_tools المُختبر فقط
     g.add_node("seraj_meta_reflect", an.seraj_meta_reflect)  # ✅ جديد: Meta-Agent Reflection
     g.add_node("finalize", n.finalize)
 
@@ -60,9 +60,8 @@ def build_graph(checkpointer=None):
     # ✅ Meta-Agent يقرر ثم ننتقل لـ seraj_think
     g.add_edge("seraj_meta_orchestration", "seraj_think")
 
-    g.add_conditional_edges("seraj_think", n.route_after_think, ["fahas_tools", "fahas_agentic", "finalize"])
+    g.add_conditional_edges("seraj_think", n.route_after_think, ["fahas_tools", "finalize"])
     g.add_edge("fahas_tools", "seraj_think")
-    g.add_edge("fahas_agentic", "seraj_think")  # ✅ نفس المسار
     
     # ✅ جديد: بعد الانتهاء، نذهب للمراجعة الذكية
     g.add_edge("finalize", "seraj_meta_reflect")

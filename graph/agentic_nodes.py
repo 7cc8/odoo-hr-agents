@@ -9,7 +9,6 @@ import logging
 from typing import Any, Dict
 
 from agents.base_agent import create_agent_goal
-from agents.fahas_agent import FahasAgent, create_fahas_query_goal
 from agents.musleh_agent import MuslehAgent
 from agents.hares_agent import HaresAgent
 from agents.katib_agent import KatibAgent
@@ -22,70 +21,9 @@ from graph.state import SerajState
 logger = logging.getLogger("graph.agentic_nodes")
 
 
-def fahas_agentic_query(state: SerajState) -> Dict[str, Any]:
-    """
-    عقدة فاحص الذكية - استبدال fahas_tools القديمة
-    
-    بدلاً من تنفيذ tools واحدة تلو الأخرى،
-    فاحص الآن يفهم الهدف ويُخطط ويُنفذ ويُراجع
-    """
-    # استخراج الهدف من المساعد الأخير
-    last_assistant = state.get("last_assistant", {})
-    tool_calls = last_assistant.get("tool_calls", [])
-    
-    if not tool_calls:
-        return {"last_tool_error": "No tool calls from assistant"}
-    
-    # تجميع كل tool calls في هدف واحد
-    queries = []
-    for tc in tool_calls:
-        fn = tc.get("function", {})
-        name = fn.get("name", "")
-        args = fn.get("arguments", "{}")
-        
-        # تحويل tool call لهدف
-        queries.append({
-            "tool": name,
-            "args": args,
-        })
-    
-    # إنشاء هدف مجمع
-    goal_text = f"Execute the following queries: {queries}"
-    goal = create_fahas_query_goal(goal_text, context={
-        "tool_calls": tool_calls,
-        "company_id": state.get("company_id"),
-    })
-    
-    # استدعاء فاحص الذكي
-    fahas = FahasAgent()
-    result = fahas.run(goal)
-    
-    # تحويل النتيجة لصيغة tool responses
-    if result["status"] == "success":
-        data = result.get("result", {}).get("data", [])
-        
-        # بناء tool responses
-        new_msgs = []
-        for tc in tool_calls:
-            call_id = tc.get("id", "call_1")
-            new_msgs.append({
-                "role": "tool",
-                "tool_call_id": call_id,
-                "content": str(data),
-            })
-        
-        return {
-            "messages": new_msgs,
-            "last_tool_error": None,
-        }
-    
-    else:
-        # فشل
-        error = result.get("error", "Unknown error")
-        return {
-            "messages": [],
-            "last_tool_error": error,
-        }
+# ═══════════════════════════════════════════════════════════════
+# FAHAS: حُذفت fahas_agentic_query - نستخدم fahas_tools المُختبر
+# ═══════════════════════════════════════════════════════════════
 
 
 def musleh_agentic_heal(state: SerajState) -> Dict[str, Any]:
