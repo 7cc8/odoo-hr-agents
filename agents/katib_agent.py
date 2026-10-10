@@ -53,20 +53,15 @@ class WriteOperationType(str, Enum):
     DELETE = "delete"
 
 
-class WriteDecision(str, Enum):
-    """قرارات كاتب بعد التخطيط"""
-    EXECUTE_IMMEDIATE = "execute_immediate"  # تنفيذ فوري (عملية آمنة)
-    EXECUTE_WITH_BACKUP = "execute_with_backup"  # تنفيذ مع نسخة احتياطية
-    REQUEST_APPROVAL = "request_approval"  # طلب موافقة صريحة
-    REJECT_UNSAFE = "reject_unsafe"  # رفض (عملية غير آمنة)
-    ESCALATE = "escalate"  # تصعيد لمشرف بشري
+# WriteDecision: حُذف - لا تنفيذ بدون خطة معتمدة صالحة
+# الخطة المعتمدة يجب أن تحتوي على: TTL + استهلاك + مستخدم
 
 
 class RollbackStrategy(str, Enum):
     """استراتيجيات Rollback"""
     NONE = "none"  # لا rollback (قراءة فقط)
-    REVERT_VALUES = "revert_values"  # إعادة القيم القديمة
-    DELETE_CREATED = "delete_created"  # حذف السجل المنشأ
+    REVERT_VALUES = "revert_values"  # إعادة القيم القديمة عبر نموذج العملية
+    # DELETE_CREATED: حُذف - rollback يستخدم نموذج العملية فقط
     RESTORE_ARCHIVED = "restore_archived"  # استرجاع من الأرشفة
 
 
