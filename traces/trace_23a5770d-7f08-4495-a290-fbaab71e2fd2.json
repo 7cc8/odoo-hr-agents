@@ -1,0 +1,20 @@
+{
+  "trace_id": "23a5770d-7f08-4495-a290-fbaab71e2fd2",
+  "session_id": null,
+  "root_agent": "TestAgent",
+  "start_time": 1791654904.8525991,
+  "end_time": 1791654904.8525991,
+  "duration_ms": 0.0,
+  "status": "success",
+  "spans": [],
+  "metadata": {
+    "method": "run",
+    "args_count": 0
+  },
+  "tags": [
+    "TestAgent",
+    "run"
+  ],
+  "success": true,
+  "error": null
+}

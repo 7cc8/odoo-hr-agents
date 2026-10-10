@@ -24,6 +24,7 @@ logger = logging.getLogger("graph.nodes")
 MAX_TURNS = 5
 HISTORY_LIMIT = 12
 ENABLE_WRITE_PATH = os.environ.get("ENABLE_WRITE_PATH", "0") == "1"
+ENABLE_AGENTIC_FAHAS = os.environ.get("ENABLE_AGENTIC_FAHAS", "0") == "1"  # ✅ تفعيل الوكيل الجديد
 
 ALL_COMPANIES_PHRASES = (
     "كل الشركات", "جميع الشركات", "كافة الشركات",
@@ -197,7 +198,8 @@ def route_after_ingest(state: SerajState) -> str:
 def route_intent(state: SerajState) -> str:
     if state.get("intent") == "write" and ENABLE_WRITE_PATH:
         return "prepare_plan"
-    return "seraj_think"
+    # ✅ جديد: نذهب للـ Meta-Agent للتخطيط الذكي
+    return "seraj_meta_orchestration"
 
 
 # --------------------------------------------------------------------------
@@ -237,6 +239,9 @@ def route_after_think(state: SerajState) -> str:
         return "finalize"
     msg = state.get("last_assistant") or {}
     if msg.get("tool_calls") and state.get("turns", 0) < MAX_TURNS:
+        # ✅ اختيار بين الوضع القديم والجديد
+        if ENABLE_AGENTIC_FAHAS:
+            return "fahas_agentic"
         return "fahas_tools"
     return "finalize"
 
@@ -269,8 +274,19 @@ def fahas_tools(state: SerajState) -> Dict[str, Any]:
         try:
             result = fahas.execute_query_task(name, args)
             result_str = json.dumps(result, ensure_ascii=False)
-            if "compan" in name:
+            # ✅ تجميع الشركات من أي نتيجة تحتوي على company (بما في ذلك count_records)
+            if "compan" in name or (isinstance(result, dict) and result.get("company_id")):
                 collect_companies(result, companies)
+                # إذا كان company_id محدداً في النتيجة، أضف الشركة من قاعدة البيانات
+                if isinstance(result, dict) and result.get("company_id") and str(result["company_id"]) not in companies:
+                    try:
+                        comp_result = fahas.execute_query_task("list_companies", {})
+                        for comp in comp_result:
+                            if comp.get("id") == result["company_id"]:
+                                companies[str(comp["id"])] = comp.get("name", "")
+                                break
+                    except:
+                        pass
         except OdooToolSecurityError as e:
             last_error = f"رفض أمني / صلاحيات: {e}"
             result_str = json.dumps({"status": "security_rejected", "error": str(e)}, ensure_ascii=False)
@@ -306,8 +322,42 @@ def finalize(state: SerajState) -> Dict[str, Any]:
     err = state.get("last_tool_error")
     if err and any(p in content for p in ("لم يتم العثور على أي موظف", "لم نجد أي موظف", "لا يوجد موظف")):
         return {"answer": f"⚠️ تعذر إتمام الاستعلام بسبب {err}. يرجى مراجعة حالة الاتصال بـ Odoo والصلاحيات."}
+    
+    # إذا لم يكتب النموذج جواباً لكن توجد نتائج أدوات، اعرضها
     if not content:
+        messages = state.get("messages", [])
+        tool_results = []
+        for msg in reversed(messages):
+            if msg.get("role") == "tool":
+                try:
+                    result = json.loads(msg.get("content", "null"))
+                    tool_results.append(result)
+                except:
+                    pass
+            elif msg.get("role") == "assistant":
+                break  # توقف عند آخر assistant message
+        
+        if tool_results:
+            # عرض نتائج الأدوات بدلاً من رسالة العجز
+            first_result = tool_results[0]
+            if isinstance(first_result, list):
+                count = len(first_result)
+                if count > 0 and isinstance(first_result[0], dict) and "name" in first_result[0]:
+                    names = [item.get("name", "") for item in first_result[:3]]
+                    answer = f"وجدت {count} عنصر: {', '.join(names)}{'، وغيرها' if count > 3 else ''}."
+                else:
+                    answer = f"وجدت {count} عنصر."
+            elif isinstance(first_result, int):
+                answer = f"العدد الإجمالي: {first_result}"
+            elif isinstance(first_result, dict):
+                answer = json.dumps(first_result, ensure_ascii=False, indent=2)
+            else:
+                answer = str(first_result)
+            return {"answer": company_suffix(answer, state.get("company_id"), state.get("company_name"))}
+        
+        # لا توجد نتائج أدوات أيضاً
         return {"answer": "⚠️ لم أستطع إكمال الطلب ضمن الحد الأقصى للخطوات."}
+    
     answer = clean_math_formatting(content)
     return {"answer": company_suffix(answer, state.get("company_id"), state.get("company_name"))}
 
@@ -369,3 +419,67 @@ def finalize_write(state: SerajState) -> Dict[str, Any]:
     if state.get("verified"):
         return {"answer": "✅ تم التنفيذ والتحقق والتوثيق."}
     return {"answer": "⚠️ لم يتم تأكيد نتيجة العملية."}
+
+
+# ==============================================================================
+# New Routing Functions for Agentic Agents
+# ==============================================================================
+
+def route_after_compliance(state: SerajState) -> str:
+    """
+    التوجيه بعد التحقق من الامتثال (mudaqqiq_verify)
+    
+    Returns:
+        - "hares_guard": إذا كان الامتثال موافق → نكمل للحارس
+        - "musleh_heal": إذا كانت هناك مخالفات قابلة للإصلاح → نذهب للمصلح
+        - "finalize_write": إذا كان هناك مخالفات حرجة → رفض
+    """
+    approved = state.get("compliance_approved", False)
+    violations = state.get("compliance_violations", [])
+    
+    if approved:
+        logger.info("✅ Compliance approved → hares_guard")
+        return "hares_guard"
+    
+    # التحقق من إمكانية الإصلاح
+    can_fix = any(v.get("can_be_fixed", False) for v in violations)
+    
+    if can_fix:
+        logger.info("🔧 Violations can be fixed → musleh_heal")
+        return "musleh_heal"
+    
+    logger.info("❌ Critical violations → finalize_write")
+    return "finalize_write"
+
+
+def route_after_security(state: SerajState) -> str:
+    """
+    التوجيه بعد فحص الأمان (hares_guard)
+    
+    Returns:
+        - "policy_gate": إذا وافق الحارس → نكمل
+        - "finalize_write": إذا رفض → توقف
+    """
+    approved = state.get("security_approved", False)
+    
+    if approved:
+        logger.info("✅ Security approved → policy_gate")
+        return "policy_gate"
+    
+    logger.info("❌ Security rejected → finalize_write")
+    return "finalize_write"
+
+
+def route_to_matching(state: SerajState) -> str:
+    """
+    التوجيه للمطابقة (muwaffaq_match)
+    
+    يُستدعى عندما تحتاج سراج لمطابقة بيانات
+    """
+    has_match_request = bool(state.get("match_request"))
+    
+    if has_match_request:
+        logger.info("🔗 Match request found → muwaffaq_match")
+        return "muwaffaq_match"
+    
+    return "seraj_think"

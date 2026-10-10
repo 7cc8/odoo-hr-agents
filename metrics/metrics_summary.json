@@ -1,0 +1,76 @@
+{
+  "uptime_seconds": 6.170632362365723,
+  "total_requests": 10,
+  "successful_requests": 10,
+  "failed_requests": 0,
+  "success_rate": 1.0,
+  "requests_per_minute": 107.22711369400288,
+  "latency": {
+    "avg_ms": 411.0292911529541,
+    "p95_ms": 507.80439376831055,
+    "p99_ms": 507.80439376831055
+  },
+  "agents": {
+    "Fahas": {
+      "agent_name": "Fahas",
+      "total_runs": 10,
+      "successful_runs": 10,
+      "failed_runs": 0,
+      "success_rate": 1.0,
+      "total_duration_ms": 4110.292911529541,
+      "avg_duration_ms": 411.0292911529541,
+      "min_duration_ms": 354.9985885620117,
+      "max_duration_ms": 507.80439376831055,
+      "phase_durations": {
+        "perceive": {
+          "count": 20,
+          "avg": 101.06000900268555,
+          "min": 100.9974479675293,
+          "max": 101.60350799560547
+        },
+        "plan": {
+          "count": 20,
+          "avg": 100.99976062774658,
+          "min": 100.9969711303711,
+          "max": 101.00150108337402
+        },
+        "execute": {
+          "count": 20,
+          "avg": 157.96992778778076,
+          "min": 101.99856758117676,
+          "max": 254.8081874847412
+        },
+        "reflect": {
+          "count": 20,
+          "avg": 50.99959373474121,
+          "min": 50.99749565124512,
+          "max": 51.00226402282715
+        }
+      },
+      "total_tokens": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "avg_tokens_per_run": 0.0,
+      "confidence_scores": {
+        "count": 10,
+        "avg": 0.7615318640606754,
+        "min": 0.5192782774352005,
+        "max": 0.9
+      },
+      "recent_errors": [],
+      "tool_calls": {
+        "search": 20,
+        "odoo_search": 20,
+        "format": 20,
+        "result_formatter": 20,
+        "analyze": 4,
+        "data_analyzer": 4,
+        "filter": 14,
+        "data_filter": 14,
+        "aggregate": 4,
+        "data_aggregator": 4
+      },
+      "last_update": 1791655007.2002046
+    }
+  }
+}

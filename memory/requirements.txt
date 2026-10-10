@@ -1,0 +1,10 @@
+# Memory System Requirements
+# ===========================
+
+# Vector DB
+chromadb>=0.4.0
+sentence-transformers>=2.2.0  # للتضمينات
+
+# Optional: لو أردنا استخدام embeddings أفضل
+# openai>=1.0.0  # OpenAI embeddings
+# cohere>=4.0.0  # Cohere embeddings

@@ -302,7 +302,8 @@ class FahasAgent:
         model_clean = validate_model_name(model)
         repo = self.get_repository(connection_id)
 
-        safe_limit = max(1, min(int(limit), 50))
+        # ✅ limit=0 يعني "الكل" (حتى 50)
+        safe_limit = 50 if limit == 0 else max(1, min(int(limit), 50))
         query_domain = list(domain) if domain and isinstance(domain, list) else []
 
         if company_id is not None:

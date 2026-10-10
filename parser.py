@@ -13,9 +13,9 @@ from normalization import (
     email_match_key, name_match_key, reference_match_key, phone_match_key,
 )
 
-MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024
-MAX_ROWS = 1000
-REQUIRED_SHEET = "Employees"
+MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB (كان 2 MB)
+MAX_ROWS = 10000  # 10,000 صف (كان 1,000)
+REQUIRED_SHEET = "Employees"  # fallback - الآن يدعم أي sheet
 REQUIRED_HEADERS = ["name", "work_email", "work_phone", "mobile_phone", "job_title", "company", "department", "job"]
 OPTIONAL_HEADERS = ["hiring_date"]
 ALL_HEADERS = REQUIRED_HEADERS + OPTIONAL_HEADERS

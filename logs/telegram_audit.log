@@ -738,3 +738,19 @@
 {"timestamp": "2026-10-07T22:37:51Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
 {"timestamp": "2026-10-07T22:37:51Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "56d3fe93617e87f8", "accepted": 1, "review": 0, "rejected": 0}}
 {"timestamp": "2026-10-07T22:37:51Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-10T20:13:37Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-10T20:13:37Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-10T20:13:37Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-10T20:13:37Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-10T20:13:37Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-10T20:13:39Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-10T20:13:39Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "17e87ae6dd9ce4c3", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-10T20:13:39Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}
+{"timestamp": "2026-10-10T20:40:51Z", "user_id": "test_user_1", "chat_id": "test_chat_1", "action": "odoo_config_updated", "details": {"url": "https://erp.example.com", "db": "production_db"}}
+{"timestamp": "2026-10-10T20:40:51Z", "user_id": "456", "chat_id": "123", "action": "api_write_dispatched", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-10T20:40:51Z", "user_id": "456", "chat_id": "123", "action": "api_write_success", "details": {"run_id": "run_abc", "created": 1}}
+{"timestamp": "2026-10-10T20:40:51Z", "user_id": "456", "chat_id": "123", "action": "cancel_clicked", "details": {"run_id": "run_123"}}
+{"timestamp": "2026-10-10T20:40:51Z", "user_id": "456", "chat_id": "123", "action": "written_confirm_requested", "details": {"run_id": "run_abc"}}
+{"timestamp": "2026-10-10T20:40:52Z", "user_id": "u123", "chat_id": "test_chat_att", "action": "attendance_checkin_confirm_requested", "details": {"employee_id": 105}}
+{"timestamp": "2026-10-10T20:40:52Z", "user_id": "456", "chat_id": "123", "action": "dry_run_ready", "details": {"run_id": "4664f3ac35177a4f", "accepted": 1, "review": 0, "rejected": 0}}
+{"timestamp": "2026-10-10T20:40:52Z", "user_id": "456", "chat_id": "123", "action": "voice_note_transcribed", "details": {"duration": 4, "text": "أريد تقديم إجازة سنوية للموظف أحمد", "backend": "faster_whisper_tiny"}}

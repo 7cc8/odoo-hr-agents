@@ -50,3 +50,7 @@
 {"timestamp": "2026-10-07 19:12:00", "action": "CHECK_IN", "attendance_id": 88, "employee_id": 100, "readback_verified": true}
 {"timestamp": "2026-10-07 21:52:35", "action": "CHECK_IN", "attendance_id": 88, "employee_id": 100, "readback_verified": true}
 {"timestamp": "2026-10-07 22:37:30", "action": "CHECK_IN", "attendance_id": 88, "employee_id": 100, "readback_verified": true}
+{"timestamp": "2026-10-10 20:11:33", "action": "CHECK_IN", "attendance_id": 88, "employee_id": 100, "readback_verified": true}
+{"timestamp": "2026-10-10 20:13:15", "action": "CHECK_IN", "attendance_id": 88, "employee_id": 100, "readback_verified": true}
+{"timestamp": "2026-10-10 20:36:35", "action": "CHECK_IN", "attendance_id": 88, "employee_id": 100, "readback_verified": true}
+{"timestamp": "2026-10-10 20:38:46", "action": "CHECK_IN", "attendance_id": 88, "employee_id": 100, "readback_verified": true}

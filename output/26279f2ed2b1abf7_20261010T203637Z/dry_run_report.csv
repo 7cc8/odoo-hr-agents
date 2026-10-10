@@ -1,0 +1,3 @@
+﻿excel_row_number,final_status,failure_code,reasons,company_id,department_id,job_id,employee_match_id,row_hash,run_id,source_hash,parser_warnings
+2,rejected,reference_not_found,Department not found for company: الموارد البشرية. Closest match in this company: الإدارة العليا / الموارد البشرية,15,,,,49ac2fd794994e2afead01bf848da19ab5dfb6f8ad50bac610fb8df6e725efdc,26279f2ed2b1abf7,26279f2ed2b1abf72a58d0b8ebd9b859ebbeeb93704e75e719ff82c666c0b6b4,
+3,rejected,reference_not_found,Department not found for company: الموارد البشرية. Closest match in this company: الإدارة العليا / الموارد البشرية,15,,,,26e170331196fa8b5cd2cef8b428bd8eb639c9f33e7874ecb3c8a706db781a36,26279f2ed2b1abf7,26279f2ed2b1abf72a58d0b8ebd9b859ebbeeb93704e75e719ff82c666c0b6b4,

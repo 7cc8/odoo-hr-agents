@@ -1,0 +1,182 @@
+{
+  "trace_id": "1d36b7dd-fde6-4326-aeed-7dab03cfca1f",
+  "session_id": null,
+  "root_agent": "Fahas",
+  "start_time": 1791655001.809,
+  "end_time": 1791655002.163999,
+  "duration_ms": 354.9990653991699,
+  "status": "success",
+  "spans": [
+    {
+      "span_id": "e8afe8bd-d190-429f-b33f-d94b5858cd61",
+      "parent_id": null,
+      "trace_id": "1d36b7dd-fde6-4326-aeed-7dab03cfca1f",
+      "agent_name": "Fahas",
+      "span_type": "perceive",
+      "start_time": 1791655001.809,
+      "end_time": 1791655001.9099996,
+      "duration_ms": 100.99959373474121,
+      "status": "success",
+      "inputs": {
+        "args_count": 1
+      },
+      "outputs": {
+        "query": "Find employees with pending leaves",
+        "query_type": "search",
+        "context": "{'user': 'admin', 'department': 'HR'}",
+        "complexity": "simple"
+      },
+      "error": null,
+      "metadata": {},
+      "tags": [
+        "Fahas",
+        "perceive"
+      ],
+      "token_usage": null,
+      "confidence": null
+    },
+    {
+      "span_id": "44494e3d-b5a1-43c4-9e4b-0d54683bc736",
+      "parent_id": null,
+      "trace_id": "1d36b7dd-fde6-4326-aeed-7dab03cfca1f",
+      "agent_name": "Fahas",
+      "span_type": "plan",
+      "start_time": 1791655001.9099996,
+      "end_time": 1791655002.0110004,
+      "duration_ms": 101.00078582763672,
+      "status": "success",
+      "inputs": {
+        "args_count": 1
+      },
+      "outputs": {
+        "strategy": "direct_query",
+        "steps": "['search', 'format']",
+        "estimated_time": "0.2"
+      },
+      "error": null,
+      "metadata": {},
+      "tags": [
+        "Fahas",
+        "plan"
+      ],
+      "token_usage": null,
+      "confidence": null
+    },
+    {
+      "span_id": "e5467094-0c40-4f2d-8ac3-32814aababbe",
+      "parent_id": null,
+      "trace_id": "1d36b7dd-fde6-4326-aeed-7dab03cfca1f",
+      "agent_name": "Fahas",
+      "span_type": "execute",
+      "start_time": 1791655002.0110004,
+      "end_time": 1791655002.112999,
+      "duration_ms": 101.99856758117676,
+      "status": "success",
+      "inputs": {
+        "args_count": 1
+      },
+      "outputs": {
+        "results": "{'formatted': True, 'output': \"{'data': 'Search results for direct_query', 'count': 23}\"}",
+        "steps_completed": "2"
+      },
+      "error": null,
+      "metadata": {},
+      "tags": [
+        "Fahas",
+        "execute"
+      ],
+      "token_usage": null,
+      "confidence": null
+    },
+    {
+      "span_id": "4005343f-0ccf-4035-b1fd-e564f647602f",
+      "parent_id": "e5467094-0c40-4f2d-8ac3-32814aababbe",
+      "trace_id": "1d36b7dd-fde6-4326-aeed-7dab03cfca1f",
+      "agent_name": "Fahas",
+      "span_type": "tool_call",
+      "start_time": 1791655002.0110004,
+      "end_time": 1791655002.0110004,
+      "duration_ms": 0.0,
+      "status": "success",
+      "inputs": {
+        "tool": "search"
+      },
+      "outputs": {
+        "result": "{'data': 'Search results for direct_query', 'count': 23}"
+      },
+      "error": null,
+      "metadata": {},
+      "tags": [
+        "Fahas",
+        "tool",
+        "search"
+      ],
+      "token_usage": null,
+      "confidence": null
+    },
+    {
+      "span_id": "2894705c-b0b5-4b49-a26b-a2843566dcaf",
+      "parent_id": "e5467094-0c40-4f2d-8ac3-32814aababbe",
+      "trace_id": "1d36b7dd-fde6-4326-aeed-7dab03cfca1f",
+      "agent_name": "Fahas",
+      "span_type": "tool_call",
+      "start_time": 1791655002.062,
+      "end_time": 1791655002.062,
+      "duration_ms": 0.0,
+      "status": "success",
+      "inputs": {
+        "tool": "format"
+      },
+      "outputs": {
+        "result": "{'formatted': True, 'output': \"{'data': 'Search results for direct_query', 'count': 23}\"}"
+      },
+      "error": null,
+      "metadata": {},
+      "tags": [
+        "Fahas",
+        "tool",
+        "format"
+      ],
+      "token_usage": null,
+      "confidence": null
+    },
+    {
+      "span_id": "221af832-ea8c-4568-b8fd-e6cf0c120334",
+      "parent_id": null,
+      "trace_id": "1d36b7dd-fde6-4326-aeed-7dab03cfca1f",
+      "agent_name": "Fahas",
+      "span_type": "reflect",
+      "start_time": 1791655002.112999,
+      "end_time": 1791655002.163999,
+      "duration_ms": 51.000118255615234,
+      "status": "success",
+      "inputs": {
+        "args_count": 1
+      },
+      "outputs": {
+        "result": "{'formatted': True, 'output': \"{'data': 'Search results for direct_query', 'count': 23}\"}",
+        "confidence": "0.8",
+        "success": "True",
+        "lessons": "['Completed 2 steps', 'Confidence: 0.80']"
+      },
+      "error": null,
+      "metadata": {},
+      "tags": [
+        "Fahas",
+        "reflect"
+      ],
+      "token_usage": null,
+      "confidence": null
+    }
+  ],
+  "metadata": {
+    "method": "run",
+    "args_count": 1
+  },
+  "tags": [
+    "Fahas",
+    "run"
+  ],
+  "success": true,
+  "error": null
+}

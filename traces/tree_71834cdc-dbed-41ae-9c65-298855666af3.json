@@ -1,0 +1,214 @@
+{
+  "trace_id": "71834cdc-dbed-41ae-9c65-298855666af3",
+  "root_spans": [
+    {
+      "span": {
+        "span_id": "f331c4ec-e2ef-4def-9251-19adb91384ae",
+        "parent_id": null,
+        "trace_id": "71834cdc-dbed-41ae-9c65-298855666af3",
+        "agent_name": "Fahas",
+        "span_type": "perceive",
+        "start_time": 1791655005.573589,
+        "end_time": 1791655005.6745896,
+        "duration_ms": 101.00054740905762,
+        "status": "success",
+        "inputs": {
+          "args_count": 1
+        },
+        "outputs": {
+          "query": "Find all employees in IT department",
+          "query_type": "search",
+          "context": "{'user': 'admin', 'department': 'HR'}",
+          "complexity": "medium"
+        },
+        "error": null,
+        "metadata": {},
+        "tags": [
+          "Fahas",
+          "perceive"
+        ],
+        "token_usage": null,
+        "confidence": null
+      },
+      "children": []
+    },
+    {
+      "span": {
+        "span_id": "7ed34c38-6155-4645-903a-0646f3aae9ce",
+        "parent_id": null,
+        "trace_id": "71834cdc-dbed-41ae-9c65-298855666af3",
+        "agent_name": "Fahas",
+        "span_type": "plan",
+        "start_time": 1791655005.6745896,
+        "end_time": 1791655005.7755897,
+        "duration_ms": 101.00007057189941,
+        "status": "success",
+        "inputs": {
+          "args_count": 1
+        },
+        "outputs": {
+          "strategy": "filtered_query",
+          "steps": "['search', 'filter', 'format']",
+          "estimated_time": "0.30000000000000004"
+        },
+        "error": null,
+        "metadata": {},
+        "tags": [
+          "Fahas",
+          "plan"
+        ],
+        "token_usage": null,
+        "confidence": null
+      },
+      "children": []
+    },
+    {
+      "span": {
+        "span_id": "7acc0b4e-93eb-4d9c-a3da-ed8e93228dcc",
+        "parent_id": null,
+        "trace_id": "71834cdc-dbed-41ae-9c65-298855666af3",
+        "agent_name": "Fahas",
+        "span_type": "execute",
+        "start_time": 1791655005.7755897,
+        "end_time": 1791655005.9285874,
+        "duration_ms": 152.9977321624756,
+        "status": "success",
+        "inputs": {
+          "args_count": 1
+        },
+        "outputs": {
+          "results": "{'formatted': True, 'output': \"{'data': 'Filtered results', 'count': 59}\"}",
+          "steps_completed": "3"
+        },
+        "error": null,
+        "metadata": {},
+        "tags": [
+          "Fahas",
+          "execute"
+        ],
+        "token_usage": null,
+        "confidence": null
+      },
+      "children": [
+        {
+          "span": {
+            "span_id": "e9a4af6b-b839-406b-b1fb-ea81494dbc0e",
+            "parent_id": "7acc0b4e-93eb-4d9c-a3da-ed8e93228dcc",
+            "trace_id": "71834cdc-dbed-41ae-9c65-298855666af3",
+            "agent_name": "Fahas",
+            "span_type": "tool_call",
+            "start_time": 1791655005.7755897,
+            "end_time": 1791655005.7755897,
+            "duration_ms": 0.0,
+            "status": "success",
+            "inputs": {
+              "tool": "search"
+            },
+            "outputs": {
+              "result": "{'data': 'Search results for filtered_query', 'count': 95}"
+            },
+            "error": null,
+            "metadata": {},
+            "tags": [
+              "Fahas",
+              "tool",
+              "search"
+            ],
+            "token_usage": null,
+            "confidence": null
+          },
+          "children": []
+        },
+        {
+          "span": {
+            "span_id": "2d48f077-77d0-476b-b752-b486d09de1f7",
+            "parent_id": "7acc0b4e-93eb-4d9c-a3da-ed8e93228dcc",
+            "trace_id": "71834cdc-dbed-41ae-9c65-298855666af3",
+            "agent_name": "Fahas",
+            "span_type": "tool_call",
+            "start_time": 1791655005.8265893,
+            "end_time": 1791655005.8265893,
+            "duration_ms": 0.0,
+            "status": "success",
+            "inputs": {
+              "tool": "filter"
+            },
+            "outputs": {
+              "result": "{'data': 'Filtered results', 'count': 59}"
+            },
+            "error": null,
+            "metadata": {},
+            "tags": [
+              "Fahas",
+              "tool",
+              "filter"
+            ],
+            "token_usage": null,
+            "confidence": null
+          },
+          "children": []
+        },
+        {
+          "span": {
+            "span_id": "b65df748-3173-45a0-8398-b281b66c0fee",
+            "parent_id": "7acc0b4e-93eb-4d9c-a3da-ed8e93228dcc",
+            "trace_id": "71834cdc-dbed-41ae-9c65-298855666af3",
+            "agent_name": "Fahas",
+            "span_type": "tool_call",
+            "start_time": 1791655005.877588,
+            "end_time": 1791655005.877588,
+            "duration_ms": 0.0,
+            "status": "success",
+            "inputs": {
+              "tool": "format"
+            },
+            "outputs": {
+              "result": "{'formatted': True, 'output': \"{'data': 'Filtered results', 'count': 59}\"}"
+            },
+            "error": null,
+            "metadata": {},
+            "tags": [
+              "Fahas",
+              "tool",
+              "format"
+            ],
+            "token_usage": null,
+            "confidence": null
+          },
+          "children": []
+        }
+      ]
+    },
+    {
+      "span": {
+        "span_id": "bd789d48-53a0-4017-8efc-104864dcf349",
+        "parent_id": null,
+        "trace_id": "71834cdc-dbed-41ae-9c65-298855666af3",
+        "agent_name": "Fahas",
+        "span_type": "reflect",
+        "start_time": 1791655005.9285874,
+        "end_time": 1791655005.9795897,
+        "duration_ms": 51.00226402282715,
+        "status": "success",
+        "inputs": {
+          "args_count": 1
+        },
+        "outputs": {
+          "result": "{'formatted': True, 'output': \"{'data': 'Filtered results', 'count': 59}\"}",
+          "confidence": "0.5192782774352005",
+          "success": "True",
+          "lessons": "['Completed 3 steps', 'Confidence: 0.52']"
+        },
+        "error": null,
+        "metadata": {},
+        "tags": [
+          "Fahas",
+          "reflect"
+        ],
+        "token_usage": null,
+        "confidence": null
+      },
+      "children": []
+    }
+  ]
+}

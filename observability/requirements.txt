@@ -1,0 +1,15 @@
+# Observability System Requirements
+
+# Optional: LangSmith integration (requires langchain)
+# langchain>=0.1.0
+# langsmith>=0.0.80
+
+# Optional: Prometheus integration
+# prometheus-client>=0.19.0
+
+# Optional: Grafana integration (via API)
+# requests>=2.31.0
+
+# Core (already in main requirements)
+# python-dateutil
+# typing-extensions

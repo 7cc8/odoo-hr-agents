@@ -1593,5 +1593,115 @@
     "number_of_days": 3.0,
     "reason": "",
     "created_at": "2026-10-08T23:19:18.474979"
+  },
+  "LEAVE-C420CF6E": {
+    "employee_id": 100,
+    "employee_name": "أحمد الشمري",
+    "holiday_status_id": 1,
+    "leave_type_name": "Paid Time Off",
+    "request_date_from": "2026-10-10",
+    "request_date_to": "2026-10-13",
+    "number_of_days": 4.0,
+    "reason": "إجازة اعتيادية",
+    "created_at": "2026-10-10T23:13:20.972069"
+  },
+  "LEAVE-A40745A6": {
+    "employee_id": 100,
+    "employee_name": "أحمد الشمري",
+    "holiday_status_id": 10,
+    "leave_type_name": "Marriage Leave",
+    "request_date_from": "2026-10-10",
+    "request_date_to": "2026-10-14",
+    "number_of_days": 5.0,
+    "reason": "",
+    "created_at": "2026-10-10T23:13:20.979400"
+  },
+  "LEAVE-C8C5BC24": {
+    "employee_id": 100,
+    "employee_name": "أحمد الشمري",
+    "holiday_status_id": 1,
+    "leave_type_name": "Paid Time Off",
+    "request_date_from": "2026-10-10",
+    "request_date_to": "2026-10-13",
+    "number_of_days": 4.0,
+    "reason": "",
+    "created_at": "2026-10-10T23:13:20.987382"
+  },
+  "LEAVE-68CF9A52": {
+    "employee_id": 147,
+    "employee_name": "ناصر محمود القحطاني",
+    "holiday_status_id": 1,
+    "leave_type_name": "Paid Time Off",
+    "request_date_from": "2026-11-01",
+    "request_date_to": "2026-11-03",
+    "number_of_days": 3.0,
+    "reason": "",
+    "created_at": "2026-10-10T23:13:27.960611"
+  },
+  "LEAVE-7C75AA9E": {
+    "employee_id": 147,
+    "employee_name": "ناصر محمود القحطاني",
+    "holiday_status_id": 1,
+    "leave_type_name": "Paid Time Off",
+    "request_date_from": "2026-11-01",
+    "request_date_to": "2026-11-03",
+    "number_of_days": 3.0,
+    "reason": "",
+    "created_at": "2026-10-10T23:13:29.325561"
+  },
+  "LEAVE-BFFE01C1": {
+    "employee_id": 100,
+    "employee_name": "أحمد الشمري",
+    "holiday_status_id": 1,
+    "leave_type_name": "Paid Time Off",
+    "request_date_from": "2026-10-10",
+    "request_date_to": "2026-10-13",
+    "number_of_days": 4.0,
+    "reason": "إجازة اعتيادية",
+    "created_at": "2026-10-10T23:40:35.588173"
+  },
+  "LEAVE-2D3FBEB9": {
+    "employee_id": 100,
+    "employee_name": "أحمد الشمري",
+    "holiday_status_id": 10,
+    "leave_type_name": "Marriage Leave",
+    "request_date_from": "2026-10-10",
+    "request_date_to": "2026-10-14",
+    "number_of_days": 5.0,
+    "reason": "",
+    "created_at": "2026-10-10T23:40:35.595427"
+  },
+  "LEAVE-D3A15597": {
+    "employee_id": 100,
+    "employee_name": "أحمد الشمري",
+    "holiday_status_id": 1,
+    "leave_type_name": "Paid Time Off",
+    "request_date_from": "2026-10-10",
+    "request_date_to": "2026-10-13",
+    "number_of_days": 4.0,
+    "reason": "",
+    "created_at": "2026-10-10T23:40:35.603837"
+  },
+  "LEAVE-BD2AC853": {
+    "employee_id": 147,
+    "employee_name": "ناصر محمود القحطاني",
+    "holiday_status_id": 1,
+    "leave_type_name": "Paid Time Off",
+    "request_date_from": "2026-11-01",
+    "request_date_to": "2026-11-03",
+    "number_of_days": 3.0,
+    "reason": "",
+    "created_at": "2026-10-10T23:40:42.356215"
+  },
+  "LEAVE-DC24427F": {
+    "employee_id": 147,
+    "employee_name": "ناصر محمود القحطاني",
+    "holiday_status_id": 1,
+    "leave_type_name": "Paid Time Off",
+    "request_date_from": "2026-11-01",
+    "request_date_to": "2026-11-03",
+    "number_of_days": 3.0,
+    "reason": "",
+    "created_at": "2026-10-10T23:40:43.722881"
   }
 }
