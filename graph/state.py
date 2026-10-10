@@ -17,7 +17,11 @@ class SerajState(TypedDict, total=False):
     user_query: str
     user_name: str
     connection_id: Optional[str]
+
+    # sticky company context (persists per thread_id)
     company_id: Optional[int]
+    company_name: Optional[str]
+    companies: Dict[str, str]  # id -> name, learned from company-listing tools
 
     # routing
     intent: Intent

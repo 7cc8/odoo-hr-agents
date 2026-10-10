@@ -6,13 +6,14 @@ Design rules:
 - The LLM never receives a write tool. Writes happen only in katib_execute,
   after policy_gate + human_approval.
 - Memory: nodes return only NEW messages; the reducer appends them per thread.
+- Company context is explicit state (company_id/company_name), not LLM memory.
 """
 from __future__ import annotations
 
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from langgraph.types import interrupt
 
@@ -23,6 +24,11 @@ logger = logging.getLogger("graph.nodes")
 MAX_TURNS = 5
 HISTORY_LIMIT = 12
 ENABLE_WRITE_PATH = os.environ.get("ENABLE_WRITE_PATH", "0") == "1"
+
+ALL_COMPANIES_PHRASES = (
+    "كل الشركات", "جميع الشركات", "كافة الشركات",
+    "كل المنشآت", "جميع المنشآت", "كل المنشات", "جميع المنشات",
+)
 
 _service = None
 
@@ -76,6 +82,82 @@ def trim_history(msgs: List[Dict[str, Any]], limit: int = HISTORY_LIMIT) -> List
 
 
 # --------------------------------------------------------------------------
+# Company-context helpers (pure, unit-tested)
+# --------------------------------------------------------------------------
+def wants_all_companies(query: str) -> bool:
+    q = query or ""
+    return any(p in q for p in ALL_COMPANIES_PHRASES)
+
+
+def collect_companies(obj: Any, out: Dict[str, str]) -> None:
+    """Walks a tool result and records every {id, name} pair as id->name."""
+    if isinstance(obj, dict):
+        if "id" in obj and isinstance(obj.get("name"), str):
+            try:
+                out[str(int(obj["id"]))] = obj["name"]
+            except (TypeError, ValueError):
+                pass
+        for v in obj.values():
+            collect_companies(v, out)
+    elif isinstance(obj, list):
+        for v in obj:
+            collect_companies(v, out)
+
+
+def resolve_company_args(name: str, args: Dict[str, Any], company_id: Optional[int], accepts: Optional[Set[str]]):
+    """Returns (args, company_id).
+
+    - explicit company_id in the tool call becomes the sticky company;
+    - otherwise the sticky company is injected into tools that accept it.
+    """
+    explicit = args.get("company_id")
+    if explicit not in (None, ""):
+        try:
+            return args, int(explicit)
+        except (TypeError, ValueError):
+            return args, company_id
+    if company_id and not name.startswith("list_compan"):
+        takes = ("company_id" in args) if accepts is None else (name in accepts)
+        if takes:
+            args["company_id"] = company_id
+    return args, company_id
+
+
+def _tools_accepting_company() -> Optional[Set[str]]:
+    try:
+        from odoo_agent_tools import SERAJ_ODOO_TOOLS_SCHEMA
+    except Exception:
+        return None
+    names: Set[str] = set()
+    for t in SERAJ_ODOO_TOOLS_SCHEMA:
+        fn = t.get("function", t)
+        props = (fn.get("parameters") or {}).get("properties") or {}
+        if "company_id" in props:
+            names.add(fn.get("name"))
+    return names
+
+
+def company_suffix(answer: str, company_id: Optional[int], company_name: Optional[str]) -> str:
+    if not company_id or not company_name or company_name in answer:
+        return answer
+    return f"{answer}\n\n(ضمن شركة {company_name})"
+
+
+def build_session_context(company_id: Optional[int], company_name: Optional[str]) -> str:
+    lines = ["\n\n[سياق الجلسة]"]
+    if company_id:
+        lines.append(
+            f"- الشركة المحددة حالياً: {company_name or 'غير معروفة الاسم'} (المعرّف {company_id}). "
+            "استخدمها تلقائياً في الاستعلامات ما لم يطلب المستخدم غيرها أو يقل «كل الشركات»."
+        )
+    lines.append(
+        "- إذا كانت عبارة المستخدم نسبية أو غامضة (مثل «الشركة الثانية» أو «الأخرى» أو «نفسها») "
+        "فأكّد التفسير بسؤال قصير ولا تخمّن."
+    )
+    return "\n".join(lines)
+
+
+# --------------------------------------------------------------------------
 # Entry / routing
 # --------------------------------------------------------------------------
 def ingest_user_message(state: SerajState) -> Dict[str, Any]:
@@ -88,6 +170,9 @@ def ingest_user_message(state: SerajState) -> Dict[str, Any]:
         "error": None,
         "answer": None,
     }
+    if wants_all_companies(query):
+        update["company_id"] = None
+        update["company_name"] = None
     if query:
         update["messages"] = [{"role": "user", "content": query}]
     else:
@@ -124,6 +209,7 @@ def seraj_think(state: SerajState) -> Dict[str, Any]:
     svc = _seraj()
     session = svc.session_manager.get_session(state.get("chat_id", "default"))
     system_prompt = svc._build_system_prompt(session, state.get("user_name", "مستخدم"), None)
+    system_prompt += build_session_context(state.get("company_id"), state.get("company_name"))
     messages = [{"role": "system", "content": system_prompt}] + trim_history(state.get("messages", []))
 
     msg = svc._call_openrouter(
@@ -161,6 +247,9 @@ def fahas_tools(state: SerajState) -> Dict[str, Any]:
     from odoo_agent_tools import OdooToolExecutionError, OdooToolSecurityError
 
     fahas = get_fahas_agent()
+    accepts = _tools_accepting_company()
+    company_id: Optional[int] = state.get("company_id")
+    companies: Dict[str, str] = dict(state.get("companies") or {})
     new_msgs: List[Dict[str, Any]] = []
     last_error: Optional[str] = state.get("last_tool_error")
 
@@ -170,17 +259,18 @@ def fahas_tools(state: SerajState) -> Dict[str, Any]:
         name = fn.get("name", "")
         raw = fn.get("arguments", "{}")
         try:
-            args = json.loads(raw) if isinstance(raw, str) else raw
+            args = json.loads(raw) if isinstance(raw, str) else dict(raw)
         except Exception:
             args = {}
         if "connection_id" in args and not args["connection_id"]:
             args["connection_id"] = state.get("connection_id")
-        if state.get("company_id") and "company_id" in args and args["company_id"] is None:
-            args["company_id"] = state["company_id"]
+        args, company_id = resolve_company_args(name, args, company_id, accepts)
 
         try:
             result = fahas.execute_query_task(name, args)
             result_str = json.dumps(result, ensure_ascii=False)
+            if "compan" in name:
+                collect_companies(result, companies)
         except OdooToolSecurityError as e:
             last_error = f"رفض أمني / صلاحيات: {e}"
             result_str = json.dumps({"status": "security_rejected", "error": str(e)}, ensure_ascii=False)
@@ -193,7 +283,14 @@ def fahas_tools(state: SerajState) -> Dict[str, Any]:
 
         new_msgs.append({"role": "tool", "tool_call_id": call_id, "name": name, "content": result_str})
 
-    return {"messages": new_msgs, "last_tool_error": last_error}
+    company_name = companies.get(str(company_id)) if company_id else None
+    return {
+        "messages": new_msgs,
+        "last_tool_error": last_error,
+        "company_id": company_id,
+        "company_name": company_name,
+        "companies": companies,
+    }
 
 
 def finalize(state: SerajState) -> Dict[str, Any]:
@@ -211,7 +308,8 @@ def finalize(state: SerajState) -> Dict[str, Any]:
         return {"answer": f"⚠️ تعذر إتمام الاستعلام بسبب {err}. يرجى مراجعة حالة الاتصال بـ Odoo والصلاحيات."}
     if not content:
         return {"answer": "⚠️ لم أستطع إكمال الطلب ضمن الحد الأقصى للخطوات."}
-    return {"answer": clean_math_formatting(content)}
+    answer = clean_math_formatting(content)
+    return {"answer": company_suffix(answer, state.get("company_id"), state.get("company_name"))}
 
 
 # --------------------------------------------------------------------------
