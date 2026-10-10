@@ -239,8 +239,7 @@ def route_after_think(state: SerajState) -> str:
         return "finalize"
     msg = state.get("last_assistant") or {}
     if msg.get("tool_calls") and state.get("turns", 0) < MAX_TURNS:
-        # ✅ اختيار: استخدام fahas_tools المُختبر فقط
-        # ENABLE_AGENTIC_FAHAS لم يعد يُستخدم - fahas_tools هو المسار الوحيد
+        # ✅ fahas_tools هو المسار الوحيد بعد حذف fahas_agentic_query
         return "fahas_tools"
     return "finalize"
 
