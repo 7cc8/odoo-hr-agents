@@ -39,3 +39,10 @@ Thumbs.db
 # LangGraph API artifacts
 .langgraph_api/
 traces/
+
+# Logs and output directories
+logs/
+output/
+output_catalog/
+samples/
+*.jsonl

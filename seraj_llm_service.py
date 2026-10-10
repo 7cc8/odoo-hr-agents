@@ -1275,12 +1275,29 @@ class SerajLLMService:
     ) -> Optional[Dict[str, Any]]:
         """
         إرسال الطلب إلى واجهة OpenRouter chat completions مع دعم تعريف الأدوات (tools).
+        يدعم LLM_BASE_URL للتوجيه إلى Ollama أو أي خادم متوافق.
         يرجع كائن رسالة المساعد الكامل (message dict) متضمناً content و/أو tool_calls.
         """
+        import os
+        
+        # دعم LLM_BASE_URL للتوجيه إلى خادم مخصص (مثل Ollama)
+        base_url = os.environ.get("LLM_BASE_URL")
+        if base_url:
+            # استخدام LLM_API_KEY بدلاً من OPENROUTER_API_KEY
+            api_key = os.environ.get("LLM_API_KEY", "")
+            # إضافة /chat/completions إذا لم يكن موجوداً
+            if not base_url.endswith("/chat/completions"):
+                base_url = base_url.rstrip("/") + "/chat/completions"
+            url = base_url
+        else:
+            # OpenRouter الافتراضي
+            api_key = self.api_key
+            url = "https://openrouter.ai/api/v1/chat/completions"
+        
         payload: Dict[str, Any] = {
             "model": model_name,
             "messages": messages,
-            "temperature": 0.1,  # درجة حرارة منخفضة جداً للالتزام الصارم بالحقائق
+            "temperature": 0.1,
             "max_tokens": 800,
         }
         if tools:
@@ -1288,17 +1305,22 @@ class SerajLLMService:
             payload["tool_choice"] = "auto"
 
         data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(
-            "https://openrouter.ai/api/v1/chat/completions",
-            data=data,
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-                "User-Agent": "OdooHRAgents/1.0",
-                "HTTP-Referer": "https://odoo-hr-agents.local",
-                "X-Title": "Odoo HR Seraj Agent",
-            },
-        )
+        
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "OdooHRAgents/1.0",
+        }
+        
+        # إضافة Authorization فقط إذا كان api_key موجوداً
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+        
+        # إضافة headers إضافية لـ OpenRouter فقط
+        if not base_url:
+            headers["HTTP-Referer"] = "https://odoo-hr-agents.local"
+            headers["X-Title"] = "Odoo HR Seraj Agent"
+        
+        req = urllib.request.Request(url, data=data, headers=headers)
         with urllib.request.urlopen(req, timeout=self.timeout) as res:
             res_data = json.loads(res.read().decode("utf-8"))
             choices = res_data.get("choices", [])
