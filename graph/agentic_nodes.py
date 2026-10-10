@@ -369,8 +369,9 @@ def seraj_meta_orchestration(state: SerajState) -> Dict[str, Any]:
             "meta_recommendations": recommendations,
             "meta_explanation": explanation,
             "meta_confidence": result.get("confidence", 0.0),
-            "messages": [{
-                "role": "assistant",
+            "agent_traces": state.get("agent_traces", []) + [{
+                "agent": "seraj_meta_orchestration",
+                "timestamp": __import__("datetime").datetime.now().isoformat(),
                 "content": orchestration_msg,
             }],
         }
@@ -456,8 +457,9 @@ def seraj_meta_reflect(state: SerajState) -> Dict[str, Any]:
             "meta_reflection": reflection,
             "meta_success_rate": success_rate,
             "meta_learning_insights": learning_insights,
-            "messages": [{
-                "role": "assistant",
+            "agent_traces": state.get("agent_traces", []) + [{
+                "agent": "seraj_meta_reflect",
+                "timestamp": __import__("datetime").datetime.now().isoformat(),
                 "content": reflection_msg,
             }],
         }

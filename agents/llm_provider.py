@@ -84,16 +84,26 @@ class LLMProvider:
         tools: Optional[List[Dict[str, Any]]],
         temperature: float,
     ) -> Dict[str, Any]:
-        """استدعاء OpenRouter API"""
+        """استدعاء OpenRouter API (أو Ollama عبر base_url)"""
         import urllib.request
         import urllib.error
         
-        api_key = os.environ.get("OPENROUTER_API_KEY", "")
-        if not api_key:
-            logger.warning("OPENROUTER_API_KEY not set, falling back")
-            return self._call_fallback(messages)
-        
-        url = "https://openrouter.ai/api/v1/chat/completions"
+        # دعم LLM_BASE_URL و LLM_API_KEY من البيئة
+        base_url = os.environ.get("LLM_BASE_URL")
+        if base_url:
+            # استخدام base_url مخصص (مثل Ollama: http://localhost:11434/v1)
+            api_key = os.environ.get("LLM_API_KEY", "")
+            # إضافة /chat/completions إذا لم يكن موجوداً
+            if not base_url.endswith("/chat/completions"):
+                base_url = base_url.rstrip("/") + "/chat/completions"
+            url = base_url
+        else:
+            # OpenRouter الافتراضي
+            api_key = os.environ.get("OPENROUTER_API_KEY", "")
+            if not api_key:
+                logger.warning("OPENROUTER_API_KEY not set, falling back")
+                return self._call_fallback(messages)
+            url = "https://openrouter.ai/api/v1/chat/completions"
         headers = {
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
