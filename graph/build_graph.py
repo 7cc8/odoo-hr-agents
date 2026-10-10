@@ -39,11 +39,9 @@ def build_graph(checkpointer=None):
     g.add_node("mudaqqiq_verify", an.mudaqqiq_agentic_verify)  # ✅ جديد: التحقق من الامتثال
     g.add_node("hares_guard", an.hares_agentic_guard)  # ✅ جديد: فحص الأمان
     g.add_node("human_approval", n.human_approval)
-    g.add_node("katib_execute", n.katib_execute)
-    g.add_node("katib_agentic", an.katib_agentic_write)  # ✅ جديد: كاتب الذكي
+    g.add_node("katib_execute", n.katib_execute)  # ✅ عقدة katib واحدة فقط
     g.add_node("fahas_verify", n.fahas_verify)
-    g.add_node("sijil_log", n.sijil_log)
-    g.add_node("sijil_agentic", an.sijil_agentic_audit)  # ✅ جديد: سجل الذكي
+    g.add_node("sijil_log", n.sijil_log)  # ✅ استخدام sijil_log المُختبر
     g.add_node("finalize_write", n.finalize_write)
 
     # عقد المعالجة (Processing Path)
@@ -70,12 +68,13 @@ def build_graph(checkpointer=None):
     # مسار الكتابة المحسّن
     g.add_edge("prepare_plan", "mudaqqiq_verify")  # ✅ جديد: التحقق من الامتثال أولاً
     g.add_conditional_edges("mudaqqiq_verify", n.route_after_compliance, ["hares_guard", "musleh_heal", "finalize_write"])
-    g.add_edge("hares_guard", "policy_gate")
+    g.add_conditional_edges("hares_guard", n.route_after_security, ["policy_gate", "finalize_write"])  # ✅ إصلاح
     g.add_conditional_edges("policy_gate", n.route_after_policy, ["human_approval", "finalize_write"])
-    g.add_conditional_edges("human_approval", n.route_after_approval, ["katib_agentic", "finalize_write"])
-    g.add_edge("katib_agentic", "fahas_verify")
-    g.add_edge("fahas_verify", "sijil_agentic")  # ✅ سجل الذكي بدلاً من sijil_log
-    g.add_edge("sijil_agentic", "finalize_write")
+    # ✅ توحيد مسار الكتابة: عقدة katib واحدة فقط
+    g.add_conditional_edges("human_approval", n.route_after_approval, ["katib_execute", "finalize_write"])
+    g.add_edge("katib_execute", "fahas_verify")
+    g.add_edge("fahas_verify", "sijil_log")
+    g.add_edge("sijil_log", "finalize_write")
     
     # ✅ جديد: مسار الكتابة يذهب للمراجعة الذكية أيضاً
     g.add_edge("finalize_write", "seraj_meta_reflect")
