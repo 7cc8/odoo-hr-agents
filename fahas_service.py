@@ -50,15 +50,28 @@ def check_consistency(groups: List[Dict[str, Any]], total: int) -> Dict[str, Any
     }
 
 
-# النماذج المصرح لـ «فاحص» بقراءتها
+# P5-S12: تضييق نطاق النماذج المصرح لـ «فاحص» بقراءتها
+# إزالة النماذج الواسعة (res.*, mail.*) - فقط HR والشركات والوظائف
 SAFE_MODEL_PREFIXES = (
-    "hr.",
-    "res.",
-    "resource.",
-    "mail.",
-    "ir.model",
-    "ir.attachment",
+    "hr.employee",
+    "hr.department",
+    "hr.job",
+    "hr.contract",
+    "hr.leave",
+    "hr.leave.type",
+    "hr.attendance",
+    "hr.applicant",
+    "res.company",  # معلومات الشركة فقط (ليس كل res.*)
+    "res.partner",  # بيانات الشركاء المرتبطة بالموظفين فقط
 )
+
+# P5-S12: حقول محظورة - لا يمكن قراءتها من fahas
+FORBIDDEN_READ_FIELDS = frozenset({
+    "password", "password_crypt", "api_key", "access_token", "refresh_token",
+    "bank_account_id", "iban", "acc_number",  # بيانات مالية حساسة
+    "salary", "wage", "hourly_cost",  # رواتب
+    "identification_id", "passport_id", "iqama_id",  # هويات (ما لم تُطلب صراحةً)
+})
 
 # العمليات المحظورة قطعياً على فاحص وسراج (قراءة فقط)
 FORBIDDEN_OPERATIONS = frozenset({
@@ -109,8 +122,20 @@ def validate_model_name(model: str) -> str:
     model_clean = model.strip()
     if not re.match(r"^[a-zA-Z0-9_\.]+$", model_clean):
         raise FahasSecurityError(f"اسم الموديل غير صالح أمنياً: {model_clean}")
-    if not any(model_clean.startswith(prefix) for prefix in SAFE_MODEL_PREFIXES):
-        raise FahasSecurityError(f"الموديل «{model_clean}» غير مصرح بقراءته عبر فاحص.")
+    
+    # P5-S12: تحقق دقيق - النموذج يجب أن يكون في القائمة أو يبدأ بها
+    is_allowed = False
+    for allowed_model in SAFE_MODEL_PREFIXES:
+        if model_clean == allowed_model or model_clean.startswith(allowed_model + "."):
+            is_allowed = True
+            break
+    
+    if not is_allowed:
+        raise FahasSecurityError(
+            f"P5-S12: الموديل «{model_clean}» غير مصرح بقراءته عبر فاحص. "
+            f"المسموح: {', '.join(SAFE_MODEL_PREFIXES)}"
+        )
+    
     return model_clean
 
 

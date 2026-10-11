@@ -684,7 +684,11 @@ class KatibAgent(BaseAgent):
     # ============================================================================
 
     def _log_audit_record(self, plan: Dict[str, Any], result: Dict[str, Any]) -> None:
-        """توثيق العملية في سجل التدقيق (Append-Only JSONL)"""
+        """
+        P5-S15: توثيق العملية في سجل التدقيق (Append-Only JSONL)
+        
+        مخطط موحد بعد حذف WriteDecision - يُسجل الأهلية فقط
+        """
         try:
             AUDIT_LOG_DIR.mkdir(parents=True, exist_ok=True)
             
@@ -692,7 +696,8 @@ class KatibAgent(BaseAgent):
                 "timestamp": result["timestamp"],
                 "agent": "katib",
                 "operation_type": result["operation_type"],
-                "decision": plan["decision"],
+                "is_eligible": plan.get("is_eligible", False),  # P5-S15: بدل decision
+                "rejection_reason": plan.get("rejection_reason"),  # P5-S15: سبب الرفض إن وُجد
                 "success": result["success"],
                 "record_id": result.get("record_id"),
                 "executed_steps": result["executed_steps"],
@@ -700,7 +705,7 @@ class KatibAgent(BaseAgent):
                 "rollback_performed": result.get("rollback_performed", False),
             }
             
-            # اختيار الملف المناسب
+            # P5-S15: مخططان منفصلان للحذف والكتابة
             if result["operation_type"] in [WriteOperationType.DELETE, WriteOperationType.ARCHIVE, WriteOperationType.UNARCHIVE]:
                 log_file = DELETION_AUDIT_LOG_FILE
             else:
