@@ -120,3 +120,34 @@ class SerajState(TypedDict, total=False):
     # output
     answer: Optional[str]
     error: Optional[str]
+
+    # ========================================================================
+    # P4: Excel Workflow State Fields
+    # ========================================================================
+    
+    # Excel file processing
+    excel_file_path: Optional[str]  # مسار ملف Excel
+    excel_parsed_data: Optional[Dict[str, Any]]  # البيانات المحللة من Excel
+    excel_run_id: Optional[str]  # معرف عملية الاستيراد
+    excel_row_count: Optional[int]  # عدد الصفوف
+    excel_error: Optional[str]  # رمز الخطأ
+    excel_error_message: Optional[str]  # رسالة الخطأ
+    
+    # Validation
+    excel_validation_results: Optional[List[Any]]  # نتائج التحقق
+    excel_validation_stats: Optional[Dict[str, int]]  # إحصائيات التحقق
+    
+    # Healing
+    excel_healed_results: Optional[List[Dict[str, Any]]]  # نتائج الإصلاح
+    
+    # Dry-run report
+    excel_dry_run_report: Optional[Dict[str, Any]]  # تقرير dry-run
+    excel_requires_four_eyes: Optional[bool]  # هل يتطلب موافقة مزدوجة
+    
+    # Approval
+    excel_approval: Optional[Dict[str, Any]]  # بيانات الاعتماد
+    excel_approval_path: Optional[str]  # مسار ملف الاعتماد
+    needs_human_approval: Optional[bool]  # يحتاج موافقة بشرية
+    excel_approved_by: Optional[str]  # المعتمد
+    excel_approved_at: Optional[str]  # وقت الاعتماد
+

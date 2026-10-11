@@ -30,6 +30,8 @@ REQUIRED_APPROVAL_FIELDS = (
     "approved_by",
     "approved_at",
     "approved_row_hashes",
+    "expires_at",  # P4: تاريخ صلاحية الاعتماد (TTL)
+    "is_consumed",  # P4: هل تم استهلاك الاعتماد
 )
 
 
@@ -41,6 +43,8 @@ class Approval:
     approved_by: str
     approved_at: str  # ISO 8601 string, validated at parse time
     approved_row_hashes: List[str]
+    expires_at: str  # P4: ISO 8601 string for TTL expiration
+    is_consumed: bool  # P4: single-use flag
 
     @staticmethod
     def from_dict(data: Dict[str, Any]) -> "Approval":
@@ -56,6 +60,25 @@ class Approval:
             raise ApprovalSchemaError(
                 f"approved_at is not a valid ISO 8601 datetime: {approved_at_raw!r}"
             ) from exc
+
+        # P4: التحقق من صلاحية expires_at
+        expires_at_raw = data["expires_at"]
+        try:
+            expires_dt = datetime.fromisoformat(str(expires_at_raw).replace("Z", "+00:00"))
+            # التحقق من أن الاعتماد لم ينته
+            if datetime.now() > expires_dt:
+                raise ApprovalSchemaError(
+                    f"Approval has expired at {expires_at_raw}. Current time: {datetime.now().isoformat()}"
+                )
+        except ValueError as exc:
+            raise ApprovalSchemaError(
+                f"expires_at is not a valid ISO 8601 datetime: {expires_at_raw!r}"
+            ) from exc
+
+        # P4: التحقق من أن الاعتماد لم يتم استهلاكه
+        is_consumed = data.get("is_consumed", False)
+        if is_consumed:
+            raise ApprovalSchemaError("Approval has already been consumed and cannot be reused.")
 
         if not isinstance(data["approved_row_hashes"], list) or not all(
             isinstance(h, str) for h in data["approved_row_hashes"]
@@ -86,6 +109,8 @@ class Approval:
             approved_by=approved_by,
             approved_at=str(approved_at_raw),
             approved_row_hashes=list(data["approved_row_hashes"]),
+            expires_at=str(expires_at_raw),
+            is_consumed=is_consumed,
         )
 
     @staticmethod

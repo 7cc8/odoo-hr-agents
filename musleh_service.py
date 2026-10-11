@@ -603,7 +603,14 @@ class MuslehService:
     def heal_date_format(val: Any) -> Optional[str]:
         """
         إصلاح وتحويل صيغ التواريخ المعطوبة إلى صيغة ISO YYYY-MM-DD المعتمدة في Odoo.
+        
+        يتحقق من صلاحية التاريخ باستخدام datetime.strptime لمنع تواريخ غير منطقية
+        مثل 45/13/2026 (لا يوجد شهر 13 ولا يوم 45).
+        
+        P4: لا افتراض اليوم أولاً بصمت - يُطلب توضيح إذا كان التنسيق غامضاً.
         """
+        from datetime import datetime
+        
         if not val:
             return None
         text = clean_value_text(str(val))
@@ -612,19 +619,55 @@ class MuslehService:
 
         # 1. إذا كان التاريخ سليماً بصيغة YYYY-MM-DD
         if re.match(r"^\d{4}-\d{2}-\d{2}$", text):
-            return text
+            # التحقق من الصلاحية
+            try:
+                datetime.strptime(text, "%Y-%m-%d")
+                return text
+            except ValueError:
+                return None
 
         # 2. صيغ مفصولة بـ / أو . مثل YYYY/MM/DD
         m = re.match(r"^(\d{4})[/.](\d{1,2})[/.](\d{1,2})$", text)
         if m:
             y, mm, d = m.groups()
-            return f"{y}-{int(mm):02d}-{int(d):02d}"
+            candidate = f"{y}-{int(mm):02d}-{int(d):02d}"
+            # التحقق من الصلاحية
+            try:
+                datetime.strptime(candidate, "%Y-%m-%d")
+                return candidate
+            except ValueError:
+                return None
 
         # 3. صيغ اليوم أولاً مثل DD-MM-YYYY أو DD/MM/YYYY
+        # ملاحظة P4: عدم افتراض اليوم أولاً بصمت
+        # نحاول فقط إذا كان اليوم > 12 (لا غموض)
         m2 = re.match(r"^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$", text)
         if m2:
             d, mm, y = m2.groups()
-            return f"{y}-{int(mm):02d}-{int(d):02d}"
+            d_int, mm_int = int(d), int(mm)
+            
+            # إذا كان اليوم > 12، فهو بالتأكيد يوم (لا غموض)
+            if d_int > 12:
+                candidate = f"{y}-{mm_int:02d}-{d_int:02d}"
+                try:
+                    datetime.strptime(candidate, "%Y-%m-%d")
+                    return candidate
+                except ValueError:
+                    return None
+            
+            # إذا كان الشهر > 12 واليوم <= 12، فالترتيب عكسي (يوم شهر سنة)
+            elif mm_int > 12 and d_int <= 12:
+                candidate = f"{y}-{d_int:02d}-{mm_int:02d}"
+                try:
+                    datetime.strptime(candidate, "%Y-%m-%d")
+                    return candidate
+                except ValueError:
+                    return None
+            
+            # الحالة الغامضة: كلاهما <= 12
+            # P4: لا نخمّن، نرجع None ونطلب توضيح
+            else:
+                return None
 
         return None
 
@@ -632,29 +675,49 @@ class MuslehService:
     def heal_phone_format(val: Any) -> Optional[str]:
         """
         إصلاح وتنظيف أرقام الجوالات السعودية وتوحيدها إلى صيغة 05xxxxxxxx.
+        
+        P4: عدم إسقاط + من الأرقام غير السعودية - الاحتفاظ بالصيغة الدولية
+        للأرقام التي لا تبدأ بـ 966.
         """
         if not val:
             return None
         raw = clean_value_text(str(val))
-        # استخراج الأرقام فقط وتجاهل الرموز
+        
+        # إذا كان الرقم يحتوي على + فهو بصيغة دولية
+        has_plus = raw.startswith("+")
+        
+        # استخراج الأرقام فقط
         digits = re.sub(r"\D", "", raw)
         if not digits:
             return None
 
+        # معالجة الأرقام السعودية فقط
+        is_saudi = False
+        
         # لو الرقم يبدأ بـ 00966
         if digits.startswith("00966"):
             digits = digits[5:]
+            is_saudi = True
         # لو الرقم يبدأ بـ 966
         elif digits.startswith("966"):
             digits = digits[3:]
+            is_saudi = True
+        # لو يبدأ بـ 05 مباشرة
+        elif digits.startswith("05") and len(digits) == 10:
+            is_saudi = True
+        # لو يبدأ بـ 5 وطوله 9
+        elif digits.startswith("5") and len(digits) == 9:
+            digits = "0" + digits
+            is_saudi = True
 
-        # لو أصبح 05xxxxxxxx (10 أرقام)
-        if digits.startswith("05") and len(digits) == 10:
+        # إرجاع الرقم السعودي المنسق
+        if is_saudi and digits.startswith("05") and len(digits) == 10:
             return digits
-        # لو أصبح 5xxxxxxxx (9 أرقام)
-        if digits.startswith("5") and len(digits) == 9:
-            return "0" + digits
-
+        
+        # الأرقام غير السعودية: إعادة + إذا كان موجوداً
+        if has_plus and not is_saudi:
+            return "+" + digits
+        
         return digits
 
     @staticmethod
