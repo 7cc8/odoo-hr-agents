@@ -18,6 +18,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from approval_plan_schema import ApprovalPlan, ApprovalPlanError, validate_plan_for_execution
 from environment_policy import ALLOWED_TEST_DBS, ALLOWED_DEV_DBS
 from odoo_write_gateway import OdooWriteGateway, WriteGatewayError, EnvironmentGuardError
 from odoo_delete_gateway import (
@@ -161,8 +162,34 @@ class KatibAgent:
         تنفيذ عملية معتمدة قادمة من منسق المهام «سراج» بعد موافقة صاحب الصلاحية:
         يدعم الإنشاء (create)، التعديل (update)، الأرشفة (archive)، والحذف المحكوم (delete).
         الحذف ينفذ حصرياً عبر البوابة المعزولة OdooDeleteGateway لسجل مفرد فقط.
+        
+        P5-S3: التحقق من ApprovalPlan (TTL + استهلاك واحد + مستخدم)
         """
         action_type = action.get("action_type") or action.get("type")
+        
+        # P5-S3: فحص ApprovalPlan قبل التنفيذ
+        plan_id = action.get("plan_id")
+        if not plan_id:
+            raise KatibSecurityError(
+                "P5-S3: لا تنفيذ بدون plan_id. كل عملية كتابة تتطلب ApprovalPlan صالحة."
+            )
+        
+        try:
+            # تحميل الخطة
+            plan = ApprovalPlan.load(plan_id)
+            
+            # التحقق من صلاحية الخطة (TTL + consumed + approved)
+            validate_plan_for_execution(plan)
+            
+            # استهلاك الخطة (single-use)
+            plan.consume()
+            plan.save()
+            
+            logger.info(f"✅ ApprovalPlan {plan_id} consumed successfully")
+        
+        except ApprovalPlanError as err:
+            logger.error(f"❌ ApprovalPlan validation failed: {err}")
+            raise KatibSecurityError(f"P5-S3: خطة غير صالحة - {err}") from err
 
         # مسار الأرشفة المحكومة
         if action_type == "archive":

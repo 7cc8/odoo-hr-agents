@@ -53,16 +53,18 @@ class WriteOperationType(str, Enum):
     DELETE = "delete"
 
 
-# WriteDecision: حُذف - لا تنفيذ بدون خطة معتمدة صالحة
-# الخطة المعتمدة يجب أن تحتوي على: TTL + استهلاك + مستخدم
+# WriteDecision: محذوف - كاتب الآن يعمل فقط مع ApprovalPlan
+# لا تنفيذ إلا بعد التحقق من صحة الخطة: TTL + استهلاك واحد + ربط بالمستخدم
 
 
 class RollbackStrategy(str, Enum):
-    """استراتيجيات Rollback"""
-    NONE = "none"  # لا rollback (قراءة فقط)
-    REVERT_VALUES = "revert_values"  # إعادة القيم القديمة عبر نموذج العملية
-    # DELETE_CREATED: حُذف - rollback يستخدم نموذج العملية فقط
-    RESTORE_ARCHIVED = "restore_archived"  # استرجاع من الأرشفة
+    """
+    استراتيجيات Rollback بعد حذف DELETE_CREATED (S2)
+    Rollback يُنفذ عبر نموذج العملية الذي أنشأ السجل فقط
+    """
+    NONE = "none"  # لا rollback (قراءة فقط أو حذف نهائي)
+    REVERT_VALUES = "revert_values"  # إعادة القيم القديمة عبر write
+    RESTORE_ARCHIVED = "restore_archived"  # استرجاع من الأرشفة (active=True)
 
 
 class KatibSecurityError(Exception):
@@ -201,6 +203,8 @@ class KatibAgent(BaseAgent):
         """
         المرحلة 2: التخطيط - بناء خطة تنفيذ مع rollback strategy
         
+        P5: لم يعد كاتب يتخذ قرارات تنفيذ - فقط يُخطط بناءً على الأهلية
+        
         Args:
             perception: نتائج مرحلة الإدراك
             
@@ -209,49 +213,39 @@ class KatibAgent(BaseAgent):
         """
         logger.info(f"📋 Planning execution for: {perception['operation_type']}")
         
-        # اتخاذ القرار الأساسي
-        decision = self._make_decision(perception)
-        
         # بناء خطة التنفيذ
         plan = {
-            "decision": decision,
             "operation_type": perception["operation_type"],
             "steps": [],
             "rollback_strategy": RollbackStrategy.NONE,
             "risks": [],
             "safeguards": [],
+            "is_eligible": perception["eligibility"]["status"] == "eligible",
+            "rejection_reason": perception["eligibility"].get("rejection_reason"),
         }
         
-        # تحديد الخطوات حسب نوع العملية
-        if decision == WriteDecision.EXECUTE_IMMEDIATE or decision == WriteDecision.EXECUTE_WITH_BACKUP:
+        # إذا كانت العملية مؤهلة - بناء خطوات التنفيذ
+        if plan["is_eligible"]:
             plan["steps"] = self._build_execution_steps(perception)
             plan["rollback_strategy"] = self._determine_rollback_strategy(perception)
             plan["safeguards"] = self._identify_safeguards(perception)
-        
-        elif decision == WriteDecision.REQUEST_APPROVAL:
-            plan["steps"] = [
-                {"action": "request_human_approval", "reason": "عملية حساسة تتطلب موافقة صريحة"}
-            ]
-        
-        elif decision == WriteDecision.REJECT_UNSAFE:
+        else:
+            # رفض - لا تنفيذ
             plan["steps"] = [
                 {"action": "reject", "reason": perception["eligibility"].get("rejection_reason")}
-            ]
-        
-        elif decision == WriteDecision.ESCALATE:
-            plan["steps"] = [
-                {"action": "escalate", "reason": "عملية تتجاوز صلاحيات كاتب الآلي"}
             ]
         
         # تحديد المخاطر
         plan["risks"] = self._identify_risks(perception)
         
-        logger.info(f"✅ Plan created: {len(plan['steps'])} steps, decision={decision}")
+        logger.info(f"✅ Plan created: {len(plan['steps'])} steps, eligible={plan['is_eligible']}")
         return plan
 
     def execute(self, plan: Dict[str, Any]) -> Dict[str, Any]:
         """
         المرحلة 3: التنفيذ - تطبيق الخطة مع audit logging
+        
+        P5: التنفيذ الآن يتطلب فحص الأهلية فقط - لا قرارات WriteDecision
         
         Args:
             plan: خطة التنفيذ من مرحلة التخطيط
@@ -271,27 +265,14 @@ class KatibAgent(BaseAgent):
         }
         
         try:
-            # التنفيذ حسب القرار
-            if plan["decision"] == WriteDecision.REJECT_UNSAFE:
+            # فحص الأهلية
+            if not plan["is_eligible"]:
                 result["success"] = False
-                result["errors"].append(plan["steps"][0]["reason"])
+                result["errors"].append(plan["rejection_reason"] or "عملية مرفوضة - غير مؤهلة")
                 return result
             
-            if plan["decision"] == WriteDecision.REQUEST_APPROVAL:
-                result["success"] = False
-                result["requires_approval"] = True
-                result["approval_reason"] = plan["steps"][0]["reason"]
-                return result
-            
-            if plan["decision"] == WriteDecision.ESCALATE:
-                result["success"] = False
-                result["escalated"] = True
-                result["escalation_reason"] = plan["steps"][0]["reason"]
-                return result
-            
-            # التنفيذ الفعلي
-            if plan["decision"] in [WriteDecision.EXECUTE_IMMEDIATE, WriteDecision.EXECUTE_WITH_BACKUP]:
-                result = self._execute_write_operation(plan, result)
+            # التنفيذ الفعلي للعمليات المؤهلة
+            result = self._execute_write_operation(plan, result)
         
         except Exception as exc:
             logger.error(f"❌ Execution failed: {exc}")
@@ -357,9 +338,9 @@ class KatibAgent(BaseAgent):
             else:
                 reflection["improvements"].append("يجب تحسين استراتيجية Rollback")
         
-        # تحليل Decision Quality
-        if plan["decision"] == WriteDecision.REJECT_UNSAFE and not result["success"]:
-            reflection["lessons_learned"].append("القرار بالرفض كان صحيحاً")
+        # تحليل Eligibility Quality
+        if not plan.get("is_eligible") and not result["success"]:
+            reflection["lessons_learned"].append("العملية رُفضت بشكل صحيح - غير مؤهلة")
         
         # توصيات للمستقبل
         reflection["recommendations"] = self._generate_recommendations(perception, plan, result)
@@ -414,7 +395,11 @@ class KatibAgent(BaseAgent):
         return impact
 
     def _check_eligibility(self, perception: Dict[str, Any]) -> Dict[str, Any]:
-        """التحقق من أهلية العملية للتنفيذ"""
+        """
+        التحقق من أهلية العملية للتنفيذ (P5: فحوص البيئة والبيانات فقط)
+        
+        القرارات الأمنية (danger/caution) الآن تُدار في Hares - كاتب يفحص الأهلية الفنية فقط
+        """
         eligibility = {
             "status": "eligible",
             "rejection_reason": None,
@@ -436,23 +421,6 @@ class KatibAgent(BaseAgent):
         
         return eligibility
 
-    def _make_decision(self, perception: Dict[str, Any]) -> WriteDecision:
-        """اتخاذ القرار النهائي حول كيفية التعامل مع العملية"""
-        
-        # رفض العمليات غير المؤهلة
-        if perception["eligibility"]["status"] == "rejected":
-            return WriteDecision.REJECT_UNSAFE
-        
-        # طلب موافقة للعمليات الخطرة
-        if perception["safety_analysis"]["level"] == "danger":
-            return WriteDecision.REQUEST_APPROVAL
-        
-        # تنفيذ مع backup للعمليات الحساسة
-        if perception["safety_analysis"]["level"] == "caution":
-            return WriteDecision.EXECUTE_WITH_BACKUP
-        
-        # تنفيذ فوري للعمليات الآمنة
-        return WriteDecision.EXECUTE_IMMEDIATE
 
     def _build_execution_steps(self, perception: Dict[str, Any]) -> List[Dict[str, Any]]:
         """بناء خطوات التنفيذ التفصيلية"""
@@ -512,7 +480,7 @@ class KatibAgent(BaseAgent):
         operation_type = perception["operation_type"]
         
         if operation_type == WriteOperationType.CREATE:
-            return RollbackStrategy.DELETE_CREATED
+            return RollbackStrategy.REVERT_VALUES  # P5-S2: DELETE_CREATED removed
         
         elif operation_type == WriteOperationType.UPDATE:
             return RollbackStrategy.REVERT_VALUES
@@ -700,14 +668,7 @@ class KatibAgent(BaseAgent):
         """تنفيذ Rollback حسب الاستراتيجية المحددة"""
         logger.warning(f"🔄 Performing rollback: {strategy}")
         
-        if strategy == RollbackStrategy.DELETE_CREATED:
-            # حذف السجل الذي تم إنشاؤه
-            if "record_id" in result:
-                gateway = self._get_gateway()
-                gateway.write_record("hr.employee", result["record_id"], {"active": False})
-                logger.info(f"✅ Rollback: Archived created record {result['record_id']}")
-        
-        elif strategy == RollbackStrategy.REVERT_VALUES:
+        if strategy == RollbackStrategy.REVERT_VALUES:
             # إعادة القيم القديمة (TODO: implement)
             logger.warning("⚠️ Rollback REVERT_VALUES not fully implemented yet")
         
@@ -771,8 +732,7 @@ class KatibAgent(BaseAgent):
         if result.get("rollback_performed"):
             recommendations.append("النظام نجح في الحماية عبر Rollback")
         
-        if plan["decision"] == WriteDecision.REQUEST_APPROVAL:
-            recommendations.append("تحسين نموذج تقييم المخاطر لتقليل طلبات الموافقة")
+        # REQUEST_APPROVAL removed - تُدار الآن بواسطة Hares
         
         return recommendations
 
