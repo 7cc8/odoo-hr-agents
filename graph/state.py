@@ -17,6 +17,9 @@ class SerajState(TypedDict, total=False):
     user_query: str
     user_name: str
     connection_id: Optional[str]
+    
+    # P3: observability and events
+    operation_id: Optional[str]
 
     # sticky company context (persists per thread_id)
     company_id: Optional[int]

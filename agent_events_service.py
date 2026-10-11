@@ -215,7 +215,8 @@ class AgentEventsService:
         try:
             with open(AGENT_OPS_LOG_FILE, "r", encoding="utf-8", errors="ignore") as f:
                 lines = f.readlines()
-                for line in lines[-100:]:
+                # P3: تحسين - تحميل آخر 200 سطر بدلاً من 100 لضمان تغطية أفضل
+                for line in lines[-200:]:
                     line = line.strip()
                     if not line:
                         continue
@@ -237,8 +238,8 @@ class AgentEventsService:
                                 "status": evt.get("status", "completed"),
                                 "status_label": STATUS_LABELS_AR.get(evt.get("status", "completed"), "اكتمل"),
                                 "active_agent": evt.get("agent", "sijil"),
-                                "company_id": evt.get("company_id", 15),
-                                "company_name": evt.get("company_name", "شركة النخبة الذكية للتقنية"),
+                                "company_id": evt.get("company_id"),
+                                "company_name": evt.get("company_name"),
                                 "connection_id": evt.get("connection_id", "default"),
                                 "requester": evt.get("requester", "المستخدم"),
                                 "plan_id": evt.get("plan_id"),
@@ -255,8 +256,8 @@ class AgentEventsService:
         self,
         user_query: str,
         operation_type: str = "query",
-        company_id: int = 15,
-        company_name: str = "شركة النخبة الذكية للتقنية",
+        company_id: Optional[int] = None,
+        company_name: Optional[str] = None,
         connection_id: str = "default",
         requester: str = "المستخدم",
         chat_id: str = "default",
@@ -474,11 +475,66 @@ class AgentEventsService:
         """استرجاع بيانات العملية وكافة أحداثها وخط سيرها."""
         with self._lock:
             op = self.operations.get(operation_id)
-            if not op:
-                return None
-            res = dict(op)
-            res["events"] = list(self.operation_events.get(operation_id, []))
-            return res
+            if op:
+                res = dict(op)
+                res["events"] = list(self.operation_events.get(operation_id, []))
+                return res
+            
+            # P3: البحث في القرص عند عدم وجود العملية في الذاكرة
+            return self._search_operation_on_disk(operation_id)
+    
+    def _search_operation_on_disk(self, operation_id: str) -> Optional[Dict[str, Any]]:
+        """البحث عن عملية محددة في ملف السجل على القرص"""
+        if not AGENT_OPS_LOG_FILE.exists():
+            return None
+        
+        try:
+            operation_events = []
+            operation_data = None
+            
+            with open(AGENT_OPS_LOG_FILE, "r", encoding="utf-8", errors="ignore") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        evt = json.loads(line)
+                        if evt.get("operation_id") == operation_id:
+                            operation_events.append(evt)
+                            # إنشاء بيانات العملية من أول حدث
+                            if operation_data is None:
+                                operation_data = {
+                                    "operation_id": operation_id,
+                                    "created_at": evt.get("timestamp"),
+                                    "updated_at": evt.get("timestamp"),
+                                    "user_query": evt.get("user_query", "عملية موثقة"),
+                                    "operation_type": evt.get("operation_type", "operation"),
+                                    "status": evt.get("status", "completed"),
+                                    "status_label": STATUS_LABELS_AR.get(evt.get("status", "completed"), "اكتمل"),
+                                    "active_agent": evt.get("agent", "sijil"),
+                                    "company_id": evt.get("company_id"),
+                                    "company_name": evt.get("company_name"),
+                                    "connection_id": evt.get("connection_id", "default"),
+                                    "requester": evt.get("requester", "المستخدم"),
+                                    "plan_id": evt.get("plan_id"),
+                                    "laya_used": evt.get("laya_used", False),
+                                }
+                            else:
+                                # تحديث آخر تحديث
+                                operation_data["updated_at"] = evt.get("timestamp")
+                                operation_data["status"] = evt.get("status", operation_data["status"])
+                                operation_data["status_label"] = STATUS_LABELS_AR.get(evt.get("status", operation_data["status"]), operation_data["status_label"])
+                    except Exception:
+                        continue
+            
+            if operation_data and operation_events:
+                operation_data["events"] = operation_events
+                return operation_data
+            
+            return None
+            
+        except Exception:
+            return None
 
     def get_operation_events(self, operation_id: str, after_seq: int = 0) -> List[Dict[str, Any]]:
         """استرجاع الأحداث اللاحقة لتسلسل معين لدعم التحديث السريع."""

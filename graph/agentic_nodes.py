@@ -16,6 +16,7 @@ from agents.mudaqqiq_agent import MudaqqiqAgent
 from agents.muwaffaq_agent import MuwaffaqAgent
 from agents.sijil_agent import SijilAgent
 from agents.seraj_meta_agent import SerajMetaAgent
+from agent_events_service import get_events_service  # P3: observability
 from graph.state import SerajState
 
 logger = logging.getLogger("graph.agentic_nodes")
@@ -34,10 +35,35 @@ def musleh_agentic_heal(state: SerajState) -> Dict[str, Any]:
     """
     logger.info("🔧 Musleh agentic heal node")
     
+    # P3: emit start event
+    events_service = get_events_service()
+    operation_id = state.get("operation_id")
+    if operation_id:
+        events_service.emit_event(
+            operation_id=operation_id,
+            agent="musleh",
+            event_type="healing_started",
+            status="executing_write",
+            description_ar="مصلح يحلل البيانات المرفوضة ويحاول إصلاحها",
+            from_agent=None,
+            to_agent="musleh",
+            company_id=state.get("company_id"),
+            company_name=state.get("company_name"),
+        )
+    
     # استخراج البيانات المُرفوضة من الحالة
     rejected_data = state.get("rejected_data", [])
     
     if not rejected_data:
+        if operation_id:
+            events_service.emit_event(
+                operation_id=operation_id,
+                agent="musleh",
+                event_type="healing_failed",
+                status="failed",
+                description_ar="مصلح: لا توجد بيانات مرفوضة للمعالجة",
+                error="No rejected data to heal"
+            )
         return {"last_tool_error": "No rejected data to heal"}
     
     # استدعاء مصلح
@@ -66,6 +92,18 @@ def musleh_agentic_heal(state: SerajState) -> Dict[str, Any]:
             logger.error(f"❌ Musleh failed: {exc}")
             continue
     
+    # P3: emit completion event
+    if operation_id:
+        status = "completed" if healed_data else "failed"
+        events_service.emit_event(
+            operation_id=operation_id,
+            agent="musleh",
+            event_type="healing_completed",
+            status=status,
+            description_ar=f"مصلح: تم إصلاح {len(healed_data)} سجل من أصل {len(rejected_data)}",
+            result_ref={"healed_count": len(healed_data), "total_count": len(rejected_data)}
+        )
+    
     return {
         "healed_data": healed_data,
         "messages": [{
@@ -83,10 +121,35 @@ def hares_agentic_guard(state: SerajState) -> Dict[str, Any]:
     """
     logger.info("🛡️ Hares agentic guard node")
     
+    # P3: emit start event
+    events_service = get_events_service()
+    operation_id = state.get("operation_id")
+    if operation_id:
+        events_service.emit_event(
+            operation_id=operation_id,
+            agent="hares",
+            event_type="security_check_started",
+            status="verifying_permissions",
+            description_ar="حارس يفحص صلاحيات وأمان العملية المطلوبة",
+            from_agent=None,
+            to_agent="hares",
+            company_id=state.get("company_id"),
+            company_name=state.get("company_name"),
+        )
+    
     # استخراج خطة الكتابة
     write_plan = state.get("write_plan", {})
     
     if not write_plan:
+        if operation_id:
+            events_service.emit_event(
+                operation_id=operation_id,
+                agent="hares",
+                event_type="security_check_failed",
+                status="failed",
+                description_ar="حارس: لا توجد خطة كتابة للمراجعة",
+                error="No write plan to guard"
+            )
         return {"security_approved": False, "last_tool_error": "No write plan to guard"}
     
     # استدعاء حارس
@@ -110,6 +173,22 @@ def hares_agentic_guard(state: SerajState) -> Dict[str, Any]:
     # التحقق من القرار
     approved = result["decision"] in ["approve", "approve_with_conditions"]
     
+    # P3: emit completion event
+    if operation_id:
+        status = "completed" if approved else "waiting_approval"
+        events_service.emit_event(
+            operation_id=operation_id,
+            agent="hares",
+            event_type="security_check_completed",
+            status=status,
+            description_ar=f"حارس: {result['decision']} - {reflection.get('risk_summary', '')}",
+            result_ref={
+                "decision": result["decision"],
+                "approved": approved,
+                "risk_level": reflection.get("risk_level", "unknown")
+            }
+        )
+    
     return {
         "security_approved": approved,
         "security_decision": result["decision"],
@@ -129,10 +208,35 @@ def katib_agentic_write(state: SerajState) -> Dict[str, Any]:
     """
     logger.info("✍️ Katib agentic write node")
     
+    # P3: emit start event
+    events_service = get_events_service()
+    operation_id = state.get("operation_id")
+    if operation_id:
+        events_service.emit_event(
+            operation_id=operation_id,
+            agent="katib",
+            event_type="write_started",
+            status="executing_write",
+            description_ar="كاتب ينفذ العملية المعتمدة في قاعدة البيانات",
+            from_agent="hares",
+            to_agent="katib",
+            company_id=state.get("company_id"),
+            company_name=state.get("company_name"),
+        )
+    
     # استخراج العملية المعتمدة
     approved_action = state.get("approved_action", {})
     
     if not approved_action:
+        if operation_id:
+            events_service.emit_event(
+                operation_id=operation_id,
+                agent="katib",
+                event_type="write_failed",
+                status="failed",
+                description_ar="كاتب: لا توجد عملية معتمدة للتنفيذ",
+                error="No approved action"
+            )
         return {"write_success": False, "last_tool_error": "No approved action"}
     
     # استدعاء كاتب الذكي
@@ -146,6 +250,22 @@ def katib_agentic_write(state: SerajState) -> Dict[str, Any]:
     
     # التحقق من النجاح
     success = result.get("success", False)
+    
+    # P3: emit completion event
+    if operation_id:
+        status = "completed" if success else "failed"
+        events_service.emit_event(
+            operation_id=operation_id,
+            agent="katib",
+            event_type="write_completed",
+            status=status,
+            description_ar=f"كاتب: {'نجح التنفيذ' if success else 'فشل التنفيذ'} - {reflection.get('decision_rationale_ar', [''])[0] if reflection.get('decision_rationale_ar') else ''}",
+            result_ref={
+                "success": success,
+                "record_id": result.get("record_id"),
+                "confidence": reflection.get("confidence_score", 0.0)
+            }
+        )
     
     return {
         "write_success": success,

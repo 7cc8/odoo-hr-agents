@@ -163,7 +163,30 @@ def build_session_context(company_id: Optional[int], company_name: Optional[str]
 def ingest_user_message(state: SerajState) -> Dict[str, Any]:
     """Appends the new user query to history and resets per-run scratch fields."""
     query = (state.get("user_query") or "").strip()
+    
+    # P3: Initialize operation_id and start operation tracking
+    from agent_events_service import get_events_service
+    import uuid
+    import time
+    
+    events_service = get_events_service()
+    operation_id = f"op_{int(time.time())}_{uuid.uuid4().hex[:6]}"
+    
+    # Start operation tracking
+    if query:
+        events_service.start_operation(
+            user_query=query,
+            operation_type="query",
+            company_id=state.get("company_id"),
+            company_name=state.get("company_name"),
+            connection_id=state.get("connection_id", "default"),
+            requester=state.get("user_name", "المستخدم"),
+            chat_id=state.get("chat_id", "default"),
+            operation_id=operation_id,
+        )
+    
     update: Dict[str, Any] = {
+        "operation_id": operation_id,  # P3: add operation_id to state
         "turns": 0,
         "last_tool_error": None,
         "last_assistant": {},
@@ -207,6 +230,21 @@ def route_intent(state: SerajState) -> str:
 def seraj_think(state: SerajState) -> Dict[str, Any]:
     from odoo_agent_tools import SERAJ_ODOO_TOOLS_SCHEMA
 
+    # P3: emit event
+    from agent_events_service import get_events_service
+    events_service = get_events_service()
+    operation_id = state.get("operation_id")
+    if operation_id:
+        events_service.emit_event(
+            operation_id=operation_id,
+            agent="seraj",
+            event_type="thinking_started",
+            status="analyzing_request",
+            description_ar="سراج يحلل الطلب ويخطط للاستجابة باستخدام الأدوات المتاحة",
+            company_id=state.get("company_id"),
+            company_name=state.get("company_name"),
+        )
+
     svc = _seraj()
     session = svc.session_manager.get_session(state.get("chat_id", "default"))
     system_prompt = svc._build_system_prompt(session, state.get("user_name", "مستخدم"), None)
@@ -235,11 +273,34 @@ def seraj_think(state: SerajState) -> Dict[str, Any]:
             "tool_calls": response.get("tool_calls")
         }
         
+        # P3: emit success event
+        if operation_id:
+            events_service.emit_event(
+                operation_id=operation_id,
+                agent="seraj",
+                event_type="thinking_completed",
+                status="completed" if not msg.get("tool_calls") else "querying_odoo",
+                description_ar=f"سراج: تم تحليل الطلب {'وسيتم استدعاء الأدوات' if msg.get('tool_calls') else 'ولا حاجة لأدوات إضافية'}",
+                result_ref={"has_tool_calls": bool(msg.get("tool_calls")), "content_length": len(msg.get("content", ""))}
+            )
+        
     except (ValueError, Exception) as e:
         # التعامل مع أخطاء LLM (ValueError, HTTPError, Timeout, إلخ)
         import logging
         logger = logging.getLogger("seraj_think")
         logger.error(f"❌ LLM error in seraj_think: {e}")
+        
+        # P3: emit error event
+        if operation_id:
+            events_service.emit_event(
+                operation_id=operation_id,
+                agent="seraj",
+                event_type="thinking_failed",
+                status="failed",
+                description_ar=f"سراج: فشل في تحليل الطلب - {str(e)}",
+                error=str(e)
+            )
+        
         return {
             "error": "llm_error",
             "last_tool_error": str(e),
@@ -276,14 +337,37 @@ def fahas_tools(state: SerajState) -> Dict[str, Any]:
     from fahas_service import get_fahas_agent
     from odoo_agent_tools import OdooToolExecutionError, OdooToolSecurityError
 
+    # P3: emit start event
+    from agent_events_service import get_events_service
+    events_service = get_events_service()
+    operation_id = state.get("operation_id")
+    tool_calls = (state.get("last_assistant") or {}).get("tool_calls", [])
+    
+    if operation_id and tool_calls:
+        tool_names = [tc.get("function", {}).get("name", "unknown") for tc in tool_calls]
+        events_service.emit_event(
+            operation_id=operation_id,
+            agent="fahas",
+            event_type="tools_started",
+            status="querying_odoo",
+            description_ar=f"فاحص ينفذ الأدوات: {', '.join(tool_names)}",
+            from_agent="seraj",
+            to_agent="fahas",
+            company_id=state.get("company_id"),
+            company_name=state.get("company_name"),
+        )
+
     fahas = get_fahas_agent()
     accepts = _tools_accepting_company()
     company_id: Optional[int] = state.get("company_id")
     companies: Dict[str, str] = dict(state.get("companies") or {})
     new_msgs: List[Dict[str, Any]] = []
     last_error: Optional[str] = state.get("last_tool_error")
+    
+    successful_tools = 0
+    total_tools = len(tool_calls)
 
-    for tc in (state.get("last_assistant") or {}).get("tool_calls", []):
+    for tc in tool_calls:
         call_id = tc.get("id") or "call_1"
         fn = tc.get("function") or {}
         name = fn.get("name", "")
@@ -299,6 +383,7 @@ def fahas_tools(state: SerajState) -> Dict[str, Any]:
         try:
             result = fahas.execute_query_task(name, args)
             result_str = json.dumps(result, ensure_ascii=False)
+            successful_tools += 1
             # ✅ تجميع الشركات من أي نتيجة تحتوي على company (بما في ذلك count_records)
             if "compan" in name or (isinstance(result, dict) and result.get("company_id")):
                 collect_companies(result, companies)
@@ -325,6 +410,20 @@ def fahas_tools(state: SerajState) -> Dict[str, Any]:
         new_msgs.append({"role": "tool", "tool_call_id": call_id, "name": name, "content": result_str})
 
     company_name = companies.get(str(company_id)) if company_id else None
+    
+    # P3: emit completion event
+    if operation_id:
+        status = "completed" if successful_tools == total_tools else "failed" if successful_tools == 0 else "partially_completed"
+        events_service.emit_event(
+            operation_id=operation_id,
+            agent="fahas",
+            event_type="tools_completed",
+            status=status,
+            description_ar=f"فاحص: اكتملت {successful_tools}/{total_tools} أدوات بنجاح",
+            result_ref={"successful_tools": successful_tools, "total_tools": total_tools, "has_errors": bool(last_error)},
+            error=last_error if last_error else None
+        )
+    
     return {
         "messages": new_msgs,
         "last_tool_error": last_error,
