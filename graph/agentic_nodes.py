@@ -465,16 +465,28 @@ def seraj_meta_reflect(state: SerajState) -> Dict[str, Any]:
             for insight in learning_insights[:3]:  # أول 3 فقط
                 reflection_msg += f"  - {insight}\n"
         
-        return {
+        # إغلاق بعلم ENABLE_META_TRACES (افتراضه 0)
+        import os
+        enable_traces = os.environ.get("ENABLE_META_TRACES", "0") == "1"
+        
+        updates = {
             "meta_reflection": reflection,
             "meta_success_rate": success_rate,
             "meta_learning_insights": learning_insights,
-            "agent_traces": state.get("agent_traces", []) + [{
+        }
+        
+        if enable_traces:
+            # حد agent_traces بآخر 20 عنصراً
+            current_traces = state.get("agent_traces", [])
+            new_trace = {
                 "agent": "seraj_meta_reflect",
                 "timestamp": __import__("datetime").datetime.now().isoformat(),
                 "content": reflection_msg,
-            }],
-        }
+            }
+            updated_traces = (current_traces + [new_trace])[-20:]
+            updates["agent_traces"] = updated_traces
+        
+        return updates
     
     except Exception as exc:
         logger.error(f"❌ Meta-Agent reflection failed: {exc}")
