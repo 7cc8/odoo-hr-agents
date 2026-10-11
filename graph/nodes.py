@@ -24,7 +24,6 @@ logger = logging.getLogger("graph.nodes")
 MAX_TURNS = 5
 HISTORY_LIMIT = 12
 ENABLE_WRITE_PATH = os.environ.get("ENABLE_WRITE_PATH", "0") == "1"
-ENABLE_AGENTIC_FAHAS = os.environ.get("ENABLE_AGENTIC_FAHAS", "0") == "1"  # ✅ تفعيل الوكيل الجديد
 
 ALL_COMPANIES_PHRASES = (
     "كل الشركات", "جميع الشركات", "كافة الشركات",
@@ -214,11 +213,23 @@ def seraj_think(state: SerajState) -> Dict[str, Any]:
     system_prompt += build_session_context(state.get("company_id"), state.get("company_name"))
     messages = [{"role": "system", "content": system_prompt}] + trim_history(state.get("messages", []))
 
-    msg = svc._call_openrouter(
-        model_name=svc.model,
-        messages=messages,
-        tools=SERAJ_ODOO_TOOLS_SCHEMA,
-    )
+    try:
+        msg = svc._call_openrouter(
+            model_name=svc.model,
+            messages=messages,
+            tools=SERAJ_ODOO_TOOLS_SCHEMA,
+        )
+    except (ValueError, Exception) as e:
+        # التعامل مع أخطاء LLM (ValueError, HTTPError, Timeout, إلخ)
+        import logging
+        logger = logging.getLogger("seraj_think")
+        logger.error(f"❌ LLM error in seraj_think: {e}")
+        return {
+            "error": "llm_error",
+            "last_tool_error": str(e),
+            "last_assistant": {},
+        }
+    
     if not msg:
         return {"error": "llm_no_response", "last_assistant": {}}
     if isinstance(msg, str):
