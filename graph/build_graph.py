@@ -41,7 +41,8 @@ def build_graph(checkpointer=None):
     g.add_node("mudaqqiq_verify", an.mudaqqiq_agentic_verify)  # ✅ جديد: التحقق من الامتثال
     g.add_node("hares_guard", an.hares_agentic_guard)  # ✅ جديد: فحص الأمان
     g.add_node("human_approval", n.human_approval)
-    g.add_node("katib_execute", n.katib_execute)  # ✅ عقدة katib واحدة فقط
+    g.add_node("katib_execute", n.katib_execute)  # ⚠️ قديم - مُستبدل بـ katib_agentic_write
+    g.add_node("katib_agentic_write", an.katib_agentic_write)  # ✅ P5-S9: عقدة katib الذكية
     g.add_node("fahas_verify", n.fahas_verify)
     g.add_node("sijil_log", n.sijil_log)  # ✅ استخدام sijil_log المُختبر
     g.add_node("finalize_write", n.finalize_write)
@@ -80,8 +81,11 @@ def build_graph(checkpointer=None):
     g.add_conditional_edges("hares_guard", n.route_after_security, ["policy_gate", "finalize_write"])  # ✅ إصلاح
     g.add_conditional_edges("policy_gate", n.route_after_policy, ["human_approval", "finalize_write"])
     # ✅ توحيد مسار الكتابة: عقدة katib واحدة فقط
-    g.add_conditional_edges("human_approval", n.route_after_approval, ["katib_execute", "finalize_write"])
-    g.add_edge("katib_execute", "fahas_verify")
+    # P5-S9: استخدام katib_agentic_write بدلاً من katib_execute
+    g.add_conditional_edges("human_approval", n.route_after_approval, ["katib_agentic_write", "finalize_write"])
+    g.add_edge("katib_execute", "fahas_verify")  # ⚠️ قديم - سيُحذف لاحقاً
+    # P5-S9: إضافة حافة خروج من katib_agentic_write
+    g.add_edge("katib_agentic_write", "finalize_write")
     g.add_edge("fahas_verify", "sijil_log")
     g.add_edge("sijil_log", "finalize_write")
     

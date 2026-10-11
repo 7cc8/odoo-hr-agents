@@ -538,7 +538,8 @@ def human_approval(state: SerajState) -> Dict[str, Any]:
 
 
 def route_after_approval(state: SerajState) -> str:
-    return "katib_execute" if state.get("approved") else "finalize_write"
+    # P5-S9: استخدام katib_agentic_write بدلاً من katib_execute القديم
+    return "katib_agentic_write" if state.get("approved") else "finalize_write"
 
 
 def katib_execute(state: SerajState) -> Dict[str, Any]:

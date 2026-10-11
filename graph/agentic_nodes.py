@@ -170,8 +170,21 @@ def hares_agentic_guard(state: SerajState) -> Dict[str, Any]:
     result = hares.execute(plan)
     reflection = hares.reflect(perception, plan, result)
     
-    # التحقق من القرار
-    approved = result["decision"] in ["approve", "approve_with_conditions"]
+    # P5-S8: التحقق الصحيح من القرار - DENY يجب أن يوقف التنفيذ
+    decision = result.get("decision", "DENY")
+    
+    # approved = True فقط إذا كان القرار ALLOW أو ALLOW_WITH_CONDITIONS
+    if decision in ["ALLOW", "ALLOW_WITH_CONDITIONS", "approve", "approve_with_conditions"]:
+        approved = True
+    elif decision in ["DENY", "REJECT"]:
+        approved = False
+    elif decision in ["REQUIRE_APPROVAL", "ESCALATE"]:
+        # يتطلب موافقة بشرية - لا نوافق تلقائياً
+        approved = False
+    else:
+        # قرار غير معروف - رفض افتراضي (secure by default)
+        approved = False
+        logger.warning(f"⚠️ Unknown hares decision: {decision}, defaulting to reject")
     
     # P3: emit completion event
     if operation_id:
@@ -204,7 +217,7 @@ def katib_agentic_write(state: SerajState) -> Dict[str, Any]:
     """
     عقدة كاتب الذكية - تنفيذ عمليات الكتابة
     
-    استبدال katib_execute القديم بنسخة ذكية
+    P5-S7: الآن يفحص ApprovalPlan قبل التنفيذ (TTL + consumed + user binding)
     """
     logger.info("✍️ Katib agentic write node")
     
@@ -238,6 +251,41 @@ def katib_agentic_write(state: SerajState) -> Dict[str, Any]:
                 error="No approved action"
             )
         return {"write_success": False, "last_tool_error": "No approved action"}
+    
+    # P5-S7: فحص ApprovalPlan قبل التنفيذ
+    plan_id = approved_action.get("plan_id")
+    if not plan_id:
+        if operation_id:
+            events_service.emit_event(
+                operation_id=operation_id,
+                agent="katib",
+                event_type="write_failed",
+                status="failed",
+                description_ar="كاتب: لا يوجد plan_id في العملية - رفض الأمان",
+                error="No plan_id in approved_action"
+            )
+        return {"write_success": False, "last_tool_error": "P5-S7: No plan_id in approved_action"}
+    
+    # P5-S7: تحميل والتحقق من ApprovalPlan (يحدث أيضاً في katib_service لكننا نفحص مرة أخرى للأمان)
+    try:
+        from approval_plan_schema import ApprovalPlan, ApprovalPlanError, validate_plan_for_execution
+        
+        plan = ApprovalPlan.load(plan_id)
+        validate_plan_for_execution(plan)  # TTL + consumed + approved checks
+        
+        logger.info(f"✅ ApprovalPlan {plan_id} validated successfully")
+    
+    except ApprovalPlanError as err:
+        if operation_id:
+            events_service.emit_event(
+                operation_id=operation_id,
+                agent="katib",
+                event_type="write_failed",
+                status="failed",
+                description_ar=f"كاتب: خطة الاعتماد غير صالحة - {err}",
+                error=str(err)
+            )
+        return {"write_success": False, "last_tool_error": f"P5-S7: Invalid ApprovalPlan - {err}"}
     
     # استدعاء كاتب الذكي
     katib = KatibAgent()
