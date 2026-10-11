@@ -337,9 +337,13 @@ class MuslehService:
         requires_four_eyes = False  # يُحدد لاحقاً في Excel workflow
         is_deletion_blocked = False  # لا حذف في مسار Excel
         
+        # P6: استشارة بسيطة حتمية موحدة (بدون laya)
         simple_report = {
             "domain": "general",
             "action_type": "create",
+            "intent_type": "heal_employee_data",
+            "confidence": 0.85,
+            "failure_patterns": [failure_code] if failure_code else [],
             "requires_four_eyes": requires_four_eyes,
             "is_deletion_blocked": is_deletion_blocked,
         }
