@@ -841,6 +841,162 @@ def get_user_guide_page() -> str:
     return "<h1>دليل الاستخدام غير متوفر</h1>"
 
 
+# ==================== LANGGRAPH CHAT INTEGRATION ====================
+
+@app.get("/", response_class=HTMLResponse)
+async def get_chat_page() -> str:
+    """Returns the LangGraph chat interface."""
+    chat_file = Path("templates") / "chat.html"
+    if chat_file.exists():
+        return chat_file.read_text(encoding="utf-8")
+    return "<h1>شات غير متوفر</h1>"
+
+
+@app.get("/dashboard", response_class=HTMLResponse)
+async def get_dashboard_page() -> str:
+    """Returns the main dashboard with LangGraph Studio chat integration."""
+    dashboard_file = Path("templates") / "dashboard.html"
+    if dashboard_file.exists():
+        return dashboard_file.read_text(encoding="utf-8")
+    return "<h1>Dashboard غير متوفر</h1>"
+
+
+class ChatMessage(BaseModel):
+    message: str
+    thread_id: Optional[str] = None
+    file_path: Optional[str] = None
+
+
+@app.post("/api/chat")
+async def chat_with_langgraph(req: ChatMessage, request: Request) -> Dict[str, Any]:
+    """
+    Proxy endpoint to LangGraph Studio API.
+    Forwards chat messages to the LangGraph 'seraj' graph.
+    """
+    try:
+        # Get LangGraph Studio URL from env or use default
+        langgraph_url = os.environ.get("LANGGRAPH_API_URL", "http://localhost:2024")
+        
+        # Build the request to LangGraph
+        thread_id = req.thread_id or f"thread_{int(datetime.now().timestamp())}"
+        
+        # Prepare input for the graph
+        graph_input = {
+            "user_query": req.message,
+        }
+        
+        # If file_path provided, include it
+        if req.file_path:
+            graph_input["file_path"] = req.file_path
+        
+        # Call LangGraph Studio API
+        import httpx
+        async with httpx.AsyncClient(timeout=300.0) as client:
+            response = await client.post(
+                f"{langgraph_url}/runs/stream",
+                json={
+                    "assistant_id": "seraj",  # Graph name from langgraph.json
+                    "thread_id": thread_id,
+                    "input": graph_input,
+                    "stream_mode": ["values", "updates"],
+                },
+            )
+            
+            if response.status_code != 200:
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"LangGraph API error: {response.text}"
+                )
+            
+            # Collect streamed response
+            full_response = []
+            current_agent = "seraj"
+            
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    try:
+                        data = json.loads(line[6:])
+                        full_response.append(data)
+                        
+                        # Track which agent is active
+                        if "metadata" in data and "langgraph_node" in data["metadata"]:
+                            current_agent = data["metadata"]["langgraph_node"]
+                            
+                    except json.JSONDecodeError:
+                        continue
+            
+            # Extract final response
+            final_state = full_response[-1] if full_response else {}
+            
+            audit_log_access("/api/chat", request, {
+                "thread_id": thread_id,
+                "message_length": len(req.message),
+            })
+            
+            return {
+                "status": "success",
+                "thread_id": thread_id,
+                "response": final_state.get("last_assistant", {}),
+                "current_agent": current_agent,
+                "full_stream": full_response,
+            }
+            
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"خطأ في الاتصال بـ LangGraph: {type(exc).__name__}: {exc}"
+        )
+
+
+@app.get("/api/chat/threads")
+async def list_chat_threads(request: Request) -> List[Dict[str, Any]]:
+    """List all active chat threads from LangGraph Studio."""
+    try:
+        langgraph_url = os.environ.get("LANGGRAPH_API_URL", "http://localhost:2024")
+        
+        import httpx
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(f"{langgraph_url}/threads")
+            
+            if response.status_code != 200:
+                return []
+            
+            threads = response.json()
+            
+            audit_log_access("/api/chat/threads", request)
+            
+            return threads.get("threads", [])
+            
+    except Exception:
+        return []
+
+
+@app.get("/api/chat/threads/{thread_id}/history")
+async def get_thread_history(thread_id: str, request: Request) -> Dict[str, Any]:
+    """Get message history for a specific thread."""
+    try:
+        langgraph_url = os.environ.get("LANGGRAPH_API_URL", "http://localhost:2024")
+        
+        import httpx
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(f"{langgraph_url}/threads/{thread_id}/history")
+            
+            if response.status_code != 200:
+                raise HTTPException(status_code=404, detail="Thread not found")
+            
+            history = response.json()
+            
+            audit_log_access(f"/api/chat/threads/{thread_id}/history", request)
+            
+            return history
+            
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"خطأ في جلب السجل: {type(exc).__name__}: {exc}"
+        )
+
+
 DASHBOARD_FILE = Path(__file__).parent / "templates" / "dashboard.html"
 if DASHBOARD_FILE.exists():
     DASHBOARD_HTML_PAGE = DASHBOARD_FILE.read_text(encoding="utf-8")
