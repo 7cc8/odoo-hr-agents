@@ -3,8 +3,7 @@ from dotenv import load_dotenv
 load_dotenv()  # ✅ تحميل .env قبل أي شيء
 
 from graph.build_graph import build_graph
-from graph.checkpointer import get_checkpointer_for_environment
 
-# P3: persistent checkpointer for durable state management
-checkpointer = get_checkpointer_for_environment()
-graph = build_graph(checkpointer=checkpointer)
+# P3: When running with langgraph dev, persistence is handled by the platform
+# Do not pass a custom checkpointer - it will be ignored
+graph = build_graph(checkpointer=None)

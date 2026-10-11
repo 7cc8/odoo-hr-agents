@@ -18,7 +18,7 @@ from agent_events_service import AgentEventsService
 from approval_schema import Approval
 from musleh_service import MuslehService
 from parser import parse_xlsx, ParserError
-from state import SerajState
+from graph.state import SerajState
 from validator import Validator, ValidationResult
 
 
