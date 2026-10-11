@@ -1,2 +1,0 @@
-﻿excel_row_number,final_status,failure_code,reasons,company_id,department_id,job_id,employee_match_id,row_hash,run_id,source_hash,parser_warnings
-2,rejected,reference_not_found,Company not found: شركة النخبة الذكية للتقنية,,,,,0423f4a303b2e9f747d6950674a2b8650be9bd158fb2aaede3e9ceb756eb75d2,b936acf29f9f8366,b936acf29f9f8366c303ffe52b929a699416722e5cff0762496a7168064b8d1f,

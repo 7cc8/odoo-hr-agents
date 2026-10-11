@@ -1,2 +1,0 @@
-﻿excel_row_number,final_status,failure_code,reasons,company_id,department_id,job_id,employee_match_id,row_hash,run_id,source_hash,parser_warnings
-2,rejected,reference_not_found,Department not found for company: تقنية المعلومات,15,,,,0423f4a303b2e9f747d6950674a2b8650be9bd158fb2aaede3e9ceb756eb75d2,f1fafab9e33cfc7f,f1fafab9e33cfc7f8920f26fe66fbf09edfa6eac6cd1b38b23535e8464190e57,

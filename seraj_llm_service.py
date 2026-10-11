@@ -1283,8 +1283,9 @@ class SerajLLMService:
         # دعم LLM_BASE_URL للتوجيه إلى خادم مخصص (مثل Ollama)
         base_url = os.environ.get("LLM_BASE_URL")
         if base_url:
-            # استخدام LLM_API_KEY بدلاً من OPENROUTER_API_KEY
+            # استخدام LLM_API_KEY و LLM_MODEL عند استخدام base_url مخصص
             api_key = os.environ.get("LLM_API_KEY", "")
+            model_name = os.environ.get("LLM_MODEL", model_name)
             # إضافة /chat/completions إذا لم يكن موجوداً
             if not base_url.endswith("/chat/completions"):
                 base_url = base_url.rstrip("/") + "/chat/completions"
@@ -1311,7 +1312,7 @@ class SerajLLMService:
             "User-Agent": "OdooHRAgents/1.0",
         }
         
-        # إضافة Authorization فقط إذا كان api_key موجوداً
+        # إضافة Authorization فقط إذا كان api_key موجوداً وغير فارغ
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
         

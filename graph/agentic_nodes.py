@@ -363,18 +363,30 @@ def seraj_meta_orchestration(state: SerajState) -> Dict[str, Any]:
         if explanation.get("reasoning"):
             orchestration_msg += f"💡 السبب: {explanation['reasoning']}\n"
         
-        return {
+        # إغلاق بعلم ENABLE_META_TRACES (افتراضه 0)
+        import os
+        enable_traces = os.environ.get("ENABLE_META_TRACES", "0") == "1"
+        
+        updates = {
             "meta_selected_agents": selected_agents,
             "meta_execution_plan": execution_plan,
             "meta_recommendations": recommendations,
             "meta_explanation": explanation,
             "meta_confidence": result.get("confidence", 0.0),
-            "agent_traces": state.get("agent_traces", []) + [{
+        }
+        
+        if enable_traces:
+            # حد agent_traces بآخر 20 عنصراً
+            current_traces = state.get("agent_traces", [])
+            new_trace = {
                 "agent": "seraj_meta_orchestration",
                 "timestamp": __import__("datetime").datetime.now().isoformat(),
                 "content": orchestration_msg,
-            }],
-        }
+            }
+            updated_traces = (current_traces + [new_trace])[-20:]
+            updates["agent_traces"] = updated_traces
+        
+        return updates
     
     except Exception as exc:
         logger.error(f"❌ Meta-Agent orchestration failed: {exc}")

@@ -1,2 +1,0 @@
-﻿excel_row_number,final_status,failure_code,reasons,company_id,department_id,job_id,employee_match_id,row_hash,run_id,source_hash,parser_warnings
-2,accepted,,Row passed validator checks.,15,8,22,,0423f4a303b2e9f747d6950674a2b8650be9bd158fb2aaede3e9ceb756eb75d2,478fcfb158c8b2bb,478fcfb158c8b2bb1ce08f639d18fa2381cd82c3328f32dd07fb8207d8651bc2,
