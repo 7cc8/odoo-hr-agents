@@ -115,8 +115,6 @@ def main():
         m_texts = " ".join([str(n) for n in members]).lower()
         if "musleh" in m_texts:
             labels[cid] = "وكيل الإصلاح الذاتي (مصلح - Musleh)"
-        elif "laya" in m_texts:
-            labels[cid] = "وكيلة التوجيه والفرز (لايا - Laya)"
         elif "telegram" in m_texts or "bot" in m_texts:
             labels[cid] = "واجهة تيليجرام وسراج (Telegram & Seraj)"
         elif "whisper" in m_texts or "voice" in m_texts:

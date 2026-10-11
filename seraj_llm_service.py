@@ -156,7 +156,10 @@ class SerajLLMService:
             
         return False
 
-    def consult_laya(self, text: str) -> Optional[Dict[str, Any]]:
+    # P6: consult_laya removed - laya deleted, use classify_intent instead
+    def consult_laya_DEPRECATED(self, text: str) -> Optional[Dict[str, Any]]:
+        """DEPRECATED: لايا محذوفة. استخدم classify_intent بدلاً."""
+        return None
         """
         استشارة وكيلة التوجيه السريع «لايا» للمساعدة في تصنيف النية وفض غموض المعنى.
         تُعامل النتيجة كتفسير استشاري مساعد فقط، لا كحقيقة مطلقة ولا كإذن تنفيذ.
@@ -573,9 +576,8 @@ class SerajLLMService:
                 )
                 return "🚫 تم إلغاء العملية بناءً على طلبك، ولم يتم إجراء أي تعديل أو حذف في Odoo."
 
-        # استشارة لايا كتفسير استشاري مساعد إن لم تُمرر مسبقاً
-        if laya_decision is None:
-            laya_decision = self.consult_laya(clean_query)
+        # P6: لايا محذوفة - نستخدم classify_intent الآن
+        laya_decision = None  # كانت: self.consult_laya(clean_query)
 
         # 2. فحص مسار الحذف والأرشفة والاسترجاع المحكوم
         is_archive_explicit = any(w in clean_query for w in ["أرشف", "ارشف", "أرشفة", "ارشفة", "إيقاف تنشيط", "تعطيل"])
@@ -902,11 +904,12 @@ class SerajLLMService:
 
         # 3. فحص طلبات الإضافة والتعديل — سراج يحضر العملية وينسق مع الوكلاء ويطلب الاعتماد
         write_prep_keywords = ["عدل", "تعديل", "غير مسمى", "تغيير مسمى", "أضف", "اضف", "أنشئ", "انشئ", "إنشاء", "انشاء"]
-        is_write_prep = any(kw in clean_query for kw in write_prep_keywords) or (laya_decision and laya_decision.get("action_type") in ("update", "create"))
+        # P6: is_write_prep simplified - laya_decision removed
+        is_write_prep = any(kw in clean_query for kw in write_prep_keywords)
 
         if is_write_prep:
-            # مسار التعديل (Update)
-            is_update = any(kw in clean_query for kw in ["عدل", "تعديل", "غير", "تغيير"]) or (laya_decision and laya_decision.get("action_type") == "update")
+            # مسار التعديل (Update) - P6: simplified without laya
+            is_update = any(kw in clean_query for kw in ["عدل", "تعديل", "غير", "تغيير"])
             if is_update:
                 m = re.search(r'(?:عدل|تعديل|غير|تغيير)\s+(?:مسمى\s+)?(?:الموظف\s+|الموظفة\s+)?(.+?)\s+(?:إلى|الى|ليصبح)\s+(.+)', clean_query)
                 if m:
@@ -1062,8 +1065,8 @@ class SerajLLMService:
                    "1. LangGraph: OPENAI_API_KEY=sk-... في .env\n" \
                    "2. Ollama: تشغيل `ollama serve` وتعيين LLM_PROVIDER=ollama"
 
-        # 3. بناء الـ System Prompt متضمناً التفسير الاستشاري للايا وتفويض الاستعلام لفاحص
-        system_prompt = self._build_system_prompt(session, user_name, laya_decision)
+        # 3. بناء الـ System Prompt (P6: لايا محذوفة)
+        system_prompt = self._build_system_prompt(session, user_name, None)
 
         # تجهيز الرسائل
         messages: List[Dict[str, Any]] = [{"role": "system", "content": system_prompt}]
