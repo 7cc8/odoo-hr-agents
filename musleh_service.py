@@ -41,7 +41,6 @@ from normalization import (
     normalize_date_text,
     reference_match_key,
 )
-from laya_service import LayaService
 from saudi_labor_law_rules import (
     PROBATION_EXTENDED_DAYS_MAX,
     PROBATION_STANDARD_DAYS_MAX,
@@ -142,11 +141,9 @@ class MuslehService:
     def __init__(
         self,
         repository=None,
-        laya_service: Optional[LayaService] = None,
         audit_service: Optional[SijilAuditService] = None,
     ):
         self.repository = repository
-        self.laya = laya_service or LayaService()
         self.audit = audit_service or SijilAuditService()
 
     # =========================================================================
@@ -332,22 +329,24 @@ class MuslehService:
             mudaqqiq_report["labor_law_notes"].append("تاريخ التعيين غير صحيح أو خارج النطاق المنطقي لنظام العمل.")
 
         # ---------------------------------------------------------
-        # د. استشارة «لايا» (Laya): القرار السريع وحواجز الأمان
+        # د. P6: لايا محذوفة - نستخدم قواعد حتمية بسيطة
         # ---------------------------------------------------------
-        laya_query = f"إدخال موظف جديد {name_val} شركة {company_val} قسم {department_val}"
-        laya_res = self.laya.triage_request(laya_query)
-        laya_report = {
-            "domain": laya_res.domain,
-            "action_type": laya_res.action_type,
-            "requires_four_eyes": laya_res.requires_four_eyes,
-            "is_deletion_blocked": laya_res.is_deletion_blocked,
+        # نحدد requires_four_eyes بناءً على العدد (حد أدنى 10)
+        requires_four_eyes = False  # يُحدد لاحقاً في Excel workflow
+        is_deletion_blocked = False  # لا حذف في مسار Excel
+        
+        simple_report = {
+            "domain": "general",
+            "action_type": "create",
+            "requires_four_eyes": requires_four_eyes,
+            "is_deletion_blocked": is_deletion_blocked,
         }
 
         return {
             "fahas": fahas_report,
             "muwaffaq": muwaffaq_report,
             "mudaqqiq": mudaqqiq_report,
-            "laya": laya_report,
+            "simple_decision": simple_report,
         }
 
     # =========================================================================
@@ -373,7 +372,7 @@ class MuslehService:
         fahas = consultation["fahas"]
         muwaffaq = consultation["muwaffaq"]
         mudaqqiq = consultation["mudaqqiq"]
-        laya = consultation["laya"]
+        simple_decision = consultation["simple_decision"]
 
         patched_fields: Dict[str, Any] = {}
         patches_to_apply = []
