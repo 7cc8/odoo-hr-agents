@@ -11,9 +11,15 @@ from typing import Dict, List, Optional, Tuple
 def classify_intent(user_query: str, context: Optional[Dict] = None) -> Dict[str, str]:
     """
     تصنيف نية المستخدم بناءً على قواعد حتمية
-    يرجع: {"intent": "read/write/archive/delete", "confidence": "high/medium/low", "details": "..."}
+    يرجع: {"intent": "read/write/archive/delete/excel_import", "confidence": "high/medium/low", "details": "..."}
+    
+    P4: دعم مسار Excel - إذا كان السياق يحتوي على excel_file_path
     """
     query = user_query.lower().strip()
+    
+    # P4: فحص وجود ملف Excel في السياق
+    if context and context.get("excel_file_path"):
+        return {"intent": "excel_import", "confidence": "high", "details": "استيراد من ملف Excel"}
     
     # كلمات الحدود لضمان عدم التطابق الجزئي
     def has_word_boundary(pattern: str, text: str) -> bool:

@@ -204,13 +204,26 @@ def ingest_user_message(state: SerajState) -> Dict[str, Any]:
 
 
 def classify_intent(state: SerajState) -> Dict[str, Any]:
-    """Phase 1: everything is 'read'.
-
-    TODO (Phase 3): replace with structured LLM output:
-        {intent, action, target, negated}  -> deterministic validation after.
-    Until then, write requests stay on the legacy chat_turn path.
     """
-    return {"intent": "read"}
+    P2/P4: تصنيف النية باستخدام classify_intent الحتمية.
+    
+    يفحص السياق لوجود excel_file_path ويصنف كـ excel_import.
+    """
+    from classify_intent import classify_intent as classify_fn
+    
+    user_query = state.get("user_query", "")
+    
+    # بناء السياق
+    context = {
+        "company_id": state.get("company_id"),
+        "company_name": state.get("company_name"),
+        "excel_file_path": state.get("excel_file_path"),  # P4
+    }
+    
+    # تصنيف النية
+    result = classify_fn(user_query, context)
+    
+    return {"intent": result["intent"]}
 
 
 def route_after_ingest(state: SerajState) -> str:
@@ -218,8 +231,16 @@ def route_after_ingest(state: SerajState) -> str:
 
 
 def route_intent(state: SerajState) -> str:
-    if state.get("intent") == "write" and ENABLE_WRITE_PATH:
+    intent = state.get("intent")
+    
+    # P4: مسار Excel
+    if intent == "excel_import":
+        return "parse_excel_file"
+    
+    # مسار الكتابة
+    if intent == "write" and ENABLE_WRITE_PATH:
         return "prepare_plan"
+    
     # ✅ جديد: نذهب للـ Meta-Agent للتخطيط الذكي
     return "seraj_meta_orchestration"
 

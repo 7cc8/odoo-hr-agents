@@ -3,6 +3,7 @@
 read : ingest_user_message -> classify_intent -> seraj_think <-> fahas_tools -> finalize
 write: prepare_plan -> policy_gate -> human_approval(interrupt) -> katib_execute
        -> fahas_verify -> sijil_log -> finalize_write
+excel: parse_excel -> validate -> heal -> dry_run -> approval(interrupt) -> write -> verify -> log
 """
 from __future__ import annotations
 
@@ -10,6 +11,7 @@ from langgraph.graph import END, START, StateGraph
 
 from graph import nodes as n
 from graph import agentic_nodes as an
+from graph import excel_nodes as en  # P4: Excel workflow nodes
 from graph.state import SerajState
 
 
@@ -48,6 +50,13 @@ def build_graph(checkpointer=None):
     g.add_node("musleh_heal", an.musleh_agentic_heal)  # ✅ جديد: معالجة البيانات المرفوضة
     g.add_node("muwaffaq_match", an.muwaffaq_agentic_match)  # ✅ جديد: المطابقة الذكية
 
+    # P4: عقد مسار Excel (Excel Workflow)
+    g.add_node("parse_excel_file", en.parse_excel_file)
+    g.add_node("validate_excel_rows", en.validate_excel_rows)
+    g.add_node("heal_excel_batch", en.heal_excel_batch)
+    g.add_node("generate_dry_run_report", en.generate_dry_run_report)
+    g.add_node("create_excel_approval", en.create_excel_approval)
+
     # مسار القراءة
     g.add_edge(START, "ingest_user_message")
     g.add_conditional_edges("ingest_user_message", n.route_after_ingest, ["classify_intent", "finalize"])
@@ -84,5 +93,13 @@ def build_graph(checkpointer=None):
     
     # مسار المطابقة (يمكن استدعاؤه من أي مكان)
     g.add_edge("muwaffaq_match", "seraj_think")  # ✅ بعد المطابقة، نعود لسراج
+
+    # P4: مسار Excel
+    # يمكن الدخول من classify_intent عند رفع ملف Excel
+    g.add_conditional_edges("parse_excel_file", en.route_after_excel_parse, ["validate_excel_rows", "finalize"])
+    g.add_conditional_edges("validate_excel_rows", en.route_after_validation, ["heal_excel_batch", "finalize"])
+    g.add_conditional_edges("heal_excel_batch", en.route_after_healing, ["generate_dry_run_report"])
+    g.add_conditional_edges("generate_dry_run_report", en.route_after_dry_run, ["create_excel_approval", "finalize"])
+    g.add_conditional_edges("create_excel_approval", en.route_after_excel_approval, ["human_approval"])
 
     return g.compile(checkpointer=checkpointer)
