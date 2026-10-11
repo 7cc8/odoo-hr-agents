@@ -24,6 +24,32 @@ from odoo_readonly_repository import OdooReadonlyRepository, OdooReadonlyReposit
 
 logger = logging.getLogger("fahas_service")
 
+
+def check_consistency(groups: List[Dict[str, Any]], total: int) -> Dict[str, Any]:
+    """
+    فحص اتساق البيانات: مجموع عدد الشركات يجب أن يساوي الإجمالي
+    دالة حتمية خارج الوكلاء
+    """
+    if not groups:
+        return {
+            "is_consistent": True,
+            "message": "لا توجد مجموعات للفحص",
+            "groups_sum": 0,
+            "total": total,
+        }
+    
+    groups_sum = sum(group.get("count", 0) for group in groups)
+    is_consistent = groups_sum == total
+    
+    return {
+        "is_consistent": is_consistent,
+        "message": f"مجموع الشركات ({groups_sum}) {'=' if is_consistent else '≠'} الإجمالي ({total})",
+        "groups_sum": groups_sum,
+        "total": total,
+        "difference": abs(groups_sum - total),
+    }
+
+
 # النماذج المصرح لـ «فاحص» بقراءتها
 SAFE_MODEL_PREFIXES = (
     "hr.",
@@ -39,6 +65,31 @@ FORBIDDEN_OPERATIONS = frozenset({
     "create", "write", "unlink", "delete", "drop", "update", "insert",
     "create_record", "unlink_records", "write_record", "delete_record",
 })
+
+
+def check_consistency(groups: List[Dict[str, Any]], total: int) -> Dict[str, Any]:
+    """
+    فحص اتساق البيانات: مجموع عدد الشركات يجب أن يساوي الإجمالي
+    دالة حتمية خارج الوكلاء
+    """
+    if not groups:
+        return {
+            "is_consistent": True,
+            "message": "لا توجد مجموعات للفحص",
+            "groups_sum": 0,
+            "total": total,
+        }
+    
+    groups_sum = sum(group.get("count", 0) for group in groups)
+    is_consistent = groups_sum == total
+    
+    return {
+        "is_consistent": is_consistent,
+        "message": f"مجموع الشركات ({groups_sum}) {'=' if is_consistent else '≠'} الإجمالي ({total})",
+        "groups_sum": groups_sum,
+        "total": total,
+        "difference": abs(groups_sum - total),
+    }
 
 
 class FahasSecurityError(PermissionError):
@@ -120,6 +171,13 @@ class FahasAgent:
                 model=p.get("model", ""),
                 domain=p.get("domain"),
                 company_id=p.get("company_id"),
+                include_archived=p.get("include_archived", False),
+                connection_id=p.get("connection_id"),
+            ),
+            "group_count": lambda p: self.group_count(
+                model=p.get("model", ""),
+                groupby_field=p.get("groupby_field", "company_id"),
+                domain=p.get("domain"),
                 include_archived=p.get("include_archived", False),
                 connection_id=p.get("connection_id"),
             ),
@@ -353,13 +411,115 @@ class FahasAgent:
             logger.error("فاحص: فشل البحث في سجلات %s: %s", model_clean, exc)
             raise FahasExecutionError(f"فشل البحث في سجلات «{model_clean}» عبر فاحص: {exc}")
 
-    def read_records(
+    def group_count(
         self,
         model: str,
-        ids: List[int],
-        fields: Optional[List[str]] = None,
+        groupby_field: str = "company_id",
+        domain: Optional[List[Any]] = None,
+        include_archived: bool = False,
         connection_id: Optional[str] = None,
     ) -> Dict[str, Any]:
+        """
+        حساب عدد السجلات مجمعة حسب الحقل المحدد (company_id افتراضياً).
+        يستخدم formatted_read_group (Odoo 19) أو read_group (الإصدارات الأقدم).
+        يكمل الشركات الفارغة بالصفر.
+        """
+        model_clean = validate_model_name(model)
+        repo = self.get_repository(connection_id)
+
+        query_domain = list(domain) if domain and isinstance(domain, list) else []
+
+        # معالجة المؤرشفين
+        context: Dict[str, Any] = {}
+        is_archived_query = include_archived or any(
+            isinstance(cond, (list, tuple)) and len(cond) >= 1 and cond[0] == "active"
+            for cond in query_domain
+        )
+        if is_archived_query:
+            context["active_test"] = False
+
+        try:
+            kwargs: Dict[str, Any] = {}
+            if context:
+                kwargs["context"] = context
+
+            # محاولة formatted_read_group أولاً (Odoo 19+)
+            groups = []
+            try:
+                groups = repo._models.execute_kw(
+                    repo.db,
+                    repo.uid,
+                    repo.api_key,
+                    model_clean,
+                    "formatted_read_group",
+                    [query_domain, [groupby_field], [groupby_field]],
+                    kwargs,
+                )
+            except Exception:
+                # العودة إلى read_group التقليدي
+                groups = repo._models.execute_kw(
+                    repo.db,
+                    repo.uid,
+                    repo.api_key,
+                    model_clean,
+                    "read_group",
+                    [query_domain, ["__count"], [groupby_field]],
+                    kwargs,
+                )
+
+            # تنسيق النتائج
+            company_counts = {}
+            total = 0
+
+            for group in groups:
+                if groupby_field == "company_id":
+                    # group["company_id"] قد يكون tuple (id, name) أو int أو False
+                    company_info = group.get("company_id")
+                    if isinstance(company_info, (list, tuple)) and len(company_info) >= 2:
+                        company_id = company_info[0]
+                        company_name = company_info[1]
+                    elif isinstance(company_info, int):
+                        company_id = company_info
+                        company_name = f"Company {company_id}"
+                    else:
+                        company_id = None
+                        company_name = "بدون شركة"
+                else:
+                    company_id = group.get(groupby_field)
+                    company_name = str(company_id)
+
+                count = group.get("__count", group.get(f"{groupby_field}_count", 0))
+                company_counts[company_id] = {
+                    "id": company_id,
+                    "name": company_name,
+                    "count": int(count)
+                }
+                total += int(count)
+
+            # إضافة الشركات المفقودة بالصفر (إذا كان groupby_field هو company_id)
+            if groupby_field == "company_id":
+                all_companies = self.list_companies(connection_id)
+                for company in all_companies:
+                    company_id = company.get("id")
+                    if company_id not in company_counts:
+                        company_counts[company_id] = {
+                            "id": company_id,
+                            "name": company.get("name", f"Company {company_id}"),
+                            "count": 0
+                        }
+
+            return {
+                "model": model_clean,
+                "groupby_field": groupby_field,
+                "groups": list(company_counts.values()),
+                "total": total,
+                "domain": query_domain,
+                "context": context,
+            }
+
+        except Exception as exc:
+            logger.error("فاحص: فشل تجميع السجلات في %s: %s", model_clean, exc)
+            raise FahasExecutionError(f"فشل تجميع السجلات في «{model_clean}» عبر فاحص: {exc}")
         """قراءة تفاصيل سجلات محددة بأرقام معرفاتها عبر read."""
         model_clean = validate_model_name(model)
         repo = self.get_repository(connection_id)

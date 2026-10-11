@@ -163,3 +163,146 @@ py -m unittest discover -s tests -v
 5. `system` — خطأ تقني عام (اتصال، timeout، إلخ)
 6. `module_conflict` (جديد) — تعارض مع موديول مخصص (قيد Python/SQL، onchange، حقل مطلوب ضمنياً بسبب inherit).
    **لا يُصلح تلقائياً** — يوقف الصف فوراً ويُصعّد لمراجعة بشرية مع حفظ payload كامل.
+
+---
+
+## 🌟 الواجهة الموحدة الجديدة (Unified Dashboard)
+
+تم إضافة واجهة ويب موحدة احترافية تجمع جميع مكونات النظام في صفحة واحدة سلسة.
+
+### 🚀 الوصول السريع
+
+```bash
+# تشغيل تلقائي
+.\start_chat.bat
+
+# فتح المتصفح
+http://localhost:8000
+```
+
+### 🎨 المميزات
+
+- **💬 محادثة ذكية**: محادثة مباشرة مع LangGraph و 8 وكلاء AI
+- **📁 رفع ملفات**: Drag & Drop لملفات Excel (حتى 2MB)
+- **⚙️ Pipeline مرئي**: خط معالجة تلقائي (Parser → Validator → Dry Run → Approval → Writer)
+- **📊 إحصائيات حية**: تحديث مباشر لعدد السجلات ونسبة النجاح
+- **🎨 تصميم Supabase Midnight**: واجهة احترافية بألوان داكنة وأخضر فسفوري
+
+### 📖 الأدلة
+
+- **[دليل الواجهة الموحدة الكامل](docs/UNIFIED_DASHBOARD_GUIDE.md)** - دليل استخدام شامل
+- **[تكوين Dashboard](config/dashboard_config.json)** - إعدادات قابلة للتخصيص
+- **[API Docs](http://localhost:8000/docs)** - Swagger UI
+
+### 🤖 الوكلاء الثمانية
+
+1. **سراج** (Seraj) - Meta Orchestration: منسق عام ومدير المحادثة
+2. **فحّاص** (Fahas) - Tools Agent: مزود الأدوات والوظائف
+3. **كاتب** (Katib) - Execute Agent: منفذ العمليات النهائية
+4. **مُدَقِّق** (Mudaqqiq) - Verify Agent: مدقق البيانات والقوانين
+5. **حارس** (Hares) - Guard Agent: حارس الأمان والصلاحيات
+6. **مُصلِح** (Musleh) - Heal Agent: مصلح الأخطاء والبيانات
+7. **سِجِل** (Sijil) - Log Agent: مسجل الأحداث والسجل التدقيقي
+8. **مُوَفِّق** (Muwaffaq) - Match Agent: مطابق البيانات والسجلات
+
+### 🔄 تدفق العمل
+
+#### السيناريو 1: محادثة فقط
+
+```
+اكتب سؤالك → Enter → سراج يجيب عبر الوكلاء
+```
+
+#### السيناريو 2: رفع ومعالجة تلقائية
+
+```
+ارفع Excel → "معالجة الملف" → Pipeline يعمل تلقائياً → النتيجة
+```
+
+#### السيناريو 3: رفع + محادثة ذكية
+
+```
+ارفع Excel → اكتب "افحص الملف" → LangGraph يعالج → شرح تفصيلي
+```
+
+### 🛠️ الخدمات المطلوبة
+
+```bash
+# LangGraph Studio (Terminal 1)
+langgraph dev --port 2024
+
+# FastAPI Web Service (Terminal 2)
+python web_service.py
+# أو
+uvicorn web_service:app --host 0.0.0.0 --port 8000 --reload
+```
+
+### 📡 Endpoints
+
+- `GET /` - الواجهة الموحدة (الصفحة الرئيسية)
+- `GET /chat` - شات مستقل
+- `POST /api/chat` - محادثة مع LangGraph
+- `POST /api/upload` - رفع ملف Excel
+- `POST /api/dry-run` - فحص تجريبي
+- `POST /api/approve-and-execute` - موافقة وتنفيذ تلقائي
+- `GET /api/status` - حالة النظام
+
+### 🎨 نظام التصميم
+
+**Supabase Midnight Theme:**
+
+- الخلفية: `#121212` (Obsidian)
+- اللون المميز: `#3ecf8e` (Phosphor Green)
+- النصوص: `#fafafa` (Snow)
+- الخط: Inter (بديل لـ Circular)
+- الأزرار: Pill style (radius: 9999px)
+- البطاقات: Soft corners (radius: 16px)
+
+### 📱 Responsive Design
+
+الواجهة تتكيف تلقائياً مع:
+
+- 💻 Desktop (شبكة بعمودين)
+- 📱 Tablet (شبكة عمودية)
+- 📲 Mobile (تصميم محسّن للمس)
+
+---
+
+## 🔄 تحديث: إزالة OpenRouter
+
+تم إزالة الاعتماد على OpenRouter بالكامل. النظام الآن يدعم:
+
+### الخيارات المتاحة
+
+1. **LangGraph Built-in (gpt-4o-mini)** ⭐ الافتراضي
+
+   ```bash
+   LLM_PROVIDER=langgraph
+   LANGCHAIN_MODEL=gpt-4o-mini
+   OPENAI_API_KEY=sk-...  # مطلوب
+   ```
+
+2. **Ollama محلي** (مجاني بالكامل)
+
+   ```bash
+   # تثبيت
+   https://ollama.ai/download
+   ollama pull qwen2.5:7b
+
+   # في .env
+   LLM_PROVIDER=ollama
+   OLLAMA_MODEL=qwen2.5:7b
+   ```
+
+3. **Fallback** (rule-based)
+   ```bash
+   LLM_PROVIDER=fallback
+   ```
+
+### ملاحظات
+
+- تم حذف `OPENROUTER_API_KEY` و `OPENROUTER_MODEL` من `.env`
+- `agents/llm_provider.py` محدّث لإزالة أولوية OpenRouter
+- النظام الآن أكثر مرونة ويدعم multiple providers
+
+---

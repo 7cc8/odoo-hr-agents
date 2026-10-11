@@ -271,12 +271,109 @@
       background: var(--color-ash);
     }
 
+    /* File Preview */
+    .file-preview {
+      display: none;
+      background: rgba(62, 207, 142, 0.1);
+      border: 1px solid rgba(62, 207, 142, 0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      margin-bottom: 12px;
+      align-items: center;
+      gap: 12px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .file-preview.active {
+      display: flex;
+    }
+
+    .file-icon {
+      width: 36px;
+      height: 36px;
+      background: var(--color-green);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-size: 13px;
+      color: var(--color-snow);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-size {
+      font-size: 11px;
+      color: var(--color-smoke);
+      margin-top: 2px;
+    }
+
+    .file-remove {
+      background: rgba(255, 100, 101, 0.1);
+      border: 1px solid rgba(255, 100, 101, 0.3);
+      border-radius: 8px;
+      color: var(--color-coral);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 6px 10px;
+      line-height: 1;
+      transition: all 0.2s;
+    }
+
+    .file-remove:hover {
+      background: rgba(255, 100, 101, 0.2);
+      color: #ff4444;
+    }
+
     .input-form {
       display: flex;
       gap: 12px;
       align-items: flex-end;
       max-width: 1200px;
       margin: 0 auto;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .file-upload-btn {
+      padding: 10px 12px;
+      background: var(--color-card);
+      border: 1px solid var(--color-charcoal);
+      border-radius: 10px;
+      color: var(--color-silver);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .file-upload-btn:hover {
+      color: var(--color-snow);
+      border-color: var(--color-green);
+      background: rgba(62, 207, 142, 0.1);
+    }
+
+    .file-upload-btn svg {
+      width: 20px;
+      height: 20px;
     }
 
     .input-wrapper {
@@ -318,6 +415,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-shrink: 0;
     }
 
     .send-btn:hover:not(:disabled) {
@@ -411,7 +509,30 @@
 
   <!-- Input Area -->
   <div class="input-area">
+    <!-- File Preview -->
+    <div class="file-preview" id="file-preview">
+      <div class="file-icon">📎</div>
+      <div class="file-info">
+        <div class="file-name" id="file-name"></div>
+        <div class="file-size" id="file-size"></div>
+      </div>
+      <button type="button" class="file-remove" id="file-remove">×</button>
+    </div>
+
     <form class="input-form" id="chat-form">
+      <!-- File Upload Button -->
+      <input 
+        type="file" 
+        id="file-input" 
+        class="file-input" 
+        accept=".xlsx,.xls"
+      />
+      <label for="file-input" class="file-upload-btn" title="رفع ملف Excel">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+        </svg>
+      </label>
+
       <div class="input-wrapper">
         <textarea 
           class="input-field" 
@@ -431,6 +552,7 @@
     // Global State
     let threadId = `thread_${Date.now()}`;
     let currentAgent = 'seraj';
+    let uploadedFile = null;
 
     // DOM Elements
     const messagesArea = document.getElementById('messages');
@@ -440,6 +562,11 @@
     const typingIndicator = document.getElementById('typing');
     const errorMessage = document.getElementById('error');
     const statusText = document.getElementById('status-text');
+    const fileInput = document.getElementById('file-input');
+    const filePreview = document.getElementById('file-preview');
+    const fileName = document.getElementById('file-name');
+    const fileSize = document.getElementById('file-size');
+    const fileRemove = document.getElementById('file-remove');
 
     // Auto-resize textarea
     userInput.addEventListener('input', function() {
@@ -524,11 +651,46 @@
         'var(--color-green)' : 'var(--color-amber)';
     }
 
+    // Upload file
+    async function uploadFile(file) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'فشل رفع الملف');
+      }
+
+      return await response.json();
+    }
+
     // Send message to API
     async function sendMessage(message) {
       try {
         setTyping(true);
         sendBtn.disabled = true;
+
+        let filePath = null;
+
+        // Upload file if exists
+        if (uploadedFile) {
+          addMessage('assistant', '📤 جاري رفع الملف...', { agent: 'system' });
+          
+          try {
+            const uploadResult = await uploadFile(uploadedFile);
+            filePath = uploadResult.file_path;
+            
+            const sizeKB = (uploadResult.size_bytes / 1024).toFixed(1);
+            addMessage('assistant', `✅ تم رفع الملف بنجاح: ${uploadResult.file_name} (${sizeKB} KB)`, { agent: 'system' });
+          } catch (uploadError) {
+            throw new Error(`فشل رفع الملف: ${uploadError.message}`);
+          }
+        }
 
         const response = await fetch('/api/chat', {
           method: 'POST',
@@ -536,8 +698,9 @@
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            message: message,
+            message: message || 'تم رفع ملف Excel',
             thread_id: threadId,
+            file_path: filePath,
           }),
         });
 
@@ -567,13 +730,16 @@
         
         setStatus('connected', 'متصل');
 
+        // Clear uploaded file
+        clearFile();
+
       } catch (error) {
         console.error('Error:', error);
         showError(`حدث خطأ: ${error.message}`);
         setStatus('error', 'خطأ في الاتصال');
         
         // Add error message to chat
-        addMessage('assistant', `⚠️ عذراً، حدث خطأ في معالجة رسالتك: ${error.message}`, {});
+        addMessage('assistant', `⚠️ عذراً، حدث خطأ: ${error.message}`, {});
         
       } finally {
         setTyping(false);
@@ -581,15 +747,63 @@
       }
     }
 
+    // Handle file selection
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Check file type
+      if (!file.name.match(/\.(xlsx|xls)$/i)) {
+        showError('يرجى رفع ملف Excel فقط (.xlsx أو .xls)');
+        fileInput.value = '';
+        return;
+      }
+
+      // Check file size (2MB max)
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxSize) {
+        showError('حجم الملف يتجاوز الحد الأقصى (2 ميجابايت)');
+        fileInput.value = '';
+        return;
+      }
+
+      // Store file
+      uploadedFile = file;
+
+      // Show preview
+      fileName.textContent = file.name;
+      fileSize.textContent = `${(file.size / 1024).toFixed(1)} KB`;
+      filePreview.classList.add('active');
+
+      // Update placeholder
+      userInput.placeholder = 'اكتب رسالتك أو اضغط إرسال لمعالجة الملف...';
+    });
+
+    // Remove file
+    fileRemove.addEventListener('click', clearFile);
+
+    function clearFile() {
+      uploadedFile = null;
+      fileInput.value = '';
+      filePreview.classList.remove('active');
+      userInput.placeholder = 'اكتب رسالتك هنا...';
+    }
+
     // Handle form submission
     chatForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       
       const message = userInput.value.trim();
-      if (!message) return;
+      
+      // Allow submission if there's a message OR a file
+      if (!message && !uploadedFile) return;
 
-      // Add user message to chat
-      addMessage('user', message);
+      // Add user message to chat (if exists)
+      if (message) {
+        addMessage('user', message);
+      } else if (uploadedFile) {
+        addMessage('user', `📎 ${uploadedFile.name}`);
+      }
       
       // Clear input
       userInput.value = '';
@@ -601,7 +815,7 @@
 
     // Initial greeting
     window.addEventListener('load', () => {
-      addMessage('assistant', 'مرحباً! 👋 أنا سِراج، مساعدك الذكي لإدارة الموارد البشرية في Odoo.\n\nكيف يمكنني مساعدتك اليوم؟', { agent: 'seraj' });
+      addMessage('assistant', 'مرحباً! 👋 أنا سِراج، مساعدك الذكي لإدارة الموارد البشرية في Odoo.\n\nيمكنك:\n• كتابة سؤال أو طلب\n• رفع ملف Excel (📎) لمعالجته\n\nكيف يمكنني مساعدتك اليوم؟', { agent: 'seraj' });
     });
 
     // Check connection status periodically

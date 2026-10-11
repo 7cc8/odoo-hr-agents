@@ -214,11 +214,27 @@ def seraj_think(state: SerajState) -> Dict[str, Any]:
     messages = [{"role": "system", "content": system_prompt}] + trim_history(state.get("messages", []))
 
     try:
-        msg = svc._call_openrouter(
-            model_name=svc.model,
-            messages=messages,
+        # استخدام LLM Provider الجديد
+        from agents.llm_provider import get_llm_provider
+        
+        provider = get_llm_provider()
+        
+        # تحويل messages لصيغة provider
+        llm_messages = messages
+        
+        # استدعاء LLM
+        response = provider.call(
+            messages=llm_messages,
             tools=SERAJ_ODOO_TOOLS_SCHEMA,
+            temperature=0.7
         )
+        
+        # تحويل response لصيغة موحدة
+        msg = {
+            "content": response.get("content", ""),
+            "tool_calls": response.get("tool_calls")
+        }
+        
     except (ValueError, Exception) as e:
         # التعامل مع أخطاء LLM (ValueError, HTTPError, Timeout, إلخ)
         import logging

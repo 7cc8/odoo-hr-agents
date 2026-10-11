@@ -1,0 +1,233 @@
+{
+  "dashboard": {
+    "title": "سراج HR Agents",
+    "subtitle": "نظام ذكي متكامل لأتمتة إدارة الموارد البشرية في Odoo",
+    "version": "1.0.0",
+    "language": "ar",
+    "direction": "rtl"
+  },
+  "agents": {
+    "count": 8,
+    "list": [
+      {
+        "name": "سراج",
+        "name_en": "seraj",
+        "role": "Meta Orchestration",
+        "icon": "🤖",
+        "description": "منسق عام ومدير المحادثة"
+      },
+      {
+        "name": "فحّاص",
+        "name_en": "fahas",
+        "role": "Tools Agent",
+        "icon": "🔧",
+        "description": "مزود الأدوات والوظائف"
+      },
+      {
+        "name": "كاتب",
+        "name_en": "katib",
+        "role": "Execute Agent",
+        "icon": "✍️",
+        "description": "منفذ العمليات النهائية"
+      },
+      {
+        "name": "مُدَقِّق",
+        "name_en": "mudaqqiq",
+        "role": "Verify Agent",
+        "icon": "✓",
+        "description": "مدقق البيانات والقوانين"
+      },
+      {
+        "name": "حارس",
+        "name_en": "hares",
+        "role": "Guard Agent",
+        "icon": "🛡️",
+        "description": "حارس الأمان والصلاحيات"
+      },
+      {
+        "name": "مُصلِح",
+        "name_en": "musleh",
+        "role": "Heal Agent",
+        "icon": "🔨",
+        "description": "مصلح الأخطاء والبيانات"
+      },
+      {
+        "name": "سِجِل",
+        "name_en": "sijil",
+        "role": "Log Agent",
+        "icon": "📋",
+        "description": "مسجل الأحداث والسجل التدقيقي"
+      },
+      {
+        "name": "مُوَفِّق",
+        "name_en": "muwaffaq",
+        "role": "Match Agent",
+        "icon": "🔍",
+        "description": "مطابق البيانات والسجلات"
+      }
+    ]
+  },
+  "pipeline": {
+    "steps": [
+      {
+        "id": "parser",
+        "title": "المحلل (Parser)",
+        "description": "قراءة وفهم بنية الملف",
+        "icon": "📋",
+        "color": "#3ecf8e"
+      },
+      {
+        "id": "validator",
+        "title": "المدقق (Validator)",
+        "description": "التحقق من صحة البيانات",
+        "icon": "✓",
+        "color": "#3ecf8e"
+      },
+      {
+        "id": "dry_run",
+        "title": "المحاكاة (Dry Run)",
+        "description": "فحص تجريبي بدون كتابة",
+        "icon": "🔍",
+        "color": "#3ecf8e"
+      },
+      {
+        "id": "approval",
+        "title": "الموافقة (Approval)",
+        "description": "مراجعة واعتماد السجلات",
+        "icon": "👤",
+        "color": "#3ecf8e"
+      },
+      {
+        "id": "writer",
+        "title": "الكاتب (Writer)",
+        "description": "الكتابة النهائية في Odoo",
+        "icon": "✍️",
+        "color": "#3ecf8e"
+      }
+    ]
+  },
+  "file_upload": {
+    "max_size_mb": 2,
+    "allowed_extensions": [".xlsx", ".xls"],
+    "templates": [
+      {
+        "name": "Master Template",
+        "description": "قالب شامل لكل بيانات الموظف",
+        "icon": "📊"
+      },
+      {
+        "name": "Modular Template",
+        "description": "قالب مجزأ حسب الأقسام",
+        "icon": "📑"
+      }
+    ]
+  },
+  "theme": {
+    "name": "Supabase Midnight",
+    "colors": {
+      "background": "#121212",
+      "card": "#121212",
+      "border": "#2e2e2e",
+      "text_primary": "#fafafa",
+      "text_secondary": "#b4b4b4",
+      "text_muted": "#898989",
+      "accent": "#3ecf8e",
+      "accent_hover": "#00c573",
+      "success": "#3ecf8e",
+      "error": "#ff4444",
+      "warning": "#ffa500"
+    },
+    "fonts": {
+      "primary": "Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "code": "JetBrains Mono, Consolas, monospace"
+    },
+    "radius": {
+      "button": "9999px",
+      "card": "16px",
+      "input": "8px"
+    },
+    "spacing": {
+      "xs": "8px",
+      "sm": "16px",
+      "md": "24px",
+      "lg": "32px",
+      "xl": "48px",
+      "2xl": "64px"
+    }
+  },
+  "api": {
+    "base_url": "http://localhost:8000",
+    "langgraph_url": "http://localhost:2024",
+    "timeout_seconds": 300,
+    "retry_attempts": 3
+  },
+  "features": {
+    "chat_enabled": true,
+    "file_upload_enabled": true,
+    "pipeline_visualization_enabled": true,
+    "stats_enabled": true,
+    "toast_notifications_enabled": true,
+    "drag_drop_enabled": true,
+    "keyboard_shortcuts_enabled": true,
+    "auto_approve_enabled": true,
+    "telegram_notifications_enabled": true
+  },
+  "messages": {
+    "welcome": {
+      "ar": "مرحباً! أنا سراج، مساعدك الذكي لإدارة الموارد البشرية.",
+      "en": "Welcome! I'm Seraj, your intelligent HR management assistant."
+    },
+    "capabilities": {
+      "ar": [
+        "معالجة ملفات Excel لاستيراد الموظفين",
+        "التحقق من البيانات وفقاً للقوانين السعودية",
+        "إنشاء السجلات في Odoo بشكل آمن",
+        "الإجابة على استفساراتك حول النظام"
+      ],
+      "en": [
+        "Process Excel files for employee import",
+        "Validate data according to Saudi labor laws",
+        "Create records in Odoo securely",
+        "Answer your questions about the system"
+      ]
+    },
+    "file_upload_hint": {
+      "ar": "Master Template أو Modular Template (حتى 2MB)",
+      "en": "Master Template or Modular Template (up to 2MB)"
+    },
+    "processing": {
+      "ar": "جاري المعالجة...",
+      "en": "Processing..."
+    },
+    "success": {
+      "ar": "تمت المعالجة بنجاح! 🎉",
+      "en": "Processing completed successfully! 🎉"
+    },
+    "error": {
+      "ar": "حدث خطأ أثناء المعالجة",
+      "en": "An error occurred during processing"
+    }
+  },
+  "stats": {
+    "agents": {
+      "label_ar": "وكلاء AI نشطين",
+      "label_en": "Active AI Agents",
+      "icon": "🤖"
+    },
+    "processed": {
+      "label_ar": "سجلات تم معالجتها",
+      "label_en": "Records Processed",
+      "icon": "📊"
+    },
+    "success_rate": {
+      "label_ar": "نسبة النجاح",
+      "label_en": "Success Rate",
+      "icon": "✓"
+    },
+    "avg_time": {
+      "label_ar": "متوسط وقت المعالجة",
+      "label_en": "Average Processing Time",
+      "icon": "⏱️"
+    }
+  }
+}
