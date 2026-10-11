@@ -251,7 +251,7 @@ class TestSevenQuestionsWithGraph:
         - يرجع 4 شركات
         - company_id فارغة بعد السؤال (لأنه لم يحدد شركة)
         """
-        with patch("seraj_llm_service.SerajLLMService._call_openrouter") as mock_llm, \
+        with patch("seraj_llm_service.SerajLLMService._call_llm") as mock_llm, \
              patch("fahas_service.FahasAgent.execute_query_task", side_effect=mock_fahas_execute):
             
             # تكوين Mock
@@ -280,7 +280,7 @@ class TestSevenQuestionsWithGraph:
         - يرجع 13 موظف
         - company_id = 15 (شركة النخبة)
         """
-        with patch("seraj_llm_service.SerajLLMService._call_openrouter") as mock_llm, \
+        with patch("seraj_llm_service.SerajLLMService._call_llm") as mock_llm, \
              patch("fahas_service.FahasAgent.execute_query_task", side_effect=mock_fahas_execute):
             
             mock_llm.side_effect = lambda model, messages, tools: create_mock_llm_for_question(
@@ -310,7 +310,7 @@ class TestSevenQuestionsWithGraph:
         - company_id لا يزال 15
         """
         # إعداد: تشغيل السؤال 2 أولاً لتحديد الشركة
-        with patch("seraj_llm_service.SerajLLMService._call_openrouter") as mock_llm, \
+        with patch("seraj_llm_service.SerajLLMService._call_llm") as mock_llm, \
              patch("fahas_service.FahasAgent.execute_query_task", side_effect=mock_fahas_execute):
             
             mock_llm.side_effect = lambda model, messages, tools: create_mock_llm_for_question(
@@ -344,7 +344,7 @@ class TestSevenQuestionsWithGraph:
         - يرجع سؤال توضيحي (وليس رقماً)
         - لا يتجاوز حد الخطوات (turns <= MAX_TURNS)
         """
-        with patch("seraj_llm_service.SerajLLMService._call_openrouter") as mock_llm, \
+        with patch("seraj_llm_service.SerajLLMService._call_llm") as mock_llm, \
              patch("fahas_service.FahasAgent.execute_query_task", side_effect=mock_fahas_execute):
             
             mock_llm.side_effect = lambda model, messages, tools: create_mock_llm_for_question(
@@ -374,7 +374,7 @@ class TestSevenQuestionsWithGraph:
         - يرجع 14 موظف
         - company_id فارغة (لأنه طلب "كل الشركات")
         """
-        with patch("seraj_llm_service.SerajLLMService._call_openrouter") as mock_llm, \
+        with patch("seraj_llm_service.SerajLLMService._call_llm") as mock_llm, \
              patch("fahas_service.FahasAgent.execute_query_task", side_effect=mock_fahas_execute):
             
             mock_llm.side_effect = lambda model, messages, tools: create_mock_llm_for_question(
@@ -402,7 +402,7 @@ class TestSevenQuestionsWithGraph:
         - يرجع 14 موظف
         - company_id فارغة
         """
-        with patch("seraj_llm_service.SerajLLMService._call_openrouter") as mock_llm, \
+        with patch("seraj_llm_service.SerajLLMService._call_llm") as mock_llm, \
              patch("fahas_service.FahasAgent.execute_query_task", side_effect=mock_fahas_execute):
             
             mock_llm.side_effect = lambda model, messages, tools: create_mock_llm_for_question(
@@ -427,7 +427,7 @@ class TestSevenQuestionsWithGraph:
         - يرجع توزيع (1 + 13 + 0 + 0 = 14)
         - الأرقام: My Company: 1، النخبة: 13، توركين: 0، العقار: 0
         """
-        with patch("seraj_llm_service.SerajLLMService._call_openrouter") as mock_llm, \
+        with patch("seraj_llm_service.SerajLLMService._call_llm") as mock_llm, \
              patch("fahas_service.FahasAgent.execute_query_task", side_effect=mock_fahas_execute):
             
             mock_llm.side_effect = lambda model, messages, tools: create_mock_llm_for_question(
@@ -462,7 +462,7 @@ class TestSevenQuestionsWithGraph:
             "وزّع الموظفين على الشركات",
         ]
         
-        with patch("seraj_llm_service.SerajLLMService._call_openrouter") as mock_llm, \
+        with patch("seraj_llm_service.SerajLLMService._call_llm") as mock_llm, \
              patch("fahas_service.FahasAgent.execute_query_task", side_effect=mock_fahas_execute):
             
             mock_llm.side_effect = lambda model, messages, tools: create_mock_llm_for_question(
@@ -501,7 +501,7 @@ class TestCompanyContextPersistence:
         2. = 15 بعد السؤال 2 (النخبة الذكية)
         3. فارغة بعد السؤال 5 (كل الشركات)
         """
-        with patch("seraj_llm_service.SerajLLMService._call_openrouter") as mock_llm, \
+        with patch("seraj_llm_service.SerajLLMService._call_llm") as mock_llm, \
              patch("fahas_service.FahasAgent.execute_query_task", side_effect=mock_fahas_execute):
             
             mock_llm.side_effect = lambda model, messages, tools: create_mock_llm_for_question(

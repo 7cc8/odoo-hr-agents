@@ -4,7 +4,7 @@ Integration Test - اختبار تكامل كامل للـ framework
 ====================================================
 يختبر:
 - Tool Registry
-- LLM Provider (OpenRouter/Ollama/Fallback)
+- LLM Provider (Ollama/Fallback)
 - BaseAgent framework
 - FahasAgent
 - LangGraph integration

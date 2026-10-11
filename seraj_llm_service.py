@@ -119,8 +119,42 @@ class SerajLLMService:
         self.katib = katib_agent or get_katib_agent()
 
     def is_configured(self) -> bool:
-        """Returns True if the OpenRouter API key is set."""
-        return bool(self.api_key and self.api_key.startswith("sk-or-"))
+        """Returns True if Ollama is available with required model."""
+        import os
+        
+        # Check for required LLM configuration
+        base_url = os.environ.get("LLM_BASE_URL")
+        model = os.environ.get("LLM_MODEL")
+        
+        if not base_url or not model:
+            logger.warning("LLM_BASE_URL or LLM_MODEL not configured")
+            return False
+        
+        # Check if Ollama is accessible 
+        try:
+            import urllib.request
+            import urllib.error
+            from urllib.parse import urlparse
+            
+            # Only allow local connections (security requirement)
+            parsed = urlparse(base_url)
+            hostname = parsed.hostname or parsed.netloc.split(':')[0]
+            if hostname not in ("localhost", "127.0.0.1", "::1", "[::1]"):
+                logger.error(f"Only local LLM servers allowed, got: {hostname}")
+                return False
+            
+            # Test connection to Ollama
+            test_url = base_url.replace('/v1', '').rstrip('/') + '/api/tags'
+            req = urllib.request.Request(test_url, headers={"Content-Type": "application/json"})
+            
+            with urllib.request.urlopen(req, timeout=5) as res:
+                if res.status == 200:
+                    return True
+                    
+        except Exception as e:
+            logger.warning(f"Failed to connect to LLM server: {e}")
+            
+        return False
 
     def consult_laya(self, text: str) -> Optional[Dict[str, Any]]:
         """
@@ -1023,7 +1057,10 @@ class SerajLLMService:
             effective_query = clean_query
 
         if not self.is_configured():
-            return "⚠️ عذراً، مفتاح خدمة الذكاء الاصطناعي (OpenRouter) غير مهيأ في ملف البيئة."
+            return "✅ النظام يعمل في وضع Fallback (Rule-based).\n" \
+                   "للحصول على أداء أفضل، يمكنك تكوين:\n" \
+                   "1. LangGraph: OPENAI_API_KEY=sk-... في .env\n" \
+                   "2. Ollama: تشغيل `ollama serve` وتعيين LLM_PROVIDER=ollama"
 
         # 3. بناء الـ System Prompt متضمناً التفسير الاستشاري للايا وتفويض الاستعلام لفاحص
         system_prompt = self._build_system_prompt(session, user_name, laya_decision)
@@ -1101,7 +1138,7 @@ class SerajLLMService:
         last_tool_error: Optional[str] = None
 
         for _ in range(max_turns):
-            assistant_msg = self._call_openrouter(
+            assistant_msg = self._call_llm(
                 model_name=model_name,
                 messages=current_messages,
                 tools=SERAJ_ODOO_TOOLS_SCHEMA,
@@ -1267,59 +1304,49 @@ class SerajLLMService:
             laya_decision=laya_decision,
         )
 
-    def _call_openrouter(
+    def _call_llm(
         self,
         model_name: str,
         messages: List[Dict[str, Any]],
         tools: Optional[List[Dict[str, Any]]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
-        إرسال الطلب إلى واجهة OpenRouter chat completions مع دعم تعريف الأدوات (tools).
-        يدعم LLM_BASE_URL للتوجيه إلى Ollama أو أي خادم متوافق.
-        يرجع كائن رسالة المساعد الكامل (message dict) متضمناً content و/أو tool_calls.
+        Call local LLM server (Ollama) compatible with OpenAI Chat Completions API.
+        Returns the complete assistant message dict including content and/or tool_calls.
         """
         import os
         
-        # دعم LLM_BASE_URL للتوجيه إلى خادم مخصص (مثل Ollama)
+        # Get LLM configuration
         base_url = os.environ.get("LLM_BASE_URL")
-        if base_url:
-            # فحص الأمان: السماح فقط بـ localhost/127.0.0.1/::1 إلا إذا LLM_ALLOW_REMOTE=1
-            from urllib.parse import urlparse
-            parsed = urlparse(base_url)
-            hostname = parsed.hostname or parsed.netloc.split(':')[0]
-            is_local = hostname in ("localhost", "127.0.0.1", "::1", "[::1]")
-            allow_remote = os.environ.get("LLM_ALLOW_REMOTE", "0") == "1"
-            
-            if not is_local and not allow_remote:
-                raise ValueError(
-                    f"LLM_BASE_URL يشير إلى خادم خارجي ({hostname}). "
-                    "للسماح بذلك، اضبط LLM_ALLOW_REMOTE=1. "
-                    "العناوين المحلية المسموحة: localhost, 127.0.0.1, ::1"
-                )
-            
-            # استخدام LLM_API_KEY و LLM_MODEL عند استخدام base_url مخصص
-            api_key = os.environ.get("LLM_API_KEY", "")
-            custom_model = os.environ.get("LLM_MODEL")
-            if not custom_model:
-                raise ValueError(
-                    "LLM_BASE_URL مضبوط لكن LLM_MODEL غير موجود. "
-                    "يجب ضبط LLM_MODEL عند استخدام خادم مخصص (مثل: llama3.2)."
-                )
-            model_name = custom_model
-            # إضافة /chat/completions إذا لم يكن موجوداً
-            if not base_url.endswith("/chat/completions"):
-                base_url = base_url.rstrip("/") + "/chat/completions"
-            url = base_url
-        else:
-            # OpenRouter الافتراضي
-            api_key = self.api_key
-            url = "https://openrouter.ai/api/v1/chat/completions"
+        model = os.environ.get("LLM_MODEL", model_name)
+        timeout = int(os.environ.get("LLM_TIMEOUT", "120"))
+        max_tokens = int(os.environ.get("LLM_MAX_TOKENS", "1024"))
+        
+        if not base_url:
+            raise ValueError("LLM_BASE_URL must be configured for local LLM server")
+        
+        if not model:
+            raise ValueError("LLM_MODEL must be configured")
+        
+        # Security check: only allow local connections
+        from urllib.parse import urlparse
+        parsed = urlparse(base_url)
+        hostname = parsed.hostname or parsed.netloc.split(':')[0]
+        if hostname not in ("localhost", "127.0.0.1", "::1", "[::1]"):
+            raise ValueError(
+                f"Only local LLM servers allowed for security. Got hostname: {hostname}. "
+                "Allowed: localhost, 127.0.0.1, ::1"
+            )
+        
+        # Add /chat/completions if not present
+        if not base_url.endswith("/chat/completions"):
+            base_url = base_url.rstrip("/") + "/chat/completions"
         
         payload: Dict[str, Any] = {
-            "model": model_name,
+            "model": model,
             "messages": messages,
             "temperature": 0.1,
-            "max_tokens": 800,
+            "max_tokens": max_tokens,
         }
         if tools:
             payload["tools"] = tools
@@ -1332,17 +1359,13 @@ class SerajLLMService:
             "User-Agent": "OdooHRAgents/1.0",
         }
         
-        # إضافة Authorization فقط إذا كان api_key موجوداً وغير فارغ
+        # Add API key if configured (optional for Ollama)
+        api_key = os.environ.get("LLM_API_KEY")
         if api_key:
             headers["Authorization"] = f"Bearer {api_key}"
         
-        # إضافة headers إضافية لـ OpenRouter فقط
-        if not base_url:
-            headers["HTTP-Referer"] = "https://odoo-hr-agents.local"
-            headers["X-Title"] = "Odoo HR Seraj Agent"
-        
-        req = urllib.request.Request(url, data=data, headers=headers)
-        with urllib.request.urlopen(req, timeout=self.timeout) as res:
+        req = urllib.request.Request(base_url, data=data, headers=headers)
+        with urllib.request.urlopen(req, timeout=timeout) as res:
             res_data = json.loads(res.read().decode("utf-8"))
             choices = res_data.get("choices", [])
             if choices:

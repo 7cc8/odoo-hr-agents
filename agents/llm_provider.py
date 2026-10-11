@@ -2,8 +2,7 @@
 LLM Provider Manager - إدارة مزودي النماذج اللغوية
 ====================================================
 يدعم:
-- OpenRouter (مدفوع)
-- Ollama (مجاني/محلي)
+- Ollama (محلي/مجاني) 
 - Fallback (rule-based)
 """
 from __future__ import annotations
@@ -21,7 +20,7 @@ class LLMProvider:
     
     def __init__(
         self,
-        provider: str = "auto",  # auto, openrouter, ollama, fallback
+        provider: str = "auto",  # auto, ollama, fallback
         model: Optional[str] = None,
     ):
         self.provider = self._detect_provider(provider)
@@ -33,9 +32,7 @@ class LLMProvider:
         if provider != "auto":
             return provider
         
-        # أولوية: OpenRouter > Ollama > Fallback
-        if os.environ.get("OPENROUTER_API_KEY"):
-            return "openrouter"
+        # أولوية: Ollama > Fallback (مجاناً فقط)
         
         # التحقق من Ollama محلياً
         try:
@@ -52,10 +49,8 @@ class LLMProvider:
     
     def _get_default_model(self) -> str:
         """الحصول على النموذج الافتراضي"""
-        if self.provider == "openrouter":
-            return os.environ.get("OPENROUTER_MODEL", "anthropic/claude-3.5-sonnet")
-        elif self.provider == "ollama":
-            return os.environ.get("OLLAMA_MODEL", "llama3.2")  # 3B model سريع
+        if self.provider == "ollama":
+            return os.environ.get("LLM_MODEL", "qwen2.5:7b")
         else:
             return "fallback-rule-based"
     
@@ -67,88 +62,10 @@ class LLMProvider:
     ) -> Dict[str, Any]:
         """استدعاء موحد للنماذج"""
         
-        if self.provider == "openrouter":
-            return self._call_openrouter(messages, tools, temperature)
-        elif self.provider == "ollama":
+        if self.provider == "ollama":
             return self._call_ollama(messages, tools, temperature)
         else:
             return self._call_fallback(messages)
-    
-    # ═══════════════════════════════════════════════════════════════
-    # OpenRouter Implementation
-    # ═══════════════════════════════════════════════════════════════
-    
-    def _call_openrouter(
-        self,
-        messages: List[Dict[str, Any]],
-        tools: Optional[List[Dict[str, Any]]],
-        temperature: float,
-    ) -> Dict[str, Any]:
-        """استدعاء OpenRouter API (أو Ollama عبر base_url)"""
-        import urllib.request
-        import urllib.error
-        
-        # دعم LLM_BASE_URL و LLM_API_KEY من البيئة
-        base_url = os.environ.get("LLM_BASE_URL")
-        if base_url:
-            # استخدام base_url مخصص (مثل Ollama: http://localhost:11434/v1)
-            api_key = os.environ.get("LLM_API_KEY", "")
-            # إضافة /chat/completions إذا لم يكن موجوداً
-            if not base_url.endswith("/chat/completions"):
-                base_url = base_url.rstrip("/") + "/chat/completions"
-            url = base_url
-        else:
-            # OpenRouter الافتراضي
-            api_key = os.environ.get("OPENROUTER_API_KEY", "")
-            if not api_key:
-                logger.warning("OPENROUTER_API_KEY not set, falling back")
-                return self._call_fallback(messages)
-            url = "https://openrouter.ai/api/v1/chat/completions"
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": os.environ.get("APP_URL", "https://github.com/your-repo"),
-        }
-        
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "temperature": temperature,
-        }
-        
-        if tools:
-            payload["tools"] = tools
-        
-        try:
-            req = urllib.request.Request(
-                url,
-                data=json.dumps(payload).encode('utf-8'),
-                headers=headers,
-                method='POST'
-            )
-            
-            with urllib.request.urlopen(req, timeout=30) as response:
-                result = json.loads(response.read().decode('utf-8'))
-                
-                if result.get("choices"):
-                    message = result["choices"][0].get("message", {})
-                    return {
-                        "content": message.get("content", ""),
-                        "tool_calls": message.get("tool_calls"),
-                        "provider": "openrouter",
-                    }
-        
-        except urllib.error.HTTPError as e:
-            if e.code == 402:
-                logger.error("OpenRouter: Payment required (402)")
-            else:
-                logger.error(f"OpenRouter HTTP error {e.code}: {e.reason}")
-        except Exception as e:
-            logger.error(f"OpenRouter error: {e}")
-        
-        # Fallback
-        logger.warning("OpenRouter failed, using fallback")
-        return self._call_fallback(messages)
     
     # ═══════════════════════════════════════════════════════════════
     # Ollama Implementation
@@ -160,55 +77,54 @@ class LLMProvider:
         tools: Optional[List[Dict[str, Any]]],
         temperature: float,
     ) -> Dict[str, Any]:
-        """استدعاء Ollama محلياً"""
+        """استدعاء Ollama محلياً عبر Chat Completions API"""
         try:
-            import httpx
+            import urllib.request
+            import urllib.error
             
-            # تحويل الرسائل لصيغة Ollama
-            prompt = self._messages_to_prompt(messages)
+            # استخدام Chat Completions API المتوافق مع OpenAI
+            url = "http://localhost:11434/v1/chat/completions"
             
-            url = "http://localhost:11434/api/generate"
             payload = {
                 "model": self.model,
-                "prompt": prompt,
+                "messages": messages,
                 "temperature": temperature,
                 "stream": False,
+                "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "1024")),
             }
             
-            response = httpx.post(url, json=payload, timeout=60)
-            response.raise_for_status()
+            # إضافة الأدوات إذا كانت متاحة
+            if tools:
+                payload["tools"] = tools
+                payload["tool_choice"] = "auto"
             
-            result = response.json()
-            content = result.get("response", "")
-            
-            # محاولة استخراج JSON من النص
-            # Ollama لا يدعم tool calling مباشرة، نحتاج parsing
-            return {
-                "content": content,
-                "tool_calls": None,  # نحتاج parsing يدوي
-                "provider": "ollama",
+            data = json.dumps(payload).encode("utf-8")
+            headers = {
+                "Content-Type": "application/json",
             }
+            
+            req = urllib.request.Request(url, data=data, headers=headers)
+            with urllib.request.urlopen(req, timeout=120) as response:
+                result = json.loads(response.read().decode("utf-8"))
+                
+                if result.get("choices"):
+                    message = result["choices"][0].get("message", {})
+                    return {
+                        "content": message.get("content", ""),
+                        "tool_calls": message.get("tool_calls"),
+                        "provider": "ollama",
+                    }
         
         except Exception as e:
             logger.error(f"Ollama error: {e}")
-            return self._call_fallback(messages)
-    
-    def _messages_to_prompt(self, messages: List[Dict[str, Any]]) -> str:
-        """تحويل messages لـ prompt واحد"""
-        parts = []
-        for msg in messages:
-            role = msg.get("role", "user")
-            content = msg.get("content", "")
-            
-            if role == "system":
-                parts.append(f"System: {content}")
-            elif role == "user":
-                parts.append(f"User: {content}")
-            elif role == "assistant":
-                parts.append(f"Assistant: {content}")
-        
-        parts.append("Assistant:")  # للحصول على الرد
-        return "\n\n".join(parts)
+            # إضافة معلومات مفيدة للمستخدم باللغة العربية
+            error_msg = f"لم أستطع الاتصال بخادم Ollama المحلي.\n\nالرجاء التأكد من:\n• تشغيل Ollama: ollama serve\n• وجود النموذج: ollama pull {self.model}\n\nالخطأ التقني: {e}"
+            return {
+                "content": error_msg,
+                "tool_calls": None,
+                "provider": "ollama_error",
+            }
+
     
     # ═══════════════════════════════════════════════════════════════
     # Fallback Implementation
@@ -226,46 +142,72 @@ class LLMProvider:
         
         logger.info(f"Fallback processing query: {user_query[:50]}...")
         
-        # تصنيف بسيط بالكلمات المفتاحية
-        operation = "search"
-        model = "hr.employee"
-        domain = []
-        fields = ["name", "job_id", "department_id"]
-        limit = 10
+        # ردود بسيطة بناءً على كلمات مفتاحية
+        if any(kw in user_query for kw in ["مرحب", "السلام", "هلا", "أهلا", "اهلا", "hello", "hi", "hey"]):
+            response_text = "أهلاً وسهلاً! 👋 أنا سراج، مساعدك في إدارة الموارد البشرية.\n\n" \
+                           "يمكنني مساعدتك في:\n" \
+                           "• الاستفسار عن الموظفين 👥\n" \
+                           "• عرض الأقسام 📁\n" \
+                           "• معلومات الشركات 🏢\n" \
+                           "• معالجة ملفات Excel 📊\n\n" \
+                           "💬 جرّب أن تسأل: 'كم عدد الموظفين؟' أو 'مساعدة'"
         
-        # اكتشاف نوع العملية
-        if any(kw in user_query for kw in ["كم", "عدد", "count", "how many"]):
-            operation = "count"
-            fields = None
+        elif any(kw in user_query for kw in ["كم", "عدد", "count", "how many"]):
+            if "موظف" in user_query or "employee" in user_query:
+                response_text = "📊 لعرض عدد الموظفين، يحتاج النظام للاتصال بقاعدة بيانات Odoo.\n\n" \
+                               "حالياً في وضع Fallback المحدود. للحصول على البيانات الفعلية:\n" \
+                               "1. ثبّت Ollama (مجاني): https://ollama.ai\n" \
+                               "2. أو أضف OPENAI_API_KEY في ملف .env"
+            else:
+                response_text = "أحتاج لمعرفة ماذا تريد أن تعد؟ (موظفين، أقسام، شركات؟)"
         
-        # اكتشاف النموذج
-        if any(kw in user_query for kw in ["موظف", "موظفين", "employee"]):
-            model = "hr.employee"
         elif any(kw in user_query for kw in ["قسم", "أقسام", "department"]):
-            model = "hr.department"
-        elif any(kw in user_query for kw in ["وظيفة", "وظائف", "job"]):
-            model = "hr.job"
+            response_text = "📁 لعرض الأقسام، يحتاج النظام للاتصال بقاعدة بيانات Odoo.\n\n" \
+                           "حالياً في وضع Fallback المحدود."
+        
         elif any(kw in user_query for kw in ["شركة", "منشأة", "company"]):
-            model = "res.company"
+            response_text = "🏢 لعرض الشركات، يحتاج النظام للاتصال بقاعدة بيانات Odoo.\n\n" \
+                           "حالياً في وضع Fallback المحدود."
         
-        # اكتشاف filters بسيطة
-        if any(kw in user_query for kw in ["تقنية", "تكنولوجيا", "tech", "it"]):
-            if model == "hr.employee":
-                domain = [("department_id.name", "ilike", "IT")]
-            elif model == "hr.department":
-                domain = [("name", "ilike", "IT")]
+        elif any(kw in user_query for kw in ["help", "مساعدة", "ساعد", "إيش", "ايش", "شو", "وش"]):
+            response_text = "🤖 **سراج - المساعد الذكي للموارد البشرية**\n\n" \
+                           "**الوضع الحالي:** Fallback (محدود)\n\n" \
+                           "**ما يمكنني فعله الآن:**\n" \
+                           "• الرد على التحيات البسيطة\n" \
+                           "• شرح كيفية تحسين النظام\n" \
+                           "• إرشادات الاستخدام\n\n" \
+                           "**🚀 للحصول على الوظائف الكاملة:**\n" \
+                           "1. **Ollama (مجاني):** تحميل من ollama.ai\n" \
+                           "2. **OpenAI API (مدفوع):** إضافة OPENAI_API_KEY\n\n" \
+                           "بعدها ستحصل على:\n" \
+                           "✅ استعلام حقيقي من Odoo\n" \
+                           "✅ معالجة ملفات Excel\n" \
+                           "✅ إجابات ذكية ومفصلة"
         
-        response = {
-            "operation": operation,
-            "model": model,
-            "domain": domain,
-            "fields": fields,
-            "limit": limit,
-            "reasoning": "Rule-based fallback: LLM unavailable",
-        }
+        else:
+            # رد افتراضي ودود
+            response_text = f"مرحباً! 👋 فهمت أنك تريد: '{user_query[:50]}'\n\n" \
+                           "أعتذر، حالياً أعمل في **وضع Fallback المحدود** ولا أستطيع معالجة هذا الطلب بذكاء.\n\n" \
+                           "🎯 **ما يمكنك فعله:**\n" \
+                           "• جرّب كلمات بسيطة: 'مساعدة'، 'كم عدد الموظفين؟'\n" \
+                           "• ارفع ملف Excel من الواجهة (يعمل بدون LLM)\n\n" \
+                           "🚀 **لتفعيل الذكاء الكامل (اختياري):**\n\n" \
+                           "**الطريقة الأسهل (مجاني):**\n" \
+                           "```bash\n" \
+                           "# تحميل Ollama من https://ollama.ai\n" \
+                           "ollama pull qwen2.5:7b\n" \
+                           "ollama serve\n" \
+                           "```\n" \
+                           "ثم في ملف `.env`: `LLM_PROVIDER=ollama`\n\n" \
+                           "**أو استخدام OpenAI:**\n" \
+                           "```bash\n" \
+                           "LLM_PROVIDER=langgraph\n" \
+                           "OPENAI_API_KEY=sk-...\n" \
+                           "```\n\n" \
+                           "💡 النظام يعمل أساساً - الـ LLM مجرد تحسين!"
         
         return {
-            "content": json.dumps(response, ensure_ascii=False),
+            "content": response_text,
             "tool_calls": None,
             "provider": "fallback",
         }

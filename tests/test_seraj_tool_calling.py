@@ -74,7 +74,7 @@ class TestSerajToolCalling(unittest.TestCase):
     # -------------------------------------------------------------------------
     # 2. اختبار «كم عدد الموظفين؟» -> عدّ فعلي عبر count_records
     # -------------------------------------------------------------------------
-    @patch.object(SerajLLMService, "_call_openrouter")
+    @patch.object(SerajLLMService, "_call_llm")
     @patch("odoo_agent_tools._get_repository")
     def test_count_employees_actual_count_not_name_search(self, mock_get_repo, mock_llm_call):
         # محاكاة Odoo Repository
@@ -119,7 +119,7 @@ class TestSerajToolCalling(unittest.TestCase):
     # -------------------------------------------------------------------------
     # 3. اختبار «والمؤرشفين؟» -> استخدام سياق الموديل السابق وقراءة غير النشطين
     # -------------------------------------------------------------------------
-    @patch.object(SerajLLMService, "_call_openrouter")
+    @patch.object(SerajLLMService, "_call_llm")
     @patch("odoo_agent_tools._get_repository")
     def test_follow_up_archived_employees_uses_context(self, mock_get_repo, mock_llm_call):
         mock_repo = MagicMock()
@@ -169,7 +169,7 @@ class TestSerajToolCalling(unittest.TestCase):
     # -------------------------------------------------------------------------
     # 4. اختبار «ما الشركات المتاحة لي؟» -> استعلام فعلي عبر list_companies
     # -------------------------------------------------------------------------
-    @patch.object(SerajLLMService, "_call_openrouter")
+    @patch.object(SerajLLMService, "_call_llm")
     @patch("odoo_agent_tools._get_repository")
     def test_list_companies_actual_data(self, mock_get_repo, mock_llm_call):
         mock_repo = MagicMock()
@@ -209,7 +209,7 @@ class TestSerajToolCalling(unittest.TestCase):
     # -------------------------------------------------------------------------
     # 5. اختبار «ابحث عن موظف اسمه أحمد» -> بحث بالاسم عبر search_records
     # -------------------------------------------------------------------------
-    @patch.object(SerajLLMService, "_call_openrouter")
+    @patch.object(SerajLLMService, "_call_llm")
     @patch("odoo_agent_tools._get_repository")
     def test_search_employee_by_name(self, mock_get_repo, mock_llm_call):
         mock_repo = MagicMock()
@@ -304,7 +304,7 @@ class TestSerajToolCalling(unittest.TestCase):
     # -------------------------------------------------------------------------
     # 9. اختبار معالجة أخطاء الاتصال والصلاحيات بوضوح دون تضليل
     # -------------------------------------------------------------------------
-    @patch.object(SerajLLMService, "_call_openrouter")
+    @patch.object(SerajLLMService, "_call_llm")
     @patch("odoo_agent_tools._get_repository")
     def test_connection_error_is_reported_clearly_not_as_missing_employees(self, mock_get_repo, mock_llm_call):
         mock_repo = MagicMock()
@@ -356,7 +356,7 @@ class TestSerajToolCalling(unittest.TestCase):
     # -------------------------------------------------------------------------
     # 11. اختبار استعانة سراج بلايا كتفسير استشاري مساعد مع الحفاظ على دور المنسق
     # -------------------------------------------------------------------------
-    @patch.object(SerajLLMService, "_call_openrouter")
+    @patch.object(SerajLLMService, "_call_llm")
     def test_seraj_consults_laya_as_assistive_triage(self, mock_llm_call):
         mock_llm_call.return_value = {
             "role": "assistant",
@@ -397,7 +397,7 @@ class TestSerajToolCalling(unittest.TestCase):
     # -------------------------------------------------------------------------
     # 13. اختبار استبدال الرد المضلل بالخطأ التقني الفعلي عند فشل Odoo
     # -------------------------------------------------------------------------
-    @patch.object(SerajLLMService, "_call_openrouter")
+    @patch.object(SerajLLMService, "_call_llm")
     @patch("odoo_agent_tools._get_repository")
     def test_safeguard_prevents_false_employee_not_found_on_connection_error(self, mock_get_repo, mock_llm_call):
         mock_repo = MagicMock()

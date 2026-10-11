@@ -131,7 +131,7 @@ class TestFahasServiceAndSeparation(unittest.TestCase):
     # -------------------------------------------------------------------------
     # 7. اختبار سراج يفوّض الاستعلام لفاحص دون مسار قراءة موازٍ
     # -------------------------------------------------------------------------
-    @patch.object(SerajLLMService, "_call_openrouter")
+    @patch.object(SerajLLMService, "_call_llm")
     def test_seraj_delegates_query_task_to_fahas_and_explains_result(self, mock_llm_call):
         self.mock_repo._models.execute_kw.return_value = 15
 

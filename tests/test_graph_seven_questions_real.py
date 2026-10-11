@@ -236,7 +236,7 @@ def mock_odoo_connection():
 @pytest.fixture
 def graph(mock_llm_scenario, mock_odoo_connection):
     """بناء Graph مع Mocks"""
-    with patch("seraj_llm_service.SerajLLMService._call_openrouter") as mock_llm, \
+    with patch("seraj_llm_service.SerajLLMService._call_llm") as mock_llm, \
          patch("xmlrpc.client.ServerProxy", return_value=mock_odoo_connection):
         
         # Mock LLM يستخدم السيناريو المسجل

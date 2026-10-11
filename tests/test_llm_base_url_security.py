@@ -20,7 +20,7 @@ def test_llm_base_url_localhost_allowed():
     # يجب أن لا يرفع خطأ عند استدعاء _call_openrouter
     # (سيفشل في urlopen لكن لن يرفع ValueError من فحص الأمان)
     try:
-        svc._call_openrouter("llama3.2", [{"role": "user", "content": "test"}])
+        svc._call_llm("qwen2.5:7b", [{"role": "user", "content": "test"}])
     except ValueError as e:
         if "خادم خارجي" in str(e):
             pytest.fail(f"localhost يجب أن يكون مسموحاً: {e}")
@@ -38,7 +38,7 @@ def test_llm_base_url_127_allowed():
     svc = SerajLLMService(api_key="test-key")
     
     try:
-        svc._call_openrouter("llama3.2", [{"role": "user", "content": "test"}])
+        svc._call_llm("qwen2.5:7b", [{"role": "user", "content": "test"}])
     except ValueError as e:
         if "خادم خارجي" in str(e):
             pytest.fail(f"127.0.0.1 يجب أن يكون مسموحاً: {e}")
@@ -55,7 +55,7 @@ def test_llm_base_url_remote_blocked():
     svc = SerajLLMService(api_key="test-key")
     
     with pytest.raises(ValueError) as exc_info:
-        svc._call_openrouter("llama3.2", [{"role": "user", "content": "test"}])
+        svc._call_llm("qwen2.5:7b", [{"role": "user", "content": "test"}])
     
     assert "خادم خارجي" in str(exc_info.value)
     assert "example.com" in str(exc_info.value)
@@ -72,7 +72,7 @@ def test_llm_base_url_remote_allowed_with_flag():
     
     # يجب أن لا يرفع ValueError من فحص الأمان
     try:
-        svc._call_openrouter("llama3.2", [{"role": "user", "content": "test"}])
+        svc._call_llm("qwen2.5:7b", [{"role": "user", "content": "test"}])
     except ValueError as e:
         if "خادم خارجي" in str(e):
             pytest.fail(f"عنوان خارجي يجب أن يكون مسموحاً مع LLM_ALLOW_REMOTE=1: {e}")
@@ -91,7 +91,7 @@ def test_llm_base_url_ipv6_localhost_allowed():
     svc = SerajLLMService(api_key="test-key")
     
     try:
-        svc._call_openrouter("llama3.2", [{"role": "user", "content": "test"}])
+        svc._call_llm("qwen2.5:7b", [{"role": "user", "content": "test"}])
     except ValueError as e:
         if "خادم خارجي" in str(e):
             pytest.fail(f"::1 يجب أن يكون مسموحاً: {e}")
