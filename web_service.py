@@ -23,7 +23,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request, Header
+from fastapi import FastAPI, File, UploadFile, HTTPException, Form, Request, Header, Query
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -153,9 +153,12 @@ class QuickApproveAndExecuteRequest(BaseModel):
 @app.get("/status")
 def get_system_status(request: Request) -> Dict[str, Any]:
     audit_log_access("/status", request)
-    odoo_url = os.environ.get("ODOO_URL", "")
-    odoo_db = os.environ.get("ODOO_DB", "")
-    odoo_user = os.environ.get("ODOO_USERNAME", "")
+    from odoo_config_manager import get_active_odoo_config, test_odoo_connection
+    cfg = get_active_odoo_config()
+    odoo_url, odoo_db, odoo_user = cfg["url"], cfg["db"], cfg["username"]
+    connection = test_odoo_connection(**cfg) if all(cfg.values()) else {
+        "ok": False, "companies": [], "error": "أكمل بيانات الربط لاكتشاف الشركات المتاحة."
+    }
     telegram_configured = telegram_notifier.is_telegram_configured()
 
     return {
@@ -164,15 +167,13 @@ def get_system_status(request: Request) -> Dict[str, Any]:
             "url": odoo_url,
             "database": odoo_db,
             "username": odoo_user,
-            "connected": bool(odoo_url and odoo_db and odoo_user),
+            "connected": connection.get("ok", False),
         },
         "default_company_id": 15,
         "default_company_name": "شركة النخبة الذكية للتقنية",
-        "companies": [
-            {"id": 15, "name": "شركة النخبة الذكية للتقنية (ID: 15)", "selected": True},
-            {"id": 1, "name": "الشركة القابضة (ID: 1)", "selected": False},
-        ],
-        "connection_name": "default",
+        "companies": connection.get("companies", []),
+        "connection_error": connection.get("error"),
+        "connection_name": odoo_db or "غير متصل",
         "settings": {
             "labor_law_checks": True,
             "readback_verification": True,
@@ -186,6 +187,37 @@ def get_system_status(request: Request) -> Dict[str, Any]:
         },
         "mode": "test_safe",
     }
+
+
+class OdooConnectionPayload(BaseModel):
+    url: str
+    db: str
+    username: str
+    api_key: Optional[str] = None
+
+
+@app.post("/api/settings/connection")
+def update_odoo_connection(payload: OdooConnectionPayload, request: Request) -> Dict[str, Any]:
+    """Validate a connection before switching; never return or log its secret."""
+    verify_api_auth(request)
+    from odoo_config_manager import get_active_odoo_config, test_odoo_connection, save_active_odoo_config
+    from agent_events_service import get_events_service
+    active = [
+        op for op in get_events_service().operations.values()
+        if op.get("status") not in ("completed", "failed", "cancelled", "inconclusive")
+    ]
+    if active:
+        raise HTTPException(409, "أكمل أو ألغِ العمليات المعلقة قبل تغيير اتصال قاعدة البيانات.")
+    old = get_active_odoo_config()
+    key = payload.api_key
+    if not key and payload.url.rstrip("/") == old["url"].rstrip("/") and payload.username == old["username"]:
+        key = old["api_key"]
+    result = test_odoo_connection(payload.url, payload.db, payload.username, key or "")
+    if not result.get("ok"):
+        raise HTTPException(400, result.get("error", "تعذر الاتصال بقاعدة البيانات."))
+    save_active_odoo_config(payload.url, payload.db, payload.username, key)
+    audit_log_access("/api/settings/connection", request, {"database": payload.db})
+    return {"status": "success", "companies": result["companies"], "database": payload.db}
 
 
 @app.get("/api/runs")
@@ -2968,8 +3000,8 @@ def get_sijil_operation_pdf_endpoint(
 @app.get("/api/sijil/recent")
 def get_sijil_recent_operations_endpoint(
     request: Request,
-    limit: int = 10,
-    offset: int = 0,
+    limit: int = Query(10, ge=1, le=100),
+    offset: int = Query(0, ge=0),
 ) -> Dict[str, Any]:
     """Returns recent audited operations ledger for quick browsing with authentication and pagination."""
     verify_api_auth(request)
@@ -3629,6 +3661,10 @@ def get_agent_operation_endpoint(operation_id: str, request: Request) -> Dict[st
             raise
         except Exception:
             raise HTTPException(status_code=404, detail=f"العملية غير موجودة: {operation_id}")
+    from seraj_session_manager import SerajSessionManager
+    session = SerajSessionManager.get_instance().sessions.get(op.get("chat_id"))
+    op["pending_action"] = session.pending_action if session else None
+    op["pending_clarification"] = session.pending_clarification if session else None
     return {"status": "success", "operation": op, "source": "live_events"}
 
 
@@ -3643,7 +3679,7 @@ def get_agent_operation_events_endpoint(operation_id: str, request: Request, aft
         "status": "success",
         "operation_id": operation_id,
         "events": events,
-        "is_active": op.get("status") not in ("completed", "failed", "cancelled") if op else False,
+        "is_active": op.get("status") not in ("completed", "failed", "cancelled", "inconclusive", "waiting_approval", "waiting_clarification", "waiting_user_clarification") if op else False,
         "operation_status": op.get("status") if op else "unknown",
         "operation_status_label": op.get("status_label") if op else "غير معروف",
     }
@@ -3693,6 +3729,13 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
 
     srv = get_events_service()
     op_id = payload.operation_id
+    if op_id:
+        previous = srv.get_operation(op_id)
+        if not previous or previous.get("chat_id") != payload.chat_id:
+            raise HTTPException(409, "المحادثة لا تطابق العملية المحددة. افتح العملية المطلوبة للمتابعة.")
+        # A resumed operation retains its original scope.
+        payload.company_id = previous.get("company_id")
+        payload.connection_id = previous.get("connection_id")
     if not op_id:
         op_id = srv.start_operation(
             user_query=payload.message,
@@ -3726,6 +3769,7 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
         raise HTTPException(status_code=500, detail=f"تعذر معالجة الطلب: {exc}")
 
     session = SerajSessionManager.get_instance().get_session(payload.chat_id)
+    finish_conversation_turn(srv, op_id, session, payload.message, reply)
     op = srv.get_operation(op_id)
 
     return {
@@ -3738,6 +3782,29 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
     }
 
 
+def finish_conversation_turn(srv, op_id, session, message, reply):
+    """End processing honestly; pending user decisions are not running agents."""
+    if not op_id:
+        return
+    op = srv.get_operation(op_id)
+    if session.pending_action:
+        state = "waiting_approval"
+    elif session.pending_clarification:
+        state = "waiting_user_clarification"
+    elif op["status"] in ("failed", "cancelled", "inconclusive"):
+        state = op["status"]
+    elif op["status"] in ("executing_write", "verifying_result"):
+        state = "inconclusive"
+    else:
+        state = "completed"
+    srv.emit_event(
+        operation_id=op_id, agent="seraj", event_type="turn_finished",
+        status=state, description_ar="انتهت معالجة هذه الرسالة؛ الحالة بحسب نتيجة المسار الفعلية.",
+        plan_id=(session.pending_action or {}).get("plan_id"),
+    )
+    srv.record_turn(op_id, message, reply)
+
+
 @app.post("/api/agents/approve")
 def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Request) -> Dict[str, Any]:
     """Explicit human approval of a pending operation plan."""
@@ -3748,6 +3815,10 @@ def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Reque
 
     srv = get_events_service()
     seraj = SerajLLMService()
+    if payload.operation_id:
+        op = srv.get_operation(payload.operation_id)
+        if not op or op.get("chat_id") != payload.chat_id:
+            raise HTTPException(409, "الاعتماد لا يطابق محادثة العملية المطلوبة.")
     reply = seraj.chat_turn(
         user_query="تأكيد",
         chat_id=payload.chat_id,
@@ -3755,6 +3826,7 @@ def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Reque
     )
 
     session = SerajSessionManager.get_instance().get_session(payload.chat_id)
+    finish_conversation_turn(srv, payload.operation_id, session, "تأكيد", reply)
     op = srv.get_operation(payload.operation_id) if payload.operation_id else None
 
     return {
@@ -3776,6 +3848,10 @@ def post_agent_cancel_endpoint(payload: AgentCancelApiRequest, request: Request)
 
     srv = get_events_service()
     seraj = SerajLLMService()
+    if payload.operation_id:
+        op = srv.get_operation(payload.operation_id)
+        if not op or op.get("chat_id") != payload.chat_id:
+            raise HTTPException(409, "الإلغاء لا يطابق محادثة العملية المطلوبة.")
     reply = seraj.chat_turn(
         user_query="إلغاء",
         chat_id=payload.chat_id,
@@ -3783,6 +3859,7 @@ def post_agent_cancel_endpoint(payload: AgentCancelApiRequest, request: Request)
     )
 
     session = SerajSessionManager.get_instance().get_session(payload.chat_id)
+    finish_conversation_turn(srv, payload.operation_id, session, "إلغاء", reply)
     op = srv.get_operation(payload.operation_id) if payload.operation_id else None
 
     return {
@@ -3800,26 +3877,38 @@ async def upload_agent_file_endpoint(
     file: UploadFile = File(...),
     chat_id: str = Form("web_default"),
     operation_id: Optional[str] = Form(None),
+    company_id: int = Form(15),
 ) -> Dict[str, Any]:
     """Uploads file in agent cockpit, creating staging operation and parsing."""
     audit_log_access("/api/agents/upload", request)
-    content = await file.read()
+    content = await file.read(parser.MAX_FILE_SIZE_BYTES + 1)
     size = len(content)
-    if size > 10 * 1024 * 1024:
-        raise HTTPException(status_code=413, detail="حجم الملف يتجاوز الحد الأقصى المسموح به (10 ميجابايت).")
+    if size > parser.MAX_FILE_SIZE_BYTES:
+        raise HTTPException(status_code=413, detail="حجم الملف يتجاوز حد فحص Excel المسموح به (2 ميجابايت).")
 
-    fn = file.filename or "upload_file"
-    safe_filename = f"{int(time.time())}_{fn}"
+    fn = Path((file.filename or "upload_file").replace("\\", "/")).name
+    if not fn.lower().endswith(".xlsx"):
+        raise HTTPException(415, "رفع المعالجة يدعم ملفات Excel بصيغة .xlsx فقط.")
+    if not content:
+        raise HTTPException(400, "الملف فارغ. اختر ملف Excel يحتوي على صفوف.")
+    import uuid
+    safe_filename = f"{uuid.uuid4().hex}_{fn}"
     saved_path = UPLOAD_DIR / safe_filename
     with open(saved_path, "wb") as f:
         f.write(content)
 
     from agent_events_service import get_events_service
     srv = get_events_service()
+    if operation_id:
+        previous = srv.get_operation(operation_id)
+        if not previous or previous.get("chat_id") != chat_id:
+            raise HTTPException(409, "المحادثة لا تطابق العملية المحددة.")
+        company_id = previous["company_id"]
     op_id = operation_id or srv.start_operation(
         user_query=f"رفع ملف: {fn}",
         operation_type="file_upload",
         chat_id=chat_id,
+        company_id=company_id,
     )
     srv.emit_event(
         operation_id=op_id,
@@ -3866,6 +3955,8 @@ async def upload_agent_file_endpoint(
                 "total_rows": total_rows,
                 "accepted_count": counts.get("accepted", 0),
                 "rejected_count": counts.get("rejected", 0),
+                "rows": report_dict.get("rows", []),
+                "report_url": f"/api/dry-run/{folder_name}",
             }
         except Exception as exc:
             srv.emit_event(
@@ -3878,14 +3969,24 @@ async def upload_agent_file_endpoint(
             )
             dry_run_data = {"error": str(exc)}
 
+    failed = not dry_run_data or bool(dry_run_data.get("error"))
+    message = (
+        f"تعذر فحص الملف «{fn}»: {(dry_run_data or {}).get('error', 'لا يوجد تقرير فحص')}"
+        if failed else
+        f"اكتمل فحص «{fn}»: {dry_run_data['total_rows']} صفاً، "
+        f"مقبول {dry_run_data['accepted_count']}، مرفوض {dry_run_data['rejected_count']}. "
+        "لم يتم استيراد أو تعديل أي سجل في Odoo. راجع التقرير وصحح الصفوف المرفوضة قبل طلب الاستيراد المحكوم."
+    )
+    srv.record_turn(op_id, f"رفع ملف: {fn}", message)
     return {
-        "status": "success",
+        "status": "error" if failed else "success",
         "operation_id": op_id,
         "filename": fn,
         "size": size,
         "path": str(saved_path),
         "dry_run_report": dry_run_data,
-        "message": f"تم استلام وفحص الملف «{fn}» بنجاح في المنظومة.",
+        "message": message,
+        "operation": srv.get_operation(op_id),
     }
 
 

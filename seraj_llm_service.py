@@ -1023,6 +1023,11 @@ class SerajLLMService:
             effective_query = clean_query
 
         if not self.is_configured():
+            self._emit_evt(
+                operation_id=operation_id, agent="seraj",
+                event_type="configuration_error", status="failed",
+                description_ar="تعذر معالجة الطلب: مفتاح خدمة النموذج غير مهيأ.",
+            )
             return "⚠️ عذراً، مفتاح خدمة الذكاء الاصطناعي (OpenRouter) غير مهيأ في ملف البيئة."
 
         # 3. بناء الـ System Prompt متضمناً التفسير الاستشاري للايا وتفويض الاستعلام لفاحص
@@ -1042,7 +1047,7 @@ class SerajLLMService:
 
         for candidate_model in models_to_try:
             try:
-                answer = self._run_tool_calling_loop(candidate_model, messages, session, clean_query)
+                answer = self._run_tool_calling_loop(candidate_model, messages, session, clean_query, operation_id=operation_id)
                 if answer and answer.strip():
                     cleaned_answer = clean_math_formatting(answer.strip())
                     # تحديث سجل الجلسة
@@ -1050,35 +1055,34 @@ class SerajLLMService:
                     session.add_message("assistant", cleaned_answer)
                     self._emit_evt(
                         operation_id=operation_id,
-                        agent="fahas",
-                        from_agent="seraj",
-                        to_agent="fahas",
-                        event_type="odoo_query",
-                        status="querying_odoo",
-                        description_ar="سراج يفوض مهمة الاستعلام والبحث لوكيل الفحص «فاحص» في Odoo",
-                    )
-                    self._emit_evt(
-                        operation_id=operation_id,
                         agent="sijil",
                         from_agent="fahas",
                         to_agent="sijil",
                         event_type="audit_logged",
                         status="documenting_audit",
-                        description_ar="سجل يوثق استعلام فاحص ونتائج الاستعلام",
+                        description_ar="سجل يوثق الرد والأحداث الفعلية لهذه الرسالة",
                     )
+                    from agent_events_service import get_events_service
+                    latest = get_events_service().get_operation(operation_id) if operation_id else None
+                    failed_query = any(e.get("event_type") == "query_failed" for e in (latest or {}).get("events", []))
                     self._emit_evt(
                         operation_id=operation_id,
                         agent="seraj",
                         from_agent="sijil",
                         to_agent="seraj",
                         event_type="task_completed",
-                        status="completed",
+                        status="failed" if failed_query else "completed",
                         description_ar="سراج يشرح النتيجة للمستخدم بلغة عربية دقيقة",
                     )
                     return cleaned_answer
             except Exception as exc:
                 logger.warning("Tool calling with model %s failed: %s", candidate_model, exc)
 
+        self._emit_evt(
+            operation_id=operation_id, agent="seraj",
+            event_type="model_request_failed", status="failed",
+            description_ar="تعذر الحصول على رد من خدمة النموذج بعد محاولات الاتصال.",
+        )
         return (
             "⚠️ واجهت صعوبة في معالجة طلبك عبر خادم النماذج في الوقت الحالي. "
             "يرجى إعادة المحاولة أو التحقق من صحة الاتصال بقاعدة بيانات Odoo."
@@ -1090,6 +1094,7 @@ class SerajLLMService:
         messages: List[Dict[str, Any]],
         session: ConversationSession,
         original_user_text: str,
+        operation_id: Optional[str] = None,
     ) -> Optional[str]:
         """
         حلقة تنسيق مهام الاستعلام:
@@ -1149,6 +1154,12 @@ class SerajLLMService:
                     args["company_id"] = session.company_id
 
                 # تفويض المهمة حصرياً إلى وكيل فاحص بأمان تام
+                self._emit_evt(
+                    operation_id=operation_id, agent="fahas",
+                    event_type="odoo_query", status="querying_odoo",
+                    description_ar=f"فاحص ينفذ مهمة القراءة الفعلية: {fn_name}",
+                )
+                query_error = None
                 try:
                     logger.debug("سراج يفوّض مهمة الاستعلام «%s» إلى وكيل فاحص مع المعاملات: %s", fn_name, args)
                     tool_result = self.fahas.execute_query_task(fn_name, args)
@@ -1162,23 +1173,32 @@ class SerajLLMService:
                     result_str = json.dumps(tool_result, ensure_ascii=False)
                 except OdooToolSecurityError as sec_err:
                     last_tool_error = f"رفض أمني / صلاحيات: {sec_err}"
+                    query_error = last_tool_error
                     result_str = json.dumps(
                         {"status": "security_rejected", "error": str(sec_err)},
                         ensure_ascii=False,
                     )
                 except OdooToolExecutionError as exec_err:
                     last_tool_error = f"خطأ في الاتصال بخادم Odoo: {exec_err}"
+                    query_error = last_tool_error
                     result_str = json.dumps(
                         {"status": "odoo_error", "error": str(exec_err)},
                         ensure_ascii=False,
                     )
                 except Exception as gen_err:
                     last_tool_error = f"خطأ في الاتصال بقاعدة بيانات Odoo: {gen_err}"
+                    query_error = last_tool_error
                     result_str = json.dumps(
                         {"status": "error", "error": f"خطأ في الاتصال بقاعدة البيانات: {gen_err}"},
                         ensure_ascii=False,
                     )
 
+                self._emit_evt(
+                    operation_id=operation_id, agent="fahas",
+                    event_type="query_failed" if query_error else "query_returned",
+                    status="failed" if query_error else "inspecting_data",
+                    description_ar=query_error or f"عاد فاحص بنتيجة مهمة القراءة: {fn_name}",
+                )
                 current_messages.append({
                     "role": "tool",
                     "tool_call_id": call_id,

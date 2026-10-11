@@ -1294,6 +1294,77 @@
     .search-input:focus {
       border-color: var(--color-iris-glow);
     }
+    /* REUI c-bubble-1 / c-pagination-15, adapted to the existing vanilla stack.
+       Sender identity uses alignment + surface + visible label, never colour alone. */
+    .chat-messages { gap: 20px; padding: 24px; }
+    .msg-bubble.msg-assistant { align-self: flex-start; flex-direction: row; max-width: 94%; }
+    .msg-bubble.msg-user { align-self: flex-end; flex-direction: row-reverse; max-width: 84%; }
+    .msg-content-wrapper { min-width: 0; gap: 8px; }
+    .msg-meta { font-size: 12px; }
+    .msg-card { font-size: 14px; line-height: 1.85; border-radius: 18px; padding: 14px 18px; }
+    .msg-assistant .msg-card { background: #272a2b; border: 1px solid #363a3b; border-radius: 4px 18px 18px 18px; }
+    .msg-user .msg-card { background: #dbede5; color: #143b2b; border: 1px solid #dbede5; border-radius: 18px 4px 18px 18px; white-space: pre-wrap; }
+    .msg-avatar { width: 32px; height: 32px; border-radius: 50%; margin-top: 26px; }
+    .typing-indicator .msg-avatar { margin-top: 0; }
+    .typing-indicator.msg-bubble { display: none; }
+    .typing-indicator.msg-bubble.is-visible { display: flex; }
+    .typing-dots { background: #272a2b; border-color: #363a3b; border-radius: 4px 18px 18px 18px; padding: 16px 20px; gap: 7px; min-height: 44px; }
+    .chat-input-area { padding: 18px; background: #1a1d1e; border-top: 1px solid #343738; }
+    .chat-suggestions { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 12px; }
+    .suggestion-chip { flex-shrink: 0; border-radius: 8px; font-size: 12px; }
+    .chat-form { display: grid; grid-template-columns: 36px minmax(0,1fr) auto; align-items: end; gap: 10px; border: 1px solid #414647; padding: 12px; border-radius: 16px; background: #222627; box-shadow: 0 6px 20px #0002; }
+    .chat-form:focus-within { border-color: #7ba78f; box-shadow: 0 0 0 3px #7ba78f18; }
+    .chat-textarea-box { background: transparent; border: 0; border-radius: 0; padding: 0; min-width: 0; }
+    .chat-textarea { padding: 4px 0; font-size: 14px; line-height: 1.7; background: transparent; border: 0; border-radius: 0; }
+    .file-upload-label { height: 36px; width: 36px; border-radius: 9px; background: transparent; border: 0; }
+    #chatSendBtn { border-radius: 10px; height: 36px !important; padding: 0 14px !important; }
+    .composer-footer { display: flex; justify-content: space-between; gap: 12px; margin: 10px 4px 0; color: #a8b0b0; font-size: 12px; }
+    .drawer-sheet, .op-modal { position: relative; inset: auto; transform: none; margin: auto; animation: modal-pop .18s ease-out; }
+    .drawer-overlay, .op-modal-overlay { align-items: center; justify-content: center; }
+    .drawer-sheet { width: min(680px, 100%); max-height: 85dvh; }
+    .page-size-label { display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 12px; }
+    #sijilPaginationControls { gap: 12px; flex-wrap: wrap; }
+    #sijilNumberedPages { display: flex; gap: 4px; align-items: center; }
+    .page-number { min-width: 32px; height: 32px; border: 1px solid transparent; background: transparent; border-radius: 8px; color: var(--color-snow); cursor: pointer; }
+    .page-number.is-current { background: #303637; border-color: #65726c; }
+    .page-number:hover { background: #303637; }
+    .page-size-label select, .connection-form input { color: var(--color-snow); background: #171a1b; border: 1px solid #414647; border-radius: 8px; padding: 10px; font: inherit; }
+    .settings-section-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
+    .settings-help { color: #afb7b5; font-size: 13px; line-height: 1.8; margin: 8px 0; overflow-wrap: anywhere; }
+    .connection-form { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; }
+    .connection-form label { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+    .connection-actions, .connection-form .settings-help { grid-column: 1/-1; }
+    .connection-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .agent-capabilities { padding-inline-start: 18px; margin: 6px 0; color: #c2c9c6; font-size: 13px; line-height: 1.8; }
+    .agent-stats { display: flex; flex-wrap: wrap; gap: 12px; color: #a8b0b0; font-size: 12px; }
+    .agent-history-item { border-top: 1px solid #343738; padding: 12px 0; }
+    .agent-history-item p { line-height: 1.8; }
+    .report-json { direction: rtl; white-space: pre-wrap; overflow-wrap: anywhere; max-width: 100%; font-size: 13px; line-height: 1.8; }
+    .cockpit-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+    .chat-panel, .process-panel, .panel-card { min-width: 0; }
+    .msg-bubble { flex-shrink: 0; }
+    button:focus-visible, select:focus-visible, input:focus-visible, textarea:focus-visible { outline: 2px solid #82b79c; outline-offset: 3px; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .reduce-motion-forced .typing-dot { animation: none !important; transform: none !important; }
+    @media (prefers-reduced-motion: reduce) { .typing-dot, .drawer-sheet, .op-modal { animation: none !important; transform: none !important; } }
+    @media (max-width: 600px) {
+      .connection-form { grid-template-columns: 1fr; }
+      .composer-footer { flex-direction: column; gap: 4px; }
+      .chat-messages { padding: 16px; }
+      .msg-bubble { gap: 8px; }
+      .msg-avatar { display: none; }
+      .chat-form { grid-template-columns: 30px minmax(0,1fr) 40px; padding: 10px; }
+      #chatSendBtn { padding: 0 !important; width: 40px; }
+      #chatSendBtn span { display: none; }
+      .top-nav { height: auto; padding: 12px; display: grid; grid-template-columns: 1fr; gap: 12px; position: relative; }
+      .nav-brand-area { justify-content: flex-start; }
+      .nav-tabs { width: 100%; min-width: 0; overflow-x: auto; justify-content: flex-start; }
+      .nav-tab-btn { flex-shrink: 0; }
+      .nav-controls { flex-wrap: wrap; gap: 8px; }
+      .main-wrapper { padding: 16px 12px 40px; }
+      .panel-card { padding: 16px; }
+    }
+    @media (max-width: 1024px) { .cockpit-grid { grid-template-columns: minmax(0,1fr); } }
   </style>
 </head>
 <body>
@@ -1401,7 +1472,7 @@
               </div>
             </div>
             <!-- Typing Indicator (hidden by default) -->
-            <div id="typingIndicator" class="typing-indicator msg-bubble">
+            <div id="typingIndicator" class="typing-indicator msg-bubble msg-assistant" role="status" aria-label="سراج يكتب الرد" aria-live="polite">
               <div class="msg-avatar">
                 <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
               </div>
@@ -1425,19 +1496,20 @@
 
             <form id="chatForm" class="chat-form" onsubmit="handleChatSubmit(event)">
               <label class="file-upload-label" title="رفع ملف إكسل أو مستند">
-                <input type="file" id="chatFileInput" accept=".xlsx,.pdf,.csv" style="display: none;" onchange="handleFileUpload(this)">
+                <input type="file" id="chatFileInput" accept=".xlsx" style="display: none;" onchange="handleFileUpload(this)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
               </label>
 
               <div class="chat-textarea-box">
-                <textarea id="chatInput" class="chat-textarea" placeholder="اكتب طلبك أو استفسارك هنا… (Enter للإرسال، Shift+Enter لسطر جديد)" rows="1" onkeydown="handleTextareaKeyDown(event)" oninput="autoResizeTextarea(this)"></textarea>
+                <textarea id="chatInput" class="chat-textarea" aria-label="رسالتك إلى سراج" placeholder="اكتب طلبك إلى سراج…" rows="2" onkeydown="handleTextareaKeyDown(event)" oninput="autoResizeTextarea(this)"></textarea>
               </div>
 
-              <button type="submit" id="chatSendBtn" class="btn btn-primary" style="height: 44px; padding: 0 20px;">
+              <button type="submit" id="chatSendBtn" aria-label="أرسل الرسالة" class="btn btn-primary" style="height: 44px; padding: 0 20px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 16px; height: 16px; transform: rotate(180deg);"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                 <span>إرسال</span>
               </button>
             </form>
+            <div class="composer-footer"><span>Enter للإرسال · Shift+Enter لسطر جديد</span><span>لا كتابة في Odoo دون اعتماد</span></div>
           </div>
         </div>
 
@@ -1543,13 +1615,13 @@
       <div class="metrics-grid">
         <div class="metric-card">
           <span class="metric-title">نسبة التحقق الراجع (Readback)</span>
-          <span class="metric-value" style="color: var(--color-phosphor-green);">100%</span>
+          <span class="metric-value" id="metricReadbackRate" style="color: var(--color-phosphor-green);">—</span>
           <span class="metric-hint">تأكيد مستقل بعد التنفيذ</span>
         </div>
         <div class="metric-card">
-          <span class="metric-title">مبدأ التحقق المزدوج (Four-Eyes)</span>
-          <span class="metric-value" style="color: var(--color-iris-glow);">100%</span>
-          <span class="metric-hint">اعتماد صريح قبل الكتابة</span>
+          <span class="metric-title">رموز الاعتماد المسجلة</span>
+          <span class="metric-value" id="metricApprovals" style="color: var(--color-iris-glow);">—</span>
+          <span class="metric-hint">عدد الرموز، وليس نسبة امتثال</span>
         </div>
         <div class="metric-card">
           <span class="metric-title">محاولات الحذف المحبطة</span>
@@ -1558,8 +1630,8 @@
         </div>
         <div class="metric-card">
           <span class="metric-title">سلامة عزل النماذج</span>
-          <span class="metric-value" style="color: var(--color-phosphor-green);">100%</span>
-          <span class="metric-hint">Model Isolation Guard</span>
+          <span class="metric-value" style="color: var(--color-phosphor-green); font-size:18px">سياسة عزل</span>
+          <span class="metric-hint">ليست نتيجة قياس آلي للامتثال</span>
         </div>
       </div>
 
@@ -1617,9 +1689,10 @@
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
               <button id="sijilPrevBtn" class="btn btn-sm btn-secondary" onclick="changeSijilPage(-1)" disabled>السابق</button>
-              <span id="sijilPageBadge" class="badge badge-neutral mono" style="font-size: 12px; padding: 4px 10px;">1</span>
+              <nav id="sijilNumberedPages" aria-label="صفحات سجلات التدقيق"><span id="sijilPageBadge">1</span></nav>
               <button id="sijilNextBtn" class="btn btn-sm btn-secondary" onclick="changeSijilPage(1)">التالي</button>
             </div>
+            <label class="page-size-label">لكل صفحة <select id="sijilPageSize" onchange="sijilLimit=Number(this.value);sijilPage=1;loadRecentAuditMetrics()"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option></select></label>
           </div>
         </div>
       </div>
@@ -1651,12 +1724,17 @@
           </div>
 
           <div>
-            <div style="font-size: 14px; font-weight: 600; color: var(--color-snow); margin-bottom: 6px;">بيانات الربط مع Odoo ERP (للقراءة فقط)</div>
-            <div style="background: #161616; padding: 14px; border-radius: 10px; border: 1px solid var(--color-charcoal); font-size: 13px;">
-              • خادم Odoo: <span class="mono">https://odooprosys-hr19-main-37916265.dev.odoo.com</span><br>
-              • قاعدة البيانات: <span class="mono">odooprosys-hr19-main-37916265</span><br>
-              • المنشأة الافتراضية: <span class="mono">شركة النخبة الذكية للتقنية (ID: 15)</span>
-            </div>
+            <div class="settings-section-title">اتصال Odoo ونطاق الشركة</div>
+            <p class="settings-help">تظهر الشركات التي يسمح حساب Odoo بقراءتها. تغيير الاتصال يحتاج تحققاً ناجحاً ولا يغير نطاق عملية معلقة.</p>
+            <form class="connection-form" onsubmit="saveConnectionSettings(event)">
+              <label>خادم Odoo<input id="settingsUrl" type="url" dir="ltr" required placeholder="https://example.odoo.com"></label>
+              <label>قاعدة البيانات<input id="settingsDb" dir="ltr" required autocomplete="off"></label>
+              <label>اسم المستخدم<input id="settingsUsername" dir="ltr" required autocomplete="username"></label>
+              <label>مفتاح API<input id="settingsApiKey" type="password" dir="ltr" autocomplete="new-password" placeholder="اتركه فارغاً للاحتفاظ بالمفتاح على الخادم نفسه"></label>
+              <div class="connection-actions"><button id="saveConnectionBtn" class="btn btn-primary" type="submit">تحقق واحفظ الاتصال</button><button class="btn btn-secondary" type="button" onclick="loadSystemStatus()">تحديث الشركات</button></div>
+              <div id="settingsConnectionMessage" role="status" class="settings-help"></div>
+              <div id="settingsSelectedCompany" class="settings-help"></div>
+            </form>
           </div>
         </div>
       </div>
@@ -1666,13 +1744,13 @@
 
   <!-- ==================== DETAILS DRAWER ==================== -->
   <div id="detailsDrawerOverlay" class="drawer-overlay" onclick="closeDetailsDrawer(event)">
-    <div class="drawer-sheet" onclick="event.stopPropagation()">
+    <div class="drawer-sheet" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" tabindex="-1" onclick="event.stopPropagation()">
       <div class="drawer-header">
         <div>
           <div id="drawerTitle" style="font-size: 16px; font-weight: 700; color: var(--color-snow);">تفاصيل الحدث</div>
           <div id="drawerSubtitle" style="font-size: 11px; color: var(--color-silver-mist); font-family: var(--font-mono); margin-top: 2px;">EVENT DETAILS & AUDIT PROOF</div>
         </div>
-        <button class="drawer-close-btn" onclick="closeDetailsDrawer()">✕</button>
+        <button class="drawer-close-btn" aria-label="أغلق التفاصيل" onclick="closeDetailsDrawer()">✕</button>
       </div>
 
       <div id="drawerBody" style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
@@ -1692,6 +1770,9 @@
     }
 
     async function apiFetch(url, options = {}) {
+      if (!options.signal) options.signal = AbortSignal.timeout(
+        options.method === "POST" ? 120000 : 30000
+      );
       const token = getApiToken();
       options.headers = options.headers || {};
       if (token) {
@@ -1713,6 +1794,10 @@
     let selectedCompanyId = 15;
     let activeAgentsData = [];
     let streamConsecutiveErrors = 0;
+    let currentChatId = `web_${crypto.randomUUID()}`;
+    let currentOperationStatus = null;
+    let chatRequestInFlight = false;
+    let resumeRequestId = 0;
 
     // Sijil Server-Side Pagination State
     let sijilPage = 1;
@@ -1747,6 +1832,7 @@
       documenting_audit: "يوثق العملية",
       completed: "اكتمل",
       failed: "تعذر التنفيذ",
+      cancelled: "أُلغيت",
       inconclusive: "النتيجة غير محسومة",
       disconnected: "انقطع اتصال متابعة الأحداث"
     };
@@ -1761,9 +1847,24 @@
       loadRecentAuditMetrics();
       loadOperationsList();
       checkSavedMotionPreference();
+      const savedOperation = new URLSearchParams(window.location.search).get("operation");
+      if (savedOperation) resumeOperationInCockpit(savedOperation);
 
       const ta = document.getElementById('chatInput');
       if (ta) ta.addEventListener('input', () => autoResizeTextarea(ta));
+      setInterval(() => {
+        if (!document.hidden) {
+          loadAgentsOverview();
+          if (document.getElementById("view-operations").classList.contains("is-visible")) loadOperationsList();
+          if (document.getElementById("view-sijil").classList.contains("is-visible")) loadRecentAuditMetrics();
+        }
+      }, 5000);
+      document.addEventListener("keydown", e => {
+        if (e.key === "Escape") {
+          closeDetailsDrawer();
+          document.getElementById("opDetailModalOverlay").classList.remove("is-open");
+        }
+      });
     });
 
     // View Switching
@@ -1797,21 +1898,29 @@
 
           const compSelect = document.getElementById("companySelector");
           if (compSelect && data.companies && data.companies.length > 0) {
+            if (!data.companies.some(c => c.id === selectedCompanyId)) selectedCompanyId = data.companies[0].id;
             compSelect.innerHTML = data.companies.map(c => `
-              <option value="${c.id}" ${c.selected || c.id === selectedCompanyId ? 'selected' : ''}>
+              <option value="${c.id}" ${c.id === selectedCompanyId ? 'selected' : ''}>
                 ${escapeHtml(c.name)}
               </option>
             `).join("");
-            if (data.selected_company_id) {
-              selectedCompanyId = data.selected_company_id;
-            }
+            compSelect.disabled = false;
+          } else if (compSelect) {
+            compSelect.innerHTML = '<option>تعذر تحميل الشركات</option>';
+            compSelect.disabled = true;
           }
+          ["Url", "Db", "Username"].forEach((key, i) => {
+            const el = document.getElementById(`settings${key}`);
+            if (document.activeElement !== el) el.value = [data.odoo?.url, data.odoo?.database, data.odoo?.username][i] || "";
+          });
+          document.getElementById("settingsConnectionMessage").textContent = data.connection_error || `متصل بقاعدة ${data.odoo?.database} · ${data.companies.length} شركة متاحة`;
+          document.getElementById("settingsSelectedCompany").textContent = `الشركة المختارة: ${compSelect.selectedOptions[0]?.textContent.trim() || "غير محددة"}`;
 
           const settingsBox = document.getElementById("systemSettingsInfoBox");
           if (settingsBox) {
             settingsBox.innerHTML = `
               • وضع التشغيل: <span class="badge badge-success">${escapeHtml(data.mode || 'test_safe (آمن ومحمي)')}</span><br>
-              • خادم Odoo: <span class="mono">${escapeHtml(data.odoo?.url || 'متصل')} (${escapeHtml(data.odoo?.database || 'hr_db')})</span><br>
+              • خادم Odoo: <span class="mono">${escapeHtml(data.odoo?.url || 'غير محدد')} (${escapeHtml(data.odoo?.database || 'غير محددة')})</span><br>
               • مفتاح التعديل في أودو: <span class="mono">Write Gateway Guard Active</span><br>
               • الفحص الرقابي المستقل: <span class="badge badge-success">Readback Active (فاحص)</span><br>
               • دفتر السجلات اللاتراجعي: <span class="badge badge-success">Append-Only Active (سجل)</span>
@@ -1824,7 +1933,7 @@
     }
 
     function handleCompanyChange(newCompanyId) {
-      if (currentOperationId) {
+      if (currentOperationId && !["completed", "failed", "cancelled", "inconclusive"].includes(currentOperationStatus)) {
         const confirmChange = confirm(
           "⚠️ تنبيه حوكمة:\nتوجد عملية جارية حالياً برقم (" + currentOperationId + ").\n" +
           "تغيير الشركة الآن لن يغير نطاق العملية الجارية بصمت.\n" +
@@ -1836,6 +1945,38 @@
         }
       }
       selectedCompanyId = parseInt(newCompanyId, 10);
+      document.getElementById("settingsSelectedCompany").textContent = `الشركة المختارة: ${document.getElementById("companySelector").selectedOptions[0]?.textContent.trim()}`;
+      // New requests use the selected scope; never transplant an existing plan.
+      currentOperationId = null;
+      currentOperationStatus = null;
+      currentChatId = `web_${crypto.randomUUID()}`;
+    }
+
+    async function saveConnectionSettings(e) {
+      e.preventDefault();
+      const button = document.getElementById("saveConnectionBtn");
+      const message = document.getElementById("settingsConnectionMessage");
+      if (!confirm("سيغيّر حفظ الاتصال قاعدة البيانات المستخدمة للطلبات الجديدة في المنظومة. هل تريد المتابعة؟")) return;
+      button.disabled = true;
+      message.textContent = "جاري التحقق من الاتصال…";
+      try {
+        const res = await apiFetch("/api/settings/connection", {
+          method: "POST", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            url: document.getElementById("settingsUrl").value.trim(),
+            db: document.getElementById("settingsDb").value.trim(),
+            username: document.getElementById("settingsUsername").value.trim(),
+            api_key: document.getElementById("settingsApiKey").value || null,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "تعذر حفظ الاتصال");
+        document.getElementById("settingsApiKey").value = "";
+        currentOperationId = null;
+        currentChatId = `web_${crypto.randomUUID()}`;
+        await loadSystemStatus();
+      } catch (err) { message.textContent = err.message; }
+      finally { button.disabled = false; }
     }
 
     // =========================================================================
@@ -1953,6 +2094,8 @@
             </span>
           </div>
           <div style="font-size: 12.5px; color: var(--color-silver-mist); line-height: 1.5;">${a.description_short || meta.role}</div>
+          <ul class="agent-capabilities">${(a.capabilities || []).map(c => `<li>${escapeHtml(c)}</li>`).join("")}</ul>
+          <div class="agent-stats"><span>${a.operation_count || 0} عملية</span><span>${a.event_count || 0} حدث</span><span>آخر نشاط: ${escapeHtml(a.last_active_at?.slice(0,19).replace("T", " ") || "لا يوجد")}</span></div>
           <div style="font-size: 11.5px; background: #181818; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-charcoal);">
             <span style="color: var(--color-smoke);">آخر مهمة:</span>
             <span style="color: var(--color-snow); font-weight: 500;"> ${escapeHtml(a.last_task || "في انتظار المهام")}</span>
@@ -1982,7 +2125,12 @@
       if (e) e.preventDefault();
       const input = document.getElementById("chatInput");
       const text = input.value.trim();
-      if (!text) return;
+      if (!text || chatRequestInFlight) return;
+      if (["completed", "failed", "cancelled", "inconclusive"].includes(currentOperationStatus)) {
+        currentOperationId = null;
+        currentChatId = `web_${crypto.randomUUID()}`;
+        lastEventSequence = 0;
+      }
 
       input.value = "";
       autoResizeTextarea(input);
@@ -1993,7 +2141,7 @@
       try {
         const payload = {
           message: text,
-          chat_id: "web_cockpit_user",
+          chat_id: currentChatId,
           operation_id: currentOperationId,
           company_id: selectedCompanyId,
         };
@@ -2007,6 +2155,7 @@
         const data = await res.json();
         if (data.status === "success") {
           currentOperationId = data.operation_id;
+          currentOperationStatus = data.operation?.status;
           document.getElementById("activeOpIdBadge").textContent = currentOperationId;
 
           appendSerajMessage(data.response, data.pending_action, data.pending_clarification, data.operation);
@@ -2014,7 +2163,7 @@
             updateProcessStepper(data.operation.events || []);
             updateOperationBadges(data.operation);
           }
-          startLiveEventPolling(currentOperationId);
+          if (!["completed", "failed", "cancelled", "inconclusive", "waiting_approval", "waiting_user_clarification"].includes(currentOperationStatus)) startLiveEventPolling(currentOperationId);
         } else {
           appendSerajMessage("⚠️ عذراً، واجه سراج صعوبة في معالجة طلبك: " + (data.detail || "خطأ غير معروف"));
         }
@@ -2037,7 +2186,7 @@
         const res = await apiFetch("/api/agents/approve", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: "web_cockpit_user", operation_id: currentOperationId }),
+          body: JSON.stringify({ chat_id: currentChatId, operation_id: currentOperationId }),
         });
         const data = await res.json();
         appendSerajMessage(data.response, null, null, data.operation);
@@ -2064,7 +2213,7 @@
         const res = await apiFetch("/api/agents/cancel", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_id: "web_cockpit_user", operation_id: currentOperationId }),
+          body: JSON.stringify({ chat_id: currentChatId, operation_id: currentOperationId }),
         });
         const data = await res.json();
         appendSerajMessage(data.response, null, null, data.operation);
@@ -2090,8 +2239,10 @@
       const file = input.files[0];
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("chat_id", "web_cockpit_user");
-      if (currentOperationId) formData.append("operation_id", currentOperationId);
+      if (chatRequestInFlight) return;
+      currentChatId = `web_${crypto.randomUUID()}`;
+      formData.append("chat_id", currentChatId);
+      formData.append("company_id", selectedCompanyId);
 
       appendUserMessage(`📎 تم إرفاق الملف: «${file.name}» (${Math.round(file.size / 1024)} KB)`);
       showTypingIndicator();
@@ -2105,6 +2256,7 @@
         const data = await res.json();
         if (data.status === "success") {
           currentOperationId = data.operation_id;
+          currentOperationStatus = data.operation?.status;
           document.getElementById("activeOpIdBadge").textContent = currentOperationId;
 
           if (data.dry_run_report) {
@@ -2117,15 +2269,24 @@
                 `• الصفوف المرفوضة أو غير المطابقة: ${r.rejected_count}\n` +
                 `🔒 جرى الفحص بصورة جافة وآمنة دون إجراء أي كتابة أو تعديل غير معتمد في Odoo.`;
               appendSerajMessage(repMsg);
+              if (r.report_url) appendDryRunReportLink(r.report_url);
             } else if (data.dry_run_report.error) {
               appendSerajMessage(`❌ تعذر استكمال فحص ملف الإكسل «${data.filename}»:\n${data.dry_run_report.error}`);
             }
           } else {
-            appendSerajMessage(`✅ ${data.message}\nجاري متابعة معالجة الملف في المنظومة.`);
+            appendSerajMessage(data.message || "لم يصل تقرير فحص. أعد رفع الملف.");
           }
-          startLiveEventPolling(currentOperationId);
+          if (data.operation) {
+            updateProcessStepper(data.operation.events || []);
+            updateOperationBadges(data.operation);
+          }
         } else {
-          appendSerajMessage("❌ فشل رفع الملف: " + (data.detail || "خطأ"));
+          if (data.operation) {
+            currentOperationId = data.operation_id;
+            updateOperationBadges(data.operation);
+            updateProcessStepper(data.operation.events || []);
+          }
+          appendSerajMessage(data.message || data.detail || "تعذر فحص الملف. أعد رفع ملف Excel صحيح.");
         }
       } catch (err) {
         appendSerajMessage("❌ تعذر رفع الملف: " + err.message);
@@ -2133,7 +2294,31 @@
         hideTypingIndicator();
         setSerajIdle();
         input.value = "";
+        loadAgentsOverview();
       }
+    }
+
+    function appendDryRunReportLink(url) {
+      const button = document.createElement("button");
+      button.className = "btn btn-sm btn-secondary";
+      button.textContent = "عرض تقرير الصفوف وأسباب الرفض";
+      button.onclick = async () => {
+        const overlay = document.getElementById("detailsDrawerOverlay");
+        const body = document.getElementById("drawerBody");
+        document.getElementById("drawerTitle").textContent = "نتيجة فحص Excel";
+        body.textContent = "جاري تحميل التقرير…";
+        overlay.classList.add("is-open");
+        try {
+          const res = await apiFetch(url);
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail);
+          const pre = document.createElement("pre");
+          pre.className = "report-json";
+          pre.textContent = JSON.stringify(data, null, 2);
+          body.replaceChildren(pre);
+        } catch (err) { body.textContent = err.message; }
+      };
+      document.getElementById("chatMessages").appendChild(button);
     }
 
     // =========================================================================
@@ -2220,7 +2405,7 @@
       apiFetch("/api/seraj/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: choice, chat_id: "web_cockpit_user", operation_id: currentOperationId, company_id: selectedCompanyId }),
+        body: JSON.stringify({ message: choice, chat_id: currentChatId, operation_id: currentOperationId, company_id: selectedCompanyId }),
       })
       .then(r => r.json())
       .then(data => {
@@ -2233,6 +2418,9 @@
     }
 
     function setSerajBusy(text) {
+      chatRequestInFlight = true;
+      document.getElementById("chatSendBtn").disabled = true;
+      document.getElementById("chatFileInput").disabled = true;
       const bubble = document.getElementById("agentStatusBubble_seraj");
       if (bubble) bubble.textContent = text || "يعمل الآن…";
       const card = document.getElementById("agentCard_seraj");
@@ -2240,6 +2428,9 @@
     }
 
     function setSerajIdle() {
+      chatRequestInFlight = false;
+      document.getElementById("chatSendBtn").disabled = false;
+      document.getElementById("chatFileInput").disabled = false;
       const bubble = document.getElementById("agentStatusBubble_seraj");
       if (bubble) bubble.textContent = "جاهز";
       const card = document.getElementById("agentCard_seraj");
@@ -2247,7 +2438,16 @@
     }
 
     function showTypingIndicator() {
-      const el = document.getElementById("typingIndicator");
+      let el = document.getElementById("typingIndicator");
+      if (!el) {
+        el = document.createElement("div");
+        el.id = "typingIndicator";
+        el.className = "typing-indicator msg-bubble msg-assistant";
+        el.setAttribute("role", "status");
+        el.setAttribute("aria-label", "سراج يكتب الرد");
+        el.innerHTML = '<div class="typing-dots"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+      }
+      document.getElementById("chatMessages").appendChild(el);
       if (el) {
         el.classList.add("is-visible");
         const container = document.getElementById("chatMessages");
@@ -2271,16 +2471,19 @@
     function startLiveEventPolling(opId) {
       if (!opId) return;
       if (pollingInterval) clearInterval(pollingInterval);
+      lastEventSequence = 0;
       streamConsecutiveErrors = 0;
       setStreamConnected(true, "المتابعة نشطة ومستمرة");
 
       let snapshotCycleCounter = 0;
 
       pollingInterval = setInterval(async () => {
+        if (opId !== currentOperationId) return;
         try {
           // A. Fetch incremental events since last sequence
           const res = await apiFetch(`/api/agents/operations/${opId}/events?after=${lastEventSequence}`);
           const data = await res.json();
+          if (opId !== currentOperationId) return;
           let op = null;
 
           if (data.status === "success") {
@@ -2292,6 +2495,7 @@
               });
               const opRes = await apiFetch(`/api/agents/operations/${opId}`);
               const opData = await opRes.json();
+              if (opId !== currentOperationId) return;
               if (opData.status === "success" && opData.operation) {
                 op = opData.operation;
                 updateProcessStepper(op.events || []);
@@ -2303,6 +2507,7 @@
               if (snapshotCycleCounter % 4 === 0) {
                 const opRes = await apiFetch(`/api/agents/operations/${opId}`);
                 const opData = await opRes.json();
+                if (opId !== currentOperationId) return;
                 if (opData.status === "success" && opData.operation) {
                   op = opData.operation;
                   updateOperationBadges(op);
@@ -2311,14 +2516,16 @@
             }
 
             // B. Strictly terminate ONLY when reaching a confirmed terminal state
-            const terminalStatuses = ["completed", "failed", "cancelled"];
-            if (op && terminalStatuses.includes(op.status)) {
+            const terminalStatuses = ["completed", "failed", "cancelled", "inconclusive"];
+            if (op) currentOperationStatus = op.status;
+            if ((op && terminalStatuses.includes(op.status)) || data.is_active === false) {
               clearInterval(pollingInterval);
               pollingInterval = null;
               resetAllAgentsToIdle();
               updateProcessStepper(op.events || []);
               updateOperationBadges(op);
               setStreamConnected(true, "اكتملت العملية");
+              hideTypingIndicator();
               return;
             }
 
@@ -2330,6 +2537,7 @@
           }
         } catch (err) {
           streamConsecutiveErrors++;
+          hideTypingIndicator();
           setStreamConnected(false, `انقطع الاتصال بالمتابعة (${err.message})`);
           if (streamConsecutiveErrors >= 8) {
             clearInterval(pollingInterval);
@@ -2369,6 +2577,12 @@
     }
 
     function updateOperationBadges(op) {
+      currentOperationStatus = op.status || op.final_status_code;
+      if (currentOperationId) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("operation", currentOperationId);
+        window.history.replaceState(null, "", url);
+      }
       const stBadge = document.getElementById("activeOpStatusBadge");
       const agBadge = document.getElementById("activeOpAgentBadge");
       if (stBadge) {
@@ -2494,6 +2708,15 @@
         </div>
 
         <div style="background: #141414; padding: 14px; border-radius: 10px; border: 1px solid var(--color-charcoal);">
+          <div class="settings-section-title">ماذا يفعل هذا الوكيل؟</div>
+          <ul class="agent-capabilities">${(agentData.capabilities || []).map(c => `<li>${escapeHtml(c)}</li>`).join("")}</ul>
+          <div class="agent-stats">${agentData.operation_count || 0} عملية · ${agentData.event_count || 0} حدث مسجل</div>
+        </div>
+        <div class="agent-history">
+          <div class="settings-section-title">آخر الأنشطة الفعلية</div>
+          ${(agentData.recent_tasks || []).map(t => `<div class="agent-history-item"><span class="mono">${escapeHtml(t.timestamp?.slice(0,19).replace("T"," ") || "")}</span><p>${escapeHtml(t.description_ar)}</p><button class="btn btn-sm btn-secondary" onclick="closeDetailsDrawer();resumeOperationInCockpit('${escapeHtml(t.operation_id)}')">فتح العملية</button></div>`).join("") || "لا توجد أنشطة مسجلة لهذا الوكيل بعد."}
+        </div>
+        <div style="background: #141414; padding: 14px; border-radius: 10px; border: 1px solid var(--color-charcoal);">
           <div style="font-size: 11px; color: var(--color-smoke); margin-bottom: 4px;">الصلاحيات والحدود المعمارية</div>
           <div style="font-size: 12.5px; color: var(--color-silver-mist); line-height: 1.6;">
             ${agentKey === 'fahas' ? '• قراءة واستعلام فقط (Read-Only) في Odoo.<br>• التحقق المستقل بعد التنفيذ (Readback Verification).<br>• لا يملك أي صلاحيات كتابة أو تعديل.' : ''}
@@ -2555,6 +2778,12 @@
 
     async function resumeOperationInCockpit(opId) {
       if (!opId) return;
+      if (chatRequestInFlight) return;
+      const requestId = ++resumeRequestId;
+      if (pollingInterval) clearInterval(pollingInterval);
+      pollingInterval = null;
+      lastEventSequence = 0;
+      hideTypingIndicator();
       currentOperationId = opId;
       document.getElementById("activeOpIdBadge").textContent = opId;
       switchView("view-cockpit");
@@ -2562,16 +2791,26 @@
       try {
         const res = await apiFetch(`/api/agents/operations/${opId}`);
         const data = await res.json();
+        if (requestId !== resumeRequestId) return;
         if (data.status === "success" && data.operation) {
           const op = data.operation;
+          currentOperationId = op.operation_id || opId;
+          currentChatId = op.chat_id || `read_only_${opId}`;
+          currentOperationStatus = op.status || op.final_status_code;
 
           // A. Restore conversation messages
           const chatContainer = document.getElementById("chatMessages");
           if (chatContainer) {
             chatContainer.innerHTML = "";
-            if (op.user_query) {
-              appendUserMessage(op.user_query);
-            }
+            const messages = op.messages || op.conversation?.messages || [];
+            if (messages.length) {
+              messages.forEach((m, i) => {
+                if (m.role === "user") appendUserMessage(m.content);
+                else if (m.role === "assistant") appendSerajMessage(m.content,
+                  i === messages.length - 1 ? op.pending_action : null,
+                  i === messages.length - 1 ? op.pending_clarification : null, op);
+              });
+            } else if (op.user_query) appendUserMessage(op.user_query);
 
             const events = op.events || [];
             let lastDesc = null;
@@ -2581,9 +2820,9 @@
               }
             });
 
-            if (op.status === "completed") {
+            if (!messages.length && op.status === "completed") {
               appendSerajMessage(lastDesc || `تم إنجاز العملية «${op.user_query}» ومطابقتها رقابياً بنجاح.`, null, null, op);
-            } else {
+            } else if (!messages.length) {
               appendSerajMessage(lastDesc || `جاري متابعة معالجة العملية «${op.user_query}» في مركز العمليات.`, null, null, op);
             }
           }
@@ -2593,7 +2832,7 @@
           updateOperationBadges(op);
 
           // C. Handle active or terminal state
-          const terminalStatuses = ["completed", "failed", "cancelled"];
+          const terminalStatuses = ["completed", "failed", "cancelled", "inconclusive", "waiting_approval", "waiting_user_clarification", "waiting_clarification"];
           if (terminalStatuses.includes(op.status)) {
             resetAllAgentsToIdle();
             setStreamConnected(true, "العملية مكتملة");
@@ -2617,6 +2856,7 @@
         const offset = (sijilPage - 1) * sijilLimit;
         const res = await apiFetch(`/api/sijil/recent?limit=${sijilLimit}&offset=${offset}`);
         const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "تعذر تحميل سجلات التدقيق");
 
         const records = data.operations || data.records || [];
         sijilTotal = data.total || records.length;
@@ -2671,17 +2911,40 @@
         if (pageBadge) pageBadge.textContent = sijilPage;
         if (prevBtn) prevBtn.disabled = sijilPage <= 1;
         if (nextBtn) nextBtn.disabled = sijilPage >= totalPages;
+        renderSijilNumberedPages(totalPages);
 
         // Load summary metrics
         const sRes = await apiFetch("/api/sijil/summary");
         const sData = await sRes.json();
         if (sData.status === "success") {
           const el = document.getElementById("metricBlockedDeletions");
-          if (el) el.textContent = sData.summary.blocked_deletions_count || 0;
+          if (el) el.textContent = sData.summary.blocked_actions || 0;
+          document.getElementById("metricReadbackRate").textContent = sData.summary.readback_eligible_count ? `${sData.summary.readback_rate}%` : "غير مقاس";
+          document.getElementById("metricApprovals").textContent = sData.summary.four_eyes_tokens_count || 0;
         }
       } catch (err) {
         console.warn("Sijil metrics error:", err);
+        tbody.innerHTML = `<tr><td colspan="7" role="alert" style="padding:20px;text-align:center">${escapeHtml(err.message)} <button class="btn btn-sm btn-secondary" onclick="loadRecentAuditMetrics()">إعادة المحاولة</button></td></tr>`;
       }
+    }
+
+    function renderSijilNumberedPages(totalPages) {
+      const nav = document.getElementById("sijilNumberedPages");
+      const pages = new Set([1, totalPages, sijilPage - 1, sijilPage, sijilPage + 1]);
+      nav.replaceChildren();
+      let previous = 0;
+      [...pages].filter(p => p > 0 && p <= totalPages).sort((a,b) => a-b).forEach(p => {
+        if (previous && p - previous > 1) {
+          const dots = document.createElement("span"); dots.textContent = "…"; nav.appendChild(dots);
+        }
+        const button = document.createElement("button");
+        button.className = `page-number ${p === sijilPage ? "is-current" : ""}`;
+        if (p === sijilPage) button.setAttribute("aria-current", "page");
+        button.textContent = p;
+        button.onclick = () => { sijilPage = p; loadRecentAuditMetrics(); };
+        nav.appendChild(button);
+        previous = p;
+      });
     }
 
     function changeSijilPage(delta) {
@@ -2711,8 +2974,8 @@
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
                 <div style="font-size: 15px; font-weight: 700; color: var(--color-snow);">نتيجة المطابقة: ${escapeHtml(op.operation_type || 'عملية موثقة')}</div>
                 <div style="display: flex; gap: 8px;">
-                  <button class="btn btn-sm btn-iris" onclick="openOperationInSijil('${op.operation_id || op.plan_id}')">عرض السجل الكامل</button>
-                  <button class="btn btn-sm btn-secondary" onclick="exportSingleOpPdf('${op.plan_id || op.operation_id}')">تحميل PDF</button>
+                  <button class="btn btn-sm btn-iris" onclick="openOperationInSijil('${escapeHtml(op.identifier || op.operation_id || op.plan_id)}')">عرض السجل الكامل</button>
+                  <button class="btn btn-sm btn-secondary" onclick="exportSingleOpPdf('${escapeHtml(op.identifier || op.operation_id || op.plan_id)}')">تحميل PDF</button>
                 </div>
               </div>
               <div style="font-size: 13px; color: var(--color-silver-mist); line-height: 1.6;">
@@ -2724,15 +2987,15 @@
             </div>
           `;
         } else if (data.status === "multiple_matches" || (data.status === "success" && data.candidates)) {
-          const list = (data.candidates || []).slice(0, 5).map(c => `
+          const list = (data.candidates || []).slice(0, 10).map(c => `
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--color-charcoal);">
               <div>
-                <span class="mono" style="color: var(--color-iris-glow);">${escapeHtml(c.record_id || c.operation_id)}</span>
+                <span class="mono" style="color: var(--color-iris-glow);">${escapeHtml(c.identifier || c.operation_id)}</span>
                 <span style="color: var(--color-snow); margin-right: 8px;">${escapeHtml(c.target || c.title || 'سجل')}</span>
               </div>
               <div style="display: flex; gap: 6px;">
-                <button class="btn btn-sm btn-iris" onclick="openOperationInSijil('${c.record_id || c.operation_id}')">سجل</button>
-                <button class="btn btn-sm btn-secondary" onclick="exportSingleOpPdf('${c.record_id || c.operation_id}')">PDF</button>
+                <button class="btn btn-sm btn-iris" onclick="openOperationInSijil('${c.identifier || c.operation_id}')">سجل</button>
+                <button class="btn btn-sm btn-secondary" onclick="exportSingleOpPdf('${c.identifier || c.operation_id}')">PDF</button>
               </div>
             </div>
           `).join("");
@@ -2793,7 +3056,7 @@
 
     function renderOpDetailModal(op, ident) {
       const body = document.getElementById("opDetailModalBody");
-      const opIdentifier = op.operation_id || op.plan_id || ident;
+      const opIdentifier = op.identifier || ident || op.operation_id || op.plan_id;
       const rows = [
         ['نوع العملية', op.operation_type || op.type || '—'],
         ['معرف العملية', opIdentifier],
@@ -2814,12 +3077,19 @@
 
       body.innerHTML = `
         <div>${rowsHtml}</div>
+        <section class="agent-history">
+          <h3 class="settings-section-title">الخط الزمني الفعلي</h3>
+          ${(op.timeline || op.events || []).map(e => `<div class="agent-history-item"><span class="mono">${escapeHtml(e.timestamp || "")}</span><p>${escapeHtml(e.title || e.description_ar || e.description || "")}</p><span>${escapeHtml(e.agent || "")} · ${escapeHtml(e.status || "")}</span></div>`).join("") || "لا توجد أحداث محفوظة لهذه العملية."}
+        </section>
+        <section class="agent-history"><h3 class="settings-section-title">المحادثة المرتبطة</h3>
+          ${(op.conversation?.messages || op.messages || []).map(m => `<div class="agent-history-item"><strong>${m.role === "user" ? "أنت" : "سراج"}</strong><p>${escapeHtml(m.content)}</p></div>`).join("") || "هذه المحادثة القديمة غير محفوظة؛ يعرض السجل الأحداث المتاحة فقط."}
+        </section>
         <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
           <button class="btn btn-sm btn-iris" onclick="exportSingleOpPdf('${escapeHtml(opIdentifier)}')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width:13px;height:13px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             تصدير تقرير PDF أبيض A4
           </button>
-          <button class="btn btn-sm btn-secondary" onclick="resumeOperationInCockpit('${escapeHtml(opIdentifier)}')">
+          <button class="btn btn-sm btn-secondary" onclick="document.getElementById('opDetailModalOverlay').classList.remove('is-open');resumeOperationInCockpit('${escapeHtml(opIdentifier)}')">
             متابعة في لوحة التحكم
           </button>
           <button class="btn btn-sm btn-secondary" onclick="document.getElementById('opDetailModalOverlay').classList.remove('is-open')">

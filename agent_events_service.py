@@ -154,6 +154,7 @@ STATUS_LABELS_AR: Dict[str, str] = {
     "documenting_audit": "يوثق العملية",
     "completed": "اكتمل",
     "failed": "تعذر التنفيذ",
+    "cancelled": "أُلغيت",
     "inconclusive": "النتيجة غير محسومة",
     "disconnected": "انقطع اتصال متابعة الأحداث",
 }
@@ -215,7 +216,7 @@ class AgentEventsService:
         try:
             with open(AGENT_OPS_LOG_FILE, "r", encoding="utf-8", errors="ignore") as f:
                 lines = f.readlines()
-                for line in lines[-100:]:
+                for line in lines:
                     line = line.strip()
                     if not line:
                         continue
@@ -246,10 +247,30 @@ class AgentEventsService:
                                 "clarification": None,
                                 "laya_used": evt.get("laya_used", False),
                             }
+                        op = self.operations[op_id]
+                        op.update({
+                            "updated_at": evt.get("timestamp"),
+                            "status": evt.get("status", op["status"]),
+                            "status_label": evt.get("status_label") or STATUS_LABELS_AR.get(evt.get("status"), evt.get("status")),
+                            "active_agent": evt.get("to_agent") or evt.get("agent"),
+                        })
+                        snapshot = evt.get("metadata", {}).get("operation_snapshot", {})
+                        op.update(snapshot)
+                        if evt.get("plan_id"):
+                            op["plan_id"] = evt["plan_id"]
                     except Exception:
                         continue
         except Exception:
             pass
+        # This process has no running worker or recoverable approval session for
+        # unfinished disk records. Never pretend they are still executing.
+        for op_id, op in list(self.operations.items()):
+            if op.get("status") not in ("completed", "failed", "cancelled", "inconclusive"):
+                self._emit_event_locked(
+                    operation_id=op_id, agent="seraj",
+                    event_type="recovery_interrupted", status="inconclusive",
+                    description_ar="أعيد تشغيل الخادم؛ لا يوجد تنفيذ نشط لهذه العملية. راجع السجل واطلب خطة جديدة قبل أي تعديل.",
+                )
 
     def start_operation(
         self,
@@ -455,11 +476,21 @@ class AgentEventsService:
             self.agent_statuses[target_agent]["last_task"] = description_ar
 
         # إذا اكتملت العملية أو فشلت، تعود الوكلاء تدريجياً لحالة الجاهزية
-        if status in ("completed", "failed", "cancelled"):
-            if target_agent in self.agent_statuses:
-                self.agent_statuses[target_agent]["active_operation_id"] = None
-                self.agent_statuses[target_agent]["status_code"] = "ready"
-                self.agent_statuses[target_agent]["status_label"] = "جاهز"
+        if status in ("completed", "failed", "cancelled", "inconclusive"):
+            for state in self.agent_statuses.values():
+                if state.get("active_operation_id") == operation_id:
+                    state["active_operation_id"] = None
+                    state["status_code"] = "ready"
+                    state["status_label"] = "جاهز"
+
+        # Persist routing and conversation, not credentials or approval secrets.
+        op = self.operations.get(operation_id, {})
+        event_data["metadata"]["operation_snapshot"] = _mask_safe_ref({
+            k: op.get(k) for k in (
+                "user_query", "operation_type", "company_id", "company_name",
+                "connection_id", "requester", "chat_id", "plan_id", "messages", "result",
+            )
+        })
 
         # حفظ الحدث في ملف JSONL اللاتراجعي الموحد مع سجل
         try:
@@ -469,6 +500,22 @@ class AgentEventsService:
             pass
 
         return event_data
+
+    def record_turn(self, operation_id: str, user_message: str, reply: str) -> None:
+        """Save the actual conversation for this operation, including after restart."""
+        with self._lock:
+            op = self.operations[operation_id]
+            messages = op.get("messages") or []
+            op["messages"] = messages
+            messages.extend([
+                {"role": "user", "content": user_message},
+                {"role": "assistant", "content": reply},
+            ])
+            self._emit_event_locked(
+                operation_id=operation_id, agent="seraj",
+                event_type="conversation_saved", status=op["status"],
+                description_ar="حُفظ رد سراج ومحادثة العملية في السجل",
+            )
 
     def get_operation(self, operation_id: str) -> Optional[Dict[str, Any]]:
         """استرجاع بيانات العملية وكافة أحداثها وخط سيرها."""
@@ -505,6 +552,28 @@ class AgentEventsService:
                 item["active_operation_id"] = st.get("active_operation_id")
                 item["last_active_at"] = st.get("last_active_at")
                 item["last_task"] = st.get("last_task", "في انتظار المهام")
+                history = [
+                    e for events in self.operation_events.values() for e in events
+                    if e.get("agent") == a_id and e.get("event_type") != "conversation_saved"
+                ]
+                history.sort(key=lambda e: e.get("timestamp", ""), reverse=True)
+                if history and not item["last_active_at"]:
+                    item["last_active_at"] = history[0].get("timestamp")
+                    item["last_task"] = history[0].get("description_ar")
+                item["recent_tasks"] = _mask_safe_ref(history[:5])
+                item["event_count"] = len(history)
+                item["operation_count"] = len({e["operation_id"] for e in history})
+                item["capabilities"] = {
+                    "seraj": ["فهم الطلب وتنسيق الوكلاء", "استيضاح الطلب وشرح النتائج"],
+                    "fahas": ["قراءة بيانات Odoo", "فحص Excel والتحقق المستقل من النتائج"],
+                    "modaqeq": ["تدقيق الحقول والمراجع", "فحص قواعد نظام العمل"],
+                    "mowafaq": ["مطابقة الأسماء والمسميات", "حل الالتباس في المراجع"],
+                    "hares": ["فحص الصلاحيات وعزل النطاق", "التحقق من الاعتماد والسياسات"],
+                    "musleh": ["تشخيص الأخطاء", "اقتراح المعالجة ضمن الحدود"],
+                    "katib": ["تنفيذ الخطة المعتمدة", "الكتابة عبر البوابة المحكومة فقط"],
+                    "sijil": ["حفظ الأحداث والتوثيق", "البحث وتصدير تقارير الحوكمة"],
+                    "laya": ["تصنيف مقصد الطلب", "تقديم توصية لسراج دون تنفيذ أو اعتماد"],
+                }.get(a_id, [])
                 result.append(item)
             return result
 
