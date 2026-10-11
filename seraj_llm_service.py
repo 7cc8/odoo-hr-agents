@@ -1283,6 +1283,20 @@ class SerajLLMService:
         # دعم LLM_BASE_URL للتوجيه إلى خادم مخصص (مثل Ollama)
         base_url = os.environ.get("LLM_BASE_URL")
         if base_url:
+            # فحص الأمان: السماح فقط بـ localhost/127.0.0.1/::1 إلا إذا LLM_ALLOW_REMOTE=1
+            from urllib.parse import urlparse
+            parsed = urlparse(base_url)
+            hostname = parsed.hostname or parsed.netloc.split(':')[0]
+            is_local = hostname in ("localhost", "127.0.0.1", "::1", "[::1]")
+            allow_remote = os.environ.get("LLM_ALLOW_REMOTE", "0") == "1"
+            
+            if not is_local and not allow_remote:
+                raise ValueError(
+                    f"LLM_BASE_URL يشير إلى خادم خارجي ({hostname}). "
+                    "للسماح بذلك، اضبط LLM_ALLOW_REMOTE=1. "
+                    "العناوين المحلية المسموحة: localhost, 127.0.0.1, ::1"
+                )
+            
             # استخدام LLM_API_KEY و LLM_MODEL عند استخدام base_url مخصص
             api_key = os.environ.get("LLM_API_KEY", "")
             custom_model = os.environ.get("LLM_MODEL")
