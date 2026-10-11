@@ -1285,7 +1285,13 @@ class SerajLLMService:
         if base_url:
             # استخدام LLM_API_KEY و LLM_MODEL عند استخدام base_url مخصص
             api_key = os.environ.get("LLM_API_KEY", "")
-            model_name = os.environ.get("LLM_MODEL", model_name)
+            custom_model = os.environ.get("LLM_MODEL")
+            if not custom_model:
+                raise ValueError(
+                    "LLM_BASE_URL مضبوط لكن LLM_MODEL غير موجود. "
+                    "يجب ضبط LLM_MODEL عند استخدام خادم مخصص (مثل: llama3.2)."
+                )
+            model_name = custom_model
             # إضافة /chat/completions إذا لم يكن موجوداً
             if not base_url.endswith("/chat/completions"):
                 base_url = base_url.rstrip("/") + "/chat/completions"
