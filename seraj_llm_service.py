@@ -30,6 +30,7 @@ try:
 except ImportError:
     pass
 
+from approval_plan_schema import ApprovalPlan, ApprovalPlanError, validate_plan_for_execution
 from deletion_policy import (
     create_deletion_plan,
     DeletionPolicyError,
@@ -345,39 +346,62 @@ class SerajLLMService:
                 )
 
         # 1. معالجة التأكيد أو الإلغاء للعملية المعلقة (Add / Edit / Archive / Delete Confirmation)
+        # P5-S4-S6: استبدال confirm_keywords بفحص plan_id صريح
         if session.pending_action:
-            confirm_keywords = {"تأكيد", "تاكيد", "نعم", "اعتمد", "موافق", "اعتمد التعديل", "اعتمد الحذف", "اعتمد الأرشفة", "تأكيد العملية", "تنفيذ", "تم", "yes", "confirm", "موافق اعتمد"}
+            # البحث عن plan_id في الرسالة
+            plan_id_match = re.search(r'plan_\d+_[a-f0-9]{8}', clean_query)
             cancel_keywords = {"إلغاء", "الغاء", "تراجع", "لا", "cancel", "رفض"}
             norm_q = clean_query.strip().lower()
-
-            if any(norm_q == kw or norm_q.startswith(kw) for kw in confirm_keywords):
-                act = session.pending_action
-
-                # فحص الصلاحية والاستهلاك وTTL
-                is_valid, invalid_reason = session.is_pending_action_valid(user_id=str(chat_id))
-                if not is_valid:
+            
+            # P5-S4: الموافقة الآن تتطلب plan_id صريح - لا موافقة بـ "تم"
+            if plan_id_match:
+                plan_id = plan_id_match.group(0)
+                
+                try:
+                    # P5-S5: تحميل ApprovalPlan والتحقق من صلاحيته (TTL + user binding)
+                    plan = ApprovalPlan.load(plan_id)
+                    
+                    # P5-S6: فحص ربط المستخدم
+                    if plan.created_by != str(chat_id):
+                        session.clear_pending_action()
+                        self._emit_evt(
+                            operation_id=operation_id,
+                            agent="hares",
+                            event_type="approval_invalid_user",
+                            status="failed",
+                            description_ar=f"حارس يرفض - المستخدم {chat_id} ليس منشئ الخطة {plan_id}",
+                        )
+                        return "⚠️ لا يمكن تنفيذ هذه العملية: هوية صاحب التأكيد لا تطابق هوية مقدم الطلب الأصلية."
+                    
+                    # P5-S5: اعتماد الخطة (plan.approve)
+                    plan.approve(approved_by=str(chat_id))
+                    plan.save()
+                    
+                    act = session.pending_action
+                    act_type = act.get("action_type") or act.get("type")
+                    
+                    session.mark_pending_action_consumed()
+                    
+                    self._emit_evt(
+                        operation_id=operation_id,
+                        agent="hares",
+                        from_agent="seraj",
+                        to_agent="hares",
+                        event_type="approval_verified",
+                        status="executing_write",
+                        description_ar=f"حارس يتحقق من صحة الاعتماد الصريح وتفويض تنفيذ الخطة ({plan_id})",
+                    )
+                    
+                except ApprovalPlanError as err:
                     session.clear_pending_action()
                     self._emit_evt(
                         operation_id=operation_id,
                         agent="hares",
                         event_type="approval_invalid",
                         status="failed",
-                        description_ar=f"حارس يرفض الاعتماد لعدم استيفاء الشروط: {invalid_reason}",
+                        description_ar=f"حارس يرفض الاعتماد: {err}",
                     )
-                    return invalid_reason
-
-                session.mark_pending_action_consumed()
-                act_type = act.get("action_type") or act.get("type")
-
-                self._emit_evt(
-                    operation_id=operation_id,
-                    agent="hares",
-                    from_agent="seraj",
-                    to_agent="hares",
-                    event_type="approval_verified",
-                    status="executing_write",
-                    description_ar=f"حارس يتحقق من صحة الاعتماد الصريح وتفويض تنفيذ الخطة ({act.get('plan_id', 'N/A')})",
-                )
+                    return f"⚠️ خطة الاعتماد غير صالحة: {err}"
                 self._emit_evt(
                     operation_id=operation_id,
                     agent="katib",
