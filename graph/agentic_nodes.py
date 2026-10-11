@@ -448,8 +448,11 @@ def seraj_meta_reflect(state: SerajState) -> Dict[str, Any]:
         success_rate = reflection.get("success_rate", 0.0)
         learning_insights = reflection.get("learning_insights", [])
         
-        # حفظ الأنماط المتعلمة
-        if success_rate > 0.7:  # نجاح > 70%
+        # حفظ الأنماط المتعلمة (إغلاق بعلم ENABLE_META_LEARNING افتراضه 0)
+        import os
+        enable_learning = os.environ.get("ENABLE_META_LEARNING", "0") == "1"
+        
+        if enable_learning and success_rate > 0.7:  # نجاح > 70%
             pattern = {
                 "intent": state.get("intent"),
                 "query_type": state.get("meta_explanation", {}).get("query_type"),
