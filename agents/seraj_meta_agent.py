@@ -814,15 +814,6 @@ class SerajMetaAgent(BaseAgent):
 
 
 # ============================================================================
-# Singleton Factory
+# Singleton (محذوف - غير مستخدم في الرسم)
 # ============================================================================
-
-_GLOBAL_SERAJ: Optional[SerajMetaAgent] = None
-
-
-def get_seraj_meta_agent() -> SerajMetaAgent:
-    """الحصول على كائن سراج المفرد (Singleton)"""
-    global _GLOBAL_SERAJ
-    if _GLOBAL_SERAJ is None:
-        _GLOBAL_SERAJ = SerajMetaAgent()
-    return _GLOBAL_SERAJ
+# الرسم يستخدم SerajMetaAgent() مباشرة - لا حاجة لـ singleton
