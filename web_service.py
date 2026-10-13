@@ -56,9 +56,19 @@ app = FastAPI(
     version="1.1.0",
 )
 
+# Keep browser credentials scoped to explicitly configured origins. A wildcard
+# origin cannot be combined safely with credentialed requests in production.
+CORS_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "CORS_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000"
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
