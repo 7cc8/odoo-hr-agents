@@ -292,12 +292,13 @@ def check_cloud_health(
             "message": "لم يتم إدخال مفتاح API Key لهذا المشغل السحابي بعد.",
         }
 
-    # اختبار نقطة النهاية /models
+    # اختبار نقطة النهاية المناسبة للتحقق من صلاحية المفتاح
     clean_url = url.rstrip("/")
-    if not clean_url.endswith("/v1"):
-        test_url = f"{clean_url}/models"
+    if "openrouter" in p_name.lower() or "openrouter.ai" in clean_url:
+        test_url = "https://openrouter.ai/api/v1/auth/key"
     else:
         test_url = f"{clean_url}/models"
+
 
     headers = {
         "Authorization": f"Bearer {key.strip()}",

@@ -4775,16 +4775,34 @@
             // B. Strictly terminate ONLY when reaching a confirmed terminal state
             const terminalStatuses = ["completed", "failed", "cancelled", "inconclusive"];
             if (op) currentOperationStatus = op.status;
-            if ((op && terminalStatuses.includes(op.status)) || data.is_active === false) {
+            const isTerminal = (op && terminalStatuses.includes(op.status)) || data.is_active === false;
+
+            if (isTerminal) {
               clearInterval(pollingInterval);
               pollingInterval = null;
               resetAllAgentsToIdle();
-              updateProcessStepper(op.events || []);
-              updateOperationBadges(op);
+
+              if (!op) {
+                try {
+                  const finalOpRes = await apiFetch(`/api/agents/operations/${opId}`);
+                  const finalOpData = await finalOpRes.json();
+                  if (finalOpData.status === "success" && finalOpData.operation) {
+                    op = finalOpData.operation;
+                  }
+                } catch (e) {
+                  console.warn("Could not fetch final op snapshot", e);
+                }
+              }
+
+              if (op) {
+                updateProcessStepper(op.events || []);
+                updateOperationBadges(op);
+              }
               setStreamConnected(true, "اكتملت العملية");
               hideTypingIndicator();
               return;
             }
+
 
             // NOTE: If no events arrive for 30s or longer, do NOT declare completion!
             // The operation is still tracked until confirmed terminal state.
@@ -4834,6 +4852,7 @@
     }
 
     function updateOperationBadges(op) {
+      if (!op) return;
       currentOperationStatus = op.status || op.final_status_code;
       if (currentOperationId) {
         const url = new URL(window.location.href);

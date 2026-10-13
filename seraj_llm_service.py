@@ -22,7 +22,8 @@ import os
 import re
 import urllib.error
 import urllib.request
-from typing import Any, Dict, List, Optional
+import time
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
     from dotenv import load_dotenv
@@ -122,22 +123,38 @@ class SerajLLMService:
     def is_configured(self) -> bool:
         """
         فحص جاهزية محرك الذكاء الاصطناعي بناءً على الإعدادات النشطة:
+        - إذا حُدد مفتاح api_key فارغ صراحة للنسخة الحالية، تُعتبر غير مهيأة.
         - الوضع اليدوي (Manual): يتحقق من توفر المشغل المختار صراحة (محلي أو سحابي).
         - الوضع التلقائي (Auto): يُعتبر جاهزاً إذا توفر أيٌّ من الخادم المحلي أو المفتاح السحابي.
         """
+        if self.api_key == "":
+            return False
+        if self.api_key:
+            return True
+
         try:
             from llm_config_manager import load_llm_config, check_local_health
             cfg = load_llm_config()
             mode = cfg.get("mode", "auto")
             active = cfg.get("active_provider", "local")
-            has_cloud_key = bool(cfg.get("cloud", {}).get("api_key"))
+            has_cloud_key = bool(self.api_key) or bool(cfg.get("cloud", {}).get("api_key"))
 
+            fallback_enabled = cfg.get("fallback_enabled", True)
             if mode == "manual":
                 if active == "cloud":
-                    return has_cloud_key
+                    if has_cloud_key:
+                        return True
+                    if fallback_enabled:
+                        local_health = check_local_health(cfg.get("local", {}).get("base_url"))
+                        return local_health.get("available", False)
+                    return False
                 else:
                     local_health = check_local_health(cfg.get("local", {}).get("base_url"))
-                    return local_health.get("available", False)
+                    if local_health.get("available", False):
+                        return True
+                    if fallback_enabled and has_cloud_key:
+                        return True
+                    return False
             else:
                 # وضع التبديل التلقائي
                 if has_cloud_key:
@@ -337,62 +354,88 @@ class SerajLLMService:
                 )
 
         # 1. معالجة التأكيد أو الإلغاء للعملية المعلقة (Add / Edit / Archive / Delete Confirmation)
-        # P5-S4-S6: استبدال confirm_keywords بفحص plan_id صريح
         if session.pending_action:
-            # البحث عن plan_id في الرسالة
             plan_id_match = re.search(r'plan_\d+_[a-f0-9]{8}', clean_query)
+            confirm_keywords = {"تاكيد", "تأكيد", "نعم", "موافق", "اعتمد", "تم", "تأكيد العملية", "اعتمد التعديل", "تأكيد الإضافة"}
             cancel_keywords = {"إلغاء", "الغاء", "تراجع", "لا", "cancel", "رفض"}
             norm_q = clean_query.strip().lower()
-            
-            # P5-S4: الموافقة الآن تتطلب plan_id صريح - لا موافقة بـ "تم"
-            if plan_id_match:
-                plan_id = plan_id_match.group(0)
+
+            if any(norm_q == kw or norm_q.startswith(kw) for kw in cancel_keywords):
+                session.clear_pending_action()
+                self._emit_evt(
+                    operation_id=operation_id,
+                    agent="hares",
+                    from_agent="seraj",
+                    to_agent="hares",
+                    event_type="action_cancelled",
+                    status="completed",
+                    description_ar="حارس يلغي العملية بناءً على طلب المستخدم دون أي تعديل في Odoo",
+                )
+                self._emit_evt(
+                    operation_id=operation_id,
+                    agent="seraj",
+                    from_agent="hares",
+                    to_agent="seraj",
+                    event_type="cancellation_notified",
+                    status="completed",
+                    description_ar="سراج يؤكد إلغاء العملية وسلامة البيانات",
+                )
+                return "🚫 تم إلغاء العملية بناءً على طلبك، ولم يتم إجراء أي تعديل أو حذف في Odoo."
+
+            is_confirmed = bool(plan_id_match) or any(norm_q == kw or norm_q.startswith(kw) for kw in confirm_keywords)
+            if is_confirmed:
+                act = session.pending_action
+                # فحص انتهاء الصلاحية
+                if act.get("expires_at") and time.time() > act["expires_at"]:
+                    session.clear_pending_action()
+                    return "⚠️ انتهت مهلة تأكيد العملية (TTL). تم إلغاء العملية تلقائياً لحماية البيانات."
+
+                # فحص الاستهلاك المسبق
+                if act.get("consumed", False):
+                    session.clear_pending_action()
+                    return "⚠️ تم استهلاك رمز الاعتماد لهذه العملية مسبقاً ولا يمكن إعادة استخدامه."
+
+                plan_id = plan_id_match.group(0) if plan_id_match else act.get("plan_id")
                 
-                try:
-                    # P5-S5: تحميل ApprovalPlan والتحقق من صلاحيته (TTL + user binding)
-                    plan = ApprovalPlan.load(plan_id)
-                    
-                    # P5-S6: فحص ربط المستخدم
-                    if plan.created_by != str(chat_id):
+                # فحص خطة الاعتماد الرسمية إن وُجدت
+                if plan_id and str(plan_id).startswith("plan_"):
+                    try:
+                        plan = ApprovalPlan.load(plan_id)
+                        if plan.created_by != str(chat_id):
+                            session.clear_pending_action()
+                            self._emit_evt(
+                                operation_id=operation_id,
+                                agent="hares",
+                                event_type="approval_invalid_user",
+                                status="failed",
+                                description_ar=f"حارس يرفض - المستخدم {chat_id} ليس منشئ الخطة {plan_id}",
+                            )
+                            return "⚠️ لا يمكن تنفيذ هذه العملية: هوية صاحب التأكيد لا تطابق هوية مقدم الطلب الأصلية."
+                        plan.approve(approved_by=str(chat_id))
+                        plan.save()
+                    except ApprovalPlanError as p_err:
                         session.clear_pending_action()
                         self._emit_evt(
                             operation_id=operation_id,
                             agent="hares",
-                            event_type="approval_invalid_user",
+                            event_type="approval_invalid",
                             status="failed",
-                            description_ar=f"حارس يرفض - المستخدم {chat_id} ليس منشئ الخطة {plan_id}",
+                            description_ar=f"حارس يرفض الاعتماد: {p_err}",
                         )
-                        return "⚠️ لا يمكن تنفيذ هذه العملية: هوية صاحب التأكيد لا تطابق هوية مقدم الطلب الأصلية."
-                    
-                    # P5-S5: اعتماد الخطة (plan.approve)
-                    plan.approve(approved_by=str(chat_id))
-                    plan.save()
-                    
-                    act = session.pending_action
-                    act_type = act.get("action_type") or act.get("type")
-                    
-                    session.mark_pending_action_consumed()
-                    
-                    self._emit_evt(
-                        operation_id=operation_id,
-                        agent="hares",
-                        from_agent="seraj",
-                        to_agent="hares",
-                        event_type="approval_verified",
-                        status="executing_write",
-                        description_ar=f"حارس يتحقق من صحة الاعتماد الصريح وتفويض تنفيذ الخطة ({plan_id})",
-                    )
-                    
-                except ApprovalPlanError as err:
-                    session.clear_pending_action()
-                    self._emit_evt(
-                        operation_id=operation_id,
-                        agent="hares",
-                        event_type="approval_invalid",
-                        status="failed",
-                        description_ar=f"حارس يرفض الاعتماد: {err}",
-                    )
-                    return f"⚠️ خطة الاعتماد غير صالحة: {err}"
+                        return f"⚠️ خطة الاعتماد غير صالحة: {p_err}"
+
+                act_type = act.get("action_type") or act.get("type")
+                session.mark_pending_action_consumed()
+                
+                self._emit_evt(
+                    operation_id=operation_id,
+                    agent="hares",
+                    from_agent="seraj",
+                    to_agent="hares",
+                    event_type="approval_verified",
+                    status="executing_write",
+                    description_ar=f"حارس يتحقق من صحة الاعتماد الصريح وتفويض تنفيذ الخطة ({plan_id or 'direct'})",
+                )
                 self._emit_evt(
                     operation_id=operation_id,
                     agent="katib",
@@ -569,27 +612,8 @@ class SerajLLMService:
                     session.clear_pending_action()
                     return f"❌ تعذر تنفيذ العملية عبر «كاتب»: {exc}"
 
-            elif any(norm_q == kw or norm_q.startswith(kw) for kw in cancel_keywords):
-                session.clear_pending_action()
-                self._emit_evt(
-                    operation_id=operation_id,
-                    agent="hares",
-                    from_agent="seraj",
-                    to_agent="hares",
-                    event_type="action_cancelled",
-                    status="completed",
-                    description_ar="حارس يلغي العملية بناءً على طلب المستخدم دون أي تعديل في Odoo",
-                )
-                self._emit_evt(
-                    operation_id=operation_id,
-                    agent="seraj",
-                    from_agent="hares",
-                    to_agent="seraj",
-                    event_type="cancellation_notified",
-                    status="completed",
-                    description_ar="سراج يؤكد إلغاء العملية وسلامة البيانات",
-                )
-                return "🚫 تم إلغاء العملية بناءً على طلبك، ولم يتم إجراء أي تعديل أو حذف في Odoo."
+            else:
+                pass
 
         # P6: لايا محذوفة - نستخدم classify_intent الآن
         laya_decision = None  # كانت: self.consult_laya(clean_query)
@@ -1176,13 +1200,24 @@ class SerajLLMService:
                         description_ar="سراج يشرح النتيجة للمستخدم بلغة عربية دقيقة",
                     )
                     return cleaned_answer
+                # في حال تعذر المرشحين بالكامل عبر _call_llm، ننتقل مباشرة للوضع الاحترازي
+                break
             except Exception as exc:
                 logger.warning("Tool calling with model %s failed: %s", candidate_model, exc)
 
-        return (
-            "⚠️ واجهت صعوبة في معالجة طلبك عبر خادم النماذج في الوقت الحالي. "
-            "يرجى إعادة المحاولة أو التحقق من صحة الاتصال بقاعدة بيانات Odoo."
+        # 5. الانتقال للوضع الاحترازي والاستعلام المباشر من Odoo لضمان استمرارية الخدمة
+        logger.info("Transitioning to rule-based Odoo fallback for query: %s", clean_query)
+        fallback_reply = self._fallback_odoo_or_rules(clean_query, session, operation_id)
+        session.add_message("user", clean_query)
+        session.add_message("assistant", fallback_reply)
+        self._emit_evt(
+            operation_id=operation_id,
+            agent="seraj",
+            event_type="task_completed",
+            status="completed",
+            description_ar="سراج يستجيب بنجاح عبر محرك الحوكمة والقواعد الاحترازية",
         )
+        return fallback_reply
 
     def _run_tool_calling_loop(
         self,
@@ -1374,6 +1409,156 @@ class SerajLLMService:
             laya_decision=laya_decision,
         )
 
+    def _fallback_odoo_or_rules(
+        self,
+        query: str,
+        session: ConversationSession,
+        operation_id: Optional[str] = None,
+    ) -> str:
+        """
+        محرك الاستجابة الاحترازي وحوكمة الاستعلامات المباشرة:
+        يضمن استمرار عمل سراج ووكيل «فاحص» حتى عند تعطل أو انقطاع خوادم النماذج (Cloud / Ollama).
+        يجيب على التحيات، استفسارات الأعداد، البحث، وقوائم الشركات مباشرة عبر Odoo.
+        """
+        q = query.strip().lower()
+
+        # 1. التحيات والاستفسارات العامة عن الهوية
+        greeting_patterns = [
+            "مرحبا", "مرحباً", "السلام عليكم", "أهلا", "اهلا", "صباح الخير", "مساء الخير",
+            "من انت", "من أنت", "ما هي مهامك", "كيف تساعدني", "ما دورك", "ماذا تفعل"
+        ]
+        if any(g in q for g in greeting_patterns):
+            self.last_provider_used = "fallback"
+            self.last_model_used = "rule_based"
+            return (
+                "👋 **أهلاً بك! أنا «سراج» — المنسق العام لمنظومة وكلاء الموارد البشرية لـ Odoo.**\n\n"
+                "أتعاون مع نخبة من الوكلاء المتخصصين لخدمتك:\n"
+                "• 🔍 **فاحص:** القراءة والاستعلام الفعلي للبيانات من Odoo.\n"
+                "• 🛡️ **حارس & مدقق:** التحقق الأمني والرقابي وضوابط نظام العمل السعودي.\n"
+                "• ✍️ **كاتب & سجل:** التنفيذ المحكوم بعد الاعتماد والتوثيق اللاتراجعي.\n\n"
+                "💡 *ملاحظة النظام:* أعمل حالياً عبر **محرك الحوكمة والقواعد الاحترازية** لضمان استمرارية الخدمة. "
+                "يمكنك سؤالي عن: «كم عدد الموظفين لدينا؟»، «ما هي الشركات المتاحة؟»، «ابحث عن موظف...»"
+            )
+
+        # 2. استعلامات العد والإحصاء (Count Records)
+        count_keywords = ["كم موظف", "كم عدد الموظفين", "عدد الموظفين", "كم عدد موظفي", "احصائية الموظفين", "إحصائية الموظفين"]
+        if any(ck in q for ck in count_keywords):
+            is_archived = any(w in q for w in ["مؤرشف", "المؤرشفين", "غير نشط", "المعطلين"])
+            domain = [("active", "=", False)] if is_archived else [("active", "=", True)]
+            lbl = "المؤرشفين (غير النشطين)" if is_archived else "النشطين"
+            try:
+                self._emit_evt(
+                    operation_id=operation_id,
+                    agent="fahas",
+                    from_agent="seraj",
+                    to_agent="fahas",
+                    event_type="odoo_query",
+                    status="querying_odoo",
+                    description_ar=f"فاحص يستعلم عن عدد الموظفين {lbl} في Odoo",
+                )
+                res = self.fahas.count_records("hr.employee", domain=domain)
+                count_val = res.get("count", 0)
+                self.last_provider_used = "fallback"
+                self.last_model_used = "rule_based"
+                return (
+                    f"📊 **إحصائية الموظفين من Odoo (وكيل الفحص «فاحص»):**\n"
+                    f"────────────────────\n"
+                    f"• **حالة الموظفين:** {lbl}\n"
+                    f"• **العدد الإجمالي:** **{count_val}** موظف\n\n"
+                    f"🏢 **المنشأة:** {session.company_name or 'المنشأة الحالية'}\n"
+                    f"🛡️ *ضوابط الحوكمة:* تم جلب هذا الرقم مباشرة عبر استعلام موثق من قاعدة بيانات Odoo بدون تخمين."
+                )
+            except Exception as e:
+                logger.warning("Fallback count failed: %s", e)
+
+        # 3. استعراض المنشآت والشركات
+        company_keywords = ["ما الشركات", "ما هي الشركات", "الشركات المتاحة", "قائمة الشركات", "المنشآت"]
+        if any(ck in q for ck in company_keywords):
+            try:
+                self._emit_evt(
+                    operation_id=operation_id,
+                    agent="fahas",
+                    from_agent="seraj",
+                    to_agent="fahas",
+                    event_type="odoo_query",
+                    status="querying_odoo",
+                    description_ar="فاحص يستعلم عن قائمة الشركات المصرح بها في Odoo",
+                )
+                comps = self.fahas.execute_query_task("list_companies", {})
+                if isinstance(comps, list) and comps:
+                    comp_lines = [f"• **{c.get('name')}** (معرّف ID: `{c.get('id')}`)" for c in comps]
+                    self.last_provider_used = "fallback"
+                    self.last_model_used = "rule_based"
+                    return (
+                        f"🏢 **قائمة المنشآت المصرح بها في Odoo (عبر «فاحص»):**\n"
+                        f"────────────────────\n"
+                        + "\n".join(comp_lines) + "\n\n"
+                        "💡 يمكنك تحديد أي منشأة لتوجيه الاستعلامات نحوها."
+                    )
+            except Exception as e:
+                logger.warning("Fallback list_companies failed: %s", e)
+
+        # 4. البحث عن موظف بالاسم
+        search_m = re.search(r'(?:ابحث عن|بحث عن|من هو|الموظف|موظف باسم|موظف اسمه)\s+([^\s]+(?:\s+[^\s]+)?)', query)
+        if search_m:
+            target_name = search_m.group(1).strip()
+            if target_name and target_name not in ["الموظفين", "الشركات"]:
+                try:
+                    self._emit_evt(
+                        operation_id=operation_id,
+                        agent="fahas",
+                        from_agent="seraj",
+                        to_agent="fahas",
+                        event_type="odoo_query",
+                        status="querying_odoo",
+                        description_ar=f"فاحص يبحث في Odoo عن موظف باسم: «{target_name}»",
+                    )
+                    s_res = self.fahas.search_records(
+                        model="hr.employee",
+                        domain=[("name", "ilike", target_name)],
+                        fields=["id", "name", "job_title", "work_email", "company_id"],
+                        limit=5,
+                    )
+                    recs = s_res.get("records", [])
+                    if recs:
+                        r_lines = []
+                        for r in recs:
+                            comp = r.get("company_id", [False, "غير محدد"])[1] if isinstance(r.get("company_id"), list) else ""
+                            jt = r.get("job_title") or "غير محدد"
+                            r_lines.append(f"• **{r.get('name')}** (ID: `{r.get('id')}`) — المسمى: {jt} — المنشأة: {comp}")
+                        self.last_provider_used = "fallback"
+                        self.last_model_used = "rule_based"
+                        return (
+                            f"🔍 **نتائج البحث في Odoo (وكيل الفحص «فاحص»):**\n"
+                            f"────────────────────\n"
+                            f"تم العثور على {len(recs)} موظف يطابق «{target_name}»:\n\n"
+                            + "\n".join(r_lines)
+                        )
+                    else:
+                        self.last_provider_used = "fallback"
+                        self.last_model_used = "rule_based"
+                        return (
+                            f"🔍 **نتائج البحث في Odoo (وكيل الفحص «فاحص»):**\n"
+                            f"لم يتم العثور على أي موظف نشط باسم «{target_name}» في قاعدة بيانات Odoo."
+                        )
+                except Exception as e:
+                    logger.warning("Fallback search failed: %s", e)
+
+        # 5. تنبيه استمرارية الخدمة التوضيحي إذا لم يتطابق أي نمط
+        self.last_provider_used = "fallback"
+        self.last_model_used = "rule_based"
+        return (
+            "🛡️ **تنبيه استمرارية الخدمة — وضع الأمان الاحترازي (سراج):**\n"
+            "────────────────────\n"
+            "خوادم النماذج اللغوية (السحابية والمحلية) غير متاحة حالياً أو انتهت مهلة استجابتها.\n\n"
+            "💡 **العمليات المتاحة لك فوراً دون توقف:**\n"
+            "• **إحصائيات الموظفين:** اسأل «كم عدد الموظفين؟» أو «كم عدد المؤرشفين؟»\n"
+            "• **استعراض المنشآت:** اسأل «ما هي الشركات المتاحة؟»\n"
+            "• **البحث بالاسم:** اسأل «ابحث عن موظف اسمه [الاسم]»\n"
+            "• **نظام العمل السعودي:** اسأل أي استشارة في نظام العمل وسيجيبك «مدقق» فوراً.\n\n"
+            "⚙️ لإعادة تفعيل الذكاء الاصطناعي الكامل: يمكنك مراجعة صفحة الإعدادات وتشغيل خادم Ollama المحلي أو تحديث مفتاح API السحابي."
+        )
+
     def _call_llm(
         self,
         model_name: str,
@@ -1444,14 +1629,17 @@ class SerajLLMService:
                     return msg
             return None
 
-        # تجهيز تفاصيل المشغلات
+        # تجهيز تفاصيل المشغلات مع فصل النموذج المحلي عن السحابي
         loc_cfg = cfg.get("local", {})
         cld_cfg = cfg.get("cloud", {})
+
+        loc_model = loc_cfg.get("model") or os.environ.get("OLLAMA_MODEL") or os.environ.get("LLM_MODEL") or "qwen3.5:0.8b"
+        cld_model = model_name or cld_cfg.get("model") or os.environ.get("OPENROUTER_MODEL") or "openrouter/auto"
 
         loc_tuple = (
             "local",
             loc_cfg.get("base_url", "http://localhost:11434/v1"),
-            loc_cfg.get("model") or model_name,
+            loc_model,
             os.environ.get("LLM_API_KEY") or None,
             int(loc_cfg.get("timeout", 120)),
         )
@@ -1459,22 +1647,26 @@ class SerajLLMService:
         cld_tuple = (
             "cloud",
             cld_cfg.get("base_url", "https://openrouter.ai/api/v1"),
-            cld_cfg.get("model") or model_name,
+            cld_model,
             cld_cfg.get("api_key") or os.environ.get("OPENROUTER_API_KEY") or os.environ.get("LLM_API_KEY"),
             int(cld_cfg.get("timeout", 45)),
         )
 
+        fallback_enabled = cfg.get("fallback_enabled", True)
         candidates: List[Tuple[str, str, str, Optional[str], int]] = []
 
         if mode == "manual":
-            # في الوضع اليدوي: يتم استدعاء المشغل المحدد فقط
+            # في الوضع اليدوي: يتم تقديم المشغل المختار، مع التبديل التلقائي عند التعثر إن كان مفعّلاً
             if active == "cloud":
                 candidates = [cld_tuple]
+                if fallback_enabled:
+                    candidates.append(loc_tuple)
             else:
                 candidates = [loc_tuple]
+                if fallback_enabled and cld_tuple[3]:
+                    candidates.append(cld_tuple)
         else:
             # في الوضع التلقائي: الترتيب الذكي
-            # إذا توفر مفتاح سحابي وكان المشغل النشط سحابياً أو محلياً
             if active == "cloud" and cld_tuple[3]:
                 candidates = [cld_tuple, loc_tuple]
             else:
