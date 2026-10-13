@@ -43,3 +43,18 @@ def test_template_catalog_is_allowlisted():
     assert any(item["template_type"] == "modular" for item in entries)
     assert all("path" not in item for item in entries)
 
+
+def test_approval_rejects_artifact_path_outside_output(monkeypatch):
+    monkeypatch.setenv("WRITE_API_TOKEN", "test-secret")
+    response = client.post(
+        "/api/approve",
+        headers={"X-API-Key": "test-secret"},
+        json={
+            "report_path": "C:/Windows/win.ini",
+            "approved_by": "tester",
+            "rows": [2],
+        },
+    )
+    assert response.status_code == 400
+    assert "غير مسموح" in response.json()["detail"]
+

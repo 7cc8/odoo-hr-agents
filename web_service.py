@@ -21,6 +21,7 @@ import asyncio
 import uuid
 import tempfile
 import secrets
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -72,6 +73,8 @@ TEMPLATE_DIR.mkdir(parents=True, exist_ok=True)
 LOGS_DIR = Path("logs")
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 API_LOG_FILE = LOGS_DIR / "web_access.log"
+OUTPUT_ROOT = Path("output").resolve()
+SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
 
 # Never provide a built-in credential.  Deployments must inject a secret through
 # the environment/secret manager; otherwise mutation endpoints stay disabled.
@@ -127,6 +130,22 @@ def verify_api_auth(request: Request) -> None:
 def verify_write_auth(request: Request) -> None:
     """Authentication token check for write mutations."""
     verify_api_auth(request)
+
+
+def _safe_artifact_path(value: str, field_name: str) -> Path:
+    """Resolve an artifact path without allowing access outside output/."""
+    candidate = Path(value).resolve()
+    try:
+        candidate.relative_to(OUTPUT_ROOT)
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"مسار {field_name} غير مسموح؛ يجب أن يكون ضمن مخزن العملية.")
+    return candidate
+
+
+def _safe_operation_id(value: str) -> str:
+    if not SAFE_ID_RE.fullmatch(value or ""):
+        raise HTTPException(status_code=400, detail="معرّف العملية غير صالح.")
+    return value
 
 
 # ==================== REQUEST SCHEMAS ====================
@@ -1010,9 +1029,12 @@ def create_approval_endpoint(req: ApprovalRequest, request: Request) -> Dict[str
     """Generates approval.json based solely on explicit user row selection."""
     verify_api_auth(request)
     report_path = None
-    if req.report_path and Path(req.report_path).exists():
-        report_path = Path(req.report_path)
+    if req.report_path:
+        report_path = _safe_artifact_path(req.report_path, "report_path")
+        if not report_path.exists():
+            report_path = None
     elif req.run_id:
+        _safe_operation_id(req.run_id)
         matching = list(Path("output").glob(f"{req.run_id}_*/dry_run_report.json"))
         if matching:
             report_path = matching[0]
@@ -1040,7 +1062,7 @@ def create_approval_endpoint(req: ApprovalRequest, request: Request) -> Dict[str
     if not approved_by:
         raise HTTPException(status_code=400, detail="اسم الشخص المعتمد (approved_by) مطلوب.")
 
-    out_file = Path(req.out_path) if req.out_path else report_path.parent / "approval.json"
+    out_file = _safe_artifact_path(req.out_path, "out_path") if req.out_path else report_path.parent / "approval.json"
 
     input_file_name = Path(req.input_path).name if req.input_path else report_data.get("header", {}).get("source_file_name", "input.xlsx")
 
@@ -1130,11 +1152,12 @@ def execute_writer_endpoint(req: WriteRequest, request: Request) -> Dict[str, An
     verify_write_auth(request)
 
     # 2. Resolve paths
-    report_path = Path(req.report_path) if req.report_path else None
-    approval_path = Path(req.approval_path) if req.approval_path else None
-    input_path = Path(req.input_path) if req.input_path else None
+    report_path = _safe_artifact_path(req.report_path, "report_path") if req.report_path else None
+    approval_path = _safe_artifact_path(req.approval_path, "approval_path") if req.approval_path else None
+    input_path = _safe_artifact_path(req.input_path, "input_path") if req.input_path else None
 
     if req.run_id and (not report_path or not approval_path or not input_path):
+        _safe_operation_id(req.run_id)
         matches = list(Path("output").glob(f"{req.run_id}_*"))
         if matches:
             run_dir = matches[0]
@@ -4629,7 +4652,8 @@ def get_companies_diagram_html() -> str:
 def get_dry_run_report_detail_endpoint(folder_name: str, request: Request) -> Dict[str, Any]:
     """Returns the parsed dry-run report JSON for the specified folder."""
     audit_log_access(f"/api/reports/dry-run/{folder_name}", request)
-    report_file = Path("output") / folder_name / "dry_run_report.json"
+    _safe_operation_id(folder_name)
+    report_file = OUTPUT_ROOT / folder_name / "dry_run_report.json"
     if not report_file.exists():
         candidates = list(Path("output").glob(f"*{folder_name}*/dry_run_report.json"))
         if candidates:
