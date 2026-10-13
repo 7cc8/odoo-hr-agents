@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>شات سِراج | LangGraph Chat</title>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --color-obsidian: #121212;
@@ -217,6 +217,229 @@
       padding: 10px;
       margin: 8px 0;
       overflow-x: auto;
+    }
+
+    /* =========================================================================
+       EDITORIAL DATA TABLE DESIGN SYSTEM (diagram-design skill)
+       ========================================================================= */
+    .editorial-table-container {
+      margin: 14px 0;
+      background: #181818;
+      border: 1px solid rgba(255, 255, 255, 0.10);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: none; /* diagram-design: Shadows are out. Borders are in. */
+    }
+
+    .editorial-table-topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 14px;
+      background: #202020;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      gap: 12px;
+    }
+
+    .editorial-table-topbar .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .editorial-table-topbar .eyebrow-chip {
+      font-family: var(--font-mono, monospace);
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #8e98ac;
+      padding: 2px 6px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 3px;
+    }
+
+    .editorial-table-topbar .topbar-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--color-snow, #fafafa);
+    }
+
+    .editorial-table-topbar .topbar-count {
+      font-size: 11px;
+      color: #bfc0c0;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .editorial-table-wrapper {
+      overflow-x: auto;
+      max-width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .editorial-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      line-height: 1.5;
+      text-align: right;
+    }
+
+    .editorial-table thead th {
+      padding: 9px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: #bfc0c0;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+      white-space: nowrap;
+    }
+
+    .editorial-table thead th.th-num {
+      width: 75px;
+    }
+
+    .editorial-table tbody tr {
+      transition: background 0.15s ease;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .editorial-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .editorial-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .editorial-table tbody tr.row-focal {
+      background: rgba(62, 207, 142, 0.04);
+    }
+
+    .editorial-table tbody tr.row-focal:hover {
+      background: rgba(62, 207, 142, 0.07);
+    }
+
+    .editorial-table tbody td {
+      padding: 9px 14px;
+      color: var(--color-snow, #fafafa);
+      vertical-align: middle;
+    }
+
+    .editorial-table tbody td.td-num {
+      white-space: nowrap;
+    }
+
+    .editorial-table .table-tag-chip {
+      display: inline-block;
+      font-family: var(--font-mono, monospace);
+      font-size: 11px;
+      font-weight: 500;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #bfc0c0;
+    }
+
+    .editorial-table .table-tag-chip.focal-chip {
+      color: var(--color-green, #3ecf8e);
+      border-color: rgba(62, 207, 142, 0.35);
+      background: rgba(62, 207, 142, 0.09);
+    }
+
+    .editorial-table .cell-entity {
+      font-weight: 500;
+      color: #fafafa;
+    }
+
+    .editorial-table .cell-entity.entity-focal {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .editorial-table .metric-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .editorial-table .metric-pill.is-active {
+      background: rgba(62, 207, 142, 0.12);
+      border: 1px solid rgba(62, 207, 142, 0.35);
+      color: var(--color-green, #3ecf8e);
+      font-weight: 600;
+    }
+
+    .editorial-table .metric-pill.is-zero {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #8e98ac;
+    }
+
+    .editorial-table .metric-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .editorial-table .metric-dot.active-dot {
+      background: var(--color-green, #3ecf8e);
+      box-shadow: 0 0 6px rgba(62, 207, 142, 0.4);
+    }
+
+    .editorial-table .metric-dot.zero-dot {
+      background: #5c5c5c;
+    }
+
+    .editorial-table-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 14px;
+      background: #151515;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 11.5px;
+      color: #8e98ac;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .editorial-table-footer .footer-legend {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .editorial-table-footer .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+    }
+
+    .editorial-table-footer .legend-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .editorial-table-footer .legend-dot.active {
+      background: var(--color-green, #3ecf8e);
+    }
+
+    .editorial-table-footer .legend-dot.zero {
+      background: #5c5c5c;
     }
 
     /* Typing Indicator */
@@ -611,15 +834,178 @@
       messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function renderEditorialTable(headers, rows) {
+      let theadHtml = '<thead><tr>';
+      headers.forEach((h, idx) => {
+        const isNum = idx === 0 || /عدد|id|رقم|كود|نسبة/i.test(h);
+        theadHtml += `<th class="${isNum ? 'th-num' : ''}">${escapeHtml(h)}</th>`;
+      });
+      theadHtml += '</tr></thead>';
+
+      let totalNumericCount = 0;
+      let hasNumericColumn = false;
+
+      headers.forEach((h) => {
+        if (/عدد|إجمالي|تعداد/i.test(h)) {
+          hasNumericColumn = true;
+        }
+      });
+
+      let tbodyHtml = '<tbody>';
+      rows.forEach((row) => {
+        let isFocal = false;
+        row.forEach(c => {
+          const match = c.match(/([1-9]\d*)\s*(موظف|سجل|عنصر|طلب)/);
+          if (match) {
+            isFocal = true;
+            totalNumericCount += parseInt(match[1], 10);
+          }
+        });
+
+        tbodyHtml += `<tr class="${isFocal ? 'row-focal' : ''}">`;
+        row.forEach((cell, cIdx) => {
+          let cellContent = escapeHtml(cell);
+          const headerName = headers[cIdx] || '';
+          const trimmed = cell.trim();
+          
+          // ID / Code column
+          if (cIdx === 0 && (/^\d+$/.test(trimmed) || /^#\d+/.test(trimmed))) {
+            const idVal = trimmed.replace(/^#/, '');
+            cellContent = `<span class="table-tag-chip mono ${isFocal ? 'focal-chip' : ''}">#${idVal}</span>`;
+          } 
+          // Count column with units or numeric cell
+          else if (/موظف|موظفين|سجل|سجلات/.test(trimmed) || (/عدد|إجمالي/i.test(headerName) && /\d+/.test(trimmed))) {
+            hasNumericColumn = true;
+            if (/^[0\s]+(موظف|موظفين|سجل)?$/.test(trimmed) || trimmed === '0') {
+              cellContent = `<span class="metric-pill is-zero"><span class="metric-dot zero-dot"></span>${escapeHtml(trimmed)}</span>`;
+            } else {
+              cellContent = `<span class="metric-pill is-active"><span class="metric-dot active-dot"></span>${escapeHtml(trimmed)}</span>`;
+            }
+          } else {
+            cellContent = `<span class="cell-entity ${isFocal ? 'entity-focal' : ''}">${escapeHtml(cell)}</span>`;
+          }
+
+          const isNum = cIdx === 0 || /عدد|id|رقم|كود/i.test(headerName);
+          tbodyHtml += `<td class="${isNum ? 'td-num' : ''}">${cellContent}</td>`;
+        });
+        tbodyHtml += '</tr>';
+      });
+      tbodyHtml += '</tbody>';
+
+      const titleText = headers[1] ? `سجلات ${headers[1]}` : (headers[0] ? `جدول ${headers[0]}` : 'جدول البيانات المنظم');
+      const footerStat = hasNumericColumn
+        ? `<span>إجمالي الصفوف: <strong class="mono">${rows.length}</strong> • المجموع: <strong class="mono" style="color:var(--color-green);">${totalNumericCount}</strong></span>`
+        : `<span>إجمالي الصفوف: <strong class="mono">${rows.length}</strong></span>`;
+
+      return `<div class="editorial-table-container">
+  <div class="editorial-table-topbar">
+    <div class="topbar-left">
+      <span class="eyebrow-chip">DATA PLATFORM</span>
+      <span class="topbar-title">${escapeHtml(titleText)}</span>
+    </div>
+    <span class="topbar-count mono">${rows.length} سجلات</span>
+  </div>
+  <div class="editorial-table-wrapper">
+    <table class="editorial-table">
+      ${theadHtml}
+      ${tbodyHtml}
+    </table>
+  </div>
+  <div class="editorial-table-footer">
+    ${footerStat}
+    <div class="footer-legend">
+      <span class="legend-item"><span class="legend-dot active"></span> بيانات نشطة</span>
+      <span class="legend-item"><span class="legend-dot zero"></span> بدون عناصر</span>
+    </div>
+  </div>
+</div>`;
+    }
+
     // Format message content
     function formatMessage(content) {
-      // Convert markdown-style code blocks
-      content = content.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
-      // Convert inline code
-      content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
-      // Convert line breaks
-      content = content.replace(/\n/g, '<br>');
-      return content;
+      if (!content) return "";
+
+      // 1. Preserve code blocks
+      const codeBlocks = [];
+      content = content.replace(/```(\w*)\n([\s\S]*?)```/g, function(match, lang, code) {
+        const placeholder = `___CODE_BLOCK_${codeBlocks.length}___`;
+        codeBlocks.push(`<pre><code>${escapeHtml(code.trim())}</code></pre>`);
+        return placeholder;
+      });
+
+      // 2. Parse markdown tables
+      const lines = content.split('\n');
+      const processedBlocks = [];
+      let i = 0;
+
+      while (i < lines.length) {
+        const line = lines[i];
+        const nextLine = lines[i + 1];
+
+        const hasPipe = line.includes('|');
+        const nextHasPipeDash = nextLine && nextLine.includes('|') && /^[\s|:-]+$/.test(nextLine) && nextLine.includes('-');
+
+        if (hasPipe && nextHasPipeDash) {
+          const parseCells = (str) => {
+            let trimmed = str.trim();
+            if (trimmed.startsWith('|')) trimmed = trimmed.substring(1);
+            if (trimmed.endsWith('|')) trimmed = trimmed.substring(0, trimmed.length - 1);
+            return trimmed.split('|').map(c => c.trim());
+          };
+
+          const headers = parseCells(line);
+          i += 2; // skip header and separator
+
+          const rows = [];
+          while (i < lines.length) {
+            const rowLine = lines[i];
+            if (!rowLine.includes('|') || rowLine.trim() === '') break;
+            const cells = parseCells(rowLine);
+            if (cells.length > 0 && cells.some(c => c !== '')) {
+              rows.push(cells);
+            }
+            i++;
+          }
+
+          processedBlocks.push(renderEditorialTable(headers, rows));
+        } else {
+          processedBlocks.push(line);
+          i++;
+        }
+      }
+
+      // 3. Format inline markdown for non-table lines
+      const intermediate = processedBlocks.map(block => {
+        if (typeof block === 'string' && block.startsWith('<div class="editorial-table-container">')) {
+          return block;
+        }
+        let html = escapeHtml(block);
+        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+        return html;
+      }).join('<br>');
+
+      // 4. Restore code blocks
+      let result = intermediate;
+      codeBlocks.forEach((codeHtml, idx) => {
+        result = result.replace(`___CODE_BLOCK_${idx}___`, codeHtml);
+      });
+
+      // 5. Clean up duplicate breaks around tables
+      return result
+        .replace(/(<br>)+(\s*<div class="editorial-table-container">)/g, '$2')
+        .replace(/(<\/div>\s*)(<br>)+/g, '$1');
     }
 
     // Show/hide typing indicator

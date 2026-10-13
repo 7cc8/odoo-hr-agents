@@ -86,28 +86,84 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
     workbook = load_workbook(path, data_only=True)
     warnings = _xlsx_has_formulas_or_merged_or_hidden(path)
 
-    if REQUIRED_SHEET not in workbook.sheetnames:
-        raise ParserError("missing_employees_sheet")
+    target_sheet = REQUIRED_SHEET
+    if target_sheet not in workbook.sheetnames:
+        # Check for alternative data sheet
+        aux = {"instructions", "reference", "دليل التعليمات", "المراجع"}
+        candidates = [s for s in workbook.sheetnames if s.strip().lower() not in aux]
+        emp_cand = [s for s in candidates if "employee" in s.lower() or "موظف" in s]
+        if emp_cand:
+            target_sheet = emp_cand[0]
+        elif candidates:
+            target_sheet = candidates[0]
+        else:
+            raise ParserError("missing_employees_sheet")
 
-    ws = workbook[REQUIRED_SHEET]
+    ws = workbook[target_sheet]
     if ws.max_row - 1 > MAX_ROWS:
         raise ParserError("too_many_rows")
 
-    header_cells = [cell.value for cell in ws[1]]
+    header_row_idx = 1
+    row1_non_empty = [c.value for c in ws[1] if c.value is not None]
+    if len(row1_non_empty) <= 2 and ws.max_row >= 2:
+        row2_non_empty = [c.value for c in ws[2] if c.value is not None]
+        if len(row2_non_empty) >= 3:
+            header_row_idx = 2
+
+    header_cells = [cell.value for cell in ws[header_row_idx]]
     headers_norm = [normalize_header(to_text_preserve(v)) for v in header_cells]
+
+    # Map Arabic headers if present
+    AR_MAP = {
+        "اسم الموظف الكامل بالعربي": "name",
+        "اسم الموظف": "name",
+        "البريد الإلكتروني للعمل": "work_email",
+        "البريد الإلكتروني": "work_email",
+        "رقم الجوال (05xxxxxxxx)": "mobile_phone",
+        "رقم الجوال": "mobile_phone",
+        "هاتف العمل": "work_phone",
+        "المسمى الوظيفي": "job_title",
+        "المنشأة التابع لها": "company",
+        "الشركة": "company",
+        "القسم / الإدارة": "department",
+        "القسم": "department",
+        "تاريخ المباشرة": "hiring_date",
+    }
+    for idx, h in enumerate(headers_norm):
+        for ar_k, en_k in AR_MAP.items():
+            if ar_k in h or h in ar_k:
+                headers_norm[idx] = en_k
+                break
+
     if len(headers_norm) != len(set(headers_norm)):
-        raise ParserError("duplicate_header")
+        # Filter duplicates only if non-empty
+        non_empty_headers = [h for h in headers_norm if h]
+        if len(non_empty_headers) != len(set(non_empty_headers)):
+            raise ParserError("duplicate_header")
 
     header_map = {h: idx + 1 for idx, h in enumerate(headers_norm) if h}
-    missing = [h for h in REQUIRED_HEADERS if h not in header_map]
-    if missing:
-        raise ParserError("missing_required_columns:" + ",".join(missing))
+    if "job_title" in header_map and "job" not in header_map:
+        header_map["job"] = header_map["job_title"]
+    if "mobile_phone" in header_map and "work_phone" not in header_map:
+        header_map["work_phone"] = header_map["mobile_phone"]
+
+    if target_sheet == REQUIRED_SHEET or "employee" in target_sheet.lower():
+        missing = [h for h in REQUIRED_HEADERS if h not in header_map]
+        if missing:
+            raise ParserError("missing_required_columns:" + ",".join(missing))
 
     rows = []
     duplicate_counts = {}
     possible_duplicate_counts = {}
 
-    for excel_row in range(2, ws.max_row + 1):
+    data_start_row = header_row_idx + 1
+    if header_row_idx == 2 and ws.max_row > 3:
+        # Check if row 3 is the template example row
+        row3_vals = [to_text_preserve(cell.value).strip() for cell in ws[3] if cell.value is not None]
+        if row3_vals and ("1088776655" in row3_vals[0] or "عبدالله" in row3_vals[0]):
+            data_start_row = 4
+
+    for excel_row in range(data_start_row, ws.max_row + 1):
         row_raw, row_value, row_match = {}, {}, {}
         flags = []
         is_all_empty = True

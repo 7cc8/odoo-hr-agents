@@ -25,12 +25,12 @@ def test_error_short_circuits():
 
 
 def test_write_disabled_by_default():
-    assert n.route_intent({"intent": "write"}) == "seraj_think"
+    assert n.route_intent({"intent": "write"}) == "seraj_meta_orchestration"
 
 
 def test_approval_requires_matching_plan_id_route():
     assert n.route_after_approval({"approved": False}) == "finalize_write"
-    assert n.route_after_approval({"approved": True}) == "katib_execute"
+    assert n.route_after_approval({"approved": True}) == "katib_agentic_write"
 
 
 def test_policy_failure_blocks_approval():

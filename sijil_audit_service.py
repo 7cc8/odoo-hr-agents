@@ -979,7 +979,7 @@ class SijilAuditService:
         q_lower = clean_q.lower()
 
         clean_core = q_lower
-        for pfx in ["del_", "op-del-", "run_", "run-", "op-agents-", "op_", "op-"]:
+        for pfx in ["del_", "op-del-", "run_", "run-", "op-agents-", "op_", "op-", "leave_", "warn_", "letter_", "exp_"]:
             if clean_core.startswith(pfx):
                 clean_core = clean_core[len(pfx):]
                 break
@@ -1178,6 +1178,8 @@ class SijilAuditService:
                             elif ref_code and (q_lower in ref_code.lower() or ref_code.lower().startswith(q_lower)):
                                 matched = True
                             elif emp_name and q_lower in emp_name.lower():
+                                matched = True
+                            elif q_lower == f"{dom_key}_{l_idx}_{emp_id}".lower() or f"{dom_key}_{l_idx}_{emp_id}".lower().startswith(q_lower):
                                 matched = True
 
                             if matched:

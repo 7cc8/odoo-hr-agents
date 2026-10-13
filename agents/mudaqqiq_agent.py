@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from agents.base_agent import BaseAgent
+import saudi_labor_law_rules as sllr
 
 logger = logging.getLogger("mudaqqiq_agent")
 
@@ -131,6 +132,20 @@ class MudaqqiqAgent(BaseAgent):
             perception: تحليل شامل للسياق القانوني
         """
         logger.info(f"🔍 Perceiving compliance check request")
+
+        op_id = check_request.get("operation_id") or check_request.get("context", {}).get("operation_id")
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Mudaqqiq (Compliance)",
+                    "perceive",
+                    reasoning="Analyzing compliance requirements and identifying applicable legal rules...",
+                    status="in_progress"
+                )
+            except Exception:
+                pass
         
         # استخراج البيانات الأساسية
         perception = {
@@ -139,6 +154,7 @@ class MudaqqiqAgent(BaseAgent):
             "context": check_request.get("context", {}),
             "data": check_request.get("data", {}),
             "raw_request": check_request,
+            "operation_id": op_id,
         }
         
         # تحديد القواعد المطبقة
@@ -154,6 +170,20 @@ class MudaqqiqAgent(BaseAgent):
         perception["sensitivity_level"] = self._assess_sensitivity(perception)
         
         logger.info(f"✅ Perception complete: {len(perception['applicable_rules'])} rules identified")
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Mudaqqiq (Compliance)",
+                    "perceive",
+                    decision=f"Identified {len(perception['applicable_rules'])} applicable rules",
+                    status="success"
+                )
+            except Exception:
+                pass
+
         return perception
 
     def plan(self, perception: Dict[str, Any]) -> Dict[str, Any]:
@@ -167,12 +197,30 @@ class MudaqqiqAgent(BaseAgent):
             plan: خطة التحقق المفصلة
         """
         logger.info(f"📋 Planning compliance verification strategy")
+
+        op_id = perception.get("operation_id") or perception.get("context", {}).get("operation_id")
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Mudaqqiq (Compliance)",
+                    "plan",
+                    decision="verify_compliance_rules",
+                    reasoning="Building verification steps prioritized by severity",
+                    status="in_progress"
+                )
+            except Exception:
+                pass
         
         plan = {
             "verification_steps": [],
             "rules_to_check": perception["applicable_rules"],
             "priority_order": [],
             "expected_duration": "short",  # short, medium, long
+            "data": perception.get("data", {}),
+            "context": perception.get("context", {}),
+            "operation_id": op_id,
         }
         
         # بناء خطوات التحقق
@@ -198,6 +246,20 @@ class MudaqqiqAgent(BaseAgent):
             plan["expected_duration"] = "medium"
         
         logger.info(f"✅ Plan created: {len(plan['verification_steps'])} verification steps")
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Mudaqqiq (Compliance)",
+                    "plan",
+                    decision=f"Created {len(plan['verification_steps'])} verification steps",
+                    status="success"
+                )
+            except Exception:
+                pass
+
         return plan
 
     def execute(self, plan: Dict[str, Any]) -> Dict[str, Any]:
@@ -211,6 +273,20 @@ class MudaqqiqAgent(BaseAgent):
             result: نتيجة التحقق مع المخالفات إن وجدت
         """
         logger.info(f"⚡ Executing compliance verification")
+
+        op_id = plan.get("operation_id") or plan.get("context", {}).get("operation_id")
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Mudaqqiq (Compliance)",
+                    "execute",
+                    reasoning="Applying compliance rules and checks...",
+                    status="in_progress"
+                )
+            except Exception:
+                pass
         
         result = {
             "status": ComplianceStatus.COMPLIANT,
@@ -266,6 +342,20 @@ class MudaqqiqAgent(BaseAgent):
             result["decision"] = ComplianceDecision.ESCALATE_LEGAL
         
         logger.info(f"✅ Execution complete: {result['status']}, {result['decision']}")
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Mudaqqiq (Compliance)",
+                    "execute",
+                    decision=f"Status: {result['status'].value if hasattr(result['status'], 'value') else result['status']}, Violations: {len(result['violations'])}",
+                    status="success" if result["status"] == ComplianceStatus.COMPLIANT else "failed"
+                )
+            except Exception:
+                pass
+
         return result
 
     def reflect(self, perception: Dict[str, Any], plan: Dict[str, Any], result: Dict[str, Any]) -> Dict[str, Any]:
@@ -505,11 +595,113 @@ class MudaqqiqAgent(BaseAgent):
         else:
             return "manual_review"
 
+    def _find_rule(self, rule_id: str) -> Optional[ComplianceRule]:
+        """البحث عن قاعدة بالمعرف"""
+        for r in self._rules_database:
+            if r.rule_id == rule_id:
+                return r
+        return None
+
     def _execute_rule_check(self, step: Dict[str, Any], plan: Dict[str, Any]) -> Dict[str, Any]:
-        """تنفيذ فحص قاعدة واحدة"""
-        # TODO: تطبيق المنطق الفعلي لكل قاعدة
-        # حالياً نرجع passed دائماً للاختبار
-        
+        """تنفيذ فحص قاعدة واحدة باستخدام محرك القواعد الحتمي (saudi_labor_law_rules)"""
+        rule_id = step["rule_id"]
+        data = plan.get("data", {})
+        context = plan.get("context", {})
+
+        # 1. الحد الأدنى للراتب للسعوديين (labor_law_01)
+        if rule_id == "labor_law_01":
+            basic_sal = data.get("basic_salary") if "basic_salary" in data else data.get("basic_wage")
+            is_saudi = context.get("saudi_employee") or data.get("employee_type") == "saudi" or data.get("is_saudi")
+            if is_saudi and basic_sal is not None and float(basic_sal) < 4000.0:
+                rule = self._find_rule(rule_id)
+                return {
+                    "passed": False,
+                    "rule_id": rule_id,
+                    "check_method": step["check_method"],
+                    "violation": {
+                        "rule": rule,
+                        "violation_description_ar": f"الراتب المحدد ({float(basic_sal):,.2f} ريال) أقل من الحد الأدنى للمواطن السعودي في نطاقات (4,000 ريال)",
+                        "severity": rule.severity if rule else "critical",
+                        "article_reference": rule.article_reference if rule else "نظام العمل وقرارات التوطين",
+                    }
+                }
+
+        # 2. فترة التجربة (labor_law_03)
+        elif rule_id == "labor_law_03":
+            probation_days = data.get("probation_days")
+            if probation_days is not None:
+                has_written = data.get("has_written_agreement", False)
+                res = sllr.validate_probation_period(int(probation_days), has_written_agreement=has_written)
+                if not res.is_valid:
+                    rule = self._find_rule(rule_id)
+                    return {
+                        "passed": False,
+                        "rule_id": rule_id,
+                        "check_method": step["check_method"],
+                        "violation": {
+                            "rule": rule,
+                            "violation_description_ar": res.message_ar,
+                            "severity": rule.severity if rule else "medium",
+                            "article_reference": res.article,
+                        }
+                    }
+
+        # 3. التأمينات الاجتماعية للموظف السعودي (gosi_01)
+        elif rule_id == "gosi_01":
+            basic_sal = data.get("basic_salary") if "basic_salary" in data else data.get("basic_wage")
+            gosi_contr = data.get("gosi_contribution") if "gosi_contribution" in data else data.get("gosi_employee_contribution")
+            if basic_sal is not None and gosi_contr is not None:
+                calc = sllr.calculate_gosi_contributions(float(basic_sal), float(data.get("housing_allowance", 0.0)), is_saudi=True)
+                if abs(float(gosi_contr) - calc.total_employee) > 1.0:
+                    rule = self._find_rule(rule_id)
+                    return {
+                        "passed": False,
+                        "rule_id": rule_id,
+                        "check_method": step["check_method"],
+                        "violation": {
+                            "rule": rule,
+                            "violation_description_ar": f"استقطاع التأمينات ({float(gosi_contr):,.2f} ريال) لا يطابق النسبة النظامية ({calc.total_employee:,.2f} ريال)",
+                            "severity": rule.severity if rule else "critical",
+                            "article_reference": calc.article_reference,
+                        }
+                    }
+
+        # 4. الحد الأقصى للاستقطاعات (deduction_01)
+        elif rule_id == "deduction_01":
+            basic_sal = data.get("basic_salary") if "basic_salary" in data else data.get("basic_wage")
+            deductions = data.get("total_monthly_deductions") if "total_monthly_deductions" in data else data.get("deduction_amount")
+            if basic_sal is not None and deductions is not None:
+                if float(deductions) > float(basic_sal) * 0.50:
+                    rule = self._find_rule(rule_id)
+                    return {
+                        "passed": False,
+                        "rule_id": rule_id,
+                        "check_method": step["check_method"],
+                        "violation": {
+                            "rule": rule,
+                            "violation_description_ar": f"إجمالي الاستقطاعات الشهرية ({float(deductions):,.2f} ريال) يتجاوز سقف 50% من الأجر",
+                            "severity": rule.severity if rule else "critical",
+                            "article_reference": "المادة 92 من نظام العمل",
+                        }
+                    }
+
+        # 5. مدة العقد ونوعه لغير السعودي (contract_01)
+        elif rule_id == "contract_01":
+            duration_years = data.get("contract_duration_years")
+            if duration_years is not None and float(duration_years) > 4.0:
+                rule = self._find_rule(rule_id)
+                return {
+                    "passed": False,
+                    "rule_id": rule_id,
+                    "check_method": step["check_method"],
+                    "violation": {
+                        "rule": rule,
+                        "violation_description_ar": f"مدة العقد المحدد ({duration_years} سنوات) تزيد على السقف النظامي (4 سنوات)",
+                        "severity": rule.severity if rule else "medium",
+                        "article_reference": "المادة 55 من نظام العمل",
+                    }
+                }
+
         return {
             "passed": True,
             "rule_id": step["rule_id"],
@@ -575,6 +767,190 @@ class MudaqqiqAgent(BaseAgent):
             "confidence_score": reflection["confidence_score"],
             "timestamp": result["timestamp"],
         }
+
+    def consult_labor_law(self, query: str, article_number: Optional[int] = None) -> Dict[str, Any]:
+        """
+        استشارة قانونية ونظامية من وكيل التدقيق «مدقق» استناداً إلى نصوص نظام العمل السعودي واللوائح.
+        """
+        from labor_law_knowledge import LaborLawKnowledgeBase
+        kb = LaborLawKnowledgeBase.get_instance()
+
+        articles = []
+        if article_number and article_number in kb.articles:
+            articles = [kb.articles[article_number]]
+        else:
+            articles = kb.search(query, top_k=3)
+
+        if not articles:
+            return {
+                "status": "not_found",
+                "agent": "mudaqqiq",
+                "role": "وكيل التدقيق والامتثال لنظام العمل السعودي",
+                "query": query,
+                "message_ar": "لم يتم العثور على مادة مطابقة في نظام العمل السعودي لهذا الاستعلام.",
+                "articles": [],
+            }
+
+        primary = articles[0]
+        # شروحات ملخصة لأبرز المواد
+        explanation = ""
+        if primary.article_number == 98:
+            explanation = (
+                "وفقاً للمادة (98) من نظام العمل السعودي:\n"
+                "• ساعات العمل الفعلية العادية: لا تزيد على ثماني (8) ساعات يومياً (إذا اعتمد المعيار اليومي) أو 48 ساعة أسبوعياً (إذا اعتمد المعيار الأسبوعي).\n"
+                "• ساعات العمل في شهر رمضان المبارك للمسلمين: تُخفض ساعات العمل الفعلية بحيث لا تزيد على ست (6) ساعات في اليوم الواحد، أو ست وثلاثين (36) ساعة في الأسبوع."
+            )
+        elif primary.article_number == 53:
+            explanation = (
+                "وفقاً للمادة (53) من نظام العمل السعودي وتعديلاتها:\n"
+                "• الأصل في فترة التجربة ألا تزيد على تسعين (90) يوماً.\n"
+                "• يجوز باتفاق مكتوب صريح بين العامل وصاحب العمل تمديدها بما لا يتجاوز مائة وثمانين (180) يوماً.\n"
+                "• لا تدخل في حساب فترة التجربة إجازة عيدي الفطر والأضحى والإجازة المرضية."
+            )
+        elif primary.article_number == 109:
+            explanation = (
+                "وفقاً للمادة (109) من نظام العمل السعودي:\n"
+                "• يستحق العامل إجازة سنوية بأجر لا تقل عن 21 يوماً.\n"
+                "• تُزاد إلى 30 يوماً إذا أمضى العامل خمس سنوات متصلة في خدمة صاحب العمل."
+            )
+        elif primary.article_number in (151, 116):
+            explanation = (
+                "وفقاً للمادة (151) من نظام العمل السعودي وتعديلاته:\n"
+                "• للمرأة العاملة الحق في إجازة وضع بأجر كامل.\n"
+                "• يحظر تشغيل المرأة بعد الوضع بأي حال من الأحوال خلال الستة أسابيع التالية له."
+            )
+        elif primary.article_number in (84, 85):
+            explanation = (
+                "وفقاً للمادتين (84 و 85) من نظام العمل:\n"
+                "• تُحسب مكافأة نهاية الخدمة بأجر نصف شهر عن كل سنة من السنوات الخمس الأولى، وأجر شهر كامل عن كل سنة تالية.\n"
+                "• في حال الاستقالة: يستحق ثلث المكافأة بعد خدمة من سنتين إلى 5 سنوات، وثلثيها إذا زادت على 5 سنوات ولم تبلغ 10، وتستحق كاملة إذا بلغت 10 سنوات فأكثر."
+            )
+        else:
+            explanation = f"تنص المادة ({primary.article_number}) صراحة على ما يلي: {primary.text}"
+
+        return {
+            "status": "success",
+            "agent": "mudaqqiq",
+            "role": "وكيل التدقيق والامتثال لنظام العمل السعودي",
+            "query": query,
+            "primary_article_number": primary.article_number,
+            "primary_article_title": primary.title,
+            "primary_article_text": primary.text,
+            "explanation_ar": explanation,
+            "related_articles": [
+                {"number": a.article_number, "title": a.title, "text": a.text}
+                for a in articles[1:]
+            ],
+            "legal_source": "نظام العمل السعودي (المرسوم الملكي م/51 وتعديلاته)",
+        }
+
+    # ============================================================================
+    # Deterministic Compliance & Calculation Methods (via saudi_labor_law_rules)
+    # ============================================================================
+
+    def calculate_gosi(
+        self,
+        basic_wage: float,
+        housing_allowance: float = 0.0,
+        is_saudi: bool = True
+    ) -> sllr.GOSIContributionResult:
+        """حساب اشتراكات التأمينات الاجتماعية وساند بدقة تامة"""
+        return sllr.calculate_gosi_contributions(basic_wage, housing_allowance, is_saudi)
+
+    def calculate_eosb(
+        self,
+        basic_wage: float = 0.0,
+        service_years: float = 0.0,
+        is_resignation: bool = False,
+        resignation_reason: sllr.ResignationReason = sllr.ResignationReason.STANDARD,
+        is_saudi: bool = True,
+        last_gross_wage: Optional[float] = None
+    ) -> sllr.EOSBCalculationResult:
+        """حساب مكافأة نهاية الخدمة بالريال وفق المواد 84 و 85 و 87"""
+        effective_wage = last_gross_wage if last_gross_wage is not None else basic_wage
+        return sllr.calculate_end_of_service_benefit(
+            last_gross_wage=effective_wage,
+            service_years=service_years,
+            is_saudi=is_saudi,
+            is_resignation=is_resignation,
+            resignation_reason=resignation_reason,
+        )
+
+    def calculate_overtime(
+        self,
+        basic_wage: float,
+        gross_wage: float,
+        overtime_hours: float
+    ) -> sllr.OvertimeCalculationResult:
+        """حساب أجر ساعات العمل الإضافية وفق المادة 107"""
+        return sllr.calculate_overtime_pay(basic_wage, gross_wage, overtime_hours)
+
+    def validate_probation(
+        self,
+        probation_days: int,
+        has_written_agreement: bool = False
+    ) -> sllr.RuleValidationResult:
+        """التحقق من ضوابط فترة التجربة وفق المادة 53 وتعديلات 1446هـ"""
+        return sllr.validate_probation_period(probation_days, has_written_agreement)
+
+    def validate_contract_type(
+        self,
+        is_saudi: bool,
+        contract_type: sllr.ContractType
+    ) -> sllr.RuleValidationResult:
+        """التحقق من نوع العقد وفق المادة 37 (حظر العقود غير المحددة لغير السعودي)"""
+        return sllr.validate_contract_type_for_nationality(is_saudi, contract_type)
+
+    def validate_disciplinary(
+        self,
+        infraction_deduction_days: float,
+        daily_wage: float,
+        prior_deductions_this_month_days: float = 0.0,
+        suspension_days: float = 0.0
+    ) -> sllr.RuleValidationResult:
+        """التحقق من الجزاءات التأديبية وفق المادة 70"""
+        return sllr.validate_disciplinary_deduction(
+            infraction_deduction_days=infraction_deduction_days,
+            daily_wage=daily_wage,
+            prior_deductions_this_month_days=prior_deductions_this_month_days,
+            suspension_days=suspension_days,
+        )
+
+    def validate_working_hours(
+        self,
+        daily_hours: float,
+        weekly_hours: float,
+        is_ramadan: bool = False,
+        is_muslim: bool = True
+    ) -> sllr.RuleValidationResult:
+        """التحقق من ساعات العمل وفق المادة 98 (بما فيها ساعات رمضان للمسلمين)"""
+        max_daily = sllr.RAMADAN_MUSLIM_DAILY_HOURS if (is_ramadan and is_muslim) else sllr.STANDARD_DAILY_WORKING_HOURS
+        max_weekly = sllr.RAMADAN_MUSLIM_WEEKLY_HOURS if (is_ramadan and is_muslim) else sllr.STANDARD_WEEKLY_WORKING_HOURS
+
+        if daily_hours > max_daily or weekly_hours > max_weekly:
+            season_str = "في شهر رمضان للمسلمين" if (is_ramadan and is_muslim) else "العادية"
+            return sllr.RuleValidationResult(
+                is_valid=False,
+                article="المادة 98",
+                code="EXCEEDED_MAX_WORKING_HOURS",
+                message_ar=f"مخالفة للمادة 98: ساعات العمل الفعلية {season_str} يجب ألا تتجاوز {max_daily} ساعات يومياً أو {max_weekly} ساعة أسبوعياً.",
+                details={"daily_hours": daily_hours, "max_daily": max_daily, "weekly_hours": weekly_hours, "max_weekly": max_weekly}
+            )
+        return sllr.RuleValidationResult(
+            is_valid=True,
+            article="المادة 98",
+            code="WORKING_HOURS_COMPLIANT",
+            message_ar="ساعات العمل متوافقة مع ضوابط المادة 98 من نظام العمل.",
+            details={"daily_hours": daily_hours, "weekly_hours": weekly_hours}
+        )
+
+    def calculate_annual_leave(self, service_years: float) -> int:
+        """حساب أيام الإجازة السنوية وفق المادة 109"""
+        return sllr.calculate_annual_leave_entitlement(service_years)
+
+    def get_occasion_leave_days(self, leave_type: sllr.OccasionLeaveType) -> int:
+        """إرجاع عدد أيام إجازات المناسبات وفق المادة 113 وتعديلات 1446هـ"""
+        return sllr.get_occasion_leave_statutory_days(leave_type)
 
 
 # ============================================================================

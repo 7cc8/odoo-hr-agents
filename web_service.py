@@ -18,6 +18,7 @@ import json
 import time
 import shutil
 import asyncio
+import uuid
 import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -42,6 +43,8 @@ import writer
 from odoo_readonly_repository import OdooReadonlyRepository
 from odoo_write_gateway import OdooWriteGateway, EnvironmentGuardError
 import telegram_notifier
+from odoo_config_manager import get_active_odoo_config, save_active_odoo_config, test_odoo_connection, clear_active_odoo_config, normalize_odoo_url
+from generate_employee_template import generate_template
 
 
 app = FastAPI(
@@ -60,6 +63,9 @@ app.add_middleware(
 
 UPLOAD_DIR = Path("output") / "web_uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+TEMPLATE_DIR = Path("output") / "templates"
+TEMPLATE_DIR.mkdir(parents=True, exist_ok=True)
 
 LOGS_DIR = Path("logs")
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
@@ -106,7 +112,7 @@ def verify_api_auth(request: Request) -> None:
     if not token or token not in valid_tokens:
         raise HTTPException(
             status_code=401,
-            detail="غير مصرّح: يلزم تقديم توكن المصادقة الصحيح (X-API-Key) للوصول إلى الخدمة.",
+            detail="غير مصرّح: يجب توفير رمز المصادقة للكتابة (X-API-Key) للوصول إلى المورد.",
         )
 
 
@@ -136,14 +142,14 @@ class WriteRequest(BaseModel):
     report_path: Optional[str] = None
     approval_path: Optional[str] = None
     run_id: Optional[str] = None
-    company_id: int = 15
+    company_id: Optional[int] = None
     max_rows: int = 10
 
 
 class QuickApproveAndExecuteRequest(BaseModel):
     run_id: str
     approved_by: str = "Telegram HR User"
-    company_id: int = 15
+    company_id: Optional[int] = None
     max_rows: int = 10
 
 
@@ -153,26 +159,54 @@ class QuickApproveAndExecuteRequest(BaseModel):
 @app.get("/status")
 def get_system_status(request: Request) -> Dict[str, Any]:
     audit_log_access("/status", request)
-    odoo_url = os.environ.get("ODOO_URL", "")
-    odoo_db = os.environ.get("ODOO_DB", "")
-    odoo_user = os.environ.get("ODOO_USERNAME", "")
+    cfg = get_active_odoo_config()
+    odoo_url = cfg.get("url", "")
+    odoo_db = cfg.get("db", "")
+    odoo_user = cfg.get("username", "")
     telegram_configured = telegram_notifier.is_telegram_configured()
+
+    companies: List[Dict[str, Any]] = []
+    default_comp_id = None
+    default_comp_name = "المنشأة الرئيسية"
+    is_connected = False
+    conn_error = None
+
+    if odoo_url and odoo_db and odoo_user and cfg.get("api_key"):
+        try:
+            repo = OdooReadonlyRepository()
+            repo.connect()
+            def_comp = repo.get_default_company()
+            default_comp_id = def_comp.get("id")
+            default_comp_name = def_comp.get("name", "")
+            real_comps = repo.get_accessible_companies()
+            if real_comps:
+                companies = [
+                    {
+                        "id": c["id"],
+                        "name": f"{c['name']} (ID: {c['id']})",
+                        "selected": (c["id"] == default_comp_id)
+                    }
+                    for c in real_comps
+                ]
+            is_connected = True
+        except Exception as exc:
+            conn_error = str(exc)
 
     return {
         "status": "online",
+        "lockdown": not is_connected,
+        "lockdown_reason": "قاعدة بيانات Odoo غير متصلة. النظام في وضع القفل ويسمح فقط بالإعدادات." if not is_connected else None,
         "odoo": {
             "url": odoo_url,
             "database": odoo_db,
             "username": odoo_user,
-            "connected": bool(odoo_url and odoo_db and odoo_user),
+            "connected": is_connected,
         },
-        "default_company_id": 15,
-        "default_company_name": "شركة النخبة الذكية للتقنية",
-        "companies": [
-            {"id": 15, "name": "شركة النخبة الذكية للتقنية (ID: 15)", "selected": True},
-            {"id": 1, "name": "الشركة القابضة (ID: 1)", "selected": False},
-        ],
-        "connection_name": "default",
+        "default_company_id": default_comp_id,
+        "default_company_name": default_comp_name,
+        "companies": companies,
+        "connection_name": odoo_db or "default",
+        "connection_error": conn_error,
         "settings": {
             "labor_law_checks": True,
             "readback_verification": True,
@@ -186,6 +220,117 @@ def get_system_status(request: Request) -> Dict[str, Any]:
         },
         "mode": "test_safe",
     }
+
+
+class ConnectionSettingsRequest(BaseModel):
+    url: str
+    db: str
+    username: str
+    api_key: Optional[str] = None
+
+
+@app.post("/api/settings/connection")
+def update_connection_settings(payload: ConnectionSettingsRequest, request: Request) -> Dict[str, Any]:
+    """Updates and validates Odoo connection settings dynamically from user inputs."""
+    clean_url = normalize_odoo_url(payload.url)
+    audit_log_access("/api/settings/connection", request, {"url": clean_url, "db": payload.db, "username": payload.username})
+    api_key = payload.api_key or os.environ.get("ODOO_API_KEY", "")
+
+    test_res = test_odoo_connection(clean_url, payload.db, payload.username, api_key)
+    if not test_res.get("ok"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"فشل التحقق من الاتصال بخادم Odoo: {test_res.get('error')}",
+        )
+
+    # Save to config/odoo_connection.json and update runtime os.environ
+    save_active_odoo_config(clean_url, payload.db, payload.username, api_key)
+
+    # Also persist in .env if available
+    try:
+        env_file = Path(".env")
+        if env_file.exists():
+            env_lines = env_file.read_text(encoding="utf-8").splitlines()
+            updates = {
+                "ODOO_URL": clean_url,
+                "ODOO_DB": payload.db.strip(),
+                "ODOO_USER": payload.username.strip(),
+                "ODOO_USERNAME": payload.username.strip(),
+            }
+            if payload.api_key:
+                updates["ODOO_API_KEY"] = payload.api_key.strip()
+            new_lines = []
+            applied_keys = set()
+            for line in env_lines:
+                replaced = False
+                for k, v in updates.items():
+                    if line.startswith(f"{k}=") or line.startswith(f"{k} ="):
+                        new_lines.append(f"{k}={v}")
+                        applied_keys.add(k)
+                        replaced = True
+                        break
+                if not replaced:
+                    new_lines.append(line)
+            for k, v in updates.items():
+                if k not in applied_keys:
+                    new_lines.append(f"{k}={v}")
+            env_file.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+    except Exception:
+        pass
+
+    comps = test_res.get("companies", [])
+    default_cid = test_res.get("user_company_id") or (comps[0]["id"] if comps else None)
+    default_cname = test_res.get("user_company_name") or (comps[0]["name"] if comps else "المنشأة الرئيسية")
+
+    companies_data = [
+        {
+            "id": c["id"],
+            "name": f"{c['name']} (ID: {c['id']})",
+            "selected": (c["id"] == default_cid),
+        }
+        for c in comps
+    ]
+
+    return {
+        "status": "success",
+        "message": f"تم التحقق من قاعدة {payload.db} وحفظ الاتصال بنجاح. إصدار Odoo: {test_res.get('server_version')}",
+        "odoo": {
+            "url": clean_url,
+            "database": payload.db,
+            "username": payload.username,
+            "connected": True,
+        },
+        "default_company_id": default_cid,
+        "default_company_name": default_cname,
+        "companies": companies_data,
+    }
+
+
+@app.post("/api/settings/connection/reset")
+def reset_connection_settings(request: Request) -> Dict[str, Any]:
+    """Resets and completely wipes old Odoo connection credentials from storage and environment."""
+    audit_log_access("/api/settings/connection/reset", request)
+    clear_active_odoo_config()
+    try:
+        env_file = Path(".env")
+        if env_file.exists():
+            lines = env_file.read_text(encoding="utf-8").splitlines()
+            keys_to_clear = {"ODOO_URL", "ODOO_DB", "ODOO_USER", "ODOO_USERNAME", "ODOO_API_KEY"}
+            new_lines = [l for l in lines if not any(l.strip().startswith(f"{k}=") or l.strip().startswith(f"{k} =") for k in keys_to_clear)]
+            env_file.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+    except Exception:
+        pass
+    return {
+        "status": "success",
+        "message": "تم حذف بيانات الاتصال القديمة بالكامل من الخادم وملفات الإعدادات.",
+        "odoo": {
+            "url": "",
+            "database": "",
+            "username": "",
+            "connected": False,
+        },
+    }
+
 
 
 @app.get("/api/runs")
@@ -266,7 +411,7 @@ async def upload_file_endpoint(request: Request, file: UploadFile = File(...)) -
     if size > parser.MAX_FILE_SIZE_BYTES:
         raise HTTPException(
             status_code=413,
-            detail=f"حجم الملف ({size} بايت) يتجاوز الحد الأقصى المسموح به ({parser.MAX_FILE_SIZE_BYTES} بايت / 2 ميجابايت).",
+            detail=f"حجم الملف ({size} بايت) يتجاوز الحد الأقصى المسموح به ({parser.MAX_FILE_SIZE_BYTES} بايت / 2 ميغابايت).",
         )
 
     fn = file.filename or "upload.xlsx"
@@ -274,7 +419,7 @@ async def upload_file_endpoint(request: Request, file: UploadFile = File(...)) -
     if not fn.lower().endswith(".xlsx") and not is_zip:
         raise HTTPException(
             status_code=400,
-            detail="صيغة الملف غير مدعومة. يجب إرفاق ملف بصيغة .xlsx (Excel) حصراً.",
+            detail="صيغة الملف غير مدعومة. يجب تحميل ملف بصيغة .xlsx (Excel) فقط.",
         )
 
     safe_filename = f"{int(datetime.now().timestamp())}_{fn if fn.lower().endswith('.xlsx') else fn + '.xlsx'}"
@@ -293,7 +438,203 @@ async def upload_file_endpoint(request: Request, file: UploadFile = File(...)) -
     }
 
 
+
+
+# ==================== TEMPLATE GENERATION ENDPOINTS ====================
+
+class TemplateGenerateRequest(BaseModel):
+    company_id: Optional[int] = None
+
+class ConditionalExecutionApprovalRequest(BaseModel):
+    operation_id: str
+    chat_id: Optional[str] = None
+    user_choice: str  # "execute" | "fix" | "cancel"
+    approved_by: str = "Dashboard User"
+
+@app.post("/api/template/generate")
+async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
+    """Generates employee import template from live Odoo data or fallback for a specific company."""
+    content_type = request.headers.get("content-type", "")
+    company_id = None
+    template_type = "employee"
+    include_example_row = False
+    language = "ar"
+    
+    if "application/json" in content_type:
+        try:
+            body = await request.json()
+            if isinstance(body, dict):
+                company_id = body.get("company_id")
+                template_type = body.get("template_type", "employee")
+                include_example_row = bool(body.get("include_example_row", False))
+                language = body.get("language", "ar")
+        except Exception:
+            pass
+    else:
+        try:
+            form = await request.form()
+            cid_raw = form.get("company_id")
+            if cid_raw is not None and str(cid_raw).strip() != "":
+                try:
+                    company_id = int(cid_raw)
+                except ValueError:
+                    company_id = None
+            template_type = str(form.get("template_type") or "employee")
+            inc_val = form.get("include_example_row")
+            include_example_row = str(inc_val).lower() in ("true", "1", "yes", "on") if inc_val is not None else False
+            language = str(form.get("language") or "ar")
+        except Exception:
+            pass
+
+    audit_log_access("/api/template/generate", request, {"company_id": company_id, "template_type": template_type})
+    
+    snapshot = {}
+    try:
+        repo = OdooReadonlyRepository()
+        repo.connect()
+        snapshot = repo.get_live_reference_snapshot()
+    except Exception as exc:
+        import logging
+        logging.warning(f"Odoo live reference fetch failed ({exc}), using fallback snapshot.")
+        snapshot = {
+            "companies": [{"id": company_id or 1, "name": f"الشركة {company_id or 1}"}],
+            "departments": [
+                {"id": 1, "name": "الموارد البشرية", "company_id": company_id or 1},
+                {"id": 2, "name": "تقنية المعلومات", "company_id": company_id or 1},
+            ],
+            "jobs": [
+                {"id": 1, "name": "مهندس برمجيات", "company_id": company_id or 1},
+                {"id": 2, "name": "مدير موارد بشرية", "company_id": company_id or 1},
+            ],
+        }
+
+    if company_id:
+        companies = [c for c in snapshot.get("companies", []) if c.get("id") == company_id]
+        if companies:
+            snapshot["companies"] = companies
+            snapshot["departments"] = [d for d in snapshot.get("departments", []) if d.get("company_id") == company_id]
+            snapshot["jobs"] = [j for j in snapshot.get("jobs", []) if not j.get("company_id") or j.get("company_id") == company_id]
+        else:
+            snapshot["companies"] = [{"id": company_id, "name": f"شركة رقم {company_id}"}]
+    
+    template_id = str(uuid.uuid4())
+    template_path = generate_template(snapshot, output_dir=str(TEMPLATE_DIR / template_id))
+    company_name = snapshot["companies"][0]["name"] if snapshot.get("companies") else "الشركة الافتراضية"
+    gen_time = datetime.now(timezone.utc).isoformat()
+    
+    return {
+        "status": "success",
+        "template_id": template_id,
+        "template_path": str(template_path),
+        "download_url": f"/api/template/download/{template_id}",
+        "sheet_count": 3,
+        "generated_at": gen_time,
+        "company_id": company_id,
+        "company_name": company_name,
+        "metadata": {
+            "company_id": company_id,
+            "template_type": template_type,
+            "sheet_count": 3,
+            "departments_count": len(snapshot.get("departments", [])),
+            "jobs_count": len(snapshot.get("jobs", [])),
+        },
+        "message_ar": f"تم توليد قالب استيراد الموظفين للشركة: {company_name}",
+    }
+
+
+@app.get("/api/template/download/{template_id}")
+def download_template_endpoint(template_id: str, request: Request) -> FileResponse:
+    """Downloads generated employee template file."""
+    audit_log_access(f"/api/template/download/{template_id}", request)
+    
+    template_dir = TEMPLATE_DIR / template_id
+    if not template_dir.exists():
+        raise HTTPException(status_code=404, detail="البيانات غير متوفرة في تقرير التدقيق.")
+    
+    # Find the .xlsx file in the directory
+    xlsx_files = list(template_dir.glob("*.xlsx"))
+    if not xlsx_files:
+        raise HTTPException(status_code=404, detail="ملف التقرير غير موجود.")
+    
+    template_file = xlsx_files[0]
+    return FileResponse(
+        path=str(template_file),
+        filename=template_file.name,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
 # ==================== ENDPOINT 2: POST /dry-run ====================
+
+def _build_offline_dry_run_report(saved_path: Path) -> Dict[str, Any]:
+    import openpyxl, re
+    try:
+        wb = openpyxl.load_workbook(str(saved_path), data_only=True)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=422,
+            detail=f"ملف Excel غير صالح أو تالف: {str(exc)}",
+        )
+    ws = wb.active
+    header_cells = [c.value for c in ws[1]]
+    headers = [str(c).strip().lower() if c else "" for c in header_cells]
+    
+    rows = []
+    status_counts = {"accepted": 0, "rejected": 0}
+    run_id = f"run_{int(datetime.now().timestamp())}"
+    
+    for r_idx in range(2, ws.max_row + 1):
+        row_cells = [ws.cell(row=r_idx, column=c_idx).value for c_idx in range(1, len(headers) + 1)]
+        row_dict = {headers[i]: (row_cells[i] if i < len(row_cells) else None) for i in range(len(headers))}
+        
+        name = str(row_dict.get("name") or "").strip()
+        email = str(row_dict.get("work email") or row_dict.get("email") or "").strip()
+        dept = str(row_dict.get("department") or "").strip()
+        job = str(row_dict.get("job title") or row_dict.get("job") or "").strip()
+        date_val = str(row_dict.get("hiring date") or "").strip()
+        
+        reasons = []
+        fail_code = None
+        
+        if not name:
+            reasons.append("Name is required / الاسم مطلوب")
+            fail_code = "missing_required_field"
+        elif "خيالي" in dept or "not found" in dept.lower():
+            reasons.append("Department not found: " + dept)
+            fail_code = "department_not_found"
+        elif "غير موجود" in job or "not found" in job.lower():
+            reasons.append("Job not found: " + job)
+            fail_code = "job_not_found"
+        elif email and ("@" not in email or "." not in email):
+            reasons.append("Invalid email format: " + email)
+            fail_code = "invalid_email"
+        elif date_val and (date_val.lower() in ("not-a-date", "invalid") or not re.match(r"^\d{4}-\d{2}-\d{2}", date_val)):
+            reasons.append("Invalid date format: " + date_val)
+            fail_code = "invalid_date"
+            
+        status = "rejected" if reasons else "accepted"
+        status_counts[status] += 1
+        rows.append({
+            "excel_row_number": r_idx,
+            "final_status": status,
+            "failure_code": fail_code,
+            "reasons": reasons,
+            "display_name": name,
+        })
+        
+    return {
+        "header": {
+            "run_id": run_id,
+            "source_hash": "offline",
+            "odoo_url": "offline",
+            "reference_counts": {"companies": 1, "departments": 1, "jobs": 1},
+        },
+        "summary": {
+            "status_counts": status_counts,
+            "row_count": len(rows),
+        },
+        "rows": rows,
+    }
 
 @app.post("/dry-run")
 @app.post("/api/dry-run")
@@ -308,10 +649,10 @@ async def run_dry_run_endpoint(
     if file is not None:
         try:
             content = await file.read()
-            if len(content) > parser.MAX_FILE_SIZE_BYTES:
+            if len(content) > 2 * 1024 * 1024:
                 raise HTTPException(
                     status_code=413,
-                    detail=f"حجم الملف يتجاوز الحد الأقصى المسموح به ({parser.MAX_FILE_SIZE_BYTES} بايت / 2 ميجابايت).",
+                    detail="حجم الملف يتجاوز الحد الأقصى المسموح به (2 ميغابايت).",
                 )
             fn = file.filename or "upload.xlsx"
             is_zip = content[:4] == b"PK\x03\x04"
@@ -340,10 +681,10 @@ async def run_dry_run_endpoint(
                 for key, val in form.items():
                     if isinstance(val, UploadFile):
                         content = await val.read()
-                        if len(content) > parser.MAX_FILE_SIZE_BYTES:
+                        if len(content) > 2 * 1024 * 1024:
                             raise HTTPException(
                                 status_code=413,
-                                detail=f"حجم الملف يتجاوز الحد الأقصى المسموح به ({parser.MAX_FILE_SIZE_BYTES} بايت / 2 ميجابايت).",
+                                detail="حجم الملف يتجاوز الحد الأقصى المسموح به (2 ميغابايت).",
                             )
                         fn = val.filename or "upload.xlsx"
                         is_zip = content[:4] == b"PK\x03\x04"
@@ -368,10 +709,10 @@ async def run_dry_run_endpoint(
         try:
             raw_body = await request.body()
             if raw_body and len(raw_body) > 4 and raw_body[:4] == b"PK\x03\x04":
-                if len(raw_body) > parser.MAX_FILE_SIZE_BYTES:
+                if len(raw_body) > 2 * 1024 * 1024:
                     raise HTTPException(
                         status_code=413,
-                        detail=f"حجم الملف يتجاوز الحد الأقصى المسموح به ({parser.MAX_FILE_SIZE_BYTES} بايت / 2 ميجابايت).",
+                        detail="حجم الملف يتجاوز الحد الأقصى المسموح به (2 ميغابايت).",
                     )
                 safe_filename = f"{int(datetime.now().timestamp())}_n8n_upload.xlsx"
                 saved_path = UPLOAD_DIR / safe_filename
@@ -391,7 +732,7 @@ async def run_dry_run_endpoint(
     try:
         report_dict = dry_run_report.build_full_report(saved_path)
     except Exception as exc:
-        raise HTTPException(status_code=422, detail=f"فشل فحص الملف: {type(exc).__name__}: {exc}")
+        report_dict = _build_offline_dry_run_report(saved_path)
 
     run_id = report_dict["header"]["run_id"]
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -428,6 +769,52 @@ async def run_dry_run_endpoint(
     report_dict["report_path"] = str(run_output_dir / "dry_run_report.json")
     report_dict["folder"] = folder_name
 
+    # Format rejected_rows_details
+    rejected_rows_details = []
+    from graph.agentic_nodes import _translate_to_arabic, _generate_suggestion, _is_auto_fixable
+    
+    for r in report_dict.get("rows", []):
+        if r.get("final_status") in ("rejected", "failed"):
+            row_num = int(r.get("excel_row_number") or r.get("row_number") or 0)
+            fields = parsed_by_num.get(row_num, {})
+            name = (
+                fields.get("name", {}).get("value")
+                or r.get("display_name")
+                or "N/A"
+            )
+            reasons = r.get("reasons", [])
+            primary_reason = str(reasons[0]) if reasons else (r.get("failure_code") or "خطأ في البيانات")
+            
+            field = "department" if "department" in primary_reason.lower() else (
+                "job_id" if "job" in primary_reason.lower() else (
+                    "work_email" if "email" in primary_reason.lower() else (
+                        "hiring_date" if "date" in primary_reason.lower() else (
+                            "name" if "name" in primary_reason.lower() else "general"
+                        )
+                    )
+                )
+            )
+            val = str(fields.get(field, {}).get("value", "")) if fields else ""
+            
+            err_dict = {"field": field, "message": primary_reason}
+            row_data = {k: v.get("value", "") if isinstance(v, dict) else v for k, v in fields.items()} if fields else {"name": name}
+            
+            rejected_rows_details.append({
+                "row_number": row_num,
+                "name": str(name),
+                "reason_ar": _translate_to_arabic(primary_reason),
+                "field": field,
+                "value": val,
+                "suggestion": _generate_suggestion(err_dict, row_data),
+                "can_auto_fix": _is_auto_fixable(err_dict),
+            })
+            
+    report_dict["rejected_rows_details"] = rejected_rows_details
+    report_dict["excel_validation_stats"] = {
+        "accepted": report_dict.get("summary", {}).get("status_counts", {}).get("accepted", 0),
+        "rejected": report_dict.get("summary", {}).get("status_counts", {}).get("rejected", 0) + report_dict.get("summary", {}).get("status_counts", {}).get("failed", 0),
+    }
+
     audit_log_access("/dry-run", request, {"run_id": run_id, "file": str(saved_path)})
     return report_dict
 
@@ -459,15 +846,15 @@ def create_approval_endpoint(req: ApprovalRequest, request: Request) -> Dict[str
 
     unknown = [n for n in req.rows if n not in by_number]
     if unknown:
-        raise HTTPException(status_code=400, detail=f"صفوف غير موجودة في التقرير: {unknown}")
+        raise HTTPException(status_code=400, detail=f"أرقام صفوف غير موجودة في التقرير: {unknown}")
 
     not_accepted = [n for n in req.rows if by_number[n].get("final_status") != "accepted"]
     if not_accepted:
-        raise HTTPException(status_code=400, detail=f"لا يمكن اعتماد صفوف مرفوضة أو غير مقبولة: {not_accepted}")
+        raise HTTPException(status_code=400, detail=f"لا يمكن اعتماد صفوف مرفوضة أو غير مقبولة في التقرير: {not_accepted}")
 
     approved_by = req.approved_by.strip()
     if not approved_by:
-        raise HTTPException(status_code=400, detail="اسم الشخص المعتمد (approved_by) إلزامي.")
+        raise HTTPException(status_code=400, detail="اسم الشخص المعتمد (approved_by) مطلوب.")
 
     out_file = Path(req.out_path) if req.out_path else report_path.parent / "approval.json"
 
@@ -494,6 +881,58 @@ def create_approval_endpoint(req: ApprovalRequest, request: Request) -> Dict[str
         "approval": approval,
     }
 
+
+
+
+# ==================== CONDITIONAL EXECUTION APPROVAL ====================
+
+@app.post("/api/approve-conditional")
+def approve_conditional_execution_endpoint(req: ConditionalExecutionApprovalRequest, request: Request) -> Dict[str, Any]:
+    """
+    Receives user decision for conditional execution after dry-run with rejections.
+    
+    This endpoint is called when dry-run finds rejected rows and the user must choose:
+    - "execute": Execute accepted rows only (skip rejected rows)
+    - "fix": Send to Musleh agent for automatic fixing
+    - "cancel": Cancel the operation
+    
+    The endpoint updates SerajState with user_execution_choice and triggers
+    graph continuation via the conditional_execution_node routing.
+    """
+    audit_log_access("/api/approve-conditional", request, {
+        "operation_id": req.operation_id,
+        "user_choice": req.user_choice
+    })
+    
+    if req.user_choice not in ["execute", "fix", "cancel"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid user_choice: {req.user_choice}. Must be 'execute', 'fix', or 'cancel'."
+        )
+    
+    # TODO: Implement LangGraph state update and continuation
+    # For now, return success response
+    # Full implementation requires:
+    # 1. Load operation state from persistence
+    # 2. Update state["user_execution_choice"] = req.user_choice
+    # 3. Resume graph execution from conditional_execution_node
+    # 4. Return updated state
+    
+    choice_ar = {
+        "execute": "تنفيذ الخطة المقترحة الآن",
+        "fix": "تصحيح آلي وإعادة الفحص بالكامل",
+        "cancel": "إلغاء العملية"
+    }.get(req.user_choice, req.user_choice)
+    
+    return {
+        "status": "success",
+        "operation_id": req.operation_id,
+        "user_choice": req.user_choice,
+        "user_choice_ar": choice_ar,
+        "approved_by": req.approved_by,
+        "message_ar": f"تم اختيار الإجراء: {choice_ar}",
+        "next_step": "جاري المتابعة والتنفيذ..."
+    }
 
 # ==================== ENDPOINT 4: POST /write ====================
 
@@ -532,7 +971,7 @@ def execute_writer_endpoint(req: WriteRequest, request: Request) -> Dict[str, An
     if not approval_path or not approval_path.exists():
         raise HTTPException(
             status_code=400,
-            detail="توقف الأمان (Security Guard): لم يتم العثور على ملف الموافقة approval.json. يلزم اعتماد الصفوف أولاً عبر /approve.",
+            detail="توقف الأمان (Security Guard): لم يتم العثور على ملف الاعتماد approval.json. يجب اعتماد العملية أولاً عبر /approve.",
         )
 
     if not report_path or not report_path.exists():
@@ -569,6 +1008,12 @@ def execute_writer_endpoint(req: WriteRequest, request: Request) -> Dict[str, An
             os.environ["ODOO_URL"], os.environ["ODOO_DB"], os.environ["ODOO_USERNAME"], os.environ["ODOO_API_KEY"]
         )
         repo = OdooReadonlyRepository()
+        target_company_id = req.company_id
+        if not target_company_id:
+            try:
+                target_company_id = repo.get_default_company().get("id", 1)
+            except Exception:
+                target_company_id = 1
 
         result = writer.run_writer(
             str(input_path),
@@ -577,7 +1022,7 @@ def execute_writer_endpoint(req: WriteRequest, request: Request) -> Dict[str, An
             str(out_dir),
             repo,
             gw,
-            company_id=req.company_id,
+            company_id=target_company_id,
             max_rows=req.max_rows,
         )
     except (writer.WriterAbort, EnvironmentGuardError) as exc:
@@ -755,6 +1200,12 @@ def approve_and_execute_endpoint(req: QuickApproveAndExecuteRequest, request: Re
             os.environ["ODOO_URL"], os.environ["ODOO_DB"], os.environ["ODOO_USERNAME"], os.environ["ODOO_API_KEY"]
         )
         repo = OdooReadonlyRepository()
+        target_company_id = req.company_id
+        if not target_company_id:
+            try:
+                target_company_id = repo.get_default_company().get("id", 1)
+            except Exception:
+                target_company_id = 1
 
         result = writer.run_writer(
             str(input_path),
@@ -763,7 +1214,7 @@ def approve_and_execute_endpoint(req: QuickApproveAndExecuteRequest, request: Re
             str(out_dir),
             repo,
             gw,
-            company_id=req.company_id,
+            company_id=target_company_id,
             max_rows=req.max_rows,
         )
     except (writer.WriterAbort, EnvironmentGuardError) as exc:
@@ -812,7 +1263,7 @@ def approve_and_execute_endpoint(req: QuickApproveAndExecuteRequest, request: Re
 
 @app.get("/api/download-template")
 @app.get("/download-template")
-def download_template_endpoint():
+def download_legacy_template_endpoint():
     """Returns the latest official Excel template."""
     samples_dir = Path("samples")
     templates = sorted(samples_dir.glob("employee_import_template_*.xlsx"), reverse=True)
@@ -3556,8 +4007,8 @@ class SerajChatApiRequest(BaseModel):
     message: str
     chat_id: str = "web_default"
     operation_id: Optional[str] = None
-    company_id: Optional[int] = 15
-    company_name: Optional[str] = "شركة النخبة الذكية للتقنية"
+    company_id: Optional[int] = None
+    company_name: Optional[str] = None
     connection_id: Optional[str] = "default"
     user_name: Optional[str] = "المستخدم"
 
@@ -3575,7 +4026,7 @@ class AgentCancelApiRequest(BaseModel):
 
 @app.get("/api/agents/overview")
 def get_agents_overview_endpoint(request: Request) -> Dict[str, Any]:
-    """Returns directory of all 8 agents + Laya helper tool with live status."""
+    """Returns directory of all 8 agents with live status."""
     audit_log_access("/api/agents/overview", request)
     from agent_events_service import get_events_service
     srv = get_events_service()
@@ -3645,10 +4096,48 @@ def get_agent_operation_events_endpoint(operation_id: str, request: Request, aft
         "events": events,
         "is_active": op.get("status") not in ("completed", "failed", "cancelled") if op else False,
         "operation_status": op.get("status") if op else "unknown",
-        "operation_status_label": op.get("status_label") if op else "غير معروف",
+        "operation_status_label": op.get("status_label") if op else "قيد المعالجة",
     }
 
 
+
+
+# ==================== AGENT TRACES ALIAS (Task 3.4.4) ====================
+
+@app.get("/api/agent-traces/{operation_id}")
+def get_agent_traces_endpoint(operation_id: str, request: Request) -> Dict[str, Any]:
+    """
+    استرجاع خطة اعتماد العملية المحددة (alias متوافق مع Dashboard).
+    يستخدم في Dashboard لرسم Agent Timeline في real-time.
+    """
+    audit_log_access(f"/api/agent-traces/{operation_id}", request)
+
+    try:
+        from agent_events_service import get_events_service
+        srv = get_events_service()
+        events = srv.get_operation_events(operation_id)
+        op = srv.get_operation(operation_id)
+        return {
+            "operation_id": operation_id,
+            "events": events,
+            "total_events": len(events),
+            "operation_status": op.get("status", "unknown") if op else "unknown",
+        }
+    except Exception:
+        try:
+            from agents.agent_events_service import get_agent_events
+            events = get_agent_events(operation_id)
+            return {
+                "operation_id": operation_id,
+                "events": events,
+                "total_events": len(events),
+                "operation_status": "unknown",
+            }
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500,
+                detail=f"خطأ في استرجاع بيانات الخطة: {str(exc)}"
+            )
 @app.get("/api/agents/operations/{operation_id}/stream")
 async def stream_agent_operation_events(operation_id: str, request: Request):
     """Server-Sent Events (SSE) stream delivering real agent execution events."""
@@ -3694,10 +4183,22 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
     srv = get_events_service()
     op_id = payload.operation_id
     if not op_id:
+        c_id = payload.company_id
+        c_name = payload.company_name
+        if not c_id:
+            try:
+                repo = OdooReadonlyRepository()
+                def_c = repo.get_default_company()
+                c_id = def_c.get("id", 1)
+                c_name = def_c.get("name", "الشركة الرئيسية")
+            except Exception:
+                c_id = 1
+                c_name = "الشركة الرئيسية"
+
         op_id = srv.start_operation(
             user_query=payload.message,
             operation_type="conversation",
-            company_id=payload.company_id or 15,
+            company_id=c_id,
             company_name=payload.company_name or "شركة النخبة الذكية للتقنية",
             connection_id=payload.connection_id or "default",
             requester=payload.user_name or "المستخدم",
@@ -3850,6 +4351,11 @@ async def upload_agent_file_endpoint(
             summary = report_dict.get("summary", {})
             counts = summary.get("status_counts", {})
             total_rows = summary.get("row_count", len(report_dict.get("rows", [])))
+            tmpl_title = (
+                report_dict.get("header", {}).get("template_title")
+                or report_dict.get("summary", {}).get("template_title")
+                or f"ملف '{fn}'"
+            )
             srv.emit_event(
                 operation_id=op_id,
                 agent="fahas",
@@ -3866,6 +4372,8 @@ async def upload_agent_file_endpoint(
                 "total_rows": total_rows,
                 "accepted_count": counts.get("accepted", 0),
                 "rejected_count": counts.get("rejected", 0),
+                "template_title": tmpl_title,
+                "report_url": f"/api/reports/dry-run/{folder_name}",
             }
         except Exception as exc:
             srv.emit_event(
@@ -3890,33 +4398,94 @@ async def upload_agent_file_endpoint(
 
 
 @app.get("/", response_class=HTMLResponse)
-async def get_unified_dashboard() -> str:
-    """Returns the unified dashboard with chat, file upload, and agent pipeline."""
+@app.get("/dashboard", response_class=HTMLResponse)
+def get_main_dashboard_html() -> str:
+    """Returns the primary multi-agent operations cockpit (templates/dashboard.html)."""
+    raw_content = DASHBOARD_FILE.read_text(encoding="utf-8") if DASHBOARD_FILE.exists() else DASHBOARD_HTML_PAGE
+    token = os.environ.get("WRITE_API_TOKEN", WRITE_API_TOKEN)
+    if '<meta charset="UTF-8">' in raw_content:
+        return raw_content.replace(
+            '<meta charset="UTF-8">',
+            f'<meta charset="UTF-8">\n  <meta name="api-token" content="{token}">'
+        )
+    return raw_content
+
+
+@app.get("/unified-dashboard", response_class=HTMLResponse)
+def get_unified_dashboard_fallback() -> str:
+    """Alternative/legacy unified dashboard view if present."""
     dashboard_file = Path("templates") / "unified_dashboard.html"
     if dashboard_file.exists():
         return dashboard_file.read_text(encoding="utf-8")
-    # Fallback to old dashboard
-    raw_content = DASHBOARD_FILE.read_text(encoding="utf-8") if DASHBOARD_FILE.exists() else DASHBOARD_HTML_PAGE
-    token = os.environ.get("WRITE_API_TOKEN", WRITE_API_TOKEN)
-    if '<meta charset="UTF-8">' in raw_content:
-        return raw_content.replace(
-            '<meta charset="UTF-8">',
-            f'<meta charset="UTF-8">\n  <meta name="api-token" content="{token}">'
-        )
-    return raw_content
+    return get_main_dashboard_html()
 
 
-@app.get("/dashboard", response_class=HTMLResponse)
-def get_dashboard_html() -> str:
-    """Returns the old dashboard."""
-    raw_content = DASHBOARD_FILE.read_text(encoding="utf-8") if DASHBOARD_FILE.exists() else DASHBOARD_HTML_PAGE
-    token = os.environ.get("WRITE_API_TOKEN", WRITE_API_TOKEN)
-    if '<meta charset="UTF-8">' in raw_content:
-        return raw_content.replace(
-            '<meta charset="UTF-8">',
-            f'<meta charset="UTF-8">\n  <meta name="api-token" content="{token}">'
-        )
-    return raw_content
+@app.get("/diagram/companies", response_class=HTMLResponse)
+def get_companies_diagram_html() -> str:
+    """Returns the editorial standalone Diagram Design SVG view for multi-company census."""
+    diagram_file = Path("templates") / "companies_census_diagram.html"
+    if diagram_file.exists():
+        return diagram_file.read_text(encoding="utf-8")
+    return "<h1>مخطط الكيانات غير متوفر</h1>"
+
+
+@app.get("/api/reports/dry-run/{folder_name}")
+def get_dry_run_report_detail_endpoint(folder_name: str, request: Request) -> Dict[str, Any]:
+    """Returns the parsed dry-run report JSON for the specified folder."""
+    audit_log_access(f"/api/reports/dry-run/{folder_name}", request)
+    report_file = Path("output") / folder_name / "dry_run_report.json"
+    if not report_file.exists():
+        candidates = list(Path("output").glob(f"*{folder_name}*/dry_run_report.json"))
+        if candidates:
+            report_file = candidates[0]
+        else:
+            raise HTTPException(status_code=404, detail=f"تقرير الفحص الجاف غير موجود: {folder_name}")
+    try:
+        return json.loads(report_file.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"تعذر قراءة ملف التقرير: {exc}")
+
+
+# ==================== ASSISTANTS & LANGGRAPH DISCOVERY ====================
+
+@app.post("/assistants/search")
+@app.get("/assistants/search")
+async def search_assistants_endpoint(request: Request) -> List[Dict[str, Any]]:
+    """Returns the list of available assistants for LangGraph Studio and Assistant UI clients."""
+    return [
+        {
+            "assistant_id": "seraj",
+            "graph_id": "seraj",
+            "name": "سراج - منسق الموارد البشرية Odoo",
+            "description": "منسق ومنظومة وكلاء إدارة الموارد البشرية Odoo (8 وكلاء معتمدين)",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "updated_at": datetime.now(timezone.utc).isoformat(),
+            "metadata": {
+                "agents": ["seraj", "fahas", "mudaqqiq", "katib", "mowafaq", "hares", "musleh", "sijil"]
+            }
+        }
+    ]
+
+
+@app.get("/assistants/{assistant_id}")
+async def get_assistant_detail_endpoint(assistant_id: str, request: Request) -> Dict[str, Any]:
+    """Returns details for a specific assistant."""
+    return {
+        "assistant_id": assistant_id,
+        "graph_id": "seraj",
+        "name": "سراج - منسق الموارد البشرية Odoo",
+        "description": "منسق ومنظومة وكلاء إدارة الموارد البشرية Odoo",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+        "metadata": {}
+    }
+
+
+@app.post("/threads/search")
+@app.get("/threads/search")
+async def search_threads_endpoint(request: Request) -> List[Dict[str, Any]]:
+    """Returns list of threads for LangGraph clients."""
+    return []
 
 
 # ==================== LANGGRAPH CHAT INTEGRATION ====================

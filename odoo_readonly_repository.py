@@ -87,6 +87,21 @@ class OdooReadonlyRepository:
             self._company_ids_cache = [row["id"] for row in self.get_accessible_companies()]
         return self._company_ids_cache
 
+    def get_default_company(self) -> Dict[str, Any]:
+        """Returns the primary company of the authenticated Odoo user, or the first accessible company."""
+        self._ensure_connected()
+        try:
+            user_data = self._execute_kw("res.users", "read", [[self.uid]], {"fields": ["company_id"]})
+            if user_data and user_data[0].get("company_id"):
+                cid = user_data[0]["company_id"]
+                return {"id": cid[0], "name": cid[1]}
+        except Exception:
+            pass
+        comps = self.get_accessible_companies()
+        if comps:
+            return {"id": comps[0]["id"], "name": comps[0]["name"]}
+        return {"id": 1, "name": "Main Company"}
+
     def get_departments(self, company_ids=None) -> List[Dict[str, Any]]:
         domain: List[Any] = []
         if company_ids:

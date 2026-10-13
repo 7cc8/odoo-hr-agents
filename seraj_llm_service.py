@@ -1083,6 +1083,60 @@ class SerajLLMService:
         else:
             effective_query = clean_query
 
+        # فحص استفسارات نظام العمل السعودي وتفويضها فوراً إلى «مدقق» دون استدعاء LLM خارجي
+        from labor_law_knowledge import is_labor_law_query
+        from agents.mudaqqiq_agent import get_mudaqqiq_agent
+
+        if is_labor_law_query(clean_query):
+            self._emit_evt(
+                operation_id=operation_id,
+                agent="modaqeq",
+                from_agent="seraj",
+                to_agent="modaqeq",
+                event_type="labor_law_consultation",
+                status="inspecting_data",
+                description_ar=f"مدقق يستعرض مواد ونصوص نظام العمل السعودي بشأن: «{clean_query[:50]}»",
+            )
+            mudaqqiq = get_mudaqqiq_agent()
+            law_res = mudaqqiq.consult_labor_law(clean_query)
+
+            if law_res.get("status") == "success":
+                self._emit_evt(
+                    operation_id=operation_id,
+                    agent="seraj",
+                    from_agent="modaqeq",
+                    to_agent="seraj",
+                    event_type="task_completed",
+                    status="completed",
+                    description_ar="سراج يعرض الاستشارة النظامية المعتمدة المستندة لنظام العمل السعودي",
+                )
+
+                exp = law_res.get("explanation_ar", "")
+                art_title = law_res.get("primary_article_title", "")
+                art_text = law_res.get("primary_article_text", "")
+                related = law_res.get("related_articles", [])
+
+                related_section = ""
+                if related:
+                    rel_items = []
+                    for r in related[:2]:
+                        rel_items.append(f"• **{r.get('title')}:** {r.get('text')[:180]}...")
+                    related_section = "\n💡 **مواد مرتبطة في النظام:**\n" + "\n".join(rel_items) + "\n"
+
+                formatted_reply = (
+                    f"⚖️ **استشارة نظام العمل السعودي — وكيل التدقيق «مدقق»:**\n"
+                    f"────────────────────\n"
+                    f"{exp}\n\n"
+                    f"📜 **السند النظامي الصريح ({art_title}):**\n"
+                    f"> \"{art_text}\"\n"
+                    f"{related_section}\n"
+                    f"🏛️ **المرجع المعتمد:** نظام العمل السعودي — الصادر بالمرسوم الملكي رقم (م/51) وتعديلاته.\n\n"
+                    "🛡️ *ضوابط الحوكمة:* تم فحص هذه الاستشارة وتدقيقها بواسطة وكيل التدقيق والامتثال «مدقق» وفق نصوص نظام العمل السعودي المعتمدة."
+                )
+                session.add_message("user", clean_query)
+                session.add_message("assistant", formatted_reply)
+                return formatted_reply
+
         if not self.is_configured():
             return "✅ النظام يعمل في وضع Fallback (Rule-based).\n" \
                    "للحصول على أداء أفضل، يمكنك تكوين:\n" \
@@ -1123,17 +1177,8 @@ class SerajLLMService:
                     )
                     self._emit_evt(
                         operation_id=operation_id,
-                        agent="sijil",
-                        from_agent="fahas",
-                        to_agent="sijil",
-                        event_type="audit_logged",
-                        status="documenting_audit",
-                        description_ar="سجل يوثق استعلام فاحص ونتائج الاستعلام",
-                    )
-                    self._emit_evt(
-                        operation_id=operation_id,
                         agent="seraj",
-                        from_agent="sijil",
+                        from_agent="fahas",
                         to_agent="seraj",
                         event_type="task_completed",
                         status="completed",

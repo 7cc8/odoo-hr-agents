@@ -52,9 +52,11 @@ def parse_excel_file(state: SerajState) -> Dict[str, Any]:
         if operation_id:
             events_service.emit_event(
                 operation_id=operation_id,
+                agent="parser",
                 event_type="excel_parsed",
-                agent_name="parser",
-                details={
+                status="completed",
+                description_ar=f"تم تحليل ملف Excel بنجاح ({parsed_data.get('row_count', 0)} صف)",
+                result_ref={
                     "run_id": parsed_data["run_id"],
                     "row_count": parsed_data["row_count"],
                     "warnings": parsed_data.get("warnings", [])
@@ -74,9 +76,11 @@ def parse_excel_file(state: SerajState) -> Dict[str, Any]:
         if operation_id:
             events_service.emit_event(
                 operation_id=operation_id,
+                agent="parser",
                 event_type="excel_parse_failed",
-                agent_name="parser",
-                details={"error_code": error_code}
+                status="failed",
+                description_ar=f"فشل تحليل ملف Excel: {error_code}",
+                result_ref={"error_code": error_code}
             )
         
         return {
@@ -116,9 +120,11 @@ def validate_excel_rows(state: SerajState) -> Dict[str, Any]:
     if operation_id:
         events_service.emit_event(
             operation_id=operation_id,
+            agent="validator",
             event_type="excel_validated",
-            agent_name="validator",
-            details={
+            status="completed",
+            description_ar=f"تم فحص صفوف Excel ({passed} مقبول، {rejected} مرفوض)",
+            result_ref={
                 "total": len(validation_results),
                 "passed": passed,
                 "needs_review": needs_review,
@@ -180,9 +186,11 @@ def heal_excel_batch(state: SerajState) -> Dict[str, Any]:
     if operation_id:
         events_service.emit_event(
             operation_id=operation_id,
+            agent="musleh",
             event_type="excel_healed",
-            agent_name="musleh",
-            details={
+            status="completed",
+            description_ar="تمت معالجة وإصلاح صفوف Excel",
+            result_ref={
                 "total_healed": sum(1 for r in healed_results if r["healing_decision"] is not None)
             }
         )
@@ -231,9 +239,11 @@ def generate_dry_run_report(state: SerajState) -> Dict[str, Any]:
         events_service = AgentEventsService()
         events_service.emit_event(
             operation_id=operation_id,
+            agent="excel_workflow",
             event_type="dry_run_report_generated",
-            agent_name="excel_workflow",
-            details=report
+            status="completed",
+            description_ar=report.get("summary_ar", "تم إنشاء تقرير المعاينة التجريبية"),
+            result_ref=report
         )
     
     return {
@@ -281,9 +291,11 @@ def create_excel_approval(state: SerajState) -> Dict[str, Any]:
         events_service = AgentEventsService()
         events_service.emit_event(
             operation_id=operation_id,
+            agent="excel_workflow",
             event_type="excel_approval_created",
-            agent_name="excel_workflow",
-            details={
+            status="completed",
+            description_ar="تم إنشاء طلب الاعتماد لملف Excel",
+            result_ref={
                 "run_id": run_id,
                 "expires_at": expiry_time.isoformat(),
                 "row_count": len(approval.row_hashes)

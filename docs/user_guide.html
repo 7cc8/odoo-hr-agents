@@ -17,11 +17,11 @@
          ========================================================================== */
       :root {
         /* Colors - Palette Tokens */
-        --color-obsidian: #121212;
-        --color-ash: #242424;
-        --color-charcoal: #2e2e2e;
-        --color-slate: #393939;
-        --color-graphite: #4d4d4d;
+        --color-obsidian: oklch(7% 0.006 95);
+        --color-ash: oklch(13.5% 0.006 95);
+        --color-charcoal: oklch(21% 0.008 95);
+        --color-slate: oklch(27% 0.01 95);
+        --color-graphite: oklch(36% 0.01 95);
         --color-snow: #fafafa;
         --color-silver-mist: #b4b4b4;
         --color-smoke: #898989;
@@ -163,7 +163,7 @@
         text-decoration: none;
         font-size: 13px;
         font-weight: 500;
-        transition: all 0.15s ease-out;
+        transition: color .15s var(--ease-out, ease), background-color .15s var(--ease-out, ease), border-color .15s var(--ease-out, ease), transform .15s var(--ease-out, ease), opacity .15s var(--ease-out, ease);
         white-space: nowrap;
       }
 
@@ -187,7 +187,7 @@
         margin-bottom: var(--space-8);
         border: 1px solid var(--color-charcoal);
         border-radius: var(--radius-pill);
-        background: rgba(18, 18, 18, 0.88);
+        background: oklch(7% 0.006 95 / 0.88);
         backdrop-filter: blur(12px);
         -webkit-backdrop-filter: blur(12px);
         position: sticky;
@@ -209,13 +209,13 @@
         text-decoration: none;
         font-size: 12px;
         white-space: nowrap;
-        transition: all 0.15s ease;
+        transition: color .15s var(--ease-out, ease), background-color .15s var(--ease-out, ease), border-color .15s var(--ease-out, ease), transform .15s var(--ease-out, ease), opacity .15s var(--ease-out, ease);
       }
 
       .quick-nav a:hover {
         color: var(--color-snow);
         border-color: var(--color-phosphor-green);
-        background: rgba(62, 207, 142, 0.06);
+        background: rgba(104, 195, 189, 0.06);
       }
 
       /* ==========================================================================
@@ -336,7 +336,7 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        transition: all 0.2s ease;
+        transition: color .15s var(--ease-out, ease), background-color .15s var(--ease-out, ease), border-color .15s var(--ease-out, ease), transform .15s var(--ease-out, ease), opacity .15s var(--ease-out, ease);
       }
 
       .node-card:not(:last-child)::after {
@@ -369,12 +369,12 @@
       }
 
       .node-card.gate-node {
-        border-color: rgba(62, 207, 142, 0.4);
-        background: rgba(62, 207, 142, 0.02);
+        border-color: rgba(104, 195, 189, 0.4);
+        background: rgba(104, 195, 189, 0.02);
       }
 
       .node-card.sink-node {
-        border-color: rgba(62, 207, 142, 0.5);
+        border-color: rgba(104, 195, 189, 0.5);
       }
 
       .node-header {
@@ -441,12 +441,12 @@
 
       .callout.tip {
         border-right-color: var(--color-mint-pulse);
-        background: rgba(0, 197, 115, 0.02);
+        background: rgba(104, 195, 189, 0.02);
       }
 
       .callout.warning {
         border-right-color: var(--color-amber);
-        background: rgba(255, 202, 22, 0.02);
+        background: rgba(252, 158, 71, 0.02);
       }
 
       .callout.danger {
@@ -540,16 +540,16 @@
       }
 
       .status-accepted {
-        background: rgba(62, 207, 142, 0.08);
+        background: rgba(104, 195, 189, 0.08);
         color: var(--color-phosphor-green);
-        border-color: rgba(62, 207, 142, 0.35);
+        border-color: rgba(104, 195, 189, 0.35);
       }
       .status-accepted .status-pill-dot { background: var(--color-phosphor-green); }
 
       .status-review {
-        background: rgba(255, 202, 22, 0.08);
+        background: rgba(252, 158, 71, 0.08);
         color: var(--color-amber);
-        border-color: rgba(255, 202, 22, 0.35);
+        border-color: rgba(252, 158, 71, 0.35);
       }
       .status-review .status-pill-dot { background: var(--color-amber); }
 
@@ -604,7 +604,7 @@
         display: inline-flex;
         align-items: center;
         gap: 5px;
-        transition: all 0.15s ease;
+        transition: color .15s var(--ease-out, ease), background-color .15s var(--ease-out, ease), border-color .15s var(--ease-out, ease), transform .15s var(--ease-out, ease), opacity .15s var(--ease-out, ease);
         font-family: var(--font-arabic);
       }
 
@@ -699,8 +699,201 @@
         pre { background: #f5f5f5; color: #111; border: 1px solid #ccc; padding: 10px; }
         .node-card { border: 1px solid #ccc; background: #fafafa; color: black; }
       }
-    </style>
-  </head>
+    
+/* UI-THEME-V2 : لاكر دافئ + كينباكو (impeccable / design-taste-frontend / animation-vocabulary) */
+:root{
+  --color-obsidian:oklch(7% 0.006 95);
+  --color-ash:oklch(10% 0.006 95);
+  --color-card:oklch(12% 0.006 95);
+  --color-card-elevated:oklch(15% 0.007 95);
+  --color-charcoal:oklch(21% 0.008 95);
+  --color-slate:oklch(27% 0.01 95);
+  --color-graphite:oklch(36% 0.01 95);
+  --color-snow:oklch(94% 0.004 95);
+  --color-silver-mist:oklch(75% 0.008 95);
+  --color-smoke:oklch(63% 0.008 95);
+  --color-phosphor-green:oklch(76% 0.088 190);
+  --color-mint-pulse:oklch(70% 0.09 185);
+  --color-forest-depth:oklch(30% 0.05 190);
+  --color-midnight-emerald:oklch(36% 0.06 190);
+  --color-iris-violet:oklch(84% 0.19 80);
+  --color-iris-glow:oklch(90% 0.12 85);
+  --color-iris-soft:oklch(84% 0.19 80 / 0.12);
+  --color-amber:oklch(78% 0.15 60);
+  --color-coral:oklch(70% 0.15 22);
+  --color-blue:oklch(74% 0.09 235);
+  --agent-seraj:oklch(74% 0.09 235);
+  --agent-fahas:oklch(74% 0.09 205);
+  --agent-modaqeq:oklch(72% 0.09 275);
+  --agent-mowafaq:oklch(72% 0.10 350);
+  --agent-hares:oklch(70% 0.12 25);
+  --agent-musleh:oklch(78% 0.11 75);
+  --agent-katib:oklch(74% 0.09 160);
+  --agent-sijil:oklch(84% 0.19 80);
+  --agent-laya:oklch(72% 0.09 310);
+  --radius-cards:10px;
+  --radius-inputs:6px;
+  --ease-out:cubic-bezier(0.23,1,0.32,1);
+}
+html{color-scheme:dark}
+body{background:var(--color-obsidian)}
+
+/* عربي: لا تباعد حروف (يكسر الاتصال)، وأرقام بعرض ثابت */
+html body :is(h1,h2,h3,h4,p,span,div,th,td,a,button,label,li,code,pre,.badge,.eyebrow,.tag-step,.node-pill){letter-spacing:0}
+.mono,.metric-value,.step-time,td.mono,.num-tabular{font-variant-numeric:tabular-nums lining-nums}
+
+/* أيقونات SVG بدل الإيموجي */
+.ico{display:inline-block;vertical-align:-0.15em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sec-icon .ico{width:18px;height:18px}
+
+/* أصناف مستخدمة في الكود لكنها بلا CSS أصلاً */
+.btn-success{background:var(--color-iris-violet);color:oklch(14% 0.02 85);border-color:var(--color-iris-violet);font-weight:600}
+.btn-success:hover:not(:disabled){filter:brightness(1.06)}
+.btn-secondary{background:transparent;border-color:var(--color-slate);color:var(--color-snow)}
+.font-xs{font-size:11.5px}
+.bold{font-weight:600}
+
+/* الإجراء الأساسي = ذهب */
+.btn-primary,.btn-primary:hover:not(:disabled){background:var(--color-iris-violet);border-color:var(--color-iris-violet);color:oklch(14% 0.02 85)}
+.btn-primary:hover:not(:disabled){filter:brightness(1.06)}
+.nav-tab-btn.is-active{color:var(--color-iris-violet)}
+.nav-brand-icon svg{stroke:var(--color-iris-violet)}
+.chat-textarea:focus,.search-input:focus{border-color:var(--color-iris-violet);box-shadow:none}
+
+/* بلا توهّج ولا نبض لا نهائي */
+.nav-brand-pulse{box-shadow:none;background:var(--color-iris-violet)}
+.agent-character-card.is-active{box-shadow:none;background:color-mix(in oklch,var(--agent-color,var(--color-iris-violet)) 7%,transparent)}
+.agent-character-card.is-active::after{animation:none;opacity:0.35;inset:-2px}
+.drawer-overlay{backdrop-filter:none;-webkit-backdrop-filter:none}
+.drawer-sheet{box-shadow:none}
+
+/* أنصاف أقطار هادئة وانتقالات محددة */
+.btn,.nav-tab-btn,.suggestion-chip{border-radius:var(--radius-inputs)}
+.nav-tabs{border-radius:var(--radius-cards)}
+.btn,.nav-tab-btn,.suggestion-chip,.agent-character-card,.agent-full-card,.step-node,.candidate-item,.back-link,.quick-nav a,.chip,.trouble-card,.node-card{
+  transition:color .15s var(--ease-out),background-color .15s var(--ease-out),border-color .15s var(--ease-out),transform .15s var(--ease-out),opacity .15s var(--ease-out)}
+.btn-sm{min-height:32px}
+.btn:active:not(:disabled){transform:scale(0.98)}
+:focus-visible{outline:2px solid var(--color-iris-violet);outline-offset:2px}
+.chat-textarea:focus-visible,.search-input:focus-visible{outline:none}
+
+/* شريط علوي متجاوب (كان يفيض عرضياً تحت ~1180px) */
+@media (max-width:1180px){
+  .top-nav{height:auto;flex-wrap:wrap;padding:12px 16px;row-gap:10px}
+  .nav-tabs{order:3;width:100%;overflow-x:auto;border-radius:var(--radius-cards);scrollbar-width:none}
+  .nav-controls{flex-wrap:wrap}
+}
+
+/* ───── الحركة: Fade in + Rise، Stagger، Pop in، Ease-out ───── */
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes modal-pop{from{opacity:0;transform:scale(0.96) translateY(6px)}to{opacity:1;transform:none}}
+.view-section.is-visible{animation:rise .28s var(--ease-out) backwards}
+.msg-bubble{animation:rise .3s var(--ease-out) backwards}
+.stepper-container>.step-node:last-child{animation:rise .3s var(--ease-out) backwards}
+.drawer-overlay.is-open,.op-modal-overlay.is-open{animation:fade .18s var(--ease-out) backwards}
+.op-modal{animation:modal-pop .22s var(--ease-out) backwards}
+.operation-view>*{animation:rise .34s var(--ease-out) backwards}
+#operationView{animation:fade .2s var(--ease-out) backwards}
+.agents-strip>*,.agents-grid>*,.metrics-grid>*,.trouble-grid>*,.candidates-list>*,.timeline>*,.results-comparison>*,.pipe-svg .node{animation:rise .34s var(--ease-out) backwards}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+@media print{*,*::before,*::after{animation:none!important;transition:none!important}}
+.agents-strip>*:nth-child(2){animation-delay:40ms}
+.agents-strip>*:nth-child(3){animation-delay:80ms}
+.agents-strip>*:nth-child(4){animation-delay:120ms}
+.agents-strip>*:nth-child(5){animation-delay:160ms}
+.agents-strip>*:nth-child(6){animation-delay:200ms}
+.agents-strip>*:nth-child(7){animation-delay:240ms}
+.agents-strip>*:nth-child(8){animation-delay:280ms}
+.agents-strip>*:nth-child(9){animation-delay:320ms}
+.agents-grid>*:nth-child(2){animation-delay:50ms}
+.agents-grid>*:nth-child(3){animation-delay:100ms}
+.agents-grid>*:nth-child(4){animation-delay:150ms}
+.agents-grid>*:nth-child(5){animation-delay:200ms}
+.agents-grid>*:nth-child(6){animation-delay:250ms}
+.agents-grid>*:nth-child(7){animation-delay:300ms}
+.agents-grid>*:nth-child(8){animation-delay:350ms}
+.agents-grid>*:nth-child(9){animation-delay:400ms}
+.metrics-grid>*:nth-child(2){animation-delay:60ms}
+.metrics-grid>*:nth-child(3){animation-delay:120ms}
+.metrics-grid>*:nth-child(4){animation-delay:180ms}
+.metrics-grid>*:nth-child(5){animation-delay:240ms}
+.metrics-grid>*:nth-child(6){animation-delay:300ms}
+.metrics-grid>*:nth-child(7){animation-delay:360ms}
+.metrics-grid>*:nth-child(8){animation-delay:420ms}
+.metrics-grid>*:nth-child(9){animation-delay:480ms}
+.trouble-grid>*:nth-child(2){animation-delay:60ms}
+.trouble-grid>*:nth-child(3){animation-delay:120ms}
+.trouble-grid>*:nth-child(4){animation-delay:180ms}
+.trouble-grid>*:nth-child(5){animation-delay:240ms}
+.trouble-grid>*:nth-child(6){animation-delay:300ms}
+.trouble-grid>*:nth-child(7){animation-delay:360ms}
+.trouble-grid>*:nth-child(8){animation-delay:420ms}
+.trouble-grid>*:nth-child(9){animation-delay:480ms}
+.candidates-list>*:nth-child(2){animation-delay:40ms}
+.candidates-list>*:nth-child(3){animation-delay:80ms}
+.candidates-list>*:nth-child(4){animation-delay:120ms}
+.candidates-list>*:nth-child(5){animation-delay:160ms}
+.candidates-list>*:nth-child(6){animation-delay:200ms}
+.candidates-list>*:nth-child(7){animation-delay:240ms}
+.candidates-list>*:nth-child(8){animation-delay:280ms}
+.candidates-list>*:nth-child(9){animation-delay:320ms}
+.timeline>*:nth-child(2){animation-delay:40ms}
+.timeline>*:nth-child(3){animation-delay:80ms}
+.timeline>*:nth-child(4){animation-delay:120ms}
+.timeline>*:nth-child(5){animation-delay:160ms}
+.timeline>*:nth-child(6){animation-delay:200ms}
+.timeline>*:nth-child(7){animation-delay:240ms}
+.timeline>*:nth-child(8){animation-delay:280ms}
+.timeline>*:nth-child(9){animation-delay:320ms}
+.results-comparison>*:nth-child(2){animation-delay:80ms}
+.results-comparison>*:nth-child(3){animation-delay:160ms}
+.results-comparison>*:nth-child(4){animation-delay:240ms}
+.results-comparison>*:nth-child(5){animation-delay:320ms}
+.results-comparison>*:nth-child(6){animation-delay:400ms}
+.results-comparison>*:nth-child(7){animation-delay:480ms}
+.results-comparison>*:nth-child(8){animation-delay:560ms}
+.results-comparison>*:nth-child(9){animation-delay:640ms}
+.operation-view>*:nth-child(2){animation-delay:60ms}
+.operation-view>*:nth-child(3){animation-delay:120ms}
+.operation-view>*:nth-child(4){animation-delay:180ms}
+.operation-view>*:nth-child(5){animation-delay:240ms}
+.operation-view>*:nth-child(6){animation-delay:300ms}
+.operation-view>*:nth-child(7){animation-delay:360ms}
+.operation-view>*:nth-child(8){animation-delay:420ms}
+.operation-view>*:nth-child(9){animation-delay:480ms}
+.pipe-svg>.node:nth-child(2){animation-delay:70ms}
+.pipe-svg>.node:nth-child(3){animation-delay:140ms}
+.pipe-svg>.node:nth-child(4){animation-delay:210ms}
+.pipe-svg>.node:nth-child(5){animation-delay:280ms}
+.pipe-svg>.node:nth-child(6){animation-delay:350ms}
+.pipe-svg>.node:nth-child(7){animation-delay:420ms}
+.pipe-svg>.node:nth-child(8){animation-delay:490ms}
+.pipe-svg>.node:nth-child(9){animation-delay:560ms}
+
+/* user_guide: مخطط SVG (diagram-design) */
+.pipe-wrap{overflow-x:auto}
+.pipe-svg{display:block;width:100%;height:auto;min-width:760px}
+.pipe-svg text{unicode-bidi:plaintext}
+.pipe-svg .box{fill:var(--color-ash);stroke:var(--color-slate);stroke-width:1}
+.pipe-svg .gate{fill:color-mix(in oklch,var(--color-iris-violet) 8%,transparent);stroke:var(--color-iris-violet)}
+.pipe-svg .tag{font:500 10px var(--font-mono);fill:var(--color-smoke)}
+.pipe-svg .nm{font:600 13px var(--font-arabic);fill:var(--color-snow)}
+.pipe-svg .sb{font:11px var(--font-arabic);fill:var(--color-silver-mist)}
+.pipe-svg .ln{stroke:var(--color-smoke);stroke-width:1.2;fill:none}
+.pipe-svg .mk{fill:var(--color-smoke)}
+.pipe-svg .zr{stroke:var(--color-slate);stroke-width:1;fill:none}
+.pipe-svg .zw{stroke:var(--color-iris-violet);stroke-width:1;fill:none}
+.pipe-svg .zl{font:500 11px var(--font-arabic);fill:var(--color-smoke)}
+.pipe-svg .zl.w{fill:var(--color-iris-glow)}
+h2 .tag-step,.badge{color:var(--color-iris-violet)}
+.badge-dot{background:var(--color-iris-violet)}
+.quick-nav a:hover{border-color:var(--color-iris-violet);background:color-mix(in oklch,var(--color-iris-violet) 6%,transparent)}
+</style>
+    <meta name="color-scheme" content="dark">
+</head>
   <body>
     <div class="container">
       <!-- Header -->
@@ -769,95 +962,10 @@
 
         <div class="pipeline-diagram">
           <div class="diagram-title">
-            <h4>
-              <span class="badge-dot"></span>
-              مسار تدفق البيانات الحصري (Path A Architectural Topology)
-            </h4>
+            <h4><span class="badge-dot"></span> مسار تدفق البيانات الحصري (Path A)</h4>
             <span class="diagram-caption">Odoo 19 HR Integration Bridge</span>
           </div>
-
-          <div class="diagram-flow">
-            <!-- Node 1: Input -->
-            <div class="node-card">
-              <div class="node-header">
-                <span class="node-pill">01</span>
-                <span class="node-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                    <polyline points="14 2 14 8 20 8"/>
-                  </svg>
-                </span>
-              </div>
-              <div class="node-label">ملف الإكسل (.xlsx)</div>
-              <div class="node-desc">إدخال البيانات بالقالب الرسمي المعتمد مع القوائم المنسدلة.</div>
-              <div class="node-badge-sub">مدخل غير ملوث</div>
-            </div>
-
-            <!-- Node 2: Gate 1 -->
-            <div class="node-card gate-node">
-              <div class="node-header">
-                <span class="node-pill">02</span>
-                <span class="node-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <circle cx="11" cy="11" r="8"/>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                  </svg>
-                </span>
-              </div>
-              <div class="node-label">الفحص التجريبي Dry-Run</div>
-              <div class="node-desc">فحص تطابق الأقسام والوظائف والبريد في وضع القراءة فقط.</div>
-              <div class="node-badge-sub">عزل أمني 100%</div>
-            </div>
-
-            <!-- Node 3: Review -->
-            <div class="node-card">
-              <div class="node-header">
-                <span class="node-pill">03</span>
-                <span class="node-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <polygon points="12 2 2 7 12 12 22 7 12 2"/>
-                    <polyline points="2 17 12 22 22 17"/>
-                    <polyline points="2 12 12 17 22 12"/>
-                  </svg>
-                </span>
-              </div>
-              <div class="node-label">تقرير التدقيق والفرز</div>
-              <div class="node-desc">تصنيف الصفوف إلى: مقبول، يحتاج مراجعة، أو مرفوض.</div>
-              <div class="node-badge-sub">تقرير شفاف ومفصل</div>
-            </div>
-
-            <!-- Node 4: Gate 2 (Approval) -->
-            <div class="node-card gate-node">
-              <div class="node-header">
-                <span class="node-pill">04</span>
-                <span class="node-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  </svg>
-                </span>
-              </div>
-              <div class="node-label">الاعتماد البشري Four-Eyes</div>
-              <div class="node-desc">توقيع المسؤول على الصفوف السليمة وتوثيق اسمه في السجل.</div>
-              <div class="node-badge-sub">مسؤولية وتوقيع رسمي</div>
-            </div>
-
-            <!-- Node 5: Output -->
-            <div class="node-card sink-node">
-              <div class="node-header">
-                <span class="node-pill">05</span>
-                <span class="node-icon">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <ellipse cx="12" cy="5" rx="9" ry="3"/>
-                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
-                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
-                  </svg>
-                </span>
-              </div>
-              <div class="node-label">الإنشاء والتحقق في Odoo</div>
-              <div class="node-desc">توليد السجلات والتحقق الحي وقراءة ID وإرسال إشعار تيليقرام.</div>
-              <div class="node-badge-sub">توثيق نهائي مكتمل</div>
-            </div>
-          </div>
+          <div class="pipe-wrap"><svg class="pipe-svg" viewBox="0 0 1000 214" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="pipe-t pipe-d"><title id="pipe-t">مسار تدفق بيانات استيراد الموظفين</title><desc id="pipe-d">من ملف الإكسل إلى الفحص التجريبي للقراءة فقط، ثم تقرير الفرز، ثم الاعتماد البشري، ثم الإنشاء والتحقق في Odoo.</desc><defs><marker id="pa" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" class="mk"/></marker></defs><g><line x1="824" y1="82" x2="779" y2="82" class="ln" marker-end="url(#pa)"/><line x1="623" y1="82" x2="578" y2="82" class="ln" marker-end="url(#pa)"/><line x1="422" y1="82" x2="377" y2="82" class="ln" marker-end="url(#pa)"/><line x1="221" y1="82" x2="176" y2="82" class="ln" marker-end="url(#pa)"/></g><g class="node"><rect x="824" y="32" width="156" height="100" rx="6" class="box"/><text x="962" y="52" class="tag" text-anchor="middle">01</text><text x="902.0" y="84" class="nm" text-anchor="middle">ملف Excel</text><text x="902.0" y="104" class="sb" text-anchor="middle">القالب الرسمي المعتمد</text><text x="902.0" y="120" class="sb" text-anchor="middle">قوائم منسدلة جاهزة</text></g><g class="node"><rect x="623" y="32" width="156" height="100" rx="6" class="box gate"/><text x="761" y="52" class="tag" text-anchor="middle">02</text><text x="701.0" y="84" class="nm" text-anchor="middle">الفحص التجريبي Dry-Run</text><text x="701.0" y="104" class="sb" text-anchor="middle">مطابقة الأقسام والوظائف</text><text x="701.0" y="120" class="sb" text-anchor="middle">قراءة فقط · عزل كامل</text></g><g class="node"><rect x="422" y="32" width="156" height="100" rx="6" class="box"/><text x="560" y="52" class="tag" text-anchor="middle">03</text><text x="500.0" y="84" class="nm" text-anchor="middle">تقرير التدقيق والفرز</text><text x="500.0" y="104" class="sb" text-anchor="middle">مقبول · يحتاج مراجعة</text><text x="500.0" y="120" class="sb" text-anchor="middle">مرفوض</text></g><g class="node"><rect x="221" y="32" width="156" height="100" rx="6" class="box gate"/><text x="359" y="52" class="tag" text-anchor="middle">04</text><text x="299.0" y="84" class="nm" text-anchor="middle">الاعتماد البشري</text><text x="299.0" y="104" class="sb" text-anchor="middle">Four-Eyes</text><text x="299.0" y="120" class="sb" text-anchor="middle">توقيع المسؤول في السجل</text></g><g class="node"><rect x="20" y="32" width="156" height="100" rx="6" class="box"/><text x="158" y="52" class="tag" text-anchor="middle">05</text><text x="98.0" y="84" class="nm" text-anchor="middle">الإنشاء والتحقق في Odoo</text><text x="98.0" y="104" class="sb" text-anchor="middle">قراءة odoo_id راجعة</text><text x="98.0" y="120" class="sb" text-anchor="middle">إشعار تيليقرام</text></g><path d="M422,152 V158 H980 V152" class="zr"/><text x="701.0" y="178" class="zl" text-anchor="middle">قراءة فقط · لا كتابة في Odoo</text><path d="M20,152 V158 H377 V152" class="zw"/><text x="198.5" y="178" class="zl w" text-anchor="middle">كتابة محكومة بالاعتماد البشري</text></svg></div>
         </div>
       </section>
 

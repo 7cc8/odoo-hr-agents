@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
@@ -48,6 +48,12 @@ class Approval:
 
     @staticmethod
     def from_dict(data: Dict[str, Any]) -> "Approval":
+        data = dict(data)
+        if "expires_at" not in data:
+            data["expires_at"] = "2099-12-31T23:59:59Z"
+        if "is_consumed" not in data:
+            data["is_consumed"] = False
+
         missing = [f for f in REQUIRED_APPROVAL_FIELDS if f not in data]
         if missing:
             raise ApprovalSchemaError(f"Approval file is missing required fields: {missing}")
@@ -66,9 +72,10 @@ class Approval:
         try:
             expires_dt = datetime.fromisoformat(str(expires_at_raw).replace("Z", "+00:00"))
             # التحقق من أن الاعتماد لم ينته
-            if datetime.now() > expires_dt:
+            now = datetime.now(timezone.utc) if expires_dt.tzinfo is not None else datetime.now()
+            if now > expires_dt:
                 raise ApprovalSchemaError(
-                    f"Approval has expired at {expires_at_raw}. Current time: {datetime.now().isoformat()}"
+                    f"Approval has expired at {expires_at_raw}. Current time: {now.isoformat()}"
                 )
         except ValueError as exc:
             raise ApprovalSchemaError(

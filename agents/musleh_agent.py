@@ -77,7 +77,7 @@ class MuslehAgent(BaseAgent):
     
     def perceive(
         self,
-        goal: AgentGoal,
+        goal: Any,
         context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
@@ -88,7 +88,28 @@ class MuslehAgent(BaseAgent):
         - البيانات المتوفرة
         - المراجع الحية من Odoo
         """
+        if isinstance(goal, dict) and context is None:
+            context = goal
+            goal = AgentGoal(objective="Diagnose and heal", constraints=["No identity modification"])
+
         context = context or {}
+        op_id = context.get("operation_id")
+        if not op_id and hasattr(goal, "objective") and isinstance(goal.objective, dict):
+            op_id = goal.objective.get("operation_id")
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Musleh (Healing)",
+                    "perceive",
+                    reasoning="Analyzing rejected data, failure reasons, and error types...",
+                    status="in_progress"
+                )
+            except Exception:
+                pass
+
         row = context.get("row", {})
         validation_result = context.get("validation_result", {})
         live_snapshot = context.get("live_snapshot", {})
@@ -117,6 +138,7 @@ class MuslehAgent(BaseAgent):
             "live_snapshot": live_snapshot,
             "is_identity_issue": self._is_identity_issue(failure_code),  # ✅ استخدام الدالة الجديدة
             "severity": self._assess_severity(failure_code),
+            "operation_id": op_id,
         }
         
         self._log_trace("PERCEIVE", perception)
@@ -124,12 +146,25 @@ class MuslehAgent(BaseAgent):
             f"Perceived issue: {failure_code} for employee '{name}', "
             f"severity={perception['severity']}"
         )
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Musleh (Healing)",
+                    "perceive",
+                    decision=f"Issue: {failure_code or 'validation_error'}, severity={perception['severity']}",
+                    status="success"
+                )
+            except Exception:
+                pass
         
         return perception
     
     def plan(
         self,
-        goal: AgentGoal,
+        goal: Any,
         perception: Dict[str, Any]
     ) -> AgentPlan:
         """
@@ -141,7 +176,26 @@ class MuslehAgent(BaseAgent):
         3. Propose - اقتراح الحل
         4. Decide - اتخاذ القرار
         """
-        plan = AgentPlan(plan_id=f"musleh-{goal.objective[:20]}")
+        if isinstance(goal, dict):
+            goal = AgentGoal(objective=str(goal.get("action", "Diagnose and heal")))
+
+        obj_str = str(getattr(goal, "objective", "musleh"))
+        plan = AgentPlan(plan_id=f"musleh-{obj_str[:20]}")
+
+        op_id = perception.get("operation_id")
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Musleh (Healing)",
+                    "plan",
+                    decision="plan_diagnosis",
+                    reasoning="Planning diagnostic, reference consultation, and resolution steps",
+                    status="in_progress"
+                )
+            except Exception:
+                pass
         
         failure_code = perception["failure_code"]
         is_identity = perception["is_identity_issue"]
@@ -153,34 +207,66 @@ class MuslehAgent(BaseAgent):
                 "action": "escalate_identity_issue",
                 "description": "هوية مكررة - يُرفع للمسؤول البشري",
                 "rationale": "RED LINE: لا تعديل تلقائي للهويات",
+                "operation_id": op_id,
             })
             plan.status = "requires_escalation"  # ✅ علامة خاصة
+
+            if op_id:
+                try:
+                    from agents.agent_events_service import emit_agent_event
+                    emit_agent_event(
+                        op_id,
+                        "Musleh (Healing)",
+                        "plan",
+                        decision="escalate_identity_red_line",
+                        status="success"
+                    )
+                except Exception:
+                    pass
+
             return plan
         
         # خطة التشخيص العادية
         plan.add_step({
             "action": "assess_issue",
             "description": "تقييم المشكلة والبيانات المتوفرة",
+            "operation_id": op_id,
         })
         
         plan.add_step({
             "action": "consult_references",
             "description": "استشارة Fahas للمراجع الحية",
+            "operation_id": op_id,
         })
         
         plan.add_step({
             "action": "propose_solutions",
             "description": "اقتراح الحلول الممكنة",
+            "operation_id": op_id,
         })
         
         plan.add_step({
             "action": "make_decision",
             "description": "اتخاذ القرار النهائي",
             "rationale": f"auto_repair={self.auto_repair}, severity={severity}",
+            "operation_id": op_id,
         })
         
         self._log_trace("PLAN", {"plan_id": plan.plan_id, "steps": len(plan.steps)})
         logger.info(f"Planned {len(plan.steps)} steps for diagnosis")
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Musleh (Healing)",
+                    "plan",
+                    decision=f"Planned {len(plan.steps)} steps for diagnosis",
+                    status="success"
+                )
+            except Exception:
+                pass
         
         return plan
     
@@ -188,6 +274,25 @@ class MuslehAgent(BaseAgent):
         """
         تنفيذ خطة التشخيص
         """
+        op_id = None
+        for step in plan.steps:
+            if step.get("operation_id"):
+                op_id = step["operation_id"]
+                break
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Musleh (Healing)",
+                    "execute",
+                    reasoning="Executing diagnosis and self-healing...",
+                    status="in_progress"
+                )
+            except Exception:
+                pass
+
         result = {
             "decision": None,
             "confidence": 0.0,
@@ -237,6 +342,19 @@ class MuslehAgent(BaseAgent):
             "decision": result.get("decision"),
             "confidence": result.get("confidence"),
         })
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Musleh (Healing)",
+                    "execute",
+                    decision=f"Decision: {result.get('decision')}, Confidence: {result.get('confidence', 0.0):.2f}",
+                    status="success" if result.get("decision") else "failed"
+                )
+            except Exception:
+                pass
         
         return result
     

@@ -151,3 +151,98 @@ class SerajState(TypedDict, total=False):
     excel_approved_by: Optional[str]  # المعتمد
     excel_approved_at: Optional[str]  # وقت الاعتماد
 
+    # ========================================================================
+    # P5: Conditional Execution & Rejection Details (Phase 3)
+    # ========================================================================
+    
+    # Conditional Execution & Rejection Details
+    rejected_rows_details: Optional[List[Dict[str, Any]]]  # تفاصيل الصفوف المرفوضة للعرض
+    user_execution_choice: Optional[str]  # "execute" | "fix" | "cancel" - قرار المستخدم
+    auto_execute: Optional[bool]  # تفعيل التنفيذ التلقائي للملفات النظيفة
+
+
+
+# ========================================================================
+# Helper Functions for State Field Validation (Phase 3, Task 3.1.2)
+# ========================================================================
+
+def has_rejection_details(state: SerajState) -> bool:
+    """
+    Check if state has rejection details populated.
+    
+    Returns True if rejected_rows_details field exists and contains data.
+    Used to determine if rejection information is available for display.
+    
+    Args:
+        state: SerajState instance to check
+        
+    Returns:
+        bool: True if rejection details exist and are non-empty
+    """
+    details = state.get("rejected_rows_details")
+    return details is not None and isinstance(details, list) and len(details) > 0
+
+
+def is_auto_executable(state: SerajState) -> bool:
+    """
+    Check if operation can be auto-executed without user approval.
+    
+    Returns True if auto_execute flag is explicitly set to True.
+    This indicates a clean dry-run (0 rejected rows) that should proceed immediately.
+    
+    Args:
+        state: SerajState instance to check
+        
+    Returns:
+        bool: True if auto_execute is explicitly True
+    """
+    return state.get("auto_execute", False) is True
+
+
+def get_rejection_count(state: SerajState) -> int:
+    """
+    Get the count of rejected rows from state.
+    
+    Returns the number of rejected rows if rejection details are populated,
+    otherwise returns 0.
+    
+    Args:
+        state: SerajState instance to check
+        
+    Returns:
+        int: Number of rejected rows
+    """
+    details = state.get("rejected_rows_details", [])
+    return len(details) if details else 0
+
+
+def has_user_decision(state: SerajState) -> bool:
+    """
+    Check if user has made an execution decision.
+    
+    Returns True if user_execution_choice is set to a valid choice.
+    
+    Args:
+        state: SerajState instance to check
+        
+    Returns:
+        bool: True if user decision exists
+    """
+    choice = state.get("user_execution_choice")
+    return choice is not None and choice in ["execute", "fix", "cancel"]
+
+
+def needs_conditional_approval(state: SerajState) -> bool:
+    """
+    Determine if operation needs conditional approval workflow.
+    
+    Returns True if there are rejected rows and no user decision yet made.
+    This indicates the operation should present approval options to the user.
+    
+    Args:
+        state: SerajState instance to check
+        
+    Returns:
+        bool: True if conditional approval workflow should be triggered
+    """
+    return has_rejection_details(state) and not has_user_decision(state)

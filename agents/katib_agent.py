@@ -175,6 +175,20 @@ class KatibAgent(BaseAgent):
         """
         logger.info(f"🔍 Perceiving write request: {action_request.get('action_type')}")
         
+        op_id = action_request.get("operation_id") or action_request.get("context", {}).get("operation_id")
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Katib (Write)",
+                    "perceive",
+                    reasoning="Analyzing write request, safety constraints, and eligibility...",
+                    status="in_progress"
+                )
+            except Exception:
+                pass
+
         action_type = action_request.get("action_type") or action_request.get("type")
         
         # استخراج البيانات الأساسية
@@ -185,6 +199,7 @@ class KatibAgent(BaseAgent):
             "values": action_request.get("values", {}),
             "context": action_request.get("context", {}),
             "raw_request": action_request,
+            "operation_id": op_id,
         }
         
         # تحليل الأمان
@@ -197,6 +212,20 @@ class KatibAgent(BaseAgent):
         perception["eligibility"] = self._check_eligibility(perception)
         
         logger.info(f"✅ Perception complete: {perception['eligibility']['status']}")
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Katib (Write)",
+                    "perceive",
+                    decision=f"Eligibility: {perception['eligibility']['status']}",
+                    status="success"
+                )
+            except Exception:
+                pass
+
         return perception
 
     def plan(self, perception: Dict[str, Any]) -> Dict[str, Any]:
@@ -212,6 +241,21 @@ class KatibAgent(BaseAgent):
             plan: خطة تنفيذ مفصلة مع خطوات واضحة
         """
         logger.info(f"📋 Planning execution for: {perception['operation_type']}")
+
+        op_id = perception.get("operation_id") or perception.get("context", {}).get("operation_id")
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Katib (Write)",
+                    "plan",
+                    decision="plan_write_execution",
+                    reasoning="Building write execution steps, safeguards, and rollback strategy",
+                    status="in_progress"
+                )
+            except Exception:
+                pass
         
         # بناء خطة التنفيذ
         plan = {
@@ -222,6 +266,8 @@ class KatibAgent(BaseAgent):
             "safeguards": [],
             "is_eligible": perception["eligibility"]["status"] == "eligible",
             "rejection_reason": perception["eligibility"].get("rejection_reason"),
+            "context": perception.get("context", {}),
+            "operation_id": op_id,
         }
         
         # إذا كانت العملية مؤهلة - بناء خطوات التنفيذ
@@ -239,6 +285,20 @@ class KatibAgent(BaseAgent):
         plan["risks"] = self._identify_risks(perception)
         
         logger.info(f"✅ Plan created: {len(plan['steps'])} steps, eligible={plan['is_eligible']}")
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Katib (Write)",
+                    "plan",
+                    decision=f"Planned {len(plan['steps'])} steps, eligible={plan['is_eligible']}",
+                    status="success"
+                )
+            except Exception:
+                pass
+
         return plan
 
     def execute(self, plan: Dict[str, Any]) -> Dict[str, Any]:
@@ -254,6 +314,20 @@ class KatibAgent(BaseAgent):
             result: نتيجة التنفيذ مع تفاصيل النجاح/الفشل
         """
         logger.info(f"⚡ Executing plan: {plan['operation_type']}")
+
+        op_id = plan.get("operation_id") or (plan.get("context", {}).get("operation_id") if isinstance(plan.get("context"), dict) else None)
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Katib (Write)",
+                    "execute",
+                    reasoning=f"Executing write operation {plan['operation_type']} in Odoo...",
+                    status="in_progress"
+                )
+            except Exception:
+                pass
         
         result = {
             "success": False,
@@ -293,6 +367,20 @@ class KatibAgent(BaseAgent):
             self._log_audit_record(plan, result)
         
         logger.info(f"✅ Execution complete: success={result['success']}")
+
+        if op_id:
+            try:
+                from agents.agent_events_service import emit_agent_event
+                emit_agent_event(
+                    op_id,
+                    "Katib (Write)",
+                    "execute",
+                    decision=f"Success: {result['success']}",
+                    status="success" if result["success"] else "failed"
+                )
+            except Exception:
+                pass
+
         return result
 
     def reflect(self, perception: Dict[str, Any], plan: Dict[str, Any], result: Dict[str, Any]) -> Dict[str, Any]:

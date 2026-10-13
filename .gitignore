@@ -46,3 +46,14 @@ output/
 output_catalog/
 samples/
 *.jsonl
+
+# AI models, Ollama binaries, and local weights (>100MB)
+AI/
+
+# Local credentials
+config/odoo_connection.json
+
+# Backup and cache files
+*.bak
+graphify-out/cache/
+

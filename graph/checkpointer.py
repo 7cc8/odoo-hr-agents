@@ -140,8 +140,15 @@ def get_checkpointer_for_environment() -> Optional[FilePersistentCheckpointer]:
         - FilePersistentCheckpointer في الإنتاج والتطوير
         - None في langgraph dev (لأن dev server يوفر checkpointer خاص به)
     """
-    # فحص إذا كنا في langgraph dev environment
-    is_langgraph_dev = os.environ.get("LANGGRAPH_ENV") == "dev"
+    import sys
+    
+    # فحص إذا كنا في langgraph dev / API environment
+    # يوفر LangGraph dev server / Studio آلية حفظ خاصة به ويتطلب عدم تمرير checkpointer مخصص
+    is_langgraph_dev = (
+        os.environ.get("LANGGRAPH_ENV") == "dev"
+        or "langgraph_api" in sys.modules
+        or any("langgraph" in arg.lower() for arg in sys.argv)
+    )
     
     if is_langgraph_dev:
         # langgraph dev server يوفر checkpointer خاص به

@@ -247,7 +247,7 @@ SERAJ_ODOO_TOOLS_SCHEMA: List[Dict[str, Any]] = [
                     "fields": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "قائمة الحقول المحددة المراد جلبها (مثل: ['id', 'name', 'work_email', 'job_title'])",
+                        "description": "قائمة الحقول المحددة المراد جلبها في Odoo (ملاحظة: الحقول المرجعية تنتهي بـ _id مثل: ['id', 'name', 'work_email', 'job_id', 'department_id', 'company_id'] ولا يوجد department_name)",
                     },
                     "limit": {
                         "type": "integer",
@@ -298,7 +298,7 @@ SERAJ_ODOO_TOOLS_SCHEMA: List[Dict[str, Any]] = [
                     "fields": {
                         "type": "array",
                         "items": {"type": "string"},
-                        "description": "قائمة الحقول المراد قراءتها",
+                        "description": "قائمة الحقول المراد قراءتها (مثل: ['id', 'name', 'department_id', 'job_id'])",
                     },
                     "connection_id": {
                         "type": "string",
@@ -309,13 +309,42 @@ SERAJ_ODOO_TOOLS_SCHEMA: List[Dict[str, Any]] = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "consult_mudaqqiq_labor_law",
+            "description": "طلب استشارة نظامية وقانونية حصرية من وكيل التدقيق والامتثال «مدقق»: استعلام نصوص مواد نظام العمل السعودي واللوائح التنفيذية، مثل ساعات العمل الرسمية (بما فيها شهر رمضان للمسلمين بالمادة 98)، فترات التجربة (المادة 53)، مكافأة نهاية الخدمة (المادة 84)، الإجازات، والضوابط النظامية.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "topic": {
+                        "type": "string",
+                        "description": "موضوع الاستفسار أو الكلمات المفتاحية (مثل: ساعات العمل في رمضان للمسلمين، فترة التجربة، إجازة الوضع، نهاية الخدمة)",
+                    },
+                    "article_number": {
+                        "type": "integer",
+                        "description": "رقم المادة القانونية في نظام العمل إن كان محدداً (مثل: 98 أو 53)",
+                    },
+                },
+                "required": ["topic"],
+            },
+        },
+    },
 ]
 
 
 def execute_tool_call(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
     """
-    تنفيذ استدعاء الأداة عبر تفويض المهمة حصرياً إلى وكيل «فاحص».
-    سراج ينسق المهمة ويطلب من فاحص تنفيذها واسترجاع النتيجة المنظمة.
+    تنفيذ استدعاء الأداة وتوجيهه للوكيل المختص:
+    - الأدوات القانونية ونظام العمل -> وكيل التدقيق «مدقق» (Mudaqqiq).
+    - أدوات قراءة واستعلام Odoo -> وكيل الفحص «فاحص» (Fahas).
     """
+    if tool_name == "consult_mudaqqiq_labor_law":
+        from agents.mudaqqiq_agent import get_mudaqqiq_agent
+        mudaqqiq = get_mudaqqiq_agent()
+        topic = arguments.get("topic") or arguments.get("query") or ""
+        art_num = arguments.get("article_number")
+        return mudaqqiq.consult_labor_law(query=topic, article_number=art_num)
+
     fahas = get_fahas_agent()
     return fahas.execute_query_task(tool_name, arguments)

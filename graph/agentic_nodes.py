@@ -35,20 +35,17 @@ def musleh_agentic_heal(state: SerajState) -> Dict[str, Any]:
     """
     logger.info("🔧 Musleh agentic heal node")
     
-    # P3: emit start event
-    events_service = get_events_service()
-    operation_id = state.get("operation_id")
+    # Phase 3, Task 3.4.3: emit start event
+    from agents.agent_events_service import emit_agent_event
+    
+    operation_id = state.get("operation_id") or state.get("excel_run_id")
     if operation_id:
-        events_service.emit_event(
+        emit_agent_event(
             operation_id=operation_id,
-            agent="musleh",
-            event_type="healing_started",
-            status="executing_write",
-            description_ar="مصلح يحلل البيانات المرفوضة ويحاول إصلاحها",
-            from_agent=None,
-            to_agent="musleh",
-            company_id=state.get("company_id"),
-            company_name=state.get("company_name"),
+            agent="Musleh (مصلح)",
+            action="heal_start",
+            reasoning="تحليل البيانات المرفوضة ومحاولة إصلاحها",
+            status="in_progress"
         )
     
     # استخراج البيانات المُرفوضة من الحالة
@@ -56,13 +53,12 @@ def musleh_agentic_heal(state: SerajState) -> Dict[str, Any]:
     
     if not rejected_data:
         if operation_id:
-            events_service.emit_event(
+            emit_agent_event(
                 operation_id=operation_id,
-                agent="musleh",
-                event_type="healing_failed",
-                status="failed",
-                description_ar="مصلح: لا توجد بيانات مرفوضة للمعالجة",
-                error="No rejected data to heal"
+                agent="Musleh (مصلح)",
+                action="heal_complete",
+                reasoning="لا توجد بيانات مرفوضة للمعالجة",
+                status="failed"
             )
         return {"last_tool_error": "No rejected data to heal"}
     
@@ -443,6 +439,158 @@ def sijil_agentic_audit(state: SerajState) -> Dict[str, Any]:
     }
 
 
+# ========================================================================
+# Helper Functions for Rejection Details Formatting (Phase 3, Task 3.2.1 & 3.2.2)
+# ========================================================================
+
+def _translate_to_arabic(message: str) -> str:
+    """
+    Translate error message to Arabic.
+    
+    Args:
+        message: English error message
+        
+    Returns:
+        str: Arabic translation of the error message
+    """
+    translations = {
+        "Department not found": "القسم غير موجود",
+        "Job not found": "المسمى الوظيفي غير موجود",
+        "Invalid email": "البريد الإلكتروني غير صالح",
+        "Invalid email format": "تنسيق البريد الإلكتروني غير صحيح",
+        "Invalid date format": "تنسيق التاريخ غير صحيح",
+        "Missing required field": "حقل مطلوب مفقود",
+        "Invalid phone number": "رقم الهاتف غير صالح",
+        "Employee already exists": "الموظف موجود مسبقاً",
+        "Contract not found": "العقد غير موجود",
+        "Duplicate entry": "إدخال مكرر",
+        "Invalid value": "قيمة غير صالحة",
+        "Field too long": "الحقل طويل جداً",
+        "Field required": "الحقل مطلوب",
+        # Add more translations as needed
+    }
+    return translations.get(message, message)
+
+
+def _generate_suggestion(error: Dict[str, Any], row_data: Dict[str, Any]) -> str:
+    """
+    Generate fix suggestion based on error type.
+    
+    Args:
+        error: Error dictionary with field and message
+        row_data: Row data from parsed Excel
+        
+    Returns:
+        str: Suggested fix for the error
+    """
+    field = error.get("field", "")
+    message = error.get("message", "")
+    
+    if field == "department":
+        return "استخدم أحد الأقسام الموجودة مثل 'المبيعات' أو 'الموارد البشرية'"
+    elif field == "job_id":
+        return "تحقق من صحة المسمى الوظيفي أو استخدم رمز الوظيفة الصحيح"
+    elif "email" in field.lower():
+        return "تأكد من صحة تنسيق البريد الإلكتروني (example@domain.com)"
+    elif "date" in field.lower():
+        return "استخدم تنسيق التاريخ الصحيح (YYYY-MM-DD)"
+    elif "phone" in field.lower():
+        return "تحقق من رقم الهاتف (يجب أن يحتوي على أرقام فقط)"
+    else:
+        return "يرجى مراجعة وتصحيح القيمة"
+
+
+def _is_auto_fixable(error: Dict[str, Any]) -> bool:
+    """
+    Determine if error can be auto-fixed by Musleh agent.
+    
+    Args:
+        error: Error dictionary with field and message
+        
+    Returns:
+        bool: True if error is potentially auto-fixable
+    """
+    field = error.get("field", "")
+    message = error.get("message", "").lower()
+    
+    # Fields that Musleh can potentially auto-fix
+    fixable_fields = ["department", "job_id", "date_format"]
+    fixable_messages = ["not found", "format", "missing"]
+    
+    if field in fixable_fields:
+        return True
+    
+    for fixable_msg in fixable_messages:
+        if fixable_msg in message:
+            return True
+    
+    return False
+
+
+def _format_rejection_details(
+    rejected_rows: List[Dict[str, Any]],
+    state: SerajState
+) -> List[Dict[str, Any]]:
+    """
+    Format rejection details for dashboard display.
+    
+    This function transforms raw rejection data from dry_run_report into
+    a rich, user-friendly format with Arabic translations, suggestions,
+    and auto-fix indicators.
+    
+    Input format (from dry_run_report.py):
+    [{"row_number": 3, "errors": [{"field": "department", "message": "Department not found"}]}]
+    
+    Output format (enhanced):
+    [{
+        "row_number": 3,
+        "name": "محمد أحمد",
+        "reason_ar": "القسم غير موجود",
+        "field": "department",
+        "value": "قسم المبيعات",
+        "suggestion": "استخدم أحد الأقسام الموجودة...",
+        "can_auto_fix": True
+    }]
+    
+    Args:
+        rejected_rows: Raw rejection data from dry-run
+        state: Current SerajState with parsed Excel data
+        
+    Returns:
+        List[Dict[str, Any]]: Formatted rejection details
+    """
+    formatted = []
+    parsed_data = state.get("excel_parsed_data", {})
+    rows = parsed_data.get("rows", [])
+    
+    for row in rejected_rows:
+        row_idx = row.get("row_number", 0)
+        
+        # Get row data (handle index out of bounds)
+        if row_idx < len(rows):
+            row_data = rows[row_idx]
+        else:
+            row_data = {}
+        
+        # Process each error for this row
+        errors = row.get("errors", [])
+        for error in errors:
+            field = error.get("field", "unknown")
+            message = error.get("message", "")
+            
+            formatted.append({
+                "row_number": row_idx + 1,  # Display as 1-indexed
+                "name": row_data.get("name", "N/A"),
+                "reason_ar": _translate_to_arabic(message),
+                "field": field,
+                "value": str(row_data.get(field, "")),
+                "suggestion": _generate_suggestion(error, row_data),
+                "can_auto_fix": _is_auto_fixable(error)
+            })
+    
+    return formatted
+
+
 def seraj_meta_orchestration(state: SerajState) -> Dict[str, Any]:
     """
     عقدة سراج Meta-Agent - التنسيق الذكي
@@ -458,6 +606,20 @@ def seraj_meta_orchestration(state: SerajState) -> Dict[str, Any]:
     - seraj_meta_orchestration: يستخدم Meta-Agent للتفكير الاستراتيجي
     """
     logger.info("🧠 Seraj Meta-Agent orchestration")
+    
+    # Phase 3, Task 3.4.2: Emit agent event
+    from agents.agent_events_service import emit_agent_event
+    
+    operation_id = state.get("operation_id") or state.get("excel_run_id")
+    
+    if operation_id:
+        emit_agent_event(
+            operation_id=operation_id,
+            agent="Seraj Meta-Agent",
+            action="orchestrate_start",
+            reasoning="تحليل الاستعلام واختيار الوكلاء المناسبين",
+            status="in_progress"
+        )
     
     # استخراج البيانات من الحالة
     user_query = state.get("user_query", "")
@@ -554,10 +716,32 @@ def seraj_meta_orchestration(state: SerajState) -> Dict[str, Any]:
             updated_traces = (current_traces + [new_trace])[-20:]
             updates["agent_traces"] = updated_traces
         
+        # Phase 3, Task 3.4.2: Emit success event
+        if operation_id:
+            emit_agent_event(
+                operation_id=operation_id,
+                agent="Seraj Meta-Agent",
+                action="orchestrate_complete",
+                decision=f"الوكلاء المختارة: {', '.join(selected_names)}",
+                reasoning=explanation.get("reasoning", ""),
+                status="success"
+            )
+        
         return updates
     
     except Exception as exc:
         logger.error(f"❌ Meta-Agent orchestration failed: {exc}")
+        
+        # Phase 3, Task 3.4.2: Emit failure event
+        if operation_id:
+            emit_agent_event(
+                operation_id=operation_id,
+                agent="Seraj Meta-Agent",
+                action="orchestrate_complete",
+                reasoning=f"فشل: {exc}",
+                status="failed"
+            )
+        
         return {
             "error": f"فشل التنسيق الذكي: {exc}",
             "meta_selected_agents": [],
@@ -663,4 +847,293 @@ def seraj_meta_reflect(state: SerajState) -> Dict[str, Any]:
         logger.error(f"❌ Meta-Agent reflection failed: {exc}")
         return {
             "meta_reflection": {"error": str(exc)},
+        }
+
+
+
+# ========================================================================
+# Rejection Details Formatting (Phase 3, Tasks 3.2.1 & 3.2.2)
+# ========================================================================
+
+def _translate_to_arabic(message: str) -> str:
+    """
+    Translate error message to Arabic for Dashboard display.
+
+    Args:
+        message: English error message from validation
+
+    Returns:
+        str: Arabic translation or original if not found
+    """
+    translations = {
+        "Department not found": "القسم غير موجود",
+        "Department not found in Odoo": "القسم غير موجود في النظام",
+        "Job not found": "المسمى الوظيفي غير موجود",
+        "Job position not found": "الوظيفة غير موجودة",
+        "Invalid email": "البريد الإلكتروني غير صالح",
+        "Invalid email format": "صيغة البريد الإلكتروني غير صحيحة",
+        "Invalid date format": "تنسيق التاريخ غير صحيح",
+        "Invalid date": "تاريخ غير صالح",
+        "Missing required field": "حقل إلزامي مفقود",
+        "Required field missing": "حقل مطلوب مفقود",
+        "Field is required": "الحقل مطلوب",
+        "Duplicate employee": "موظف مكرر",
+        "Employee already exists": "الموظف موجود مسبقاً",
+        "Invalid work type": "نوع العمل غير صالح",
+        "Invalid contract type": "نوع العقد غير صالح",
+        "Company not found": "الشركة غير موجودة",
+        "Invalid phone number": "رقم الهاتف غير صالح",
+        "Invalid national ID": "رقم الهوية غير صالح",
+        "Gender not valid": "الجنس غير صالح",
+        "Marital status not valid": "الحالة الاجتماعية غير صالحة",
+        "Invalid salary": "الراتب غير صالح",
+        "Salary must be positive": "يجب أن يكون الراتب موجباً",
+        "Name is too short": "الاسم قصير جداً",
+        "Name is required": "الاسم مطلوب",
+        "Value is too long": "القيمة طويلة جداً",
+        "Country not found": "الدولة غير موجودة",
+        "Nationality not found": "الجنسية غير موجودة",
+        "Resource calendar not found": "جدول الدوام غير موجود",
+        "Manager not found": "المدير غير موجود",
+        "Coach not found": "المرشد غير موجود",
+        "Invalid work location": "موقع العمل غير صالح",
+        "Work location not found": "موقع العمل غير موجود",
+    }
+
+    # Direct match
+    if message in translations:
+        return translations[message]
+
+    # Partial match
+    for eng, ar in translations.items():
+        if eng.lower() in message.lower():
+            return ar
+
+    return message
+
+
+def _generate_suggestion(error: Dict[str, Any], row_data: Dict[str, Any]) -> str:
+    """
+    Generate a fix suggestion based on error type and field.
+
+    Args:
+        error: Error dict with 'field' and 'message' keys
+        row_data: Raw row data from Excel
+
+    Returns:
+        str: Suggested fix for the error
+    """
+    field = error.get("field", "")
+    message = error.get("message", "")
+
+    suggestions = {
+        "department": "تحقق من اسم القسم في Odoo وتأكد من الكتابة الصحيحة",
+        "department_id": "تحقق من اسم القسم في Odoo وتأكد من الكتابة الصحيحة",
+        "job_id": "تحقق من المسمى الوظيفي في Odoo",
+        "job_title": "استخدم المسمى الوظيفي الموجود في النظام",
+        "work_email": "تأكد من صحة صيغة البريد الإلكتروني (مثال: name@company.com)",
+        "private_email": "تأكد من صحة صيغة البريد الإلكتروني",
+        "company_id": "تحقق من اسم الشركة في النظام",
+        "parent_id": "تحقق من اسم المدير في قائمة الموظفين",
+        "coach_id": "تحقق من اسم المرشد في قائمة الموظفين",
+        "resource_calendar_id": "استخدم جدول الدوام المعرّف في النظام",
+        "contract_type": "استخدم أحد أنواع العقود المتاحة: (دوام كامل، دوام جزئي، مؤقت)",
+        "work_location_id": "تحقق من موقع العمل في الإعدادات",
+        "country_id": "استخدم اسم الدولة الرسمي المعتمد",
+        "country_of_birth": "استخدم اسم الدولة الرسمي المعتمد",
+        "gender": "استخدم: ذكر أو أنثى (Male/Female)",
+        "marital": "استخدم: أعزب، متزوج، مطلق، أرمل",
+        "identification_id": "تحقق من صحة رقم الهوية الوطنية",
+        "mobile_phone": "أدخل رقم الهاتف بالصيغة الدولية (+966XXXXXXXXX)",
+        "birthday": "استخدم صيغة التاريخ: YYYY-MM-DD",
+        "certificate": "استخدم مستوى التعليم المحدد في النظام",
+    }
+
+    if field in suggestions:
+        return suggestions[field]
+
+    if "not found" in message.lower():
+        return f"تحقق من وجود القيمة '{row_data.get(field, '')}' في النظام"
+    elif "required" in message.lower():
+        return f"أضف قيمة لحقل '{field}'"
+    elif "invalid" in message.lower() or "format" in message.lower():
+        return f"راجع صيغة القيمة المُدخلة للحقل '{field}'"
+
+    return "راجع هذا الحقل وتأكد من صحة البيانات"
+
+
+def _is_auto_fixable(error: Dict[str, Any]) -> bool:
+    """
+    Determine if an error can be auto-fixed by Musleh agent.
+
+    Fields that Musleh can typically fix via fuzzy matching or normalization.
+
+    Args:
+        error: Error dict with 'field' and 'message' keys
+
+    Returns:
+        bool: True if Musleh can auto-fix this error
+    """
+    fixable_fields = {
+        "department", "department_id",
+        "job_id", "job_title",
+        "parent_id",
+        "coach_id",
+        "resource_calendar_id",
+        "work_location_id",
+        "gender",
+        "marital",
+        "contract_type",
+        "country_id",
+        "country_of_birth",
+    }
+
+    fixable_message_patterns = [
+        "not found",
+        "invalid",
+        "not valid",
+    ]
+
+    field = error.get("field", "")
+    message = error.get("message", "").lower()
+
+    if field in fixable_fields:
+        for pattern in fixable_message_patterns:
+            if pattern in message:
+                return True
+
+    return False
+
+
+def _format_rejection_details(
+    rejected_rows: list,
+    state: SerajState
+) -> list:
+    """
+    Format rejection details for Dashboard display (Phase 3, Task 3.2.1).
+
+    Converts raw validation errors into a rich, Arabic-friendly format
+    suitable for the Dashboard rejection details table.
+
+    Input format (from dry_run_report.py):
+        [{"row_number": 3, "errors": [{"field": "department", "message": "Department not found"}]}]
+
+    Output format (enhanced for Dashboard):
+        [{
+            "row_number": 3,
+            "name": "محمد أحمد",
+            "reason_ar": "القسم غير موجود",
+            "field": "department",
+            "value": "قسم المبيعات",
+            "suggestion": "تحقق من اسم القسم في Odoo",
+            "can_auto_fix": True
+        }]
+
+    Args:
+        rejected_rows: List of rejected row dicts from validation
+        state: Current SerajState for accessing parsed row data
+
+    Returns:
+        List of formatted rejection detail dicts
+    """
+    formatted = []
+
+    # Get parsed data rows for value lookup
+    parsed_data = state.get("excel_parsed_data", {})
+    if isinstance(parsed_data, dict):
+        rows_list = parsed_data.get("rows", [])
+    else:
+        rows_list = []
+
+    for row in rejected_rows:
+        row_idx = row.get("row_number", 0)
+        row_errors = row.get("errors", [])
+
+        # Look up original row data for context
+        row_data = {}
+        if rows_list:
+            # row_number is 1-based, rows_list is 0-based
+            list_idx = row_idx - 2  # account for header row
+            if 0 <= list_idx < len(rows_list):
+                row_data = rows_list[list_idx]
+
+        employee_name = (
+            row_data.get("name")
+            or row_data.get("employee_name")
+            or row_data.get("الاسم")
+            or "N/A"
+        )
+
+        for error in row_errors:
+            field = error.get("field", "")
+            value = (
+                row_data.get(field, "")
+                or error.get("value", "")
+                or ""
+            )
+
+            formatted.append({
+                "row_number": row_idx,
+                "name": employee_name,
+                "reason_ar": _translate_to_arabic(error.get("message", "")),
+                "field": field,
+                "value": str(value)[:100],  # truncate long values
+                "suggestion": _generate_suggestion(error, row_data),
+                "can_auto_fix": _is_auto_fixable(error)
+            })
+
+    return formatted
+
+
+# ========================================================================
+# Conditional Execution Node (Phase 3, Task 3.3.1)
+# ========================================================================
+
+def conditional_execution_node(state: SerajState) -> Dict[str, Any]:
+    """
+    Conditional execution decision node for dry-run workflow.
+    
+    This node implements the branching logic for conditional execution:
+    - If rejected_rows == 0: set auto_execute=True → route to immediate execution
+    - If rejected_rows > 0: wait for user_execution_choice → route based on decision
+    
+    Logic Flow:
+    1. Check rejected_rows_details count
+    2. If count == 0 and accepted > 0: Enable auto-execute (clean dry-run)
+    3. If count > 0: Disable auto-execute, wait for user approval
+    
+    Args:
+        state: Current SerajState with validation results
+        
+    Returns:
+        Dict with auto_execute flag and user message
+    """
+    logger.info("🔀 Conditional execution decision node")
+    
+    from graph.state import get_rejection_count
+    
+    rejected_count = get_rejection_count(state)
+    accepted_count = state.get("excel_validation_stats", {}).get("accepted", 0)
+    
+    if rejected_count == 0 and accepted_count > 0:
+        # Auto-execute: no errors, proceed immediately
+        logger.info(f"✅ Clean dry-run: {accepted_count} rows accepted, 0 rejected - enabling auto-execute")
+        return {
+            "auto_execute": True,
+            "user_execution_choice": "execute",  # implicit approval
+            "answer": f"✅ جميع الصفوف ({accepted_count}) مقبولة - جاري التنفيذ الآن..."
+        }
+    elif rejected_count > 0:
+        # Wait for user decision
+        logger.info(f"⚠️ Dry-run with rejections: {rejected_count} rejected, {accepted_count} accepted - awaiting user decision")
+        return {
+            "auto_execute": False,
+            "answer": f"⚠️ تم رفض {rejected_count} صفوف، وقبول {accepted_count} صفوف. يرجى اختيار إجراء."
+        }
+    else:
+        # Edge case: no rows at all
+        logger.warning("⚠️ No rows processed in dry-run")
+        return {
+            "auto_execute": False,
+            "error": "لا توجد صفوف للمعالجة"
         }

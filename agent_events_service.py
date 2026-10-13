@@ -3,7 +3,7 @@
 =====================================================================================
 المصدر الحقيقي والمركزي لأحداث التنفيذ الفعلي لمنظومة وكلاء Odoo HR:
 - تسجيل الأحداث الحقيقية وتوثيق مسار العمليات دون تزييف أو مؤقتات وهمية.
-- متابعة الحالات التشغيلية الدقيقة لكل وكيل من الوكلاء الـ 8 + أداة لايا الاستشارية.
+- متابعة الحالات التشغيلية الدقيقة لكل وكيل من الوكلاء الـ 8 المعتمدين.
 - ربط الأحداث مع سجل (Sijil) وتخزينها في الدفتر اللاتراجعي logs/agent_operations_log.jsonl.
 - دعم البث المباشر للأحداث (SSE) والاسترجاع المستقل عند انقطاع الاتصال أو تحديث الصفحة.
 - حماية سرية البيانات وعزل النطاقات والشركات.
@@ -25,7 +25,7 @@ LOGS_DIR = ROOT_DIR / "logs"
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 AGENT_OPS_LOG_FILE = LOGS_DIR / "agent_operations_log.jsonl"
 
-# تعريف الوكلاء الـ 8 + لايا كأداة مساعدة
+# تعريف الوكلاء الـ 8 المعتمدين
 AGENTS_REGISTRY: Dict[str, Dict[str, Any]] = {
     "seraj": {
         "id": "seraj",
@@ -123,18 +123,6 @@ AGENTS_REGISTRY: Dict[str, Dict[str, Any]] = {
         "is_helper": False,
         "description_short": "التوثيق اللاتراجعي للعمليات وإصدار تقارير التدقيق والحوكمة الرسمية PDF",
     },
-    "laya": {
-        "id": "laya",
-        "name_ar": "لايا",
-        "title_ar": "أداة التوجيه الذكي المساعد",
-        "role_ar": "أداة استشارية مساعدة للذكاء الاصطناعي والتوجيه",
-        "accent_color": "#c084fc",  # Purple
-        "border_color": "#a855f7",
-        "bg_soft": "rgba(192, 132, 252, 0.08)",
-        "icon": "cpu",
-        "is_helper": True,  # أداة مساعدة وليست وكيلاً تاسعاً
-        "description_short": "أداة استشارية سريعة يستعين بها سراج لتحديد المقصد والفرز الأولي دون صلاحية اعتماد",
-    },
 }
 
 # الحالات التشغيلية الدقيقة المنصوص عليها
@@ -173,6 +161,67 @@ def _mask_safe_ref(obj: Any) -> Any:
     elif isinstance(obj, list):
         return [_mask_safe_ref(i) for i in obj]
     return obj
+
+
+def is_odoo_operation_event(event_data: Dict[str, Any]) -> bool:
+    """
+    التحقق الصارم مما إذا كان الحدث يمثل عملية فعلية مؤثرة داخل Odoo تستوجب التوثيق في «سجل»:
+    - حذف (delete / unlink / remove)
+    - أرشفة (archive / unarchive)
+    - إضافة / إنشاء (create / add / insert / new_employee / batch_imported)
+    - تعديل (update / modify / edit / write)
+
+    يُستبعد تماماً وبشكل قاطع:
+    - أسئلة واستفسارات المستخدم والرسائل العادية (chat_turn, message_received)
+    - استعلامات القراءة والبحث من Odoo (read, count, search, fields_get, odoo_query)
+    - استشارات نظام العمل وشروحات المواد القانونية (labor_law_consultation)
+    - رسائل المتابعة وطلب التوضيح وتحديثات الحالة العادية
+    """
+    evt_type = str(event_data.get("event_type", "")).lower()
+    desc = str(event_data.get("description_ar", "")).lower()
+    agent = str(event_data.get("agent", "")).lower()
+    metadata = event_data.get("metadata") or {}
+    action = str(metadata.get("action") or event_data.get("action") or "").lower()
+
+    # 1. استبعاد صريح وقاطع لكافة الأسئلة واستعلامات القراءة والاستشارات
+    EXCLUDED_TYPES = {
+        "operation_started", "query_received", "odoo_query", "task_completed",
+        "waiting_clarification", "clarification_answered", "labor_law_consult",
+        "labor_law_consultation", "chat_turn", "message_received", "search",
+        "read", "count", "browse"
+    }
+    if evt_type in EXCLUDED_TYPES:
+        return False
+
+    # استبعاد أي وصف يرتبط بالاستعلام أو القراءة أو الاستشارة أو المحادثة
+    EXCLUDED_WORDS = ("استعلام", "يحلل الطلب", "يشرح النتيجة", "استشارة", "استفسار", "سؤال", "بحث عن")
+    if any(w in desc for w in EXCLUDED_WORDS):
+        return False
+
+    # 2. أحداث تنفيذ العمليات الفعلية المؤثرة في Odoo
+    MUTATING_EVENT_TYPES = {
+        "write_executed", "deletion_executed", "record_created", "record_updated",
+        "record_archived", "record_unarchived", "record_deleted", "batch_imported",
+        "contract_applied", "payroll_applied", "loan_applied", "warning_applied",
+        "letter_applied", "expense_applied", "leave_applied", "record_audit_logged"
+    }
+    if evt_type in MUTATING_EVENT_TYPES:
+        return True
+
+    # 3. عمليات كاتب المعتمدة (المنفذ الحصري للعمليات المؤثرة في Odoo)
+    if agent == "katib" and event_data.get("status") in ("completed", "executing_write", "success", "executing_delete"):
+        return True
+
+    # 4. فحص الإجراء المباشر الصريح (حذف، أرشفة، إضافة، تعديل)
+    MUTATING_ACTIONS = {
+        "create", "add", "insert", "update", "modify", "edit", "write",
+        "archive", "unarchive", "delete", "unlink", "remove", "apply", "import",
+        "حذف", "أرشفة", "إضافة", "إنشاء", "تعديل"
+    }
+    if action in MUTATING_ACTIONS:
+        return True
+
+    return False
 
 
 class AgentEventsService:
@@ -222,6 +271,8 @@ class AgentEventsService:
                         continue
                     try:
                         evt = json.loads(line)
+                        if not is_odoo_operation_event(evt):
+                            continue
                         op_id = evt.get("operation_id")
                         if not op_id:
                             continue
@@ -317,10 +368,10 @@ class AgentEventsService:
     def emit_event(
         self,
         operation_id: str,
-        agent: str,
-        event_type: str,
-        status: str,
-        description_ar: str,
+        agent: str = "system",
+        event_type: str = "custom",
+        status: str = "completed",
+        description_ar: str = "",
         from_agent: Optional[str] = None,
         to_agent: Optional[str] = None,
         plan_id: Optional[str] = None,
@@ -340,6 +391,14 @@ class AgentEventsService:
         **kwargs: Any,
     ) -> Dict[str, Any]:
         """تسجيل حدث تنفيذي فعلي ونشره وتوثيقه في ملف التدقيق."""
+        # توافقية مع استدعاءات تمرر agent_name أو details
+        if "agent_name" in kwargs and (not agent or agent == "system"):
+            agent = kwargs.pop("agent_name")
+        if "details" in kwargs and result_ref is None:
+            result_ref = kwargs.pop("details")
+        if not description_ar:
+            description_ar = f"{agent}: {event_type}"
+
         with self._lock:
             return self._emit_event_locked(
                 operation_id=operation_id,
@@ -462,12 +521,13 @@ class AgentEventsService:
                 self.agent_statuses[target_agent]["status_code"] = "ready"
                 self.agent_statuses[target_agent]["status_label"] = "جاهز"
 
-        # حفظ الحدث في ملف JSONL اللاتراجعي الموحد مع سجل
-        try:
-            with open(AGENT_OPS_LOG_FILE, "a", encoding="utf-8") as f:
-                f.write(json.dumps(event_data, ensure_ascii=False) + "\n")
-        except Exception:
-            pass
+        # قيد الحدث في دفتر سجل اللاتراجعي فقط إذا كان عملية فعلية داخل Odoo (حذف، أرشفة، إضافة، تعديل)
+        if is_odoo_operation_event(event_data):
+            try:
+                with open(AGENT_OPS_LOG_FILE, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(event_data, ensure_ascii=False) + "\n")
+            except Exception:
+                pass
 
         return event_data
 
@@ -579,6 +639,17 @@ class AgentEventsService:
                 res["events"] = list(self.operation_events.get(latest["operation_id"], []))
                 return res
             return None
+
+    def clear_memory(self) -> None:
+        """مسح كافة العمليات والأحداث من الذاكرة لإعادة الضبط النظيف."""
+        with self._lock:
+            self.operations.clear()
+            self.operation_events.clear()
+            for st in self.agent_statuses.values():
+                st["status_code"] = "ready"
+                st["status_label"] = "جاهز"
+                st["active_operation_id"] = None
+                st["last_task"] = "في انتظار المهام"
 
 
 def get_events_service() -> AgentEventsService:

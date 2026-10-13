@@ -79,6 +79,67 @@ FORBIDDEN_OPERATIONS = frozenset({
     "create_record", "unlink_records", "write_record", "delete_record",
 })
 
+# خرائط الحقول لتصحيح هلوسة النماذج (مثل طلب department_name بدلاً من department_id)
+MODEL_FIELD_ALIASES = {
+    "hr.employee": {
+        "department_name": "department_id",
+        "department": "department_id",
+        "job_name": "job_id",
+        "job": "job_id",
+        "company_name": "company_id",
+        "company": "company_id",
+        "manager_name": "parent_id",
+        "manager": "parent_id",
+        "email": "work_email",
+        "phone": "work_phone",
+    },
+    "hr.department": {
+        "manager_name": "manager_id",
+        "manager": "manager_id",
+        "company_name": "company_id",
+        "company": "company_id",
+    },
+    "hr.job": {
+        "department_name": "department_id",
+        "department": "department_id",
+        "company_name": "company_id",
+        "company": "company_id",
+    },
+}
+
+
+def sanitize_model_fields(model: str, fields: Optional[List[str]]) -> List[str]:
+    """تصحيح واستبدال أسماء الحقول الشائعة التي قد يطلبها النموذج بالخطأ إلى حقول Odoo الفعلية."""
+    if not fields or not isinstance(fields, list):
+        return []
+    aliases = MODEL_FIELD_ALIASES.get(model, {})
+    sanitized = []
+    seen = set()
+    for f in fields:
+        if not isinstance(f, str):
+            continue
+        actual = aliases.get(f.strip(), f.strip())
+        if actual not in seen:
+            sanitized.append(actual)
+            seen.add(actual)
+    return sanitized
+
+
+def enrich_records_with_aliases(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """إثراء السجلات بأسماء الحقول المقروءة لتسهيل استيعاب النموذج للنتائج."""
+    for rec in records:
+        if not isinstance(rec, dict):
+            continue
+        if "department_id" in rec and isinstance(rec["department_id"], (list, tuple)) and len(rec["department_id"]) >= 2:
+            rec.setdefault("department_name", rec["department_id"][1])
+        if "job_id" in rec and isinstance(rec["job_id"], (list, tuple)) and len(rec["job_id"]) >= 2:
+            rec.setdefault("job_name", rec["job_id"][1])
+        if "company_id" in rec and isinstance(rec["company_id"], (list, tuple)) and len(rec["company_id"]) >= 2:
+            rec.setdefault("company_name", rec["company_id"][1])
+        if "parent_id" in rec and isinstance(rec["parent_id"], (list, tuple)) and len(rec["parent_id"]) >= 2:
+            rec.setdefault("manager_name", rec["parent_id"][1])
+    return records
+
 
 def check_consistency(groups: List[Dict[str, Any]], total: int) -> Dict[str, Any]:
     """
@@ -401,9 +462,12 @@ class FahasAgent:
         if include_archived or any(isinstance(cond, (list, tuple)) and len(cond) >= 1 and cond[0] == "active" for cond in query_domain):
             context["active_test"] = False
 
-        safe_fields = fields if fields and isinstance(fields, list) else ["id", "name"]
-        if model_clean == "hr.employee" and not fields:
+        if fields and isinstance(fields, list):
+            safe_fields = sanitize_model_fields(model_clean, fields)
+        elif model_clean == "hr.employee":
             safe_fields = ["id", "name", "work_email", "job_title", "department_id", "company_id", "active"]
+        else:
+            safe_fields = ["id", "name"]
 
         try:
             kwargs: Dict[str, Any] = {
@@ -425,6 +489,7 @@ class FahasAgent:
                 [query_domain],
                 kwargs,
             )
+            records = enrich_records_with_aliases(records)
             return {
                 "model": model_clean,
                 "records_count": len(records),
@@ -545,6 +610,14 @@ class FahasAgent:
         except Exception as exc:
             logger.error("فاحص: فشل تجميع السجلات في %s: %s", model_clean, exc)
             raise FahasExecutionError(f"فشل تجميع السجلات في «{model_clean}» عبر فاحص: {exc}")
+
+    def read_records(
+        self,
+        model: str,
+        ids: List[int],
+        fields: Optional[List[str]] = None,
+        connection_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """قراءة تفاصيل سجلات محددة بأرقام معرفاتها عبر read."""
         model_clean = validate_model_name(model)
         repo = self.get_repository(connection_id)
@@ -553,7 +626,7 @@ class FahasAgent:
             raise FahasExecutionError("يلزم تمرير قائمة معرّفات (ids) صحيحة لقراءتها.")
 
         clean_ids = [int(i) for i in ids[:50]]
-        safe_fields = fields if fields and isinstance(fields, list) else []
+        safe_fields = sanitize_model_fields(model_clean, fields) if fields and isinstance(fields, list) else []
 
         try:
             records = repo._models.execute_kw(
@@ -565,6 +638,7 @@ class FahasAgent:
                 [clean_ids],
                 {"fields": safe_fields} if safe_fields else {},
             )
+            records = enrich_records_with_aliases(records)
             return {
                 "model": model_clean,
                 "records_count": len(records),

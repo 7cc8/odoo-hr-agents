@@ -382,6 +382,84 @@ def test_mudaqqiq_multiple_categories():
     print("\n✅ TEST PASSED: Multiple categories handled correctly")
 
 
+def test_mudaqqiq_deterministic_calculations():
+    """اختبار دوال الحساب والتحقق الحتمية المتكاملة مع saudi_labor_law_rules"""
+    print("\n" + "="*70)
+    print("TEST 11: Deterministic Labor Law Calculations")
+    print("="*70)
+
+    agent = MudaqqiqAgent()
+
+    # 1. حساب التأمينات الاجتماعية GOSI
+    gosi = agent.calculate_gosi(basic_wage=10000, housing_allowance=2500, is_saudi=True)
+    assert gosi.capped_contributory_wage == 12500.0
+    assert gosi.total_employee == round(12500.0 * 0.0975, 2)
+    assert gosi.total_employer == round(12500.0 * 0.1175, 2)
+
+    # 2. حساب مكافأة نهاية الخدمة EOSB
+    eosb = agent.calculate_eosb(basic_wage=10000, service_years=6, is_resignation=False, is_saudi=True)
+    # 5 سنوات الأولى: نصف راتب (25,000) + سنة سادسة: راتب كامل (10,000) = 35,000
+    assert eosb.gross_eosb_amount == 35000.0
+    assert eosb.net_eosb_amount == 35000.0
+
+    # 3. التحقق من ساعات العمل في رمضان للمسلمين بالمادة 98
+    valid_ramadan = agent.validate_working_hours(daily_hours=6, weekly_hours=36, is_ramadan=True, is_muslim=True)
+    assert valid_ramadan.is_valid is True
+
+    invalid_ramadan = agent.validate_working_hours(daily_hours=8, weekly_hours=48, is_ramadan=True, is_muslim=True)
+    assert invalid_ramadan.is_valid is False
+    assert invalid_ramadan.article == "المادة 98"
+
+    # 4. إجازات المناسبات بالمادة 113
+    import saudi_labor_law_rules as sllr
+    assert agent.get_occasion_leave_days(sllr.OccasionLeaveType.MARRIAGE) == 5
+    assert agent.get_occasion_leave_days(sllr.OccasionLeaveType.PATERNITY) == 3
+
+    print("✅ GOSI Calculation Verified")
+    print("✅ EOSB Calculation Verified (35,000 SAR for 6 years)")
+    print("✅ Article 98 Ramadan Working Hours Compliance Verified")
+    print("\n✅ TEST PASSED: Deterministic calculations operating correctly")
+
+
+def test_mudaqqiq_violation_detection():
+    """اختبار اكتشاف المخالفات النظامية الحتمية"""
+    print("\n" + "="*70)
+    print("TEST 12: Violation Detection (Non-Compliant Data)")
+    print("="*70)
+
+    agent = MudaqqiqAgent()
+
+    # موظف سعودي براتب أقل من 4,000 ريال (مخالفة نطاقات والحد الأدنى)
+    req_salary = {
+        "type": "salary_check",
+        "category": ComplianceCategory.LABOR_LAW,
+        "context": {"saudi_employee": True},
+        "data": {
+            "basic_salary": 2500,  # مخالف!
+            "employee_type": "saudi",
+        }
+    }
+    res_salary = agent.verify_compliance(req_salary)
+    assert len(res_salary["violations"]) > 0
+    assert res_salary["decision"] in [ComplianceDecision.REJECT, ComplianceDecision.APPROVE_WITH_CONDITIONS, ComplianceDecision.ESCALATE_LEGAL]
+
+    # فترة تجربة أكثر من 180 يوماً
+    req_probation = {
+        "type": "probation_check",
+        "category": ComplianceCategory.LABOR_LAW,
+        "context": {},
+        "data": {
+            "probation_days": 210,  # مخالف لسقف 180 يوماً بالمادة 53
+        }
+    }
+    res_probation = agent.verify_compliance(req_probation)
+    assert len(res_probation["violations"]) > 0
+
+    print("✅ Minimum wage violation detected successfully")
+    print("✅ Probation period >180 days cap violation detected successfully")
+    print("\n✅ TEST PASSED: Violations correctly flagged by Mudaqqiq")
+
+
 # ============================================================================
 # Run All Tests
 # ============================================================================
@@ -403,6 +481,8 @@ def run_all_tests():
         test_mudaqqiq_rules_database,
         test_mudaqqiq_singleton,
         test_mudaqqiq_multiple_categories,
+        test_mudaqqiq_deterministic_calculations,
+        test_mudaqqiq_violation_detection,
     ]
     
     passed = 0

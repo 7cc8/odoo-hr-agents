@@ -582,6 +582,11 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     from odoo_readonly_repository import OdooReadonlyRepository, OdooReadonlyRepositoryError
 
+    if not (os.environ.get("ODOO_URL") or os.environ.get("ODOO_DB") or os.environ.get("ODOO_API_KEY") or os.environ.get("ODOO_USER") or os.environ.get("ODOO_USERNAME")):
+        print("ABORT: Missing Odoo connection settings: ODOO_URL, ODOO_DB, ODOO_USER, ODOO_API_KEY", file=sys.stderr)
+        print("  Make sure .env contains ODOO_URL, ODOO_DB, ODOO_USERNAME, ODOO_API_KEY", file=sys.stderr)
+        return 2
+
     try:
         repo = OdooReadonlyRepository()
     except OdooReadonlyRepositoryError as exc:

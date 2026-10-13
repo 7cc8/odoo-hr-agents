@@ -304,14 +304,46 @@ def write_xlsx(report_dict: Dict[str, Any], file_path: str | Path) -> None:
 
 def build_full_report(input_xlsx_path: str | Path) -> Dict[str, Any]:
     """Parses, validates, and assembles the report dict. Does NOT write
-    any output files and does NOT call create/write/unlink on Odoo."""
+    any output files and does NOT call create/write/unlink on Odoo.
+    Supports both legacy employee import files and all 14 modular/master HR templates."""
     repository = OdooReadonlyRepository()
-    parsed_report = parse_xlsx(str(input_xlsx_path))
-    snapshot = repository.get_live_reference_snapshot()
-    validator = Validator(repository)
-    validated_rows = validator.validate_rows(parsed_report["rows"])
-    repo_info = repository.get_session_info()
-    return build_report_dict(parsed_report, validated_rows, repo_info, snapshot)
+
+    # 1. Check if the file is one of the modular/master HR templates
+    try:
+        from excel_template_validator import validate_template_workbook
+        import openpyxl
+        wb = openpyxl.load_workbook(str(input_xlsx_path), read_only=True)
+        sheetnames = wb.sheetnames
+        is_template = (
+            "Instructions" in sheetnames
+            or any(
+                s in sheetnames
+                for s in [
+                    "Attendances", "Contracts", "Payroll_GOSI", "Time_Off",
+                    "Overtime", "Loans", "Disciplinary", "End_of_Service",
+                    "Appraisals", "Recruitment", "GR_Transactions", "Company_Setup"
+                ]
+            )
+            or any(s.startswith(("1_", "2_", "3_", "4_", "5_", "6_", "7_", "8_", "9_", "10_", "11_", "12_", "13_")) for s in sheetnames)
+            or any(k in Path(input_xlsx_path).name.lower() for k in ["template_", "master_", "attendance", "contract", "payroll", "timeoff", "loan", "overtime", "disciplinary", "appraisal", "recruitment"])
+        )
+        if is_template:
+            return validate_template_workbook(str(input_xlsx_path), repo=repository)
+    except Exception:
+        pass
+
+    # 2. Try classic employee pipeline
+    try:
+        parsed_report = parse_xlsx(str(input_xlsx_path))
+        snapshot = repository.get_live_reference_snapshot()
+        validator = Validator(repository)
+        validated_rows = validator.validate_rows(parsed_report["rows"])
+        repo_info = repository.get_session_info()
+        return build_report_dict(parsed_report, validated_rows, repo_info, snapshot)
+    except Exception:
+        # 3. Fallback: try template validator in case sheet names had variations
+        from excel_template_validator import validate_template_workbook
+        return validate_template_workbook(str(input_xlsx_path), repo=repository)
 
 
 def write_report_files(report_dict: Dict[str, Any], output_dir: str | Path) -> Dict[str, Path]:

@@ -1,0 +1,477 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1.1 **Property 1: Bug Condition** - Template Generation Unavailable Test": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789614680
+      },
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791790023247
+      }
+    ],
+    "1.1.2 **Property 1: Bug Condition** - Dry-Run Rejection Details Unclear Test": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789619179
+      },
+      {
+        "executionId": "4d4164f2-7877-4135-bcc2-1ecf2323a052",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791790929719
+      },
+      {
+        "executionId": "4d4164f2-7877-4135-bcc2-1ecf2323a052",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791792657505
+      }
+    ],
+    "1.1.3 **Property 1: Bug Condition** - Auto-Execute Missing Test": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789619738
+      },
+      {
+        "executionId": "4d4164f2-7877-4135-bcc2-1ecf2323a052",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791790930666
+      },
+      {
+        "executionId": "4d4164f2-7877-4135-bcc2-1ecf2323a052",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791792658353
+      }
+    ],
+    "1.1.4 **Property 1: Bug Condition** - Agent Timeline Hidden Test": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789619968
+      },
+      {
+        "executionId": "4d4164f2-7877-4135-bcc2-1ecf2323a052",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791790931584
+      },
+      {
+        "executionId": "4d4164f2-7877-4135-bcc2-1ecf2323a052",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791792659239
+      }
+    ],
+    "1.1.5 **Property 1: Bug Condition** - State Fields Missing Test": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789626657
+      },
+      {
+        "executionId": "4d4164f2-7877-4135-bcc2-1ecf2323a052",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791790932633
+      },
+      {
+        "executionId": "4d4164f2-7877-4135-bcc2-1ecf2323a052",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791792660261
+      }
+    ],
+    "2.1.1 **Property 2: Preservation** - Existing API Endpoints Behavior": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789632794
+      },
+      {
+        "executionId": "fc1a51ae-35b8-4fdf-81e9-627dc7743af3",
+        "chatSessionId": "sess_eef3af59-726e-4e61-bf0e-ee46aca829e4",
+        "timestamp": 1791824181489
+      },
+      {
+        "executionId": "fc1a51ae-35b8-4fdf-81e9-627dc7743af3",
+        "chatSessionId": "sess_eef3af59-726e-4e61-bf0e-ee46aca829e4",
+        "timestamp": 1791824942370
+      }
+    ],
+    "2.1.2 **Property 2: Preservation** - Agent Execution Logic Unchanged": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789643014
+      },
+      {
+        "executionId": "fc1a51ae-35b8-4fdf-81e9-627dc7743af3",
+        "chatSessionId": "sess_eef3af59-726e-4e61-bf0e-ee46aca829e4",
+        "timestamp": 1791825293633
+      },
+      {
+        "executionId": "fc1a51ae-35b8-4fdf-81e9-627dc7743af3",
+        "chatSessionId": "sess_eef3af59-726e-4e61-bf0e-ee46aca829e4",
+        "timestamp": 1791826146955
+      }
+    ],
+    "2.1.3 **Property 2: Preservation** - Security, Auth, Logging Unchanged": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789656664
+      }
+    ],
+    "2.1.4 **Property 2: Preservation** - Existing Tests Coverage": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789668010
+      }
+    ],
+    "3.1.1 إضافة حقول جديدة لـ `SerajState`": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789679576
+      },
+      {
+        "executionId": "4d4164f2-7877-4135-bcc2-1ecf2323a052",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791792676646
+      }
+    ],
+    "3.1.2 إضافة helper functions لـ state field validation": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789690350
+      },
+      {
+        "executionId": "89cd8502-d917-4278-be17-5190248d79ea",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791822998370
+      },
+      {
+        "executionId": "915c7c2a-ef07-4bcf-82e1-acfad6645e1b",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791824125916
+      }
+    ],
+    "3.2.1 إضافة `_format_rejection_details()` method في Seraj Meta-Agent": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789697141
+      }
+    ],
+    "3.2.2 إضافة helper functions للترجمة والاقتراحات": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789703340
+      }
+    ],
+    "3.2.3 دمج `_format_rejection_details()` في dry-run processing node": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789712440
+      }
+    ],
+    "3.2.4 تحديث `dry_run_report.py` لتشمل row data في rejection info": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789721553
+      }
+    ],
+    "3.3.1 إضافة `conditional_execution_node` في LangGraph": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789731867
+      }
+    ],
+    "3.3.2 إضافة routing function في `build_graph.py`": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789746154
+      }
+    ],
+    "3.3.3 إضافة API endpoint `/api/approve-conditional`": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789761022
+      }
+    ],
+    "3.3.4 إضافة helper function لـ continue graph execution": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789773160
+      }
+    ],
+    "3.4.1 إنشاء `agent_events_service.py`": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789785574
+      }
+    ],
+    "3.4.2 دمج event emission في Seraj Meta-Agent": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789798347
+      }
+    ],
+    "3.4.3 دمج event emission في جميع Agents (Fahas, Mudaqqiq, Katib, Musleh)": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789810368
+      }
+    ],
+    "3.4.4 إضافة API endpoint `/api/agent-traces/{operation_id}`": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789823658
+      }
+    ],
+    "3.5.1 Refactor `generate_employee_template.py` إلى function": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789836244
+      }
+    ],
+    "3.5.2 إضافة endpoint `/api/template/generate`": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789849112
+      }
+    ],
+    "3.5.3 إضافة endpoint `/api/template/download/{template_id}`": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789861880
+      }
+    ],
+    "3.6.1 إضافة Template Generation Section في Dashboard": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789874501
+      }
+    ],
+    "3.6.2 إضافة JavaScript لمعالجة Template Generation": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789888016
+      }
+    ],
+    "3.6.3 إضافة Rejection Details Table في Dashboard": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789901503
+      }
+    ],
+    "3.6.4 إضافة JavaScript لعرض Rejection Details": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789913273
+      }
+    ],
+    "3.6.5 إضافة Conditional Action Buttons في Dashboard": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789925591
+      }
+    ],
+    "3.6.6 إضافة JavaScript لمعالجة Conditional Actions": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789938002
+      }
+    ],
+    "3.6.7 إضافة Agent Timeline Section في Dashboard": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789949135
+      }
+    ],
+    "3.6.8 إضافة JavaScript لـ Agent Timeline Updates": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789956103
+      }
+    ],
+    "4.1.1 **Property 1: Expected Behavior** - Template Generation Works Test": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789963603
+      }
+    ],
+    "4.1.2 **Property 1: Expected Behavior** - Dry-Run Rejection Details Visible Test": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789965958
+      }
+    ],
+    "4.1.3 **Property 1: Expected Behavior** - Auto-Execute Active Test": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789967517
+      }
+    ],
+    "4.1.4 **Property 1: Expected Behavior** - Agent Timeline Displayed Test": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789967745
+      }
+    ],
+    "4.1.5 **Property 1: Expected Behavior** - State Fields Populated Test": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789968240
+      }
+    ],
+    "4.2.1 **Property 2: Preservation** - Verify Existing API Endpoints Still Work": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789969857
+      }
+    ],
+    "4.2.2 **Property 2: Preservation** - Verify Agent Logic Unchanged": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789970047
+      }
+    ],
+    "4.2.3 **Property 2: Preservation** - Verify Security & Logging": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789972070
+      }
+    ],
+    "4.2.4 **Property 2: Preservation** - Verify Test Suite Coverage": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789972375
+      }
+    ],
+    "5.1.1 E2E Test: Template Generation Flow": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789972567
+      }
+    ],
+    "5.1.2 E2E Test: Conditional Execution Flow (Clean File)": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789975883
+      }
+    ],
+    "5.1.3 E2E Test: Conditional Execution Flow (With Errors)": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789977460
+      }
+    ],
+    "5.1.4 E2E Test: Agent Timeline Monitoring": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789982707
+      }
+    ],
+    "5.2.1 تحديث API Documentation": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789988387
+      }
+    ],
+    "5.2.2 تحديث Dashboard User Guide": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789994268
+      }
+    ],
+    "5.2.3 تحديث Developer Documentation": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789996843
+      }
+    ],
+    "5.2.4 Update CHANGELOG": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789998439
+      }
+    ],
+    "6.1 Final Checkpoint - Ensure All Tests Pass": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791789999916
+      }
+    ],
+    "6.2 Code Review & Quality Check": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791790001506
+      }
+    ],
+    "6.3 Performance Testing": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791790003397
+      }
+    ],
+    "6.4 Security Review": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791790005369
+      }
+    ],
+    "6.5 User Acceptance Testing": [
+      {
+        "executionId": "fd0c2491-5e03-4051-8165-0bb635379be5",
+        "chatSessionId": "sess_ed24f5e5-7151-4f1d-a6ab-1d8af61f87fc",
+        "timestamp": 1791790007401
+      }
+    ]
+  }
+}
