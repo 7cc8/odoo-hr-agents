@@ -2,7 +2,9 @@
 LLM Provider Manager - إدارة مزودي النماذج اللغوية
 ====================================================
 يدعم:
-- Ollama (محلي/مجاني) 
+- Ollama (محلي/مجاني)
+- Cloud AI (OpenRouter, OpenAI, Groq, DeepSeek, Custom API Key)
+- التبديل التلقائي الذكي (Auto Switching)
 - Fallback (rule-based)
 """
 from __future__ import annotations
@@ -16,41 +18,71 @@ logger = logging.getLogger("llm_provider")
 
 
 class LLMProvider:
-    """مدير موحد لمزودي LLM"""
+    """مدير موحد لمزودي LLM (محلي، سحابي، تلقائي، وتراجعي)"""
     
     def __init__(
         self,
-        provider: str = "auto",  # auto, ollama, fallback
+        provider: str = "auto",  # auto, ollama, cloud, fallback
         model: Optional[str] = None,
     ):
+        try:
+            from llm_config_manager import load_llm_config
+            self.config = load_llm_config()
+        except Exception:
+            self.config = {}
+
         self.provider = self._detect_provider(provider)
         self.model = model or self._get_default_model()
         logger.info(f"LLM Provider initialized: {self.provider} with model {self.model}")
     
     def _detect_provider(self, provider: str) -> str:
-        """اكتشاف المزود المتاح"""
-        if provider != "auto":
+        """اكتشاف المزود المتاح بناءً على الإعدادات أو الكشف التلقائي"""
+        if provider not in ("auto", None):
             return provider
-        
-        # أولوية: Ollama > Fallback (مجاناً فقط)
-        
-        # التحقق من Ollama محلياً
-        try:
-            import httpx
-            response = httpx.get("http://localhost:11434/api/tags", timeout=2)
-            if response.status_code == 200:
-                logger.info("Ollama detected locally")
+
+        mode = self.config.get("mode", "auto")
+        active = self.config.get("active_provider", "local")
+
+        # إذا كان الوضع يدوياً: نتقيد بالمشغل النشط
+        if mode == "manual":
+            if active == "cloud" and bool(self.config.get("cloud", {}).get("api_key")):
+                return "cloud"
+            elif active == "local":
                 return "ollama"
+
+        # وضع التبديل التلقائي (Auto):
+        # 1. إذا كان المشغل النشط سحابياً وله مفتاح، أو كان مفتاح الـ API متوفراً
+        cloud_key = self.config.get("cloud", {}).get("api_key") or os.environ.get("OPENROUTER_API_KEY") or os.environ.get("LLM_API_KEY")
+        if active == "cloud" and cloud_key:
+            return "cloud"
+
+        # 2. فحص Ollama محلياً
+        try:
+            import urllib.request
+            local_url = self.config.get("local", {}).get("base_url", "http://localhost:11434/v1")
+            clean_url = local_url.replace('/v1', '').rstrip('/') + '/api/tags'
+            req = urllib.request.Request(clean_url, headers={"User-Agent": "OdooHRAgents/1.0"})
+            with urllib.request.urlopen(req, timeout=2) as response:
+                if response.status == 200:
+                    logger.info("Ollama detected locally")
+                    return "ollama"
         except Exception:
             pass
+
+        # 3. إذا لم يتوفر المحلي ولكن يوجد مفتاح سحابي
+        if cloud_key:
+            logger.info("Cloud API key available, using cloud provider")
+            return "cloud"
         
         logger.warning("No LLM provider available, using fallback")
         return "fallback"
     
     def _get_default_model(self) -> str:
-        """الحصول على النموذج الافتراضي"""
-        if self.provider == "ollama":
-            return os.environ.get("LLM_MODEL", "qwen2.5:7b")
+        """الحصول على النموذج الافتراضي للمزود النشط"""
+        if self.provider == "cloud":
+            return self.config.get("cloud", {}).get("model") or os.environ.get("OPENROUTER_MODEL", "openrouter/auto")
+        elif self.provider == "ollama":
+            return self.config.get("local", {}).get("model") or os.environ.get("LLM_MODEL", "qwen3.5:0.8b")
         else:
             return "fallback-rule-based"
     
@@ -60,10 +92,33 @@ class LLMProvider:
         tools: Optional[List[Dict[str, Any]]] = None,
         temperature: float = 0.7,
     ) -> Dict[str, Any]:
-        """استدعاء موحد للنماذج"""
+        """استدعاء موحد للنماذج مع دعم التبديل التلقائي عند التعثر"""
         
-        if self.provider == "ollama":
-            return self._call_ollama(messages, tools, temperature)
+        if self.provider == "cloud":
+            res = self._call_cloud(messages, tools, temperature)
+            if res.get("provider") != "cloud_error":
+                return res
+            # في حال تعثر السحابي: محاولة المحلي كبديل إن أمكن
+            if self.config.get("fallback_enabled", True):
+                logger.warning("Cloud failed, attempting local Ollama fallback...")
+                local_res = self._call_ollama(messages, tools, temperature)
+                if local_res.get("provider") == "ollama":
+                    return local_res
+            return self._call_fallback(messages)
+
+        elif self.provider == "ollama":
+            res = self._call_ollama(messages, tools, temperature)
+            if res.get("provider") == "ollama":
+                return res
+            # في حال تعثر المحلي: محاولة السحابي إن وجد مفتاح
+            cloud_key = self.config.get("cloud", {}).get("api_key") or os.environ.get("OPENROUTER_API_KEY")
+            if cloud_key and self.config.get("fallback_enabled", True):
+                logger.warning("Ollama failed, attempting cloud fallback...")
+                cloud_res = self._call_cloud(messages, tools, temperature)
+                if cloud_res.get("provider") == "cloud":
+                    return cloud_res
+            return self._call_fallback(messages)
+
         else:
             return self._call_fallback(messages)
     
@@ -125,10 +180,82 @@ class LLMProvider:
                 "provider": "ollama_error",
             }
 
-    
     # ═══════════════════════════════════════════════════════════════
-    # Fallback Implementation
+    # Cloud Implementation (OpenRouter, OpenAI, Groq, DeepSeek, Custom)
     # ═══════════════════════════════════════════════════════════════
+
+    def _call_cloud(
+        self,
+        messages: List[Dict[str, Any]],
+        tools: Optional[List[Dict[str, Any]]],
+        temperature: float,
+    ) -> Dict[str, Any]:
+        """استدعاء المشغل السحابي مع دعم أي مشغل متوافق ومفتاح API"""
+        try:
+            import urllib.request
+            import urllib.error
+
+            cloud_cfg = self.config.get("cloud", {})
+            base_url = cloud_cfg.get("base_url") or "https://openrouter.ai/api/v1"
+            api_key = cloud_cfg.get("api_key") or os.environ.get("OPENROUTER_API_KEY") or os.environ.get("LLM_API_KEY")
+            timeout = int(cloud_cfg.get("timeout", 45))
+
+            if not api_key:
+                return {
+                    "content": "⚠️ لم يتم تكوين مفتاح API Key للمشغل السحابي. يرجى إضافته من صفحة الإعدادات.",
+                    "tool_calls": None,
+                    "provider": "cloud_error",
+                }
+
+            clean_url = base_url.rstrip("/")
+            if not clean_url.endswith("/chat/completions"):
+                url = f"{clean_url}/chat/completions"
+            else:
+                url = clean_url
+
+            payload = {
+                "model": self.model,
+                "messages": messages,
+                "temperature": temperature,
+                "stream": False,
+                "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "1024")),
+            }
+            if tools:
+                payload["tools"] = tools
+                payload["tool_choice"] = "auto"
+
+            data = json.dumps(payload).encode("utf-8")
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key.strip()}",
+                "User-Agent": "OdooHRAgents/1.0",
+                "HTTP-Referer": "http://localhost:8000",
+                "X-Title": "Odoo HR Agents",
+            }
+
+            req = urllib.request.Request(url, data=data, headers=headers)
+            with urllib.request.urlopen(req, timeout=timeout) as response:
+                result = json.loads(response.read().decode("utf-8"))
+                if result.get("choices"):
+                    message = result["choices"][0].get("message", {})
+                    return {
+                        "content": message.get("content", ""),
+                        "tool_calls": message.get("tool_calls"),
+                        "provider": "cloud",
+                    }
+        except Exception as e:
+            logger.error(f"Cloud provider error: {e}")
+            return {
+                "content": f"واجه المشغل السحابي خطأ: {e}",
+                "tool_calls": None,
+                "provider": "cloud_error",
+            }
+
+        return {
+            "content": "استجابة غير متوقعة من المشغل السحابي",
+            "tool_calls": None,
+            "provider": "cloud_error",
+        }
     
     def _call_fallback(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Rule-based fallback عندما لا يتوفر LLM"""

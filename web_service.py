@@ -332,8 +332,119 @@ def reset_connection_settings(request: Request) -> Dict[str, Any]:
     }
 
 
+class LLMProviderSettingsRequest(BaseModel):
+    mode: Optional[str] = "auto"  # "auto" | "manual"
+    active_provider: Optional[str] = "local"  # "local" | "cloud"
+    fallback_enabled: Optional[bool] = True
+    local_base_url: Optional[str] = "http://localhost:11434/v1"
+    local_model: Optional[str] = "qwen3.5:0.8b"
+    cloud_provider: Optional[str] = "openrouter"
+    cloud_base_url: Optional[str] = "https://openrouter.ai/api/v1"
+    cloud_api_key: Optional[str] = None
+    cloud_model: Optional[str] = "openrouter/auto"
 
-@app.get("/api/runs")
+
+class LLMTestRequest(BaseModel):
+    target: str  # "local" | "cloud"
+    provider: Optional[str] = None
+    base_url: Optional[str] = None
+    api_key: Optional[str] = None
+    model: Optional[str] = None
+
+
+@app.get("/api/settings/llm")
+def get_llm_settings_endpoint(request: Request) -> Dict[str, Any]:
+    """استرجاع إعدادات محرك الذكاء الاصطناعي وحالة الاتصال المباشرة للمزودات"""
+    audit_log_access("/api/settings/llm", request)
+    from llm_config_manager import get_masked_llm_config, check_local_health, check_cloud_health, load_llm_config
+
+    masked = get_masked_llm_config()
+    raw = load_llm_config()
+
+    local_h = check_local_health(raw.get("local", {}).get("base_url"))
+    cloud_h = check_cloud_health(
+        raw.get("cloud", {}).get("provider"),
+        raw.get("cloud", {}).get("base_url"),
+        raw.get("cloud", {}).get("api_key")
+    )
+
+    mode = raw.get("mode", "auto")
+    active = raw.get("active_provider", "local")
+
+    if mode == "manual":
+        effective = "cloud" if active == "cloud" else "local"
+    else:
+        if local_h.get("available"):
+            effective = "local (تلقائي ذكي - محلي متاح)"
+        elif cloud_h.get("available"):
+            effective = "cloud (تلقائي ذكي - سحابي نشط)"
+        else:
+            effective = "fallback (قواعد آمنة)"
+
+    return {
+        "status": "success",
+        "config": masked,
+        "health": {
+            "local": local_h,
+            "cloud": cloud_h,
+            "effective_engine": effective
+        }
+    }
+
+
+@app.post("/api/settings/llm")
+def update_llm_settings_endpoint(payload: LLMProviderSettingsRequest, request: Request) -> Dict[str, Any]:
+    """تحديث وحفظ إعدادات محرك الذكاء الاصطناعي والتبديل بين السحابي والمحلي"""
+    audit_log_access("/api/settings/llm", request, {
+        "mode": payload.mode,
+        "active_provider": payload.active_provider,
+        "cloud_provider": payload.cloud_provider
+    })
+    from llm_config_manager import save_llm_config, get_masked_llm_config
+
+    update_data = {
+        "mode": payload.mode or "auto",
+        "active_provider": payload.active_provider or "local",
+        "fallback_enabled": payload.fallback_enabled if payload.fallback_enabled is not None else True,
+        "local": {
+            "base_url": payload.local_base_url or "http://localhost:11434/v1",
+            "model": payload.local_model or "qwen3.5:0.8b",
+        },
+        "cloud": {
+            "provider": payload.cloud_provider or "openrouter",
+            "base_url": payload.cloud_base_url or "https://openrouter.ai/api/v1",
+            "model": payload.cloud_model or "openrouter/auto",
+        }
+    }
+    if payload.cloud_api_key is not None:
+        update_data["cloud"]["api_key"] = payload.cloud_api_key
+
+    save_llm_config(update_data)
+    masked = get_masked_llm_config()
+
+    return {
+        "status": "success",
+        "message": "تم حفظ وتحديث إعدادات محرك الذكاء الاصطناعي بنجاح.",
+        "config": masked
+    }
+
+
+@app.post("/api/settings/llm/test")
+def test_llm_settings_endpoint(payload: LLMTestRequest, request: Request) -> Dict[str, Any]:
+    """اختبار فوري للاتصال بالمشغل المحلي (Ollama) أو السحابي (API)"""
+    audit_log_access("/api/settings/llm/test", request, {"target": payload.target})
+    from llm_config_manager import test_provider_connection
+
+    res = test_provider_connection(payload.target, {
+        "provider": payload.provider,
+        "base_url": payload.base_url,
+        "api_key": payload.api_key,
+        "model": payload.model
+    })
+    return res
+
+
+
 @app.get("/runs")
 def list_recent_runs(request: Request) -> List[Dict[str, Any]]:
     audit_log_access("/runs", request)

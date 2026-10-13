@@ -52,6 +52,7 @@ AI/
 
 # Local credentials
 config/odoo_connection.json
+config/llm_config.json
 
 # Backup and cache files
 *.bak

@@ -2958,6 +2958,178 @@
           </div>
         </div>
       </div>
+
+      <!-- ==================== AI ENGINE & PROVIDERS SETTINGS ==================== -->
+      <div class="panel-card" style="max-width: 800px; margin: 24px auto 0;">
+        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-charcoal); padding-bottom: 14px; margin-bottom: 20px;">
+          <div>
+            <div class="panel-title" style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 20px;">🤖</span>
+              <span>إعدادات محرك الذكاء الاصطناعي والمشغلات</span>
+            </div>
+            <div style="font-size: 13px; color: var(--color-smoke); margin-top: 4px;">
+              التحكم في مصادر التفكير والاستعلام: التبديل بين المحرك المحلي والذكاء الاصطناعي السحابي، وإضافة مفاتيح المشغلات (API Keys)
+            </div>
+          </div>
+          <div id="llmEffectiveBadge" class="badge badge-success" style="font-size: 12px; padding: 6px 12px;">
+            جاري الفحص...
+          </div>
+        </div>
+
+        <form id="llmSettingsForm" onsubmit="saveLlmSettings(event)" style="display: flex; flex-direction: column; gap: 22px;">
+          
+          <!-- 1. نمط التشغيل (Auto vs Manual) -->
+          <div>
+            <label style="font-size: 14px; font-weight: 700; color: var(--color-snow); display: block; margin-bottom: 8px;">
+              نمط التشغيل والتبديل:
+            </label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <!-- خيار التلقائي الذكي -->
+              <label id="modeAutoCard" class="llm-mode-card" style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--color-ash); border: 2px solid var(--color-phosphor-green); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-weight: 700; color: var(--color-snow); font-size: 14px;">🔄 تبديل تلقائي ذكي (Auto)</span>
+                  <input type="radio" name="llm_mode" value="auto" checked onchange="handleLlmModeChange('auto')" style="accent-color: var(--color-phosphor-green); width: 18px; height: 18px;">
+                </div>
+                <span style="font-size: 12px; color: var(--color-silver-mist); line-height: 1.5;">
+                  تفضيل المشغل الأساسي، مع التحول التلقائي للمشغل البديل (سحابي أو محلي) فوراً عند تعطل أحدهما أو انتهاء الحصة دون انقطاع.
+                </span>
+              </label>
+
+              <!-- خيار اليدوي الصريح -->
+              <label id="modeManualCard" class="llm-mode-card" style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--color-ash); border: 1px solid var(--color-charcoal); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-weight: 700; color: var(--color-snow); font-size: 14px;">🎛️ تحكم يدوي صريح (Manual)</span>
+                  <input type="radio" name="llm_mode" value="manual" onchange="handleLlmModeChange('manual')" style="accent-color: var(--color-phosphor-green); width: 18px; height: 18px;">
+                </div>
+                <span style="font-size: 12px; color: var(--color-silver-mist); line-height: 1.5;">
+                  تحديد المشغل المعتمد صراحة (محلي أو سحابي فقط) دون تبديل تلقائي بينهما.
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- 2. تحديد المشغل النشط (محلي أم سحابي) -->
+          <div id="activeProviderContainer" style="background: rgba(255,255,255,0.02); border: 1px solid var(--color-charcoal); border-radius: 10px; padding: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <span style="font-size: 13.5px; font-weight: 700; color: var(--color-snow);">المشغل المعتمد / ذو الأولوية:</span>
+              <span id="activeProviderHint" style="font-size: 12px; color: var(--color-smoke);">في وضع Auto: يعتبر هذا المشغل ذو الأولوية الأولى مع التبديل التلقائي عند التعثر.</span>
+            </div>
+            <div style="display: flex; gap: 12px;">
+              <button type="button" id="btnSelectLocal" class="btn" onclick="setActiveProvider('local')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid var(--color-phosphor-green); background: rgba(62, 207, 142, 0.1); color: var(--color-snow); font-weight: 700; cursor: pointer;">
+                💻 المحرك المحلي (Ollama)
+              </button>
+              <button type="button" id="btnSelectCloud" class="btn" onclick="setActiveProvider('cloud')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--color-charcoal); background: var(--color-ash); color: var(--color-silver-mist); font-weight: 700; cursor: pointer;">
+                ☁️ الذكاء الاصطناعي السحابي (Cloud Provider)
+              </button>
+            </div>
+            <input type="hidden" id="llmActiveProvider" value="local">
+          </div>
+
+          <!-- 3. قسم الذكاء الاصطناعي السحابي (Cloud AI Provider) -->
+          <div style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px;">☁️</span>
+                <span style="font-size: 14.5px; font-weight: 700; color: var(--color-snow);">إعدادات المشغل السحابي (Cloud Provider & API Key)</span>
+              </div>
+              <div id="cloudStatusBadge" class="badge" style="background: rgba(255,255,255,0.06); font-size: 11px;">
+                غير مهيأ
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div>
+                  <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اختر المشغل (Provider):</label>
+                  <select id="cloudPresetSelector" onchange="handleCloudPresetChange(this.value)" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-arabic);">
+                    <option value="openrouter">OpenRouter (موصى به - نماذج مجانية ومتعددة)</option>
+                    <option value="openai">OpenAI (رسمي - GPT-4o / GPT-4o-mini)</option>
+                    <option value="groq">Groq (سرعة فائقة - Llama 3.3 70B)</option>
+                    <option value="deepseek">DeepSeek (V3 / R1)</option>
+                    <option value="custom">مشغل مخصص (أي خادم يدعم OpenAI API)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اسم النموذج (Model Name):</label>
+                  <input id="cloudModelInput" type="text" dir="ltr" placeholder="مثال: openrouter/auto أو gpt-4o-mini" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+                </div>
+              </div>
+
+              <div>
+                <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">رابط المشغل الأساسي (Base URL):</label>
+                <input id="cloudBaseUrlInput" type="url" dir="ltr" placeholder="https://openrouter.ai/api/v1" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+              </div>
+
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                  <label style="font-size: 12.5px; color: var(--color-silver-mist);">مفتاح الـ API (API Key):</label>
+                  <span id="cloudKeySavedIndicator" style="font-size: 11px; color: var(--color-phosphor-green); display: none;">✓ تم حفظ المفتاح مسبقاً</span>
+                </div>
+                <div style="position: relative; display: flex; align-items: center;">
+                  <input id="cloudApiKeyInput" type="password" dir="ltr" autocomplete="new-password" placeholder="ألصق مفتاح الـ API Key هنا (مثل sk-or-v1-...)" style="width: 100%; padding: 9px 40px 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+                  <button type="button" onclick="toggleApiKeyVisibility()" style="position: absolute; left: 10px; background: none; border: none; cursor: pointer; color: var(--color-smoke); font-size: 16px;" title="إظهار/إخفاء المفتاح">
+                    👁️
+                  </button>
+                </div>
+                <div style="font-size: 11.5px; color: var(--color-smoke); margin-top: 4px;">
+                  🔒 يُحفظ المفتاح محلياً بشكل محمي ومستبعد تماماً من Git في ملف <span class="mono">config/llm_config.json</span>.
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end;">
+                <button type="button" id="btnTestCloud" class="btn btn-secondary" onclick="testLlmConnection('cloud')" style="font-size: 13px; padding: 7px 16px;">
+                  ⚡ فحص واختبار الاتصال السحابي
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. قسم المحرك المحلي (Local Ollama) -->
+          <div style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px;">💻</span>
+                <span style="font-size: 14.5px; font-weight: 700; color: var(--color-snow);">إعدادات المحرك المحلي (Local Ollama / LM Studio)</span>
+              </div>
+              <div id="localStatusBadge" class="badge" style="background: rgba(255,255,255,0.06); font-size: 11px;">
+                جاري الفحص...
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div>
+                  <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">رابط خادم Ollama المحلي:</label>
+                  <input id="localBaseUrlInput" type="url" dir="ltr" placeholder="http://localhost:11434/v1" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+                </div>
+
+                <div>
+                  <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اسم النموذج المحلي:</label>
+                  <input id="localModelInput" type="text" dir="ltr" placeholder="qwen3.5:0.8b أو qwen2.5:7b" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end;">
+                <button type="button" id="btnTestLocal" class="btn btn-secondary" onclick="testLlmConnection('local')" style="font-size: 13px; padding: 7px 16px;">
+                  ⚡ فحص خادم Ollama المحلي
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- صندوق رسائل الفحص والاختبار -->
+          <div id="llmTestResultBox" style="display: none; padding: 12px 16px; border-radius: 8px; font-size: 13px; line-height: 1.5;"></div>
+
+          <!-- زر الحفظ النهائي -->
+          <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--color-charcoal); padding-top: 16px;">
+            <div id="llmSaveStatusMsg" style="font-size: 13px;"></div>
+            <button id="saveLlmBtn" type="submit" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700; font-size: 14px;">
+              💾 حفظ وتطبيق إعدادات الذكاء الاصطناعي
+            </button>
+          </div>
+        </form>
+      </div>
     </section>
 
   </main>
@@ -3065,6 +3237,7 @@
     document.addEventListener("DOMContentLoaded", () => {
       renderAgentsStrip();
       loadSystemStatus();
+      loadLlmSettings();
       populateTemplateCompanySelector();
       loadAgentsOverview();
       loadRecentAuditMetrics();
@@ -3188,7 +3361,10 @@
 
       if (viewId === "view-operations") loadOperationsList();
       if (viewId === "view-sijil") loadRecentAuditMetrics();
-      if (viewId === "view-settings") loadSystemStatus();
+      if (viewId === "view-settings") {
+        loadSystemStatus();
+        loadLlmSettings();
+      }
     }
 
     // =========================================================================
@@ -3623,6 +3799,360 @@
         await loadSystemStatus();
       } catch (err) {
         message.textContent = "تم تفريغ الحقول محلياً: " + err.message;
+      }
+    }
+
+    // =========================================================================
+    // 4.1 LLM ENGINE & PROVIDERS CONFIGURATION
+    // =========================================================================
+    const CLOUD_PRESETS = {
+      openrouter: {
+        name: "OpenRouter",
+        base_url: "https://openrouter.ai/api/v1",
+        model: "openrouter/auto",
+        placeholder_key: "sk-or-v1-..."
+      },
+      openai: {
+        name: "OpenAI",
+        base_url: "https://api.openai.com/v1",
+        model: "gpt-4o-mini",
+        placeholder_key: "sk-proj-..."
+      },
+      groq: {
+        name: "Groq",
+        base_url: "https://api.groq.com/openai/v1",
+        model: "llama-3.3-70b-versatile",
+        placeholder_key: "gsk_..."
+      },
+      deepseek: {
+        name: "DeepSeek",
+        base_url: "https://api.deepseek.com/v1",
+        model: "deepseek-chat",
+        placeholder_key: "sk-..."
+      },
+      custom: {
+        name: "مشغل مخصص",
+        base_url: "",
+        model: "",
+        placeholder_key: "Bearer token أو API key"
+      }
+    };
+
+    let llmSavedHasCloudKey = false;
+
+    function handleCloudPresetChange(presetKey) {
+      const preset = CLOUD_PRESETS[presetKey];
+      if (!preset) return;
+      const baseUrlInput = document.getElementById("cloudBaseUrlInput");
+      const modelInput = document.getElementById("cloudModelInput");
+      const keyInput = document.getElementById("cloudApiKeyInput");
+
+      if (presetKey !== "custom") {
+        if (baseUrlInput) baseUrlInput.value = preset.base_url;
+        if (modelInput && (!modelInput.value || Object.values(CLOUD_PRESETS).some(p => p.model === modelInput.value))) {
+          modelInput.value = preset.model;
+        }
+      }
+      if (keyInput && preset.placeholder_key) {
+        if (!llmSavedHasCloudKey) {
+          keyInput.placeholder = `ألصق مفتاح الـ API (${preset.placeholder_key})`;
+        }
+      }
+    }
+
+    function handleLlmModeChange(mode) {
+      const autoCard = document.getElementById("modeAutoCard");
+      const manualCard = document.getElementById("modeManualCard");
+      const hint = document.getElementById("activeProviderHint");
+
+      if (mode === "auto") {
+        if (autoCard) {
+          autoCard.style.borderColor = "var(--color-phosphor-green)";
+          autoCard.style.borderWidth = "2px";
+        }
+        if (manualCard) {
+          manualCard.style.borderColor = "var(--color-charcoal)";
+          manualCard.style.borderWidth = "1px";
+        }
+        if (hint) {
+          hint.textContent = "في وضع Auto: يعتبر هذا المشغل ذو الأولوية الأولى مع التبديل التلقائي عند التعثر.";
+        }
+      } else {
+        if (manualCard) {
+          manualCard.style.borderColor = "var(--color-phosphor-green)";
+          manualCard.style.borderWidth = "2px";
+        }
+        if (autoCard) {
+          autoCard.style.borderColor = "var(--color-charcoal)";
+          autoCard.style.borderWidth = "1px";
+        }
+        if (hint) {
+          hint.textContent = "في وضع Manual: يتم الاعتماد على هذا المشغل حصراً دون أي تبديل تلقائي.";
+        }
+      }
+    }
+
+    function setActiveProvider(prov) {
+      const hiddenInput = document.getElementById("llmActiveProvider");
+      if (hiddenInput) hiddenInput.value = prov;
+      const btnLocal = document.getElementById("btnSelectLocal");
+      const btnCloud = document.getElementById("btnSelectCloud");
+
+      if (prov === "local") {
+        if (btnLocal) {
+          btnLocal.style.borderColor = "var(--color-phosphor-green)";
+          btnLocal.style.borderWidth = "1.5px";
+          btnLocal.style.background = "rgba(62, 207, 142, 0.1)";
+          btnLocal.style.color = "var(--color-snow)";
+        }
+        if (btnCloud) {
+          btnCloud.style.borderColor = "var(--color-charcoal)";
+          btnCloud.style.borderWidth = "1px";
+          btnCloud.style.background = "var(--color-ash)";
+          btnCloud.style.color = "var(--color-silver-mist)";
+        }
+      } else {
+        if (btnCloud) {
+          btnCloud.style.borderColor = "var(--color-phosphor-green)";
+          btnCloud.style.borderWidth = "1.5px";
+          btnCloud.style.background = "rgba(62, 207, 142, 0.1)";
+          btnCloud.style.color = "var(--color-snow)";
+        }
+        if (btnLocal) {
+          btnLocal.style.borderColor = "var(--color-charcoal)";
+          btnLocal.style.borderWidth = "1px";
+          btnLocal.style.background = "var(--color-ash)";
+          btnLocal.style.color = "var(--color-silver-mist)";
+        }
+      }
+    }
+
+    function toggleApiKeyVisibility() {
+      const input = document.getElementById("cloudApiKeyInput");
+      if (!input) return;
+      input.type = input.type === "password" ? "text" : "password";
+    }
+
+    async function loadLlmSettings() {
+      try {
+        const res = await apiFetch("/api/settings/llm");
+        const data = await res.json();
+        if (data.status !== "success" || !data.config) return;
+
+        const cfg = data.config;
+        const health = data.health || {};
+
+        // 1. Mode radio buttons
+        const modeRadios = document.querySelectorAll('input[name="llm_mode"]');
+        modeRadios.forEach(r => {
+          r.checked = (r.value === (cfg.mode || "auto"));
+        });
+        handleLlmModeChange(cfg.mode || "auto");
+
+        // 2. Active provider
+        setActiveProvider(cfg.active_provider || "local");
+
+        // 3. Cloud Provider
+        const cloud = cfg.cloud || {};
+        const presetSelect = document.getElementById("cloudPresetSelector");
+        if (presetSelect && cloud.provider) {
+          presetSelect.value = cloud.provider;
+        }
+        const cloudBaseUrl = document.getElementById("cloudBaseUrlInput");
+        if (cloudBaseUrl) cloudBaseUrl.value = cloud.base_url || "https://openrouter.ai/api/v1";
+        const cloudModel = document.getElementById("cloudModelInput");
+        if (cloudModel) cloudModel.value = cloud.model || "openrouter/auto";
+
+        llmSavedHasCloudKey = !!(cloud.has_api_key || cloud.has_key);
+        const keyIndicator = document.getElementById("cloudKeySavedIndicator");
+        const keyInput = document.getElementById("cloudApiKeyInput");
+        if (keyIndicator) {
+          keyIndicator.style.display = (cloud.has_api_key || cloud.has_key) ? "inline" : "none";
+        }
+        if (keyInput) {
+          const masked = cloud.api_key_masked || cloud.api_key;
+          if ((cloud.has_api_key || cloud.has_key) && masked) {
+            keyInput.placeholder = `المفتاح الحالي: ${masked} (اتركه فارغاً للإبقاء عليه)`;
+          } else {
+            keyInput.placeholder = "ألصق مفتاح الـ API Key هنا (مثل sk-or-v1-...)";
+          }
+        }
+
+        // 4. Local Provider
+        const local = cfg.local || {};
+        const localBaseUrl = document.getElementById("localBaseUrlInput");
+        if (localBaseUrl) localBaseUrl.value = local.base_url || "http://localhost:11434/v1";
+        const localModel = document.getElementById("localModelInput");
+        if (localModel) localModel.value = local.model || "qwen3.5:0.8b";
+
+        // 5. Status Badges
+        const effBadge = document.getElementById("llmEffectiveBadge");
+        if (effBadge) {
+          effBadge.textContent = health.effective_engine ? `المحرك الفعال: ${health.effective_engine}` : "جاهز";
+          effBadge.className = (health.effective_engine && health.effective_engine.includes("fallback")) ? "badge badge-warning" : "badge badge-success";
+        }
+
+        const localBadge = document.getElementById("localStatusBadge");
+        if (localBadge) {
+          if (health.local && health.local.available) {
+            localBadge.innerHTML = `<span style="color: var(--color-phosphor-green);">● متصل (${health.local.latency_ms || 0}ms)</span>`;
+          } else {
+            localBadge.innerHTML = `<span style="color: var(--color-smoke);">○ غير متصل</span>`;
+          }
+        }
+
+        const cloudBadge = document.getElementById("cloudStatusBadge");
+        if (cloudBadge) {
+          if (health.cloud && health.cloud.available) {
+            cloudBadge.innerHTML = `<span style="color: var(--color-phosphor-green);">● متصل (${health.cloud.latency_ms || 0}ms)</span>`;
+          } else if (cloud.has_api_key || cloud.has_key) {
+            cloudBadge.innerHTML = `<span style="color: var(--color-amber);">● مهيأ (بانتظار طلب)</span>`;
+          } else {
+            cloudBadge.innerHTML = `<span style="color: var(--color-smoke);">○ غير مهيأ (بدون مفتاح)</span>`;
+          }
+        }
+      } catch (err) {
+        console.warn("Failed to load LLM settings:", err);
+      }
+    }
+
+    async function testLlmConnection(target) {
+      const resultBox = document.getElementById("llmTestResultBox");
+      const btn = target === "cloud" ? document.getElementById("btnTestCloud") : document.getElementById("btnTestLocal");
+      const origText = btn ? btn.textContent : "";
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "⏳ جاري الفحص...";
+      }
+
+      if (resultBox) {
+        resultBox.style.display = "block";
+        resultBox.style.background = "rgba(255,255,255,0.05)";
+        resultBox.style.border = "1px solid var(--color-charcoal)";
+        resultBox.style.color = "var(--color-silver-mist)";
+        resultBox.textContent = `جاري فحص الاتصال بـ ${target === "cloud" ? "المشغل السحابي" : "المحرك المحلي"}...`;
+      }
+
+      try {
+        const payload = { target: target };
+        if (target === "cloud") {
+          payload.provider = document.getElementById("cloudPresetSelector")?.value || "openrouter";
+          payload.base_url = document.getElementById("cloudBaseUrlInput")?.value?.trim() || null;
+          payload.model = document.getElementById("cloudModelInput")?.value?.trim() || null;
+          const keyVal = document.getElementById("cloudApiKeyInput")?.value?.trim();
+          payload.api_key = keyVal ? keyVal : null;
+        } else {
+          payload.base_url = document.getElementById("localBaseUrlInput")?.value?.trim() || null;
+          payload.model = document.getElementById("localModelInput")?.value?.trim() || null;
+        }
+
+        const res = await apiFetch("/api/settings/llm/test", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        const isSuccess = data.available === true || data.status === "online" || data.success === true;
+
+        if (resultBox) {
+          if (isSuccess) {
+            resultBox.style.background = "rgba(62, 207, 142, 0.12)";
+            resultBox.style.border = "1px solid var(--color-phosphor-green)";
+            resultBox.style.color = "var(--color-snow)";
+            resultBox.innerHTML = `<strong>✅ نجح الاتصال بنجاح!</strong><br>
+              المشغل: <span class="mono">${escapeHtml(data.provider || target)}</span> · 
+              زمن الاستجابة: <span class="mono">${data.latency_ms || 0}ms</span> · 
+              النموذج: <span class="mono">${escapeHtml(data.model || payload.model || (data.models && data.models[0]) || 'افتراضي')}</span><br>
+              <span style="font-size: 11.5px; color: var(--color-phosphor-green);">${escapeHtml(data.message || '')}</span>`;
+          } else {
+            resultBox.style.background = "rgba(239, 68, 68, 0.15)";
+            resultBox.style.border = "1px solid var(--color-coral)";
+            resultBox.style.color = "#ff9494";
+            resultBox.innerHTML = `<strong>❌ فشل الاتصال:</strong> ${escapeHtml(data.message || 'تعذر الوصول إلى الخادم.')}<br>
+              <span style="font-size: 11.5px; color: var(--color-silver-mist);">تأكد من صحة الرابط ومفتاح API واتصال الإنترنت.</span>`;
+          }
+        }
+      } catch (err) {
+        if (resultBox) {
+          resultBox.style.background = "rgba(239, 68, 68, 0.15)";
+          resultBox.style.border = "1px solid var(--color-coral)";
+          resultBox.style.color = "#ff9494";
+          resultBox.textContent = `❌ حدث خطأ أثناء الفحص: ${err.message}`;
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = origBtnText;
+        }
+      }
+    }
+
+    async function saveLlmSettings(e) {
+      if (e) e.preventDefault();
+      const saveBtn = document.getElementById("saveLlmBtn");
+      const statusMsg = document.getElementById("llmSaveStatusMsg");
+      const origBtnText = saveBtn ? saveBtn.textContent : "";
+
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = "⏳ جاري الحفظ والتطبيق...";
+      }
+      if (statusMsg) {
+        statusMsg.innerHTML = '<span style="color: var(--color-silver-mist);">جاري إرسال الإعدادات وحفظها...</span>';
+      }
+
+      try {
+        const selectedModeEl = document.querySelector('input[name="llm_mode"]:checked');
+        const mode = selectedModeEl ? selectedModeEl.value : "auto";
+        const activeProvider = document.getElementById("llmActiveProvider")?.value || "local";
+        const cloudPreset = document.getElementById("cloudPresetSelector")?.value || "openrouter";
+        const cloudBaseUrl = document.getElementById("cloudBaseUrlInput")?.value?.trim() || "";
+        const cloudModel = document.getElementById("cloudModelInput")?.value?.trim() || "";
+        const rawApiKey = document.getElementById("cloudApiKeyInput")?.value?.trim();
+        const localBaseUrl = document.getElementById("localBaseUrlInput")?.value?.trim() || "";
+        const localModel = document.getElementById("localModelInput")?.value?.trim() || "";
+
+        const payload = {
+          mode: mode,
+          active_provider: activeProvider,
+          fallback_enabled: true,
+          local_base_url: localBaseUrl || undefined,
+          local_model: localModel || undefined,
+          cloud_provider: cloudPreset || undefined,
+          cloud_base_url: cloudBaseUrl || undefined,
+          cloud_model: cloudModel || undefined,
+          cloud_api_key: rawApiKey ? rawApiKey : null
+        };
+
+        const res = await apiFetch("/api/settings/llm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok || data.status !== "success") {
+          throw new Error(data.detail || data.message || "تعذر حفظ إعدادات الذكاء الاصطناعي");
+        }
+
+        if (statusMsg) {
+          statusMsg.innerHTML = '<span style="color: var(--color-phosphor-green); font-weight: bold; font-size: 13.5px;">✅ تم حفظ وتطبيق إعدادات الذكاء الاصطناعي بنجاح!</span>';
+        }
+
+        // Clear password field to avoid keeping plaintext in DOM
+        const keyInput = document.getElementById("cloudApiKeyInput");
+        if (keyInput) keyInput.value = "";
+
+        await loadLlmSettings();
+      } catch (err) {
+        if (statusMsg) {
+          statusMsg.innerHTML = `<span style="color: #ff9494; font-weight: bold;">❌ خطأ في الحفظ: ${escapeHtml(err.message)}</span>`;
+        }
+      } finally {
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = origBtnText;
+        }
       }
     }
 

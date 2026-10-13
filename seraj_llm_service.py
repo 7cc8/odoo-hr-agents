@@ -120,42 +120,33 @@ class SerajLLMService:
         self.katib = katib_agent or get_katib_agent()
 
     def is_configured(self) -> bool:
-        """Returns True if Ollama is available with required model."""
-        import os
-        
-        # Check for required LLM configuration
-        base_url = os.environ.get("LLM_BASE_URL")
-        model = os.environ.get("LLM_MODEL")
-        
-        if not base_url or not model:
-            logger.warning("LLM_BASE_URL or LLM_MODEL not configured")
-            return False
-        
-        # Check if Ollama is accessible 
+        """
+        فحص جاهزية محرك الذكاء الاصطناعي بناءً على الإعدادات النشطة:
+        - الوضع اليدوي (Manual): يتحقق من توفر المشغل المختار صراحة (محلي أو سحابي).
+        - الوضع التلقائي (Auto): يُعتبر جاهزاً إذا توفر أيٌّ من الخادم المحلي أو المفتاح السحابي.
+        """
         try:
-            import urllib.request
-            import urllib.error
-            from urllib.parse import urlparse
-            
-            # Only allow local connections (security requirement)
-            parsed = urlparse(base_url)
-            hostname = parsed.hostname or parsed.netloc.split(':')[0]
-            if hostname not in ("localhost", "127.0.0.1", "::1", "[::1]"):
-                logger.error(f"Only local LLM servers allowed, got: {hostname}")
-                return False
-            
-            # Test connection to Ollama
-            test_url = base_url.replace('/v1', '').rstrip('/') + '/api/tags'
-            req = urllib.request.Request(test_url, headers={"Content-Type": "application/json"})
-            
-            with urllib.request.urlopen(req, timeout=5) as res:
-                if res.status == 200:
+            from llm_config_manager import load_llm_config, check_local_health
+            cfg = load_llm_config()
+            mode = cfg.get("mode", "auto")
+            active = cfg.get("active_provider", "local")
+            has_cloud_key = bool(cfg.get("cloud", {}).get("api_key"))
+
+            if mode == "manual":
+                if active == "cloud":
+                    return has_cloud_key
+                else:
+                    local_health = check_local_health(cfg.get("local", {}).get("base_url"))
+                    return local_health.get("available", False)
+            else:
+                # وضع التبديل التلقائي
+                if has_cloud_key:
                     return True
-                    
+                local_health = check_local_health(cfg.get("local", {}).get("base_url"))
+                return local_health.get("available", False)
         except Exception as e:
-            logger.warning(f"Failed to connect to LLM server: {e}")
-            
-        return False
+            logger.warning("Error checking LLM configuration: %s", e)
+            return False
 
     # P6: consult_laya removed - laya deleted, use classify_intent instead
     def consult_laya_DEPRECATED(self, text: str) -> Optional[Dict[str, Any]]:
@@ -1383,63 +1374,116 @@ class SerajLLMService:
         tools: Optional[List[Dict[str, Any]]] = None,
     ) -> Optional[Dict[str, Any]]:
         """
-        Call local LLM server (Ollama) compatible with OpenAI Chat Completions API.
-        Returns the complete assistant message dict including content and/or tool_calls.
+        استدعاء محرك الذكاء الاصطناعي (محلي أو سحابي) متوافق مع OpenAI Chat Completions API.
+        يدعم:
+        1. الوضع اليدوي (Manual): يرسل الطلب للمشغل النشط صراحة (سحابي أو محلي).
+        2. الوضع التلقائي (Auto): يحاول مع المشغل المفضل، وفي حال حدوث تعثر أو خطأ اتصال ينتقل تلقائياً للبديل.
         """
-        import os
-        
-        # Get LLM configuration
-        base_url = os.environ.get("LLM_BASE_URL")
-        model = os.environ.get("LLM_MODEL", model_name)
-        timeout = int(os.environ.get("LLM_TIMEOUT", "120"))
-        max_tokens = int(os.environ.get("LLM_MAX_TOKENS", "1024"))
-        
-        if not base_url:
-            raise ValueError("LLM_BASE_URL must be configured for local LLM server")
-        
-        if not model:
-            raise ValueError("LLM_MODEL must be configured")
-        
-        # Security check: only allow local connections
-        from urllib.parse import urlparse
-        parsed = urlparse(base_url)
-        hostname = parsed.hostname or parsed.netloc.split(':')[0]
-        if hostname not in ("localhost", "127.0.0.1", "::1", "[::1]"):
-            raise ValueError(
-                f"Only local LLM servers allowed for security. Got hostname: {hostname}. "
-                "Allowed: localhost, 127.0.0.1, ::1"
-            )
-        
-        # Add /chat/completions if not present
-        if not base_url.endswith("/chat/completions"):
-            base_url = base_url.rstrip("/") + "/chat/completions"
-        
-        payload: Dict[str, Any] = {
-            "model": model,
-            "messages": messages,
-            "temperature": 0.1,
-            "max_tokens": max_tokens,
-        }
-        if tools:
-            payload["tools"] = tools
-            payload["tool_choice"] = "auto"
+        from llm_config_manager import load_llm_config
 
-        data = json.dumps(payload).encode("utf-8")
-        
-        headers = {
-            "Content-Type": "application/json",
-            "User-Agent": "OdooHRAgents/1.0",
-        }
-        
-        # Add API key if configured (optional for Ollama)
-        api_key = os.environ.get("LLM_API_KEY")
-        if api_key:
-            headers["Authorization"] = f"Bearer {api_key}"
-        
-        req = urllib.request.Request(base_url, data=data, headers=headers)
-        with urllib.request.urlopen(req, timeout=timeout) as res:
-            res_data = json.loads(res.read().decode("utf-8"))
-            choices = res_data.get("choices", [])
-            if choices:
-                return choices[0].get("message", {})
+        cfg = load_llm_config()
+        mode = cfg.get("mode", "auto")
+        active = cfg.get("active_provider", "local")
+
+        def _send_chat_completion(
+            base_url: str,
+            model: str,
+            api_key: Optional[str],
+            timeout: int,
+            provider_type: str,
+        ) -> Optional[Dict[str, Any]]:
+            if not base_url:
+                raise ValueError("base_url is required")
+
+            # تطبيع مسار الطلب
+            clean_url = base_url.rstrip("/")
+            if not clean_url.endswith("/chat/completions"):
+                endpoint_url = f"{clean_url}/chat/completions"
+            else:
+                endpoint_url = clean_url
+
+            payload: Dict[str, Any] = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.1,
+                "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "1024")),
+            }
+            if tools:
+                payload["tools"] = tools
+                payload["tool_choice"] = "auto"
+
+            data = json.dumps(payload).encode("utf-8")
+            headers = {
+                "Content-Type": "application/json",
+                "User-Agent": "OdooHRAgents/1.0",
+                "HTTP-Referer": "http://localhost:8000",
+                "X-Title": "Odoo HR Multi-Agent",
+            }
+
+            if api_key and str(api_key).strip():
+                headers["Authorization"] = f"Bearer {str(api_key).strip()}"
+
+            req = urllib.request.Request(endpoint_url, data=data, headers=headers)
+            with urllib.request.urlopen(req, timeout=timeout) as res:
+                res_data = json.loads(res.read().decode("utf-8"))
+                choices = res_data.get("choices", [])
+                if choices:
+                    msg = choices[0].get("message", {})
+                    # إضافة وسم المشغل المستخدم للتتبع الشفاف
+                    msg["_provider_used"] = provider_type
+                    msg["_model_used"] = model
+                    return msg
+            return None
+
+        # تجهيز تفاصيل المشغلات
+        loc_cfg = cfg.get("local", {})
+        cld_cfg = cfg.get("cloud", {})
+
+        loc_tuple = (
+            "local",
+            loc_cfg.get("base_url", "http://localhost:11434/v1"),
+            loc_cfg.get("model") or model_name,
+            os.environ.get("LLM_API_KEY") or None,
+            int(loc_cfg.get("timeout", 120)),
+        )
+
+        cld_tuple = (
+            "cloud",
+            cld_cfg.get("base_url", "https://openrouter.ai/api/v1"),
+            cld_cfg.get("model") or model_name,
+            cld_cfg.get("api_key") or os.environ.get("OPENROUTER_API_KEY") or os.environ.get("LLM_API_KEY"),
+            int(cld_cfg.get("timeout", 45)),
+        )
+
+        candidates: List[Tuple[str, str, str, Optional[str], int]] = []
+
+        if mode == "manual":
+            # في الوضع اليدوي: يتم استدعاء المشغل المحدد فقط
+            if active == "cloud":
+                candidates = [cld_tuple]
+            else:
+                candidates = [loc_tuple]
+        else:
+            # في الوضع التلقائي: الترتيب الذكي
+            # إذا توفر مفتاح سحابي وكان المشغل النشط سحابياً أو محلياً
+            if active == "cloud" and cld_tuple[3]:
+                candidates = [cld_tuple, loc_tuple]
+            else:
+                candidates = [loc_tuple]
+                if cld_tuple[3]:
+                    candidates.append(cld_tuple)
+
+        last_error = None
+        for p_type, b_url, m_name, a_key, t_out in candidates:
+            try:
+                logger.debug("Attempting LLM call via %s (%s at %s)", p_type, m_name, b_url)
+                result = _send_chat_completion(b_url, m_name, a_key, t_out, p_type)
+                if result:
+                    return result
+            except Exception as exc:
+                last_error = exc
+                logger.warning("LLM call to %s (%s) failed: %s. Trying fallback if available...", p_type, m_name, exc)
+
+        if last_error:
+            logger.error("All configured LLM candidates failed. Last error: %s", last_error)
         return None
