@@ -123,21 +123,15 @@ class SerajLLMService:
     def is_configured(self) -> bool:
         """
         فحص جاهزية محرك الذكاء الاصطناعي بناءً على الإعدادات النشطة:
-        - إذا حُدد مفتاح api_key فارغ صراحة للنسخة الحالية، تُعتبر غير مهيأة.
         - الوضع اليدوي (Manual): يتحقق من توفر المشغل المختار صراحة (محلي أو سحابي).
         - الوضع التلقائي (Auto): يُعتبر جاهزاً إذا توفر أيٌّ من الخادم المحلي أو المفتاح السحابي.
         """
-        if self.api_key == "":
-            return False
-        if self.api_key:
-            return True
-
         try:
             from llm_config_manager import load_llm_config, check_local_health
             cfg = load_llm_config()
             mode = cfg.get("mode", "auto")
             active = cfg.get("active_provider", "local")
-            has_cloud_key = bool(self.api_key) or bool(cfg.get("cloud", {}).get("api_key"))
+            has_cloud_key = bool(self.api_key and str(self.api_key).strip()) or bool(cfg.get("cloud", {}).get("api_key", "").strip())
 
             fallback_enabled = cfg.get("fallback_enabled", True)
             if mode == "manual":
@@ -156,14 +150,17 @@ class SerajLLMService:
                         return True
                     return False
             else:
-                # وضع التبديل التلقائي
+                # وضع التبديل التلقائي: يُعتبر جاهزاً إذا توفر الخادم المحلي أو المفتاح السحابي
+                local_health = check_local_health(cfg.get("local", {}).get("base_url"))
+                if local_health.get("available", False):
+                    return True
                 if has_cloud_key:
                     return True
-                local_health = check_local_health(cfg.get("local", {}).get("base_url"))
-                return local_health.get("available", False)
+                return False
         except Exception as e:
             logger.warning("Error checking LLM configuration: %s", e)
-            return False
+            return bool(self.api_key and str(self.api_key).strip())
+
 
     # P6: consult_laya removed - laya deleted, use classify_intent instead
     def consult_laya_DEPRECATED(self, text: str) -> Optional[Dict[str, Any]]:

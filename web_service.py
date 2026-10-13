@@ -444,6 +444,38 @@ def test_llm_settings_endpoint(payload: LLMTestRequest, request: Request) -> Dic
     return res
 
 
+@app.post("/api/settings/llm/start-local")
+def start_local_ollama_endpoint(request: Request) -> Dict[str, Any]:
+    """تشغيل خادم Ollama المحلي في الخلفية فوراً والتحقق من صحته"""
+    audit_log_access("/api/settings/llm/start-local", request)
+    import time
+    from llm_config_manager import start_local_ollama_process, check_local_health
+
+    health = check_local_health()
+    if health.get("available"):
+        return {
+            "status": "success",
+            "message": "خادم Ollama المحلي قيد التشغيل بالفعل ومتاح للاستخدام.",
+            "health": health,
+        }
+
+    success, msg = start_local_ollama_process()
+    if not success:
+        return {
+            "status": "error",
+            "message": msg,
+            "health": health,
+        }
+
+    # انتظار مهلة قصيرة للتشغيل المبدئي
+    time.sleep(2)
+    new_health = check_local_health()
+    return {
+        "status": "success",
+        "message": "تم إطلاق خادم Ollama المحلي في الخلفية بنجاح.",
+        "health": new_health,
+    }
+
 
 @app.get("/runs")
 def list_recent_runs(request: Request) -> List[Dict[str, Any]]:

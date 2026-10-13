@@ -239,6 +239,46 @@ def get_masked_llm_config() -> Dict[str, Any]:
     return masked
 
 
+def start_local_ollama_process() -> Tuple[bool, str]:
+    """تشغيل خادم Ollama المحلي في الخلفية مع ربطه بمجلد النماذج المحلي"""
+    import shutil
+    import subprocess
+    base_dir = Path(__file__).resolve().parent
+    ollama_exe = base_dir / "AI" / "ollama.exe"
+    models_dir = base_dir / "AI" / "models"
+
+    if not ollama_exe.exists():
+        system_ollama = shutil.which("ollama")
+        if not system_ollama:
+            return False, "لم يتم العثور على ملف تشغيل Ollama في المجلد المحلي AI/ollama.exe أو في مسار النظام."
+        ollama_bin = system_ollama
+    else:
+        ollama_bin = str(ollama_exe)
+
+    env = os.environ.copy()
+    if models_dir.exists():
+        env["OLLAMA_MODELS"] = str(models_dir)
+
+    try:
+        creationflags = 0
+        if os.name == "nt":
+            creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) | getattr(subprocess, "DETACHED_PROCESS", 0)
+
+        subprocess.Popen(
+            [ollama_bin, "serve"],
+            env=env,
+            creationflags=creationflags,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            close_fds=True,
+        )
+        logger.info("Launched local Ollama daemon (%s) with models: %s", ollama_bin, models_dir)
+        return True, "تم إطلاق خادم Ollama في الخلفية بنجاح."
+    except Exception as exc:
+        logger.error("Failed to launch local Ollama process: %s", exc)
+        return False, f"فشل تشغيل خادم Ollama: {exc}"
+
+
 def check_local_health(base_url: Optional[str] = None) -> Dict[str, Any]:
     """فحص صحة اتصال خادم Ollama المحلي"""
     url = base_url or load_llm_config()["local"].get("base_url", "http://localhost:11434/v1")

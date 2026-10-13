@@ -3131,7 +3131,10 @@
                 </div>
               </div>
 
-              <div style="display: flex; justify-content: flex-end;">
+              <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
+                <button type="button" id="btnStartLocalOllama" class="btn" onclick="startLocalOllamaService()" style="font-size: 13px; padding: 7px 16px; border: 1px solid var(--color-phosphor-green); color: var(--color-phosphor-green); background: rgba(62, 207, 142, 0.08); border-radius: 8px; font-weight: 600; cursor: pointer;">
+                  🚀 تشغيل خادم Ollama المحلي الآن
+                </button>
                 <button type="button" id="btnTestLocal" class="btn btn-secondary" onclick="testLlmConnection('local')" style="font-size: 13px; padding: 7px 16px;">
                   ⚡ فحص خادم Ollama المحلي
                 </button>
@@ -4178,6 +4181,58 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.textContent = origText;
+        }
+      }
+    }
+
+    async function startLocalOllamaService() {
+      const btn = document.getElementById("btnStartLocalOllama");
+      const resultBox = document.getElementById("llmTestResultBox");
+      const origBtnText = btn ? btn.textContent : "";
+
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = "⏳ جاري تشغيل خادم Ollama...";
+      }
+
+      if (resultBox) {
+        resultBox.style.display = "block";
+        resultBox.style.background = "rgba(255, 255, 255, 0.04)";
+        resultBox.style.border = "1px solid var(--color-charcoal)";
+        resultBox.style.color = "var(--color-silver-mist)";
+        resultBox.innerHTML = "⏳ جاري إطلاق خادم Ollama المحلي في الخلفية وربطه بالنماذج المرفقة...";
+      }
+
+      try {
+        const res = await apiFetch("/api/settings/llm/start-local", { method: "POST" });
+        const data = await res.json();
+        if (resultBox) {
+          if (data.status === "success") {
+            const h = data.health || {};
+            resultBox.style.background = "rgba(62, 207, 142, 0.12)";
+            resultBox.style.border = "1px solid var(--color-phosphor-green)";
+            resultBox.style.color = "var(--color-snow)";
+            const count = (h.models && h.models.length) ? `· النماذج المتاحة: <span class="mono">${h.models.join(', ')}</span>` : "";
+            resultBox.innerHTML = `<strong>✅ ${escapeHtml(data.message)}</strong><br>${count}`;
+          } else {
+            resultBox.style.background = "rgba(239, 68, 68, 0.15)";
+            resultBox.style.border = "1px solid var(--color-coral)";
+            resultBox.style.color = "#ff9494";
+            resultBox.innerHTML = `<strong>❌ ${escapeHtml(data.message || 'تعذر تشغيل الخادم المحلي.')}</strong>`;
+          }
+        }
+        await loadLlmSettings();
+      } catch (err) {
+        if (resultBox) {
+          resultBox.style.background = "rgba(239, 68, 68, 0.15)";
+          resultBox.style.border = "1px solid var(--color-coral)";
+          resultBox.style.color = "#ff9494";
+          resultBox.innerHTML = `<strong>❌ خطأ أثناء طلب تشغيل الخادم:</strong> ${escapeHtml(err.message)}`;
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
           btn.textContent = origBtnText;
         }
       }
@@ -4773,6 +4828,14 @@
         try {
           // A. Fetch incremental events since last sequence
           const res = await apiFetch(`/api/agents/operations/${opId}/events?after=${lastEventSequence}`);
+          if (res.status === 404) {
+            clearInterval(pollingInterval);
+            pollingInterval = null;
+            resetAllAgentsToIdle();
+            setStreamConnected(false, "انتهت العملية أو تم تحديث الخادم");
+            hideTypingIndicator();
+            return;
+          }
           const data = await res.json();
           if (opId !== currentOperationId) return;
           let op = null;
@@ -4785,6 +4848,14 @@
                 lastEventSequence = Math.max(lastEventSequence, evt.sequence || 0);
               });
               const opRes = await apiFetch(`/api/agents/operations/${opId}`);
+              if (opRes.status === 404) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+                resetAllAgentsToIdle();
+                setStreamConnected(false, "انتهت العملية أو تم تحديث الخادم");
+                hideTypingIndicator();
+                return;
+              }
               const opData = await opRes.json();
               if (opId !== currentOperationId) return;
               if (opData.status === "success" && opData.operation) {
@@ -4797,6 +4868,14 @@
               snapshotCycleCounter++;
               if (snapshotCycleCounter % 4 === 0) {
                 const opRes = await apiFetch(`/api/agents/operations/${opId}`);
+                if (opRes.status === 404) {
+                  clearInterval(pollingInterval);
+                  pollingInterval = null;
+                  resetAllAgentsToIdle();
+                  setStreamConnected(false, "انتهت العملية أو تم تحديث الخادم");
+                  hideTypingIndicator();
+                  return;
+                }
                 const opData = await opRes.json();
                 if (opId !== currentOperationId) return;
                 if (opData.status === "success" && opData.operation) {
