@@ -2310,6 +2310,12 @@
         </select>
       </div>
 
+      <div id="aiEngineStatusBadge" class="stream-status-pill" title="محرك الذكاء الاصطناعي النشط - انقر للانتقال للإعدادات"
+        style="cursor: pointer; margin-left: 8px;" onclick="switchView('view-settings')">
+        <span class="stream-dot" id="aiEngineStatusDot" style="background: var(--color-phosphor-green);"></span>
+        <span id="aiEngineStatusText">AI: جاري الفحص…</span>
+      </div>
+
       <div id="odooConnectionBadge" class="stream-status-pill is-disconnected" title="حالة الاتصال بقاعدة بيانات Odoo"
         style="margin-left: 8px;">
         <span class="stream-dot" id="odooStatusDot" style="background: var(--color-coral);"></span>
@@ -4035,6 +4041,37 @@
             cloudBadge.innerHTML = `<span style="color: var(--color-smoke);">○ غير مهيأ (بدون مفتاح)</span>`;
           }
         }
+
+        // تحديث شارة محرك الذكاء الاصطناعي في الشريط العلوي (Top Nav)
+        const topBadge = document.getElementById("aiEngineStatusBadge");
+        const topDot = document.getElementById("aiEngineStatusDot");
+        const topText = document.getElementById("aiEngineStatusText");
+
+        if (topBadge && topDot && topText) {
+          const mode = cfg.mode || "auto";
+          const active = cfg.active_provider || "local";
+          const hasKey = !!(cloud.has_api_key || cloud.has_key);
+          const provName = cloud.provider ? cloud.provider.toUpperCase() : "CLOUD";
+          const provModel = cloud.model || "";
+          const locModel = local.model || "qwen3.5:0.8b";
+
+          if (active === "cloud" && hasKey) {
+            topDot.style.background = "#38bdf8";
+            topDot.style.boxShadow = "0 0 8px rgba(56, 189, 248, 0.6)";
+            topText.textContent = mode === "auto" ? `AI: سحابي ❯ محلي (${provName})` : `AI: سحابي (${provName})`;
+            topBadge.title = `الذكاء السحابي نشط (${provModel}) - وضع: ${mode} - انقر لتغيير الإعدادات`;
+          } else if (active === "cloud" && !hasKey) {
+            topDot.style.background = "var(--color-coral)";
+            topDot.style.boxShadow = "none";
+            topText.textContent = `AI: سحابي (مفقود API Key)`;
+            topBadge.title = `المشغل السحابي يحتاج مفتاح API Key - انقر لتهيئته`;
+          } else {
+            topDot.style.background = "var(--color-phosphor-green)";
+            topDot.style.boxShadow = "0 0 8px rgba(62, 207, 142, 0.6)";
+            topText.textContent = mode === "auto" ? "AI: محلي ❯ سحابي (Ollama)" : "AI: محلي (Ollama)";
+            topBadge.title = `المحرك المحلي نشط (${locModel}) - وضع: ${mode} - انقر لتغيير الإعدادات`;
+          }
+        }
       } catch (err) {
         console.warn("Failed to load LLM settings:", err);
       }
@@ -4359,7 +4396,7 @@
           currentOperationStatus = data.operation?.status;
           document.getElementById("activeOpIdBadge").textContent = currentOperationId;
 
-          appendSerajMessage(data.response, data.pending_action, data.pending_clarification, data.operation, data.rejected_rows_details);
+          appendSerajMessage(data.response, data.pending_action, data.pending_clarification, data.operation, data.rejected_rows_details, data.llm_meta);
           if (data.operation) {
             updateProcessStepper(data.operation.events || []);
             updateOperationBadges(data.operation);
@@ -4545,10 +4582,21 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    function appendSerajMessage(text, pendingAction, pendingClarification, opData, rejectionDetails) {
+    function appendSerajMessage(text, pendingAction, pendingClarification, opData, rejectionDetails, llmMeta) {
       const container = document.getElementById("chatMessages");
       const msg = document.createElement("div");
       msg.className = "msg-bubble msg-assistant";
+
+      let llmBadgeHtml = "";
+      if (llmMeta && llmMeta.provider) {
+        if (llmMeta.provider === "cloud") {
+          llmBadgeHtml = `<span class="badge" title="تمت المعالجة عبر الذكاء السحابي (${escapeHtml(llmMeta.model || '')})" style="font-size: 10.5px; padding: 2px 8px; background: rgba(56, 189, 248, 0.12); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 9999px; margin-right: 6px;">☁️ ذكاء سحابي (${escapeHtml(llmMeta.provider_name || 'Cloud')}: ${escapeHtml(llmMeta.model || '')})</span>`;
+        } else if (llmMeta.provider === "ollama" || llmMeta.provider === "local") {
+          llmBadgeHtml = `<span class="badge" title="تمت المعالجة محلياً عبر خادم Ollama (${escapeHtml(llmMeta.model || '')})" style="font-size: 10.5px; padding: 2px 8px; background: rgba(62, 207, 142, 0.12); color: var(--color-phosphor-green); border: 1px solid rgba(62, 207, 142, 0.3); border-radius: 9999px; margin-right: 6px;">💻 محرك محلي (Ollama: ${escapeHtml(llmMeta.model || '')})</span>`;
+        } else if (llmMeta.provider === "fallback") {
+          llmBadgeHtml = `<span class="badge" title="تمت المعالجة عبر محرك الحوكمة والقواعد الاحترازية" style="font-size: 10.5px; padding: 2px 8px; background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 9999px; margin-right: 6px;">🛡️ قواعد احترازية</span>`;
+        }
+      }
 
       let actionCardHtml = "";
 
@@ -4594,7 +4642,12 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
         </div>
         <div class="msg-content-wrapper">
-          <div class="msg-meta"><span style="color: var(--agent-seraj); font-weight: 600;">سراج</span> • <span class="mono">${getTimeStr()}</span></div>
+          <div class="msg-meta" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
+            <span style="color: var(--agent-seraj); font-weight: 600;">سراج</span>
+            <span>•</span>
+            <span class="mono">${getTimeStr()}</span>
+            ${llmBadgeHtml}
+          </div>
           <div class="msg-card">${formatMarkdownText(text)} ${actionCardHtml}</div>
         </div>
       `;
@@ -4613,7 +4666,7 @@
       })
         .then(r => r.json())
         .then(data => {
-          appendSerajMessage(data.response, data.pending_action, data.pending_clarification, data.operation, data.rejected_rows_details);
+          appendSerajMessage(data.response, data.pending_action, data.pending_clarification, data.operation, data.rejected_rows_details, data.llm_meta);
           if (data.operation) updateProcessStepper(data.operation.events || []);
           startLiveEventPolling(currentOperationId);
         })

@@ -4340,6 +4340,19 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
     session = SerajSessionManager.get_instance().get_session(payload.chat_id)
     op = srv.get_operation(op_id)
 
+    from llm_config_manager import load_llm_config
+    cfg = load_llm_config()
+    prov_used = getattr(seraj, "last_provider_used", None) or cfg.get("active_provider", "local")
+    model_used = getattr(seraj, "last_model_used", None) or cfg.get("cloud" if prov_used == "cloud" else "local", {}).get("model")
+    prov_name = cfg.get("cloud", {}).get("provider", "Cloud") if prov_used == "cloud" else "Ollama"
+
+    llm_meta = {
+        "provider": prov_used,
+        "model": model_used,
+        "provider_name": prov_name,
+        "mode": cfg.get("mode", "auto"),
+    }
+
     return {
         "status": "success",
         "operation_id": op_id,
@@ -4347,6 +4360,7 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
         "operation": op,
         "pending_action": session.pending_action,
         "pending_clarification": session.pending_clarification,
+        "llm_meta": llm_meta,
     }
 
 

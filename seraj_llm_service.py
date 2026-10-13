@@ -1207,11 +1207,18 @@ class SerajLLMService:
                 tools=SERAJ_ODOO_TOOLS_SCHEMA,
             )
             if not assistant_msg:
+                self.last_provider_used = "fallback"
+                self.last_model_used = "rule_based"
                 return None
 
             # التوافق مع نماذج النصوص المباشرة أو الاختبارات الوهمية (Mocks)
             if isinstance(assistant_msg, str):
+                self.last_provider_used = getattr(self, "last_provider_used", None) or "local"
                 return assistant_msg
+
+            if isinstance(assistant_msg, dict):
+                self.last_provider_used = assistant_msg.get("_provider_used")
+                self.last_model_used = assistant_msg.get("_model_used")
 
             tool_calls = assistant_msg.get("tool_calls")
             content = assistant_msg.get("content") or ""
@@ -1432,6 +1439,8 @@ class SerajLLMService:
                     # إضافة وسم المشغل المستخدم للتتبع الشفاف
                     msg["_provider_used"] = provider_type
                     msg["_model_used"] = model
+                    self.last_provider_used = provider_type
+                    self.last_model_used = model
                     return msg
             return None
 
