@@ -58,3 +58,6 @@ config/llm_config.json
 *.bak
 graphify-out/cache/
 
+# Generated knowledge-graph exports; regenerate with run_graphify_pipeline.py.
+graphify-out/
+

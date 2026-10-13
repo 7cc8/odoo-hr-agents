@@ -3195,6 +3195,11 @@
         options.method === "POST" ? 120000 : 30000
       );
       options.headers = options.headers || {};
+      const storedToken = getApiToken();
+      if (storedToken) {
+        if (options.headers instanceof Headers) options.headers.set("X-API-Key", storedToken);
+        else if (!options.headers["X-API-Key"]) options.headers["X-API-Key"] = storedToken;
+      }
       let response = await fetch(url, options);
       if (response.status === 401 || response.status === 503) {
         const entered = window.prompt("أدخل رمز جلسة التشغيل المصرّح به:");

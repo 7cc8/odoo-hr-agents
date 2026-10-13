@@ -13,7 +13,9 @@
 """
 
 import unittest
+import os
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 from openpyxl import Workbook
 
@@ -23,9 +25,19 @@ from dry_run_report import build_full_report
 
 
 class TestAllModularExcelTemplatesUpload(unittest.TestCase):
+    API_HEADERS = {"X-API-Key": "test-secret"}
+
     def setUp(self):
+        self._previous_write_token = os.environ.get("WRITE_API_TOKEN")
+        os.environ["WRITE_API_TOKEN"] = "test-secret"
         self.client = TestClient(app)
         self.events_service = get_events_service()
+
+    def tearDown(self):
+        if self._previous_write_token is None:
+            os.environ.pop("WRITE_API_TOKEN", None)
+        else:
+            os.environ["WRITE_API_TOKEN"] = self._previous_write_token
 
     def test_upload_template_attendance_succeeds_without_error(self):
         att_path = Path("templates") / "modular" / "template_attendance.xlsx"
@@ -35,7 +47,8 @@ class TestAllModularExcelTemplatesUpload(unittest.TestCase):
             res = self.client.post(
                 "/api/agents/upload",
                 files={"file": ("template_attendance.xlsx", f, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-                data={"chat_id": "test_attend_user"}
+                data={"chat_id": "test_attend_user"},
+                headers=self.API_HEADERS,
             )
 
         self.assertEqual(res.status_code, 200)
@@ -59,7 +72,8 @@ class TestAllModularExcelTemplatesUpload(unittest.TestCase):
             res = self.client.post(
                 "/api/agents/upload",
                 files={"file": ("template_employees.xlsx", f, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-                data={"chat_id": "test_emp_user"}
+                data={"chat_id": "test_emp_user"},
+                headers=self.API_HEADERS,
             )
 
         self.assertEqual(res.status_code, 200)
@@ -79,7 +93,8 @@ class TestAllModularExcelTemplatesUpload(unittest.TestCase):
             res = self.client.post(
                 "/api/agents/upload",
                 files={"file": ("template_contracts_allowances.xlsx", f, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-                data={"chat_id": "test_contract_user"}
+                data={"chat_id": "test_contract_user"},
+                headers=self.API_HEADERS,
             )
 
         self.assertEqual(res.status_code, 200)
@@ -95,7 +110,8 @@ class TestAllModularExcelTemplatesUpload(unittest.TestCase):
             res = self.client.post(
                 "/api/agents/upload",
                 files={"file": ("template_loans_installments.xlsx", f, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-                data={"chat_id": "test_loan_user"}
+                data={"chat_id": "test_loan_user"},
+                headers=self.API_HEADERS,
             )
 
         self.assertEqual(res.status_code, 200)
@@ -111,7 +127,8 @@ class TestAllModularExcelTemplatesUpload(unittest.TestCase):
             res = self.client.post(
                 "/api/agents/upload",
                 files={"file": ("Master_Client_Onboarding_Template.xlsx", f, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-                data={"chat_id": "test_master_user"}
+                data={"chat_id": "test_master_user"},
+                headers=self.API_HEADERS,
             )
 
         self.assertEqual(res.status_code, 200)
@@ -119,7 +136,13 @@ class TestAllModularExcelTemplatesUpload(unittest.TestCase):
         self.assertEqual(data["status"], "success")
         self.assertNotIn("error", data.get("dry_run_report", {}))
 
-    def test_legacy_employee_file_backward_compatibility(self):
+    @patch("dry_run_report.OdooReadonlyRepository")
+    def test_legacy_employee_file_backward_compatibility(self, mock_repo_cls):
+        mock_repo = MagicMock()
+        mock_repo.get_session_info.return_value = {"odoo_url": "https://example.odoo.com", "odoo_db": "test_db", "uid": 1}
+        mock_repo.get_live_reference_snapshot.return_value = {"companies": [], "departments": [], "jobs": []}
+        mock_repo.search_employees_by_keys.return_value = []
+        mock_repo_cls.return_value = mock_repo
         wb = Workbook()
         ws = wb.active
         ws.title = "Employees"
