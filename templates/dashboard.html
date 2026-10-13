@@ -3012,21 +3012,21 @@
           <div id="activeProviderContainer" style="background: rgba(255,255,255,0.02); border: 1px solid var(--color-charcoal); border-radius: 10px; padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <span style="font-size: 13.5px; font-weight: 700; color: var(--color-snow);">المشغل المعتمد / ذو الأولوية:</span>
-              <span id="activeProviderHint" style="font-size: 12px; color: var(--color-smoke);">في وضع Auto: يعتبر هذا المشغل ذو الأولوية الأولى مع التبديل التلقائي عند التعثر.</span>
+              <span id="activeProviderHint" style="font-size: 12px; color: var(--color-smoke);">في وضع Auto: يتم تشغيل المشغل السحابي، وإذا لم يستجب يتحول تلقائياً إلى المحرك المحلي لضمان عدم توقف الوكلاء.</span>
             </div>
             <div style="display: flex; gap: 12px;">
-              <button type="button" id="btnSelectLocal" class="btn" onclick="setActiveProvider('local')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid var(--color-phosphor-green); background: rgba(62, 207, 142, 0.1); color: var(--color-snow); font-weight: 700; cursor: pointer;">
-                💻 المحرك المحلي (Ollama)
-              </button>
-              <button type="button" id="btnSelectCloud" class="btn" onclick="setActiveProvider('cloud')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--color-charcoal); background: var(--color-ash); color: var(--color-silver-mist); font-weight: 700; cursor: pointer;">
+              <button type="button" id="btnSelectCloud" class="btn" onclick="setActiveProvider('cloud')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--color-charcoal); background: var(--color-ash); color: var(--color-silver-mist); font-weight: 700; cursor: pointer; transition: all 0.2s;">
                 ☁️ الذكاء الاصطناعي السحابي (Cloud Provider)
+              </button>
+              <button type="button" id="btnSelectLocal" class="btn" onclick="setActiveProvider('local')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid var(--color-phosphor-green); background: rgba(62, 207, 142, 0.1); color: var(--color-snow); font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                💻 المحرك المحلي (Ollama)
               </button>
             </div>
             <input type="hidden" id="llmActiveProvider" value="local">
           </div>
 
           <!-- 3. قسم الذكاء الاصطناعي السحابي (Cloud AI Provider) -->
-          <div style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616;">
+          <div id="cloudSettingsSection" style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616; display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 18px;">☁️</span>
@@ -3035,6 +3035,11 @@
               <div id="cloudStatusBadge" class="badge" style="background: rgba(255,255,255,0.06); font-size: 11px;">
                 غير مهيأ
               </div>
+            </div>
+
+            <!-- بطاقة توضيحية للتبديل التلقائي -->
+            <div style="background: rgba(62, 207, 142, 0.08); border: 1px solid rgba(62, 207, 142, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--color-silver-mist); line-height: 1.6; margin-bottom: 14px;">
+              🔄 <strong>ميزة التبديل التلقائي الذكي:</strong> عند تفعيل الوضع التلقائي (Auto)، إذا لم يستجب المشغل السحابي أو انتهت الحصة أو حدث خطأ اتصال، سيتحول النظام تلقائياً وبشكل فوري إلى المحرك المحلي (Ollama) لضمان عدم توقف الوكلاء وسراج عن العمل إطلاقاً.
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 14px;">
@@ -3086,7 +3091,7 @@
           </div>
 
           <!-- 4. قسم المحرك المحلي (Local Ollama) -->
-          <div style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616;">
+          <div id="localSettingsSection" style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616; display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 18px;">💻</span>
@@ -3095,6 +3100,11 @@
               <div id="localStatusBadge" class="badge" style="background: rgba(255,255,255,0.06); font-size: 11px;">
                 جاري الفحص...
               </div>
+            </div>
+
+            <!-- بطاقة توضيحية للمحرك المحلي -->
+            <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--color-charcoal); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--color-silver-mist); line-height: 1.6; margin-bottom: 14px;">
+              💻 <strong>المحرك المحلي:</strong> يعمل مباشرة على جهازك دون اتصال بالإنترنت، ويعمل كخط دفاع وبديل فوري جاهز للاستلام عند انقطاع المشغل السحابي أو انتهاء رصيده.
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 14px;">
@@ -3863,7 +3873,6 @@
     function handleLlmModeChange(mode) {
       const autoCard = document.getElementById("modeAutoCard");
       const manualCard = document.getElementById("modeManualCard");
-      const hint = document.getElementById("activeProviderHint");
 
       if (mode === "auto") {
         if (autoCard) {
@@ -3874,9 +3883,6 @@
           manualCard.style.borderColor = "var(--color-charcoal)";
           manualCard.style.borderWidth = "1px";
         }
-        if (hint) {
-          hint.textContent = "في وضع Auto: يعتبر هذا المشغل ذو الأولوية الأولى مع التبديل التلقائي عند التعثر.";
-        }
       } else {
         if (manualCard) {
           manualCard.style.borderColor = "var(--color-phosphor-green)";
@@ -3886,10 +3892,8 @@
           autoCard.style.borderColor = "var(--color-charcoal)";
           autoCard.style.borderWidth = "1px";
         }
-        if (hint) {
-          hint.textContent = "في وضع Manual: يتم الاعتماد على هذا المشغل حصراً دون أي تبديل تلقائي.";
-        }
       }
+      setActiveProvider(document.getElementById("llmActiveProvider")?.value || "local");
     }
 
     function setActiveProvider(prov) {
@@ -3897,8 +3901,33 @@
       if (hiddenInput) hiddenInput.value = prov;
       const btnLocal = document.getElementById("btnSelectLocal");
       const btnCloud = document.getElementById("btnSelectCloud");
+      const cloudSec = document.getElementById("cloudSettingsSection");
+      const localSec = document.getElementById("localSettingsSection");
+      const hint = document.getElementById("activeProviderHint");
+      const isAuto = document.querySelector('input[name="llm_mode"]:checked')?.value !== "manual";
 
-      if (prov === "local") {
+      if (prov === "cloud") {
+        if (btnCloud) {
+          btnCloud.style.borderColor = "var(--color-phosphor-green)";
+          btnCloud.style.borderWidth = "1.5px";
+          btnCloud.style.background = "rgba(62, 207, 142, 0.1)";
+          btnCloud.style.color = "var(--color-snow)";
+        }
+        if (btnLocal) {
+          btnLocal.style.borderColor = "var(--color-charcoal)";
+          btnLocal.style.borderWidth = "1px";
+          btnLocal.style.background = "var(--color-ash)";
+          btnLocal.style.color = "var(--color-silver-mist)";
+        }
+        // عرض إعدادات المشغل السحابي فقط وإخفاء المحلي
+        if (cloudSec) cloudSec.style.display = "block";
+        if (localSec) localSec.style.display = "none";
+        if (hint) {
+          hint.textContent = isAuto
+            ? "في وضع Auto: يتم تشغيل المشغل السحابي، وإذا لم يستجب يتحول تلقائياً إلى المحرك المحلي لضمان عدم توقف الوكلاء."
+            : "في وضع Manual: يتم الاعتماد على المشغل السحابي حصراً دون أي تبديل.";
+        }
+      } else {
         if (btnLocal) {
           btnLocal.style.borderColor = "var(--color-phosphor-green)";
           btnLocal.style.borderWidth = "1.5px";
@@ -3911,18 +3940,13 @@
           btnCloud.style.background = "var(--color-ash)";
           btnCloud.style.color = "var(--color-silver-mist)";
         }
-      } else {
-        if (btnCloud) {
-          btnCloud.style.borderColor = "var(--color-phosphor-green)";
-          btnCloud.style.borderWidth = "1.5px";
-          btnCloud.style.background = "rgba(62, 207, 142, 0.1)";
-          btnCloud.style.color = "var(--color-snow)";
-        }
-        if (btnLocal) {
-          btnLocal.style.borderColor = "var(--color-charcoal)";
-          btnLocal.style.borderWidth = "1px";
-          btnLocal.style.background = "var(--color-ash)";
-          btnLocal.style.color = "var(--color-silver-mist)";
+        // عرض إعدادات المحرك المحلي فقط وإخفاء السحابي
+        if (localSec) localSec.style.display = "block";
+        if (cloudSec) cloudSec.style.display = "none";
+        if (hint) {
+          hint.textContent = isAuto
+            ? "في وضع Auto: يتم تشغيل المحرك المحلي كأولوية مع التبديل التلقائي إذا تعثر."
+            : "في وضع Manual: يتم الاعتماد على المحرك المحلي حصراً دون أي تبديل.";
         }
       }
     }

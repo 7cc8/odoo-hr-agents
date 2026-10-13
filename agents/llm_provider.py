@@ -92,31 +92,45 @@ class LLMProvider:
         tools: Optional[List[Dict[str, Any]]] = None,
         temperature: float = 0.7,
     ) -> Dict[str, Any]:
-        """استدعاء موحد للنماذج مع دعم التبديل التلقائي عند التعثر"""
-        
-        if self.provider == "cloud":
+        """استدعاء موحد للنماذج مع التبديل التلقائي الفوري من السحابي للمحلي عند عدم الاستجابة"""
+        # تحديث الإعدادات ديناميكياً لضمان قراءة أي تغيير من لوحة الإعدادات فوراً
+        from llm_config_manager import load_llm_config
+        self.config = load_llm_config()
+        mode = self.config.get("mode", "auto")
+        active = self.config.get("active_provider", "local")
+        fallback_enabled = self.config.get("fallback_enabled", True)
+
+        # 1. إذا كان المشغل النشط هو الذكاء الاصطناعي السحابي:
+        if active == "cloud":
             res = self._call_cloud(messages, tools, temperature)
-            if res.get("provider") != "cloud_error":
+            if res.get("provider") == "cloud" and not res.get("provider", "").endswith("_error"):
                 return res
-            # في حال تعثر السحابي: محاولة المحلي كبديل إن أمكن
-            if self.config.get("fallback_enabled", True):
-                logger.warning("Cloud failed, attempting local Ollama fallback...")
+
+            # التبديل التلقائي: إذا لم يستجب المشغل السحابي أو تعطل، التحول فوراً للمحرك المحلي
+            if mode == "auto" or fallback_enabled:
+                logger.warning("Cloud AI provider failed or did not respond. Automatically falling back to local Ollama engine so agents keep running...")
                 local_res = self._call_ollama(messages, tools, temperature)
-                if local_res.get("provider") == "ollama":
+                if local_res.get("provider") == "ollama" and not local_res.get("provider", "").endswith("_error"):
                     return local_res
+                logger.warning("Local Ollama also unavailable. Falling back to safety rule-based response...")
+
             return self._call_fallback(messages)
 
-        elif self.provider == "ollama":
+        # 2. إذا كان المشغل النشط هو المحرك المحلي:
+        elif active == "local":
             res = self._call_ollama(messages, tools, temperature)
-            if res.get("provider") == "ollama":
+            if res.get("provider") == "ollama" and not res.get("provider", "").endswith("_error"):
                 return res
-            # في حال تعثر المحلي: محاولة السحابي إن وجد مفتاح
-            cloud_key = self.config.get("cloud", {}).get("api_key") or os.environ.get("OPENROUTER_API_KEY")
-            if cloud_key and self.config.get("fallback_enabled", True):
-                logger.warning("Ollama failed, attempting cloud fallback...")
+
+            # التبديل التلقائي إذا تعثر المحلي وتوفر مفتاح سحابي:
+            cloud_key = self.config.get("cloud", {}).get("api_key") or os.environ.get("OPENROUTER_API_KEY") or os.environ.get("LLM_API_KEY")
+            if cloud_key and (mode == "auto" or fallback_enabled):
+                logger.warning("Local Ollama unavailable. Automatically switching to Cloud AI provider fallback...")
                 cloud_res = self._call_cloud(messages, tools, temperature)
-                if cloud_res.get("provider") == "cloud":
+                if cloud_res.get("provider") == "cloud" and not cloud_res.get("provider", "").endswith("_error"):
                     return cloud_res
+
+            logger.warning("No live LLM engine responded. Falling back to safety rule-based response...")
             return self._call_fallback(messages)
 
         else:
@@ -137,11 +151,19 @@ class LLMProvider:
             import urllib.request
             import urllib.error
             
-            # استخدام Chat Completions API المتوافق مع OpenAI
-            url = "http://localhost:11434/v1/chat/completions"
+            loc_cfg = self.config.get("local", {})
+            base_url = loc_cfg.get("base_url") or "http://localhost:11434/v1"
+            local_model = loc_cfg.get("model") or "qwen3.5:0.8b"
+            timeout = int(loc_cfg.get("timeout", 60))
+
+            clean_url = base_url.rstrip("/")
+            if not clean_url.endswith("/chat/completions"):
+                url = f"{clean_url}/chat/completions"
+            else:
+                url = clean_url
             
             payload = {
-                "model": self.model,
+                "model": local_model,
                 "messages": messages,
                 "temperature": temperature,
                 "stream": False,
@@ -159,7 +181,7 @@ class LLMProvider:
             }
             
             req = urllib.request.Request(url, data=data, headers=headers)
-            with urllib.request.urlopen(req, timeout=120) as response:
+            with urllib.request.urlopen(req, timeout=timeout) as response:
                 result = json.loads(response.read().decode("utf-8"))
                 
                 if result.get("choices"):
@@ -172,8 +194,7 @@ class LLMProvider:
         
         except Exception as e:
             logger.error(f"Ollama error: {e}")
-            # إضافة معلومات مفيدة للمستخدم باللغة العربية
-            error_msg = f"لم أستطع الاتصال بخادم Ollama المحلي.\n\nالرجاء التأكد من:\n• تشغيل Ollama: ollama serve\n• وجود النموذج: ollama pull {self.model}\n\nالخطأ التقني: {e}"
+            error_msg = f"لم أستطع الاتصال بخادم Ollama المحلي.\n\nالرجاء التأكد من:\n• تشغيل Ollama: ollama serve\n• وجود النموذج: ollama pull {self.config.get('local', {}).get('model', 'qwen3.5:0.8b')}\n\nالخطأ التقني: {e}"
             return {
                 "content": error_msg,
                 "tool_calls": None,
@@ -198,6 +219,7 @@ class LLMProvider:
             cloud_cfg = self.config.get("cloud", {})
             base_url = cloud_cfg.get("base_url") or "https://openrouter.ai/api/v1"
             api_key = cloud_cfg.get("api_key") or os.environ.get("OPENROUTER_API_KEY") or os.environ.get("LLM_API_KEY")
+            cloud_model = cloud_cfg.get("model") or "openrouter/auto"
             timeout = int(cloud_cfg.get("timeout", 45))
 
             if not api_key:
@@ -214,7 +236,7 @@ class LLMProvider:
                 url = clean_url
 
             payload = {
-                "model": self.model,
+                "model": cloud_model,
                 "messages": messages,
                 "temperature": temperature,
                 "stream": False,
