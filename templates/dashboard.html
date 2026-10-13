@@ -3075,7 +3075,12 @@
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                   <label style="font-size: 12.5px; color: var(--color-silver-mist);">مفتاح الـ API (API Key):</label>
-                  <span id="cloudKeySavedIndicator" style="font-size: 11px; color: var(--color-phosphor-green); display: none;">✓ تم حفظ المفتاح مسبقاً</span>
+                  <div style="display: flex; gap: 10px; align-items: center;">
+                    <a id="getApiKeyHelpLink" href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" style="font-size: 11.5px; color: #38bdf8; text-decoration: underline;">
+                      🔑 احصل على مفتاح API ↗
+                    </a>
+                    <span id="cloudKeySavedIndicator" style="font-size: 11px; color: var(--color-phosphor-green); display: none;">✓ تم حفظ المفتاح مسبقاً</span>
+                  </div>
                 </div>
                 <div style="position: relative; display: flex; align-items: center;">
                   <input id="cloudApiKeyInput" type="password" dir="ltr" autocomplete="new-password" placeholder="ألصق مفتاح الـ API Key هنا (مثل sk-or-v1-...)" style="width: 100%; padding: 9px 40px 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
@@ -3826,31 +3831,36 @@
         name: "OpenRouter",
         base_url: "https://openrouter.ai/api/v1",
         model: "openrouter/auto",
-        placeholder_key: "sk-or-v1-..."
+        placeholder_key: "sk-or-v1-...",
+        key_url: "https://openrouter.ai/keys"
       },
       openai: {
         name: "OpenAI",
         base_url: "https://api.openai.com/v1",
         model: "gpt-4o-mini",
-        placeholder_key: "sk-proj-..."
+        placeholder_key: "sk-proj-...",
+        key_url: "https://platform.openai.com/api-keys"
       },
       groq: {
         name: "Groq",
         base_url: "https://api.groq.com/openai/v1",
         model: "llama-3.3-70b-versatile",
-        placeholder_key: "gsk_..."
+        placeholder_key: "gsk_...",
+        key_url: "https://console.groq.com/keys"
       },
       deepseek: {
         name: "DeepSeek",
         base_url: "https://api.deepseek.com/v1",
         model: "deepseek-chat",
-        placeholder_key: "sk-..."
+        placeholder_key: "sk-...",
+        key_url: "https://platform.deepseek.com/api_keys"
       },
       custom: {
         name: "مشغل مخصص",
         base_url: "",
         model: "",
-        placeholder_key: "Bearer token أو API key"
+        placeholder_key: "Bearer token أو API key",
+        key_url: null
       }
     };
 
@@ -3862,6 +3872,16 @@
       const baseUrlInput = document.getElementById("cloudBaseUrlInput");
       const modelInput = document.getElementById("cloudModelInput");
       const keyInput = document.getElementById("cloudApiKeyInput");
+      const helpLink = document.getElementById("getApiKeyHelpLink");
+
+      if (helpLink) {
+        if (preset.key_url) {
+          helpLink.style.display = "inline";
+          helpLink.href = preset.key_url;
+        } else {
+          helpLink.style.display = "none";
+        }
+      }
 
       if (presetKey !== "custom") {
         if (baseUrlInput) baseUrlInput.value = preset.base_url;
@@ -4130,8 +4150,22 @@
             resultBox.style.background = "rgba(239, 68, 68, 0.15)";
             resultBox.style.border = "1px solid var(--color-coral)";
             resultBox.style.color = "#ff9494";
+
+            let hintHtml = "";
+            if (data.status === "invalid_key" || (data.message && data.message.includes("401"))) {
+              const currentProvider = payload.provider || "openrouter";
+              const keyUrl = CLOUD_PRESETS[currentProvider]?.key_url || "https://openrouter.ai/keys";
+              hintHtml = `
+                <div style="margin-top: 8px; padding: 8px 12px; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; color: #fbbf24; font-size: 12px; line-height: 1.6;">
+                  💡 <strong>سبب الخطأ 401:</strong> المفتاح المدخل غير مصرح به أو ليس بالصيغة المخصصة لهذا المشغل.<br>
+                  • مفاتيح OpenRouter تبدأ بـ: <span class="mono" style="background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 4px;">sk-or-v1-...</span><br>
+                  • يمكنك إنشاء مفتاح صالح ومجاني بدقيقة واحدة عبر: <a href="${keyUrl}" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: underline; font-weight: 700;">صفحة مفاتيح ${escapeHtml(CLOUD_PRESETS[currentProvider]?.name || 'المشغل')} ↗</a>
+                </div>`;
+            }
+
             resultBox.innerHTML = `<strong>❌ فشل الاتصال:</strong> ${escapeHtml(data.message || 'تعذر الوصول إلى الخادم.')}<br>
-              <span style="font-size: 11.5px; color: var(--color-silver-mist);">تأكد من صحة الرابط ومفتاح API واتصال الإنترنت.</span>`;
+              <span style="font-size: 11.5px; color: var(--color-silver-mist);">تأكد من صحة الرابط ومفتاح API واتصال الإنترنت.</span>
+              ${hintHtml}`;
           }
         }
       } catch (err) {
