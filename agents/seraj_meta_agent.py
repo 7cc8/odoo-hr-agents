@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum
@@ -250,29 +251,46 @@ class SerajMetaAgent(BaseAgent):
             result["clarification_question"] = plan["clarification_question"]
             return result
         
-        # تنفيذ كل وكيل حسب الترتيب
-        for agent_type in plan["execution_order"]:
-            try:
-                logger.info(f"   Executing {agent_type}...")
-                agent_result = self._execute_agent(agent_type, perception, result)
-                result["agent_results"][agent_type] = agent_result
-                
-                # تحديث إحصائيات الأداء
-                if agent_result.get("success"):
-                    self.agent_performance[agent_type]["success"] += 1
-                else:
+        # الوكلاء المستقلون (للقراءة/التحليل فقط) يمكن تشغيلهم بالتوازي فعلياً.
+        # مسارات الكتابة تبقى متسلسلة حتى تمر عبر الحارس والموافقة.
+        execution_order = plan["execution_order"]
+        if plan.get("parallel_possible") and len(execution_order) > 1:
+            with ThreadPoolExecutor(max_workers=min(4, len(execution_order))) as pool:
+                futures = {
+                    pool.submit(self._execute_agent, agent_type, perception, result): agent_type
+                    for agent_type in execution_order
+                }
+                completed = {}
+                for future in as_completed(futures):
+                    agent_type = futures[future]
+                    try:
+                        completed[agent_type] = future.result()
+                    except Exception as exc:
+                        completed[agent_type] = {"agent": agent_type.value, "success": False, "error": str(exc)}
+                for agent_type in execution_order:
+                    agent_result = completed.get(agent_type, {"agent": agent_type.value, "success": False, "error": "missing result"})
+                    result["agent_results"][agent_type.value] = agent_result
+                    if agent_result.get("success"):
+                        self.agent_performance[agent_type]["success"] += 1
+                    else:
+                        self.agent_performance[agent_type]["failure"] += 1
+                        result["errors"].append(f"{agent_type.value}: {agent_result.get('error', agent_result.get('status', 'failed'))}")
+        else:
+            for agent_type in execution_order:
+                try:
+                    logger.info(f"   Executing {agent_type}...")
+                    agent_result = self._execute_agent(agent_type, perception, result)
+                    result["agent_results"][agent_type.value] = agent_result
+                    if agent_result.get("success"):
+                        self.agent_performance[agent_type]["success"] += 1
+                    else:
+                        self.agent_performance[agent_type]["failure"] += 1
+                        result["errors"].append(f"{agent_type.value}: {agent_result.get('error', agent_result.get('status', 'failed'))}")
+                except Exception as exc:
+                    logger.error(f"❌ Agent {agent_type} failed: {exc}")
+                    result["errors"].append(f"{agent_type}: {str(exc)}")
                     self.agent_performance[agent_type]["failure"] += 1
-            
-            except Exception as exc:
-                logger.error(f"❌ Agent {agent_type} failed: {exc}")
-                result["errors"].append(f"{agent_type}: {str(exc)}")
-                self.agent_performance[agent_type]["failure"] += 1
-                
-                # استراتيجية Fallback
-                if plan.get("fallback_strategy"):
-                    logger.info(f"   Trying fallback strategy...")
-                    # TODO: implement fallback
-        
+
         # تحديد النجاح الكلي
         result["overall_success"] = len(result["errors"]) == 0
         
@@ -621,14 +639,45 @@ class SerajMetaAgent(BaseAgent):
         perception: Dict[str, Any],
         previous_results: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """تنفيذ وكيل محدد"""
-        # TODO: integrate with actual agents
-        # هنا نستدعي الوكيل الفعلي
-        
+        """تنفيذ وكيل من registry الحقيقي، مع منع الكتابة خارج الموافقة."""
+        if agent_type == AgentType.KATIB and not perception.get("context", {}).get("approved"):
+            return {"agent": agent_type.value, "success": False, "status": "blocked", "error": "human approval required"}
+
+        from agents.fahas_agent import FahasAgent
+        from agents.hares_agent import HaresAgent
+        from agents.mudaqqiq_agent import MudaqqiqAgent
+        from agents.musleh_agent import MuslehAgent
+        from agents.muwaffaq_agent import MuwaffaqAgent
+        from agents.sijil_agent import SijilAgent
+        from agents.katib_agent import KatibAgent
+
+        registry = {
+            AgentType.FAHAS: FahasAgent,
+            AgentType.HARES: HaresAgent,
+            AgentType.MUDAQQIQ: MudaqqiqAgent,
+            AgentType.MUSLEH: MuslehAgent,
+            AgentType.MUWAFFAQ: MuwaffaqAgent,
+            AgentType.SIJIL: SijilAgent,
+            AgentType.KATIB: KatibAgent,
+        }
+        factory = registry.get(agent_type)
+        if factory is None:
+            return {"agent": agent_type.value, "success": False, "status": "unsupported"}
+
+        agent = factory()
+        goal_payload = {"query": perception.get("query", ""), "context": perception.get("context", {})}
+        goal = AgentGoal(
+            objective=json.dumps(goal_payload, ensure_ascii=False),
+            constraints=["Return structured result", "Do not mutate Odoo without explicit approval"],
+        )
+        run = agent.run(goal, context=perception.get("context", {}))
         return {
-            "agent": agent_type,
-            "success": True,
-            "data": {},
+            "agent": agent_type.value,
+            "success": run.get("status") == "success",
+            "status": run.get("status"),
+            "data": run.get("result", run),
+            "reflection": run.get("reflection"),
+            "iterations": run.get("iterations"),
         }
 
     def _determine_fallback(self, perception: Dict[str, Any]) -> Optional[str]:

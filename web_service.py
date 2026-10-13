@@ -20,6 +20,7 @@ import shutil
 import asyncio
 import uuid
 import tempfile
+import secrets
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -45,6 +46,7 @@ from odoo_write_gateway import OdooWriteGateway, EnvironmentGuardError
 import telegram_notifier
 from odoo_config_manager import get_active_odoo_config, save_active_odoo_config, test_odoo_connection, clear_active_odoo_config, normalize_odoo_url
 from generate_employee_template import generate_template
+from template_catalog import get_template, list_templates
 
 
 app = FastAPI(
@@ -71,7 +73,9 @@ LOGS_DIR = Path("logs")
 LOGS_DIR.mkdir(parents=True, exist_ok=True)
 API_LOG_FILE = LOGS_DIR / "web_access.log"
 
-WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "hr-write-secret-token")
+# Never provide a built-in credential.  Deployments must inject a secret through
+# the environment/secret manager; otherwise mutation endpoints stay disabled.
+WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "").strip()
 
 
 def audit_log_access(endpoint: str, request: Request, details: Optional[Dict[str, Any]] = None) -> None:
@@ -107,9 +111,13 @@ def verify_api_auth(request: Request) -> None:
     if not token:
         token = request.query_params.get("api_key")
 
-    expected = os.environ.get("WRITE_API_TOKEN", WRITE_API_TOKEN)
-    valid_tokens = {t for t in (expected, "hr-write-secret-token") if t}
-    if not token or token not in valid_tokens:
+    expected = os.environ.get("WRITE_API_TOKEN", WRITE_API_TOKEN).strip()
+    if not expected:
+        raise HTTPException(
+            status_code=503,
+            detail="خدمة الكتابة معطلة حتى يضبط المشغّل WRITE_API_TOKEN في مخزن الأسرار.",
+        )
+    if not token or not secrets.compare_digest(token, expected):
         raise HTTPException(
             status_code=401,
             detail="غير مصرّح: يجب توفير رمز المصادقة للكتابة (X-API-Key) للوصول إلى المورد.",
@@ -232,6 +240,7 @@ class ConnectionSettingsRequest(BaseModel):
 @app.post("/api/settings/connection")
 def update_connection_settings(payload: ConnectionSettingsRequest, request: Request) -> Dict[str, Any]:
     """Updates and validates Odoo connection settings dynamically from user inputs."""
+    verify_api_auth(request)
     clean_url = normalize_odoo_url(payload.url)
     audit_log_access("/api/settings/connection", request, {"url": clean_url, "db": payload.db, "username": payload.username})
     api_key = payload.api_key or os.environ.get("ODOO_API_KEY", "")
@@ -309,6 +318,7 @@ def update_connection_settings(payload: ConnectionSettingsRequest, request: Requ
 @app.post("/api/settings/connection/reset")
 def reset_connection_settings(request: Request) -> Dict[str, Any]:
     """Resets and completely wipes old Odoo connection credentials from storage and environment."""
+    verify_api_auth(request)
     audit_log_access("/api/settings/connection/reset", request)
     clear_active_odoo_config()
     try:
@@ -395,6 +405,7 @@ def get_llm_settings_endpoint(request: Request) -> Dict[str, Any]:
 @app.post("/api/settings/llm")
 def update_llm_settings_endpoint(payload: LLMProviderSettingsRequest, request: Request) -> Dict[str, Any]:
     """تحديث وحفظ إعدادات محرك الذكاء الاصطناعي والتبديل بين السحابي والمحلي"""
+    verify_api_auth(request)
     audit_log_access("/api/settings/llm", request, {
         "mode": payload.mode,
         "active_provider": payload.active_provider,
@@ -432,6 +443,7 @@ def update_llm_settings_endpoint(payload: LLMProviderSettingsRequest, request: R
 @app.post("/api/settings/llm/test")
 def test_llm_settings_endpoint(payload: LLMTestRequest, request: Request) -> Dict[str, Any]:
     """اختبار فوري للاتصال بالمشغل المحلي (Ollama) أو السحابي (API)"""
+    verify_api_auth(request)
     audit_log_access("/api/settings/llm/test", request, {"target": payload.target})
     from llm_config_manager import test_provider_connection
 
@@ -447,6 +459,7 @@ def test_llm_settings_endpoint(payload: LLMTestRequest, request: Request) -> Dic
 @app.post("/api/settings/llm/start-local")
 def start_local_ollama_endpoint(request: Request) -> Dict[str, Any]:
     """تشغيل خادم Ollama المحلي في الخلفية فوراً والتحقق من صحته"""
+    verify_api_auth(request)
     audit_log_access("/api/settings/llm/start-local", request)
     import time
     from llm_config_manager import start_local_ollama_process, check_local_health
@@ -588,6 +601,13 @@ async def upload_file_endpoint(request: Request, file: UploadFile = File(...)) -
 class TemplateGenerateRequest(BaseModel):
     company_id: Optional[int] = None
 
+
+@app.get("/api/templates/catalog")
+def get_template_catalog_endpoint(request: Request) -> Dict[str, Any]:
+    """Return the allowlisted Master/Modular template catalog."""
+    audit_log_access("/api/templates/catalog", request)
+    return {"status": "success", "templates": [item.to_dict() for item in list_templates()]}
+
 class ConditionalExecutionApprovalRequest(BaseModel):
     operation_id: str
     chat_id: Optional[str] = None
@@ -600,6 +620,7 @@ async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
     content_type = request.headers.get("content-type", "")
     company_id = None
     template_type = "employee"
+    module = None
     include_example_row = False
     language = "ar"
     
@@ -609,6 +630,7 @@ async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
             if isinstance(body, dict):
                 company_id = body.get("company_id")
                 template_type = body.get("template_type", "employee")
+                module = body.get("module")
                 include_example_row = bool(body.get("include_example_row", False))
                 language = body.get("language", "ar")
         except Exception:
@@ -623,6 +645,7 @@ async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
                 except ValueError:
                     company_id = None
             template_type = str(form.get("template_type") or "employee")
+            module = str(form.get("module") or "") or None
             inc_val = form.get("include_example_row")
             include_example_row = str(inc_val).lower() in ("true", "1", "yes", "on") if inc_val is not None else False
             language = str(form.get("language") or "ar")
@@ -661,7 +684,22 @@ async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
             snapshot["companies"] = [{"id": company_id, "name": f"شركة رقم {company_id}"}]
     
     template_id = str(uuid.uuid4())
-    template_path = generate_template(snapshot, output_dir=str(TEMPLATE_DIR / template_id))
+    generation_dir = TEMPLATE_DIR / template_id
+    if template_type.lower() in {"master", "modular"}:
+        try:
+            definition = get_template(template_type, module)
+        except KeyError as exc:
+            raise HTTPException(status_code=400, detail=f"اختيار القالب غير مدعوم: {exc}")
+        generation_dir.mkdir(parents=True, exist_ok=True)
+        # Copy only from the allowlisted catalog; no client path is accepted.
+        template_path = generation_dir / definition.filename
+        shutil.copy2(definition.path, template_path)
+        selected_module = definition.module
+        selected_template_id = definition.template_id
+    else:
+        template_path = generate_template(snapshot, output_dir=str(generation_dir))
+        selected_module = "employees"
+        selected_template_id = "generated:employees"
     company_name = snapshot["companies"][0]["name"] if snapshot.get("companies") else "الشركة الافتراضية"
     gen_time = datetime.now(timezone.utc).isoformat()
     
@@ -677,6 +715,8 @@ async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
         "metadata": {
             "company_id": company_id,
             "template_type": template_type,
+            "module": selected_module,
+            "catalog_template_id": selected_template_id,
             "sheet_count": 3,
             "departments_count": len(snapshot.get("departments", [])),
             "jobs_count": len(snapshot.get("jobs", [])),
@@ -968,6 +1008,7 @@ async def run_dry_run_endpoint(
 @app.post("/api/approve")
 def create_approval_endpoint(req: ApprovalRequest, request: Request) -> Dict[str, Any]:
     """Generates approval.json based solely on explicit user row selection."""
+    verify_api_auth(request)
     report_path = None
     if req.report_path and Path(req.report_path).exists():
         report_path = Path(req.report_path)
@@ -1042,6 +1083,7 @@ def approve_conditional_execution_endpoint(req: ConditionalExecutionApprovalRequ
     The endpoint updates SerajState with user_execution_choice and triggers
     graph continuation via the conditional_execution_node routing.
     """
+    verify_api_auth(request)
     audit_log_access("/api/approve-conditional", request, {
         "operation_id": req.operation_id,
         "user_choice": req.user_choice
@@ -4399,6 +4441,7 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
 @app.post("/api/agents/approve")
 def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Request) -> Dict[str, Any]:
     """Explicit human approval of a pending operation plan."""
+    verify_api_auth(request)
     audit_log_access("/api/agents/approve", request, {"chat_id": payload.chat_id, "op_id": payload.operation_id})
     from agent_events_service import get_events_service
     from seraj_llm_service import SerajLLMService
@@ -4427,6 +4470,7 @@ def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Reque
 @app.post("/api/agents/cancel")
 def post_agent_cancel_endpoint(payload: AgentCancelApiRequest, request: Request) -> Dict[str, Any]:
     """Explicit human cancellation of a pending operation plan."""
+    verify_api_auth(request)
     audit_log_access("/api/agents/cancel", request, {"chat_id": payload.chat_id, "op_id": payload.operation_id})
     from agent_events_service import get_events_service
     from seraj_llm_service import SerajLLMService
@@ -4460,6 +4504,7 @@ async def upload_agent_file_endpoint(
     operation_id: Optional[str] = Form(None),
 ) -> Dict[str, Any]:
     """Uploads file in agent cockpit, creating staging operation and parsing."""
+    verify_api_auth(request)
     audit_log_access("/api/agents/upload", request)
     content = await file.read()
     size = len(content)
@@ -4559,12 +4604,6 @@ async def upload_agent_file_endpoint(
 def get_main_dashboard_html() -> str:
     """Returns the primary multi-agent operations cockpit (templates/dashboard.html)."""
     raw_content = DASHBOARD_FILE.read_text(encoding="utf-8") if DASHBOARD_FILE.exists() else DASHBOARD_HTML_PAGE
-    token = os.environ.get("WRITE_API_TOKEN", WRITE_API_TOKEN)
-    if '<meta charset="UTF-8">' in raw_content:
-        return raw_content.replace(
-            '<meta charset="UTF-8">',
-            f'<meta charset="UTF-8">\n  <meta name="api-token" content="{token}">'
-        )
     return raw_content
 
 

@@ -3184,24 +3184,29 @@
     // 1. AUTHENTICATION & SECURE API FETCH
     // =========================================================================
     function getApiToken() {
-      const meta = document.querySelector('meta[name="api-token"]');
-      return meta ? meta.getAttribute('content') : (window.ODDO_API_TOKEN || "");
+      // The server never embeds credentials in HTML. A privileged operator may
+      // enter a short-lived token for this browser session when a mutation is
+      // requested; read-only requests remain usable without it.
+      try { return sessionStorage.getItem("odoo_hr_api_token") || ""; } catch (_) { return ""; }
     }
 
     async function apiFetch(url, options = {}) {
       if (!options.signal) options.signal = AbortSignal.timeout(
         options.method === "POST" ? 120000 : 30000
       );
-      const token = getApiToken();
       options.headers = options.headers || {};
-      if (token) {
-        if (options.headers instanceof Headers) {
-          if (!options.headers.has("X-API-Key")) options.headers.set("X-API-Key", token);
-        } else {
-          if (!options.headers["X-API-Key"]) options.headers["X-API-Key"] = token;
+      let response = await fetch(url, options);
+      if (response.status === 401 || response.status === 503) {
+        const entered = window.prompt("أدخل رمز جلسة التشغيل المصرّح به:");
+        if (entered) {
+          try { sessionStorage.setItem("odoo_hr_api_token", entered); } catch (_) {}
+          options.headers = options.headers || {};
+          if (options.headers instanceof Headers) options.headers.set("X-API-Key", entered);
+          else options.headers["X-API-Key"] = entered;
+          response = await fetch(url, options);
         }
       }
-      return fetch(url, options);
+      return response;
     }
 
     // =========================================================================
