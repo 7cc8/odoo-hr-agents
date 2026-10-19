@@ -1343,6 +1343,7 @@ async def stream_writer_results(run_id: str, request: Request):
 @app.post("/api/approve-and-execute")
 def approve_and_execute_endpoint(req: QuickApproveAndExecuteRequest, request: Request) -> Dict[str, Any]:
     """Composite endpoint for automated workflows (n8n/Telegram) to approve and write in one step."""
+    verify_write_auth(request)
     output_root = Path("output")
     matching_folders = list(output_root.glob(f"{req.run_id}_*"))
     if not matching_folders and (output_root / req.run_id).is_dir():
@@ -3745,6 +3746,7 @@ def post_letter_dry_run_endpoint(payload: LetterDryRunPayload, request: Request)
 @app.post("/api/letters/apply")
 def post_letter_apply_endpoint(payload: LetterApplyPayload, request: Request) -> Dict[str, Any]:
     """Executes official letter issuance in Odoo requiring 'تأكيد' and valid approval token."""
+    verify_write_auth(request)
     audit_log_access("/api/letters/apply", request, {"token": payload.approval_token})
     from letter_service import LetterService
     service = LetterService()
@@ -3860,6 +3862,7 @@ def post_warning_dry_run_endpoint(payload: WarningDryRunPayload, request: Reques
 @app.post("/api/warnings/apply")
 def post_warning_apply_endpoint(payload: WarningApplyPayload, request: Request) -> Dict[str, Any]:
     """Executes warning letter creation in Odoo requiring 'تأكيد' and valid approval token."""
+    verify_write_auth(request)
     audit_log_access("/api/warnings/apply", request, {"token": payload.approval_token})
     from warning_service import WarningService
     service = WarningService()
@@ -3966,6 +3969,7 @@ def post_expense_dry_run_endpoint(payload: ExpenseDryRunPayload, request: Reques
 @app.post("/api/expenses/apply")
 def post_expense_apply_endpoint(payload: ExpenseApplyPayload, request: Request) -> Dict[str, Any]:
     """Executes expense creation in Odoo requiring 'تأكيد' and valid approval token."""
+    verify_write_auth(request)
     audit_log_access("/api/expenses/apply", request, {"token": payload.approval_token})
     from expense_service import ExpenseService
     service = ExpenseService()
@@ -4397,6 +4401,11 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
     from agent_events_service import get_events_service
     from seraj_llm_service import SerajLLMService
     from seraj_session_manager import SerajSessionManager
+
+    # While a delete/archive/create/update awaits confirmation, the next message may
+    # confirm and execute it, so the write token is required (the dashboard prompts on 401).
+    if SerajSessionManager.get_instance().get_session(payload.chat_id).pending_action:
+        verify_write_auth(request)
 
     srv = get_events_service()
     op_id = payload.operation_id
