@@ -24,6 +24,7 @@ DUPLICATE_EXISTING_EMPLOYEE = "duplicate_existing_employee"
 UNVERIFIED_NO_EMAIL = "unverified_no_email"
 INSUFFICIENT_DUPLICATE_SIGNAL = "insufficient_duplicate_signal"
 INVALID_WORK_EMAIL = "invalid_work_email"
+DUPLICATE_CHECK_UNAVAILABLE = "duplicate_check_unavailable"
 
 # --- Katib / writer stage (reserved; writer.py is not yet built) ---
 APPROVAL_STALE = "approval_stale"
@@ -57,6 +58,7 @@ STATUS_BY_FAILURE_CODE = {
     UNVERIFIED_NO_EMAIL: "needs_review",
     INSUFFICIENT_DUPLICATE_SIGNAL: "needs_review",
     INVALID_WORK_EMAIL: "rejected",
+    DUPLICATE_CHECK_UNAVAILABLE: "needs_review",
     APPROVAL_STALE: "failed",
     REFERENCE_CHANGED: "failed",
     ACCESS_ERROR: "failed",

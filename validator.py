@@ -10,12 +10,14 @@ from failure_codes import (
     DUPLICATE_EXISTING_EMPLOYEE,
     AMBIGUOUS_DUPLICATE,
     INVALID_WORK_EMAIL,
+    DUPLICATE_CHECK_UNAVAILABLE,
     DUPLICATE_IN_FILE,
     REFERENCE_NOT_FOUND,
     REFERENCE_AMBIGUOUS,
     ARCHIVED_REFERENCE_MATCH,
     VALIDATION_ERROR,
 )
+from employee_lookup import find_employees_by_email
 from normalization import reference_match_key, is_valid_email_format
 
 FINAL_ACCEPTED = "accepted"
@@ -231,7 +233,13 @@ class Validator:
         refs_base = {"company": company, "department": resolved_department, "job": resolved_job}
 
         if work_email_match:
-            candidates = self.repository.search_employee_email_candidates(email_fragment=work_email_value, limit=20)
+            try:
+                candidates = find_employees_by_email(self.repository, work_email_value, limit=20)
+            except Exception as exc:  # fail closed: never accept a row whose duplicate check did not run
+                return result(FINAL_NEEDS_REVIEW, DUPLICATE_CHECK_UNAVAILABLE,
+                               [f"Duplicate check against Odoo failed ({type(exc).__name__}); "
+                                "row was not checked for existing employees."],
+                               refs=refs_base)
             exact_matches = [c for c in candidates
                               if normalize_email_exact(c.get("work_email")) == normalize_email_exact(work_email_value)]
             if len(exact_matches) == 1:

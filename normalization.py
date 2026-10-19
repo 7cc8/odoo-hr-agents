@@ -76,6 +76,9 @@ def generic_match_key(value: str):
     value = value.translate(ARABIC_DIGITS_MAP)
     value = value.translate(EASTERN_ARABIC_DIGITS_MAP)
     value = value.replace("ى", "ي").replace("ک", "ك")
+    # Unify alef forms and taa marbuta for MATCHING ONLY (never for stored values).
+    value = re.sub("[أإآٱ]", "ا", value)
+    value = value.replace("ة", "ه")
     value = ARABIC_DIACRITICS_RE.sub("", value)
     value = value.lower()
     value = collapse_spaces(value)

@@ -21,6 +21,12 @@ OPTIONAL_HEADERS = ["hiring_date"]
 ALL_HEADERS = REQUIRED_HEADERS + OPTIONAL_HEADERS
 PHONE_HEADERS = {"work_phone", "mobile_phone"}
 
+# Values of the example row shipped in the modular Employees template
+# (scripts/generate_all_hr_templates.py). Matched EXACTLY so a real employee
+# whose name merely contains "عبدالله" is never skipped.
+TEMPLATE_EXAMPLE_ID = "1088776655"
+TEMPLATE_EXAMPLE_NAME = "عبدالله بن محمد الغامدي"
+
 
 class ParserError(Exception):
     pass
@@ -130,6 +136,8 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
         "تاريخ المباشرة": "hiring_date",
     }
     for idx, h in enumerate(headers_norm):
+        if not h:
+            continue  # blank header cell: '' in <any str> is True and would be mislabeled 'name'
         for ar_k, en_k in AR_MAP.items():
             if ar_k in h or h in ar_k:
                 headers_norm[idx] = en_k
@@ -160,8 +168,9 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
     if header_row_idx == 2 and ws.max_row > 3:
         # Check if row 3 is the template example row
         row3_vals = [to_text_preserve(cell.value).strip() for cell in ws[3] if cell.value is not None]
-        if row3_vals and ("1088776655" in row3_vals[0] or "عبدالله" in row3_vals[0]):
+        if row3_vals and (TEMPLATE_EXAMPLE_ID in row3_vals or row3_vals[0] == TEMPLATE_EXAMPLE_NAME):
             data_start_row = 4
+            warnings = sorted(set(warnings) | {"template_example_row_skipped:3"})
 
     for excel_row in range(data_start_row, ws.max_row + 1):
         row_raw, row_value, row_match = {}, {}, {}
