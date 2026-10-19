@@ -234,6 +234,7 @@ class MuslehService:
         hiring_date_val = fields.get("hiring_date", {}).get("value", "")
         email_val = fields.get("work_email", {}).get("value", "")
         mobile_val = fields.get("mobile_phone", {}).get("value", "")
+        failure_code = validation_result.get("failure_code", "")
 
         companies = live_snapshot.get("companies", [])
         departments = live_snapshot.get("departments", [])
@@ -714,6 +715,11 @@ class MuslehService:
         elif digits.startswith("5") and len(digits) == 9:
             digits = "0" + digits
             is_saudi = True
+
+        # بعد إزالة 966/00966 يبقى الرقم 5xxxxxxxx (9 أرقام): نعيد الصفر الأول
+        # (الصيغة الدولية الأشهر +966 5x xxx xxxx كانت تُرجع 9 أرقام بلا صفر).
+        if is_saudi and digits.startswith("5") and len(digits) == 9:
+            digits = "0" + digits
 
         # إرجاع الرقم السعودي المنسق
         if is_saudi and digits.startswith("05") and len(digits) == 10:
