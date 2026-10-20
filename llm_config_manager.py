@@ -83,7 +83,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "local": {
         "provider": "ollama",
         "base_url": "http://localhost:11434/v1",
-        "model": "qwen3.5:0.8b",
+        "model": "qwen3.5:9b",
         "timeout": 120,
     },
     "cloud": {
@@ -223,7 +223,7 @@ def get_masked_llm_config() -> Dict[str, Any]:
         "local": {
             "provider": config["local"].get("provider", "ollama"),
             "base_url": config["local"].get("base_url", "http://localhost:11434/v1"),
-            "model": config["local"].get("model", "qwen3.5:0.8b"),
+            "model": config["local"].get("model", "qwen3.5:9b"),
             "timeout": config["local"].get("timeout", 120),
         },
         "cloud": {

@@ -3127,7 +3127,7 @@
 
                 <div>
                   <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اسم النموذج المحلي:</label>
-                  <input id="localModelInput" type="text" dir="ltr" placeholder="qwen3.5:0.8b أو qwen2.5:7b" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+                  <input id="localModelInput" type="text" dir="ltr" placeholder="qwen3.5:9b أو qwen2.5:7b" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
                 </div>
               </div>
 
@@ -4046,7 +4046,7 @@
         const localBaseUrl = document.getElementById("localBaseUrlInput");
         if (localBaseUrl) localBaseUrl.value = local.base_url || "http://localhost:11434/v1";
         const localModel = document.getElementById("localModelInput");
-        if (localModel) localModel.value = local.model || "qwen3.5:0.8b";
+        if (localModel) localModel.value = local.model || "qwen3.5:9b";
 
         // 5. Status Badges
         const effBadge = document.getElementById("llmEffectiveBadge");
@@ -4086,7 +4086,7 @@
           const hasKey = !!(cloud.has_api_key || cloud.has_key);
           const provName = cloud.provider ? cloud.provider.toUpperCase() : "CLOUD";
           const provModel = cloud.model || "";
-          const locModel = local.model || "qwen3.5:0.8b";
+          const locModel = local.model || "qwen3.5:9b";
 
           if (active === "cloud" && hasKey) {
             topDot.style.background = "#38bdf8";

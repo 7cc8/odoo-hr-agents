@@ -1630,7 +1630,7 @@ class SerajLLMService:
         loc_cfg = cfg.get("local", {})
         cld_cfg = cfg.get("cloud", {})
 
-        loc_model = loc_cfg.get("model") or os.environ.get("OLLAMA_MODEL") or os.environ.get("LLM_MODEL") or "qwen3.5:0.8b"
+        loc_model = loc_cfg.get("model") or os.environ.get("OLLAMA_MODEL") or os.environ.get("LLM_MODEL") or "qwen3.5:9b"
         cld_model = model_name or cld_cfg.get("model") or os.environ.get("OPENROUTER_MODEL") or "openrouter/auto"
 
         loc_tuple = (

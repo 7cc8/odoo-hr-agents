@@ -376,7 +376,7 @@ class LLMProviderSettingsRequest(BaseModel):
     active_provider: Optional[str] = "local"  # "local" | "cloud"
     fallback_enabled: Optional[bool] = True
     local_base_url: Optional[str] = "http://localhost:11434/v1"
-    local_model: Optional[str] = "qwen3.5:0.8b"
+    local_model: Optional[str] = "qwen3.5:9b"
     cloud_provider: Optional[str] = "openrouter"
     cloud_base_url: Optional[str] = "https://openrouter.ai/api/v1"
     cloud_api_key: Optional[str] = None
@@ -448,7 +448,7 @@ def update_llm_settings_endpoint(payload: LLMProviderSettingsRequest, request: R
         "fallback_enabled": payload.fallback_enabled if payload.fallback_enabled is not None else True,
         "local": {
             "base_url": payload.local_base_url or "http://localhost:11434/v1",
-            "model": payload.local_model or "qwen3.5:0.8b",
+            "model": payload.local_model or "qwen3.5:9b",
         },
         "cloud": {
             "provider": payload.cloud_provider or "openrouter",

@@ -82,7 +82,7 @@ class LLMProvider:
         if self.provider == "cloud":
             return self.config.get("cloud", {}).get("model") or os.environ.get("OPENROUTER_MODEL", "openrouter/auto")
         elif self.provider == "ollama":
-            return self.config.get("local", {}).get("model") or os.environ.get("LLM_MODEL", "qwen3.5:0.8b")
+            return self.config.get("local", {}).get("model") or os.environ.get("LLM_MODEL", "qwen3.5:9b")
         else:
             return "fallback-rule-based"
     
@@ -153,7 +153,7 @@ class LLMProvider:
             
             loc_cfg = self.config.get("local", {})
             base_url = loc_cfg.get("base_url") or "http://localhost:11434/v1"
-            local_model = loc_cfg.get("model") or "qwen3.5:0.8b"
+            local_model = loc_cfg.get("model") or "qwen3.5:9b"
             timeout = int(loc_cfg.get("timeout", 60))
 
             clean_url = base_url.rstrip("/")
@@ -194,7 +194,7 @@ class LLMProvider:
         
         except Exception as e:
             logger.error(f"Ollama error: {e}")
-            error_msg = f"لم أستطع الاتصال بخادم Ollama المحلي.\n\nالرجاء التأكد من:\n• تشغيل Ollama: ollama serve\n• وجود النموذج: ollama pull {self.config.get('local', {}).get('model', 'qwen3.5:0.8b')}\n\nالخطأ التقني: {e}"
+            error_msg = f"لم أستطع الاتصال بخادم Ollama المحلي.\n\nالرجاء التأكد من:\n• تشغيل Ollama: ollama serve\n• وجود النموذج: ollama pull {self.config.get('local', {}).get('model', 'qwen3.5:9b')}\n\nالخطأ التقني: {e}"
             return {
                 "content": error_msg,
                 "tool_calls": None,
