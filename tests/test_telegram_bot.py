@@ -1452,11 +1452,11 @@ class TelegramBotTests(unittest.TestCase):
 
 
 
-    def test_main_menu_keyboard_has_sijil_and_laya(self):
+    def test_main_menu_keyboard_has_sijil_and_no_laya(self):
         kb = telegram_bot.get_main_menu_keyboard()
         buttons = [btn["callback_data"] for row in kb["inline_keyboard"] for btn in row]
         self.assertIn("audit:pdf", buttons)
-        self.assertIn("laya:info", buttons)
+        self.assertNotIn("laya:info", buttons)  # removed agent: the button must not come back
 
     @patch("sijil_audit_service.SijilAuditService")
     def test_send_sijil_audit_pdf(self, mock_sijil_cls):
@@ -1476,22 +1476,6 @@ class TelegramBotTests(unittest.TestCase):
         args = mock_bot.send_document.call_args[0]
         self.assertEqual(args[0], 12345)
         self.assertIn("تقرير الرقابة والتدقيق", mock_bot.send_document.call_args[1]["caption"])
-
-    @patch("laya_service.LayaService")
-    def test_show_laya_info_card(self, mock_laya_cls):
-        mock_svc = MagicMock()
-        mock_laya_cls.return_value = mock_svc
-        mock_svc.get_info.return_value = {
-            "version": "0.3.28",
-            "domains_supported": ["leaves", "attendance", "contracts", "payroll", "audit"],
-        }
-        mock_bot = MagicMock()
-        telegram_bot.show_laya_info_card(mock_bot, 12345)
-        mock_bot.send_message.assert_called_once()
-        text = mock_bot.send_message.call_args[0][1]
-        self.assertIn("وكيلة القرار السريع والتوجيه الذكي: «لايا»", text)
-        self.assertIn("v0.3.28", text)
-
 
     def test_main_menu_keyboard_has_expenses_and_expiries(self):
         kb = telegram_bot.get_main_menu_keyboard()
@@ -1646,7 +1630,7 @@ class TelegramBotTests(unittest.TestCase):
         second_call_text = mock_bot.send_message.call_args_list[1][0][1]
         self.assertIn("النص المستخلص من التسجيل الصوتي", second_call_text)
         self.assertIn("أريد تقديم إجازة سنوية للموظف أحمد", second_call_text)
-        self.assertIn("لايا", second_call_text)
+        self.assertIn("سراج", second_call_text)
 
     def test_handle_voice_message_download_failure(self):
         mock_bot = MagicMock()

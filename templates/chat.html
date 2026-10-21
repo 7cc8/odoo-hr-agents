@@ -704,11 +704,16 @@
   <div class="header">
     <a href="/" class="logo">
       <div class="logo-icon">💬</div>
-      <div class="logo-text">شات سِراج</div>
+      <div class="logo-text">شات سِراج — المحادثة والتشغيل</div>
     </a>
-    <div class="status-badge">
-      <div class="status-dot"></div>
-      <span id="status-text">متصل</span>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="/dashboard" style="text-decoration: none; padding: 6px 14px; background: rgba(62, 207, 142, 0.15); border: 1px solid var(--color-green); color: var(--color-green); border-radius: 8px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+        <span>📤 مركز رفع واستيراد الملفات</span>
+      </a>
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        <span id="status-text">متصل</span>
+      </div>
     </div>
   </div>
 
@@ -730,37 +735,14 @@
   <!-- Error Message -->
   <div class="error-message" id="error"></div>
 
-  <!-- Input Area -->
+  <!-- Input Area (Pure Chat separated from file upload) -->
   <div class="input-area">
-    <!-- File Preview -->
-    <div class="file-preview" id="file-preview">
-      <div class="file-icon">📎</div>
-      <div class="file-info">
-        <div class="file-name" id="file-name"></div>
-        <div class="file-size" id="file-size"></div>
-      </div>
-      <button type="button" class="file-remove" id="file-remove">×</button>
-    </div>
-
     <form class="input-form" id="chat-form">
-      <!-- File Upload Button -->
-      <input 
-        type="file" 
-        id="file-input" 
-        class="file-input" 
-        accept=".xlsx,.xls"
-      />
-      <label for="file-input" class="file-upload-btn" title="رفع ملف Excel">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
-        </svg>
-      </label>
-
       <div class="input-wrapper">
         <textarea 
           class="input-field" 
           id="user-input" 
-          placeholder="اكتب رسالتك هنا..."
+          placeholder="اكتب رسالتك أو استفسارك هنا إلى سراج..."
           rows="1"
         ></textarea>
       </div>
@@ -1133,8 +1115,8 @@
       }
     }
 
-    // Handle file selection
-    fileInput.addEventListener('change', (e) => {
+    // Handle file selection (with safe check)
+    if (fileInput) fileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
@@ -1165,8 +1147,8 @@
       userInput.placeholder = 'اكتب رسالتك أو اضغط إرسال لمعالجة الملف...';
     });
 
-    // Remove file
-    fileRemove.addEventListener('click', clearFile);
+    // Remove file (with safe check)
+    if (fileRemove) fileRemove.addEventListener('click', clearFile);
 
     function clearFile() {
       uploadedFile = null;

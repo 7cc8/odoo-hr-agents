@@ -296,7 +296,6 @@ class AgentEventsService:
                                 "plan_id": evt.get("plan_id"),
                                 "plan": None,
                                 "clarification": None,
-                                "laya_used": evt.get("laya_used", False),
                             }
                     except Exception:
                         continue
@@ -336,7 +335,6 @@ class AgentEventsService:
                 "plan_id": None,
                 "plan": None,
                 "clarification": None,
-                "laya_used": False,
                 "result": None,
                 "error": None,
             }
@@ -379,7 +377,6 @@ class AgentEventsService:
         task_id: Optional[str] = None,
         attempt_id: Optional[str] = None,
         result_ref: Optional[Dict[str, Any]] = None,
-        laya_used: Optional[bool] = None,
         company_id: Optional[int] = None,
         company_name: Optional[str] = None,
         connection_id: Optional[str] = None,
@@ -413,7 +410,6 @@ class AgentEventsService:
                 task_id=task_id,
                 attempt_id=attempt_id,
                 result_ref=result_ref,
-                laya_used=laya_used,
                 company_id=company_id,
                 company_name=company_name,
                 connection_id=connection_id,
@@ -439,7 +435,6 @@ class AgentEventsService:
         task_id: Optional[str] = None,
         attempt_id: Optional[str] = None,
         result_ref: Optional[Dict[str, Any]] = None,
-        laya_used: Optional[bool] = None,
         company_id: Optional[int] = None,
         company_name: Optional[str] = None,
         connection_id: Optional[str] = None,
@@ -474,7 +469,6 @@ class AgentEventsService:
             "task_id": task_id,
             "attempt_id": attempt_id,
             "result_ref": safe_result,
-            "laya_used": bool(laya_used),
             "company_id": company_id,
             "company_name": company_name,
             "connection_id": connection_id,
@@ -498,8 +492,6 @@ class AgentEventsService:
                 op["plan"] = plan
             if clarification:
                 op["clarification"] = clarification
-            if laya_used:
-                op["laya_used"] = True
             if final_result:
                 op["result"] = _mask_safe_ref(final_result)
             if error:
@@ -577,7 +569,6 @@ class AgentEventsService:
                                     "connection_id": evt.get("connection_id", "default"),
                                     "requester": evt.get("requester", "المستخدم"),
                                     "plan_id": evt.get("plan_id"),
-                                    "laya_used": evt.get("laya_used", False),
                                 }
                             else:
                                 # تحديث آخر تحديث
@@ -610,7 +601,7 @@ class AgentEventsService:
             return ops[:limit]
 
     def get_agents_overview(self) -> List[Dict[str, Any]]:
-        """استرجاع بطاقات وهوية كافة الوكلاء الـ 8 + لايا وحالاتهم الحالية."""
+        """استرجاع بطاقات وهوية كافة الوكلاء الـ 8 وحالاتهم الحالية."""
         with self._lock:
             result = []
             for a_id, meta in AGENTS_REGISTRY.items():

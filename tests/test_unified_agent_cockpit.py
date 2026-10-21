@@ -4,7 +4,7 @@ Unified Multi-Agent Cockpit Acceptance Tests (15 Scenarios)
 ============================================================
 تغطي جميع اختبارات القبول المنصوص عليها في وثيقة المتطلبات:
 1. رسالة واضحة -> تظهر فقط المهام التي نُفذت فعلاً.
-2. طلب غامض -> يظهر استدعاء لايا إذا حدث، ثم سؤال المستخدم عند الحاجة.
+2. طلب غامض -> سؤال توضيحي للمستخدم.
 3. استعلام -> نشاط فاحص ثم النتيجة.
 4. تعديل -> انتظار اعتماد قبل نشاط كاتب.
 5. رفض الاعتماد -> لا تنفيذ.
@@ -61,7 +61,7 @@ class TestUnifiedAgentCockpitAcceptance(unittest.TestCase):
         self.assertNotIn("katib", agents_participated)
         self.assertNotIn("musleh", agents_participated)
 
-    # 2. طلب غامض -> استدعاء لايا إذا حدث، ثم سؤال المستخدم
+    # 2. طلب غامض -> سؤال توضيحي للمستخدم
     def test_scenario_02_ambiguous_request_clarification(self):
         chat_id = "test_user_scen_2"
         # طلب يحتوي على كلمة حذف دون تحديد نوعها (أرشفة أم حذف نهائي)

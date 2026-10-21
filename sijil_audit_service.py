@@ -68,7 +68,8 @@ class SijilAuditService:
             "warning_audit_log.jsonl": ("warnings", "إنذارات ومساءلات"),
             "letter_audit_log.jsonl": ("letters", "خطابات ومشاهد رسمية"),
             "expense_audit_log.jsonl": ("expenses", "مصاريف وعهد"),
-            "laya_consultation_audit.jsonl": ("laya", "استشارات لايا والذكاء الاصطناعي"),
+            # سجل تاريخي لمحرك أُزيل: يبقى مقروءاً إن وُجد حتى لا تضيع سجلات التدقيق السابقة (لا يُكتب فيه جديد).
+            "laya_consultation_audit.jsonl": ("laya", "استشارات قديمة (محرك محذوف)"),
             "agent_operations_log.jsonl": ("agents", "منظومة الوكلاء والعمليات"),
         }
 

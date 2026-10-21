@@ -3,10 +3,9 @@
 ========================================================================================================
 سراج هو واجهة المحادثة والمنسق الأساسي للمنظومة:
 1. فهم طلب المستخدم باللغة الطبيعية وإدارة سياق المحادثة.
-2. الاستعانة بوكيلة التوجيه السريع «لايا» عند غموض المعنى كتفسير استشاري مساعد.
-3. طلب التوضيح المباشر من المستخدم عند نقص أي معلومة ضرورية.
-4. تنسيق مهمة الاستعلام وتوجيهها حصرياً إلى وكيل الفحص والقراءة المعتمد «فاحص».
-5. شرح النتيجة المنظمة الواردة من «فاحص» وعرضها للمستخدم دون تخمين أو هلوسة.
+2. طلب التوضيح المباشر من المستخدم عند نقص أي معلومة ضرورية.
+3. تنسيق مهمة الاستعلام وتوجيهها حصرياً إلى وكيل الفحص والقراءة المعتمد «فاحص».
+4. شرح النتيجة المنظمة الواردة من «فاحص» وعرضها للمستخدم دون تخمين أو هلوسة.
 
 ضوابط الفصل المعماري:
 - لا وجود لأي مسار قراءة موازٍ داخل سراج يكرر دور فاحص؛ فاحص هو المنفذ الحصري للقراءة في Odoo.
@@ -162,96 +161,6 @@ class SerajLLMService:
             return bool(self.api_key and str(self.api_key).strip())
 
 
-    # P6: consult_laya removed - laya deleted, use classify_intent instead
-    def consult_laya_DEPRECATED(self, text: str) -> Optional[Dict[str, Any]]:
-        """DEPRECATED: لايا محذوفة. استخدم classify_intent بدلاً."""
-        return None
-        """
-        استشارة وكيلة التوجيه السريع «لايا» للمساعدة في تصنيف النية وفض غموض المعنى.
-        تُعامل النتيجة كتفسير استشاري مساعد فقط، لا كحقيقة مطلقة ولا كإذن تنفيذ.
-
-        المصدران مستقلان:
-        1. LayaService (تصنيف قواعدي) — الأساس الثابت غير المُعدَّل.
-        2. laya_neural_consultant (استشارة عصبية) — shadow فقط، لا يُغيّر النتيجة.
-        """
-        # ── 1. التصنيف القواعدي (الأساس الثابت) ────────────────────────────────
-        rules_result: Optional[Dict[str, Any]] = None
-        try:
-            from laya_service import LayaService
-            laya_engine = LayaService()
-            decision = laya_engine.triage_request(text)
-            rules_result = decision.to_dict()
-        except Exception as exc:
-            logger.warning("Laya rules classification failed: %s", exc)
-
-        # ── 2. الاستشارة العصبية عند الغموض الدلالي (وضع shadow غير مُعطِّل) ────────
-        # تُشغَّل فقط عند LAYA_ENABLED=true ووجود غموض دلالي حقيقي في النية أو التصنيف
-        try:
-            from laya_neural_consultant import (
-                ConsultationRequest,
-                consult_decision,
-                _LAYA_ENABLED,
-                _LAYA_MODE,
-            )
-            # فحص وجود غموض دلالي يستدعي الاستشارة (ثقة منخفضة أو مجال عام أو إجراء غير محدد)
-            is_ambiguous = (
-                rules_result is None
-                or rules_result.get("confidence", 1.0) < 0.85
-                or rules_result.get("domain") in ("general", "unknown")
-                or rules_result.get("action_type") in ("unknown", "clarify")
-            )
-
-            if _LAYA_ENABLED and is_ambiguous:
-                neural_req = ConsultationRequest(
-                    caller_agent="seraj",
-                    stage="intent_triage",
-                    question_id="next_handling_step",
-                    instructions=(
-                        "بناءً على نص طلب المستخدم، ما هي الخطوة التالية الأنسب "
-                        "لسراج كمنسق عند غموض الطلب؟"
-                    ),
-                    allowed_choices={
-                        "route_read":   "توجيه لوكيل القراءة (فاحص) للاستعلام",
-                        "clarify_user": "طلب توضيح إضافي من المستخدم",
-                        "route_write":  "تحضير مسودة كتابة وطلب اعتماد",
-                    },
-                    # نُمرر النص الخام كادعاء مستخدم — لا كحقيقة
-                    user_claims=text[:200] if text else None,
-                    # نُمرر نتيجة القواعد كاستنتاج وكيل سابق
-                    agent_inferences=(
-                        f"domain={rules_result.get('domain', 'unknown')}, "
-                        f"action={rules_result.get('action_type', 'unknown')}"
-                    ) if rules_result else None,
-                )
-
-                def _run_shadow_consultation():
-                    try:
-                        res = consult_decision(neural_req)
-                        logger.debug(
-                            "[Laya shadow] caller=seraj stage=intent_triage "
-                            "suggested=%s prob=%.3f mode=%s status=%s",
-                            res.suggested_choice,
-                            res.answer_probability or 0.0,
-                            res.mode,
-                            res.status,
-                        )
-                    except Exception as _bg_exc:
-                        logger.debug("Laya neural shadow consultation failed: %s", _bg_exc)
-
-                # في وضع shadow: تشغيل في خيط خلفي (daemon thread) لضمان عدم تجميد دورة المحادثة
-                import threading
-                shadow_thread = threading.Thread(
-                    target=_run_shadow_consultation,
-                    daemon=True,
-                    name="LayaShadowThread",
-                )
-                shadow_thread.start()
-        except Exception as exc:
-            # فشل الاستشارة العصبية لا يوقف المسار الأصلي مطلقاً
-            logger.debug("Laya neural consultation dispatch failed (non-critical): %s", exc)
-
-        return rules_result
-
     def _emit_evt(
         self,
         operation_id: Optional[str],
@@ -266,7 +175,6 @@ class SerajLLMService:
         clarification: Optional[Dict[str, Any]] = None,
         final_result: Optional[Dict[str, Any]] = None,
         error: Optional[str] = None,
-        laya_used: Optional[bool] = None,
     ) -> None:
         if not operation_id or get_events_service is None:
             return
@@ -285,7 +193,6 @@ class SerajLLMService:
                 clarification=clarification,
                 final_result=final_result,
                 error=error,
-                laya_used=laya_used,
             )
         except Exception as exc:
             logger.debug("Failed to emit agent event: %s", exc)
@@ -297,18 +204,16 @@ class SerajLLMService:
         user_name: str = "مستخدم",
         connection_id: Optional[str] = None,
         company_id: Optional[int] = None,
-        laya_decision: Optional[Dict[str, Any]] = None,
         operation_id: Optional[str] = None,
     ) -> str:
         """
         تنفيذ دورة المحادثة والتنسيق الكاملة لسراج كـ «المنسق العام»:
         1. فهم طلب المستخدم وإدارة سياق المحادثة عبر الجلسات.
-        2. الاستعانة بلايا كتفسير استشاري مساعد عند الغموض دون سلطة اعتماد.
-        3. التنسيق لطلبات الإضافة والتعديل: تحضير الطلب عبر الوكلاء وطلب الاعتماد الصريح من المستخدم.
-        4. توجيه التنفيذ حصرياً إلى «كاتب» بعد الاعتماد، وإجراء التحقق الراجع عبر «فاحص».
-        5. حظر طلبات الحذف الكلي (unlink) نظامياً عبر حارس لمنع فقدان البيانات.
-        6. تنسيق مهام الاستعلام والقراءة وتفويضها حصرياً إلى وكيل الفحص «فاحص».
-        7. شرح النتيجة المنظمة للمستخدم بلغة عربية واضحة ودقيقة.
+        2. التنسيق لطلبات الإضافة والتعديل: تحضير الطلب عبر الوكلاء وطلب الاعتماد الصريح من المستخدم.
+        3. توجيه التنفيذ حصرياً إلى «كاتب» بعد الاعتماد، وإجراء التحقق الراجع عبر «فاحص».
+        4. الحذف الفعلي (unlink) لا يُنفَّذ إلا عبر خطة اعتماد مستقلة وتأكيد صريح من المستخدم.
+        5. تنسيق مهام الاستعلام والقراءة وتفويضها حصرياً إلى وكيل الفحص «فاحص».
+        6. شرح النتيجة المنظمة للمستخدم بلغة عربية واضحة ودقيقة.
         """
         clean_query = user_query.strip()
         if not clean_query:
@@ -611,9 +516,6 @@ class SerajLLMService:
 
             else:
                 pass
-
-        # P6: لايا محذوفة - نستخدم classify_intent الآن
-        laya_decision = None  # كانت: self.consult_laya(clean_query)
 
         # 2. فحص مسار الحذف والأرشفة والاسترجاع المحكوم
         is_archive_explicit = any(w in clean_query for w in ["أرشف", "ارشف", "أرشفة", "ارشفة", "إيقاف تنشيط", "تعطيل"])
@@ -940,11 +842,10 @@ class SerajLLMService:
 
         # 3. فحص طلبات الإضافة والتعديل — سراج يحضر العملية وينسق مع الوكلاء ويطلب الاعتماد
         write_prep_keywords = ["عدل", "تعديل", "غير مسمى", "تغيير مسمى", "أضف", "اضف", "أنشئ", "انشئ", "إنشاء", "انشاء"]
-        # P6: is_write_prep simplified - laya_decision removed
         is_write_prep = any(kw in clean_query for kw in write_prep_keywords)
 
         if is_write_prep:
-            # مسار التعديل (Update) - P6: simplified without laya
+            # مسار التعديل (Update)
             is_update = any(kw in clean_query for kw in ["عدل", "تعديل", "غير", "تغيير"])
             if is_update:
                 m = re.search(r'(?:عدل|تعديل|غير|تغيير)\s+(?:مسمى\s+)?(?:الموظف\s+|الموظفة\s+)?(.+?)\s+(?:إلى|الى|ليصبح)\s+(.+)', clean_query)
@@ -1155,8 +1056,8 @@ class SerajLLMService:
                    "1. LangGraph: OPENAI_API_KEY=sk-... في .env\n" \
                    "2. Ollama: تشغيل `ollama serve` وتعيين LLM_PROVIDER=ollama"
 
-        # 3. بناء الـ System Prompt (P6: لايا محذوفة)
-        system_prompt = self._build_system_prompt(session, user_name, None)
+        # 3. بناء الـ System Prompt
+        system_prompt = self._build_system_prompt(session, user_name)
 
         # تجهيز الرسائل
         messages: List[Dict[str, Any]] = [{"role": "system", "content": system_prompt}]
@@ -1331,44 +1232,25 @@ class SerajLLMService:
         self,
         session: ConversationSession,
         user_name: str,
-        laya_decision: Optional[Dict[str, Any]] = None,
     ) -> str:
         active_company_info = f"الشركة المحددة: {session.company_name} (معرّف: {session.company_id})" if session.company_id else "الشركة: غير محددة (استعلام عام / متعدد المنشآت)"
         active_conn_info = f"الاتصال الحالي: {session.connection_id}"
 
-        laya_guidance = ""
-        if laya_decision:
-            d_ar = laya_decision.get("domain_ar", "عام")
-            d_en = laya_decision.get("domain", "general")
-            act_ar = laya_decision.get("action_type_ar", "استعلام")
-            act_en = laya_decision.get("action_type", "query")
-            conf = laya_decision.get("confidence", 0.0)
-            laya_guidance = (
-                f"\n\n[تفسير استشاري مساعد من وكيلة التوجيه «لايا»]:\n"
-                f"• المجال المقترح: {d_ar} ({d_en})\n"
-                f"• نوع الإجراء المقترح: {act_ar} ({act_en})\n"
-                f"• ثقة التوجيه الاستشاري: {conf:.0%}\n"
-                "• تنبيه ملزم لسراج: هذا التوجيه من لايا هو تفسير استشاري مساعد لك لفهم نية الطلب عند الغموض، "
-                "وليس حقيقة قطعية ولا إذناً بالتنفيذ. تحقق بنفسك دائماً عبر سياق المحادثة وتفويض الاستعلام لوكيل فاحص.\n"
-            )
-
         prompt = (
             "أنت «سراج» واجهة المحادثة والمنسق الأساسي لإدارة الموارد البشرية Odoo في المملكة العربية السعودية.\n"
-            "تتعاون مع منظومة الوكلاء: وكيلة التوجيه «لايا»، ووكيل الاستعلام والقراءة الحصرية «فاحص»، ومنظومة الحراسة «الحراس»، والتدقيق «مدقق»، والمعالجة «مصلح».\n\n"
+            "تتعاون مع منظومة الوكلاء: وكيل الاستعلام والقراءة الحصرية «فاحص»، ومنظومة الحراسة «الحراس»، والتدقيق «مدقق»، والمعالجة «مصلح».\n\n"
             "مسؤولياتك الصريحة كـ «سراج»:\n"
             "1. فهم طلب المستخدم وإدارة سياق المحادثة وتاريخ الجلسة.\n"
-            "2. الاستعانة بـ «لايا» عند غموض المعنى كتفسير استشاري مساعد فقط.\n"
-            "3. طلب التوضيح المباشر من المستخدم إذا كانت هناك معلومة ناقصة (مثل تحديد المنشأة).\n"
-            "4. تنسيق مهمة الاستعلام وتوجيهها إلى وكيل الفحص والقراءة المعتمد «فاحص» عبر استدعاء الأداة المناسبة.\n"
-            "5. شرح النتيجة المنظمة الواردة من «فاحص» وعرضها بأسلوب مهني عربي واضح.\n\n"
+            "2. طلب التوضيح المباشر من المستخدم إذا كانت هناك معلومة ناقصة (مثل تحديد المنشأة).\n"
+            "3. تنسيق مهمة الاستعلام وتوجيهها إلى وكيل الفحص والقراءة المعتمد «فاحص» عبر استدعاء الأداة المناسبة.\n"
+            "4. شرح النتيجة المنظمة الواردة من «فاحص» وعرضها بأسلوب مهني عربي واضح.\n\n"
             "مسؤولية وكيل «فاحص» (Fahas):\n"
             "• «فاحص» هو المسؤول الحصري عن القراءة والاستعلام والتحقق من البيانات الفعلية في Odoo.\n"
             "• لا تضف داخل نفسك أي مسار قراءة موازٍ يكرر مسؤولية فاحص؛ بل فوّض له المهمة دائماً عبر الأدوات المحددة له.\n"
             "• فاحص يرجع لك نتيجة منظمة أو خطأ واضح، وأنت تشرح النتيجة للمستخدم.\n\n"
             f"سياق الجلسة الحالي للمستخدم «{user_name}»:\n"
             f"• {active_conn_info}\n"
-            f"• {active_company_info}"
-            f"{laya_guidance}\n\n"
+            f"• {active_company_info}\n\n"
             "مهام الاستعلام المتاحة للتفويض إلى «فاحص» (قراءة واستعلام فقط Read-Only):\n"
             "1. count_records: حساب عدد السجلات الدقيق عبر search_count لدى فاحص (مثال: عدد الموظفين في hr.employee).\n"
             "2. search_records: استعلام السجلات وجلب حقول معينة عبر search_read لدى فاحص.\n"
@@ -1382,7 +1264,7 @@ class SerajLLMService:
             "3. عند السؤال المتابع عن المؤرشفين أو غير النشطين (مثل «والمؤرشفين؟»): استخدم الموديل السابق نفسه (hr.employee) واستدعِ count_records مع include_archived=True أو شروط active=False.\n"
             "4. عند السؤال عن الشركات (مثل «ما الشركات المتاحة لي؟»): استدعِ list_companies لعرض البيانات الفعلية المصرح بها.\n"
             "5. عند السؤال عن موظف محدد بالاسم صراحة (مثل «ابحث عن موظف اسمه أحمد»): استدعِ search_records لموديل hr.employee مع شرط domain=[('name', 'ilike', 'أحمد')].\n"
-            "6. إذا كان معنى الطلب مبهماً: استعن بتفسير لايا، وإذا بقي الغموض فاطرح سؤالاً توضيحياً مهنياً بدلاً من التخمين.\n"
+            "6. إذا كان معنى الطلب مبهماً: اطرح سؤالاً توضيحياً مهنياً بدلاً من التخمين.\n"
             "7. إذا كان هناك نقص في اختيار المستخدم (مثل عدم تحديد الشركة عند وجود عدة شركات مسجلة): استدعِ list_companies واسأل المستخدم تحديد المنشأة.\n"
             "8. إذا ورد خطأ في الاتصال أو رفض في الصلاحية من فاحص: وضّح سبب الخطأ الحقيقي للمستخدم بوضوح، ولا تقل أبداً «لم نجد موظفين» عند حدوث عطل اتصالي أو أمني.\n"
             "9. لا تعرض أو تخترع أدوات كتابة أو تعديل أو حذف؛ هذا مسار قراءة واستعلام فقط ولا يمنح سراج أو فاحص صلاحية اعتماد أو كتابة.\n"
@@ -1394,7 +1276,6 @@ class SerajLLMService:
         self,
         user_query: str,
         user_name: str = "مستخدم",
-        laya_decision: Optional[Dict[str, Any]] = None,
         odoo_context: Optional[Dict[str, Any]] = None,
     ) -> Optional[str]:
         """
@@ -1403,7 +1284,6 @@ class SerajLLMService:
         return self.chat_turn(
             user_query=user_query,
             user_name=user_name,
-            laya_decision=laya_decision,
         )
 
     def _fallback_odoo_or_rules(

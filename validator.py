@@ -18,6 +18,7 @@ from failure_codes import (
     VALIDATION_ERROR,
 )
 from employee_lookup import find_employees_by_email
+from matching_thresholds import CLOSEST_MATCH_SUGGESTION_CUTOFF
 from normalization import reference_match_key, is_valid_email_format
 
 FINAL_ACCEPTED = "accepted"
@@ -62,7 +63,7 @@ def suggest_closest_reference_name(
     if not requested_key or not normalized_to_original:
         return None
 
-    closest = get_close_matches(requested_key, list(normalized_to_original.keys()), n=1, cutoff=0.6)
+    closest = get_close_matches(requested_key, list(normalized_to_original.keys()), n=1, cutoff=CLOSEST_MATCH_SUGGESTION_CUTOFF)
     if not closest:
         return None
     return normalized_to_original[closest[0]]

@@ -4,7 +4,7 @@
 تختبر هذه المجموعة الجاهزية التشغيلية الكاملة لسراج، وتشمل:
 1. استشارات نظام العمل السعودي وتعديلات 1446هـ (المواد 98, 107, 85, 84, 77, 70, 71, 72, 92, 53, 113, 116, 37, والتأمينات).
 2. استعلامات موظفي Odoo ومكافحة الهلوسة وفض الالتباس (Disambiguation).
-3. مبدأ العينين الأربع (Four-Eyes) وحواجز الأمان الرقابية لـ «لايا».
+3. مبدأ العينين الأربع (Four-Eyes) وحواجز الأمان الرقابية.
 4. الحسابات الحدية وسقوف التأمينات وانتقال الإجازات السنوية ورصد الوثائق.
 """
 
@@ -39,7 +39,6 @@ from saudi_labor_law_rules import (
     RAMADAN_MUSLIM_DAILY_HOURS,
     RAMADAN_MUSLIM_WEEKLY_HOURS,
 )
-from laya_service import LayaService
 from seraj_llm_service import SerajLLMService
 from odoo_readonly_repository import OdooReadonlyRepository
 from leave_service import LeaveService
@@ -50,7 +49,6 @@ class TestSeraj20Scenarios(unittest.TestCase):
     """مجموعة اختبارات الـ 23 سيناريو لـ سراج."""
 
     def setUp(self):
-        self.laya = LayaService()
         self.repo = OdooReadonlyRepository()
         self.leave_service = LeaveService(readonly_repo=self.repo)
         self.expiry_service = DocumentExpiryService(repo=self.repo)
@@ -63,8 +61,6 @@ class TestSeraj20Scenarios(unittest.TestCase):
     def test_scenario_01_ramadan_hours_article_98(self):
         """سيناريو 1: ساعات العمل في رمضان للمسلمين (المادة 98) -> 6 ساعات يومياً / 36 أسبوعياً."""
         query = "كم ساعات العمل الرسمية في رمضان للمسلمين حسب نظام العمل؟"
-        decision = self.laya.triage_request(query)
-        self.assertFalse(decision.is_deletion_blocked)
         self.assertEqual(RAMADAN_MUSLIM_DAILY_HOURS, 6.0)
         self.assertEqual(RAMADAN_MUSLIM_WEEKLY_HOURS, 36.0)
 
@@ -263,12 +259,28 @@ class TestSeraj20Scenarios(unittest.TestCase):
     # المجموعة 3: مبدأ العينين الأربع وحواجز الأمان
     # =========================================================================
 
-    def test_scenario_17_laya_blocks_deletion_unlink(self):
-        """سيناريو 17: حاجز الأمان الرقابي لـ «لايا» يحظر الحذف الكلي لأي موظف أو سجل."""
-        decision = self.laya.triage_request("احذف الموظف رقم 147 نهائياً من النظام")
-        self.assertTrue(decision.is_deletion_blocked)
-        self.assertEqual(decision.action_type, "delete")
-        self.assertIn("محظور أمنياً", decision.action_type_ar)
+    def test_scenario_17_delete_request_never_executes_directly(self):
+        """سيناريو 17: طلب الحذف لا يُنفَّذ مباشرة؛ يُطلب توضيح النوع (أرشفة أم حذف نهائي) ولا يُستدعى «كاتب»."""
+        from unittest.mock import MagicMock
+        from fahas_service import FahasAgent
+        from katib_service import KatibAgent
+        from seraj_session_manager import SerajSessionManager
+
+        mgr = SerajSessionManager.get_instance()
+        chat_id = "scenario_17_delete"
+        mgr.reset_session(chat_id)
+        fahas, katib = MagicMock(spec=FahasAgent), MagicMock(spec=KatibAgent)
+        seraj = SerajLLMService(api_key="sk-or-test", fahas_agent=fahas, katib_agent=katib)
+        try:
+            resp = seraj.chat_turn("احذف الموظف رقم 147 نهائياً من النظام", chat_id=chat_id)
+            session = mgr.get_session(chat_id)
+            self.assertIn("توضيح", resp)
+            self.assertIsNone(session.pending_action)
+            self.assertEqual(session.pending_clarification.get("type"), "clarify_delete_or_archive")
+            katib.execute_approved_action.assert_not_called()
+            fahas.search_records.assert_not_called()
+        finally:
+            mgr.reset_session(chat_id)
 
     def test_scenario_18_dry_run_leave_simulation_generates_token(self):
         """سيناريو 18: محاكاة تقديم إجازة (Dry-run) تولد رمز موافقة مع مدة صلاحية محددة."""

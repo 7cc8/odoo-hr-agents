@@ -17,7 +17,6 @@ import json
 import unittest
 from unittest.mock import MagicMock, patch
 
-from laya_service import LayaService
 from odoo_agent_tools import (
     count_records,
     describe_model,
@@ -43,33 +42,6 @@ class TestSerajToolCalling(unittest.TestCase):
 
     def tearDown(self):
         self.session_mgr.reset_session(self.chat_id)
-
-    # -------------------------------------------------------------------------
-    # 1. اختبار فرز لايا للرسائل العامة وعدم تحويلها لاسم موظف
-    # -------------------------------------------------------------------------
-    def test_laya_triage_does_not_extract_employee_name_for_counting_or_general(self):
-        laya = LayaService()
-        
-        # «كم عدد الموظفين» لا يجب أن يُعتبر اسم موظف
-        dec1 = laya.triage_request("كم عدد الموظفين")
-        self.assertIsNone(dec1.extracted_entities.get("employee_query"))
-        
-        # «والمؤرشفين؟»
-        dec2 = laya.triage_request("والمؤرشفين؟")
-        self.assertIsNone(dec2.extracted_entities.get("employee_query"))
-        
-        # «ما الشركات المتاحة لي؟»
-        dec3 = laya.triage_request("ما الشركات المتاحة لي؟")
-        self.assertIsNone(dec3.extracted_entities.get("employee_query"))
-        
-        # «الشركة الثانية»
-        dec4 = laya.triage_request("الشركة الثانية")
-        self.assertIsNone(dec4.extracted_entities.get("employee_query"))
-
-    def test_laya_triage_extracts_actual_employee_name_when_explicit(self):
-        laya = LayaService()
-        dec = laya.triage_request("ابحث عن موظف اسمه أحمد")
-        self.assertEqual(dec.extracted_entities.get("employee_query"), "أحمد")
 
     # -------------------------------------------------------------------------
     # 2. اختبار «كم عدد الموظفين؟» -> عدّ فعلي عبر count_records
@@ -354,40 +326,12 @@ class TestSerajToolCalling(unittest.TestCase):
         self.assertEqual(conns[0]["connection_id"], "default")
 
     # -------------------------------------------------------------------------
-    # 11. اختبار استعانة سراج بلايا كتفسير استشاري مساعد مع الحفاظ على دور المنسق
-    # -------------------------------------------------------------------------
-    @patch.object(SerajLLMService, "_call_llm")
-    def test_seraj_consults_laya_as_assistive_triage(self, mock_llm_call):
-        mock_llm_call.return_value = {
-            "role": "assistant",
-            "content": "استحقاق الإجازة السنوية محدد بـ 21 يوماً وفق المادة 109 من نظام العمل.",
-        }
-
-        with patch.object(self.seraj, "consult_laya", wraps=self.seraj.consult_laya) as mock_consult:
-            resp = self.seraj.chat_turn("ما هي شروط رصيد الإجازات السنوية؟", chat_id=self.chat_id)
-            mock_consult.assert_called_once()
-            # التحقق من أن الاستدعاء تم للنص الفعلي
-            self.assertIn("شروط رصيد الإجازات", mock_consult.call_args[0][0])
-            self.assertIn("المادة 109", resp)
-
-    # -------------------------------------------------------------------------
-    # 12. اختبار إلزام عمليات الكتابة بضوابط مدقق وحارس وكاتب حتى مع ثقة لايا
+    # 12. اختبار إلزام عمليات الكتابة بضوابط مدقق وحارس وكاتب
     # -------------------------------------------------------------------------
     def test_mutation_strictly_requires_governance_controls(self):
-        # محاكاة قرار لايا بثقة 100% لطلب تعديل
-        laya_dec = {
-            "domain": "contracts",
-            "domain_ar": "عقود العمل",
-            "action_type": "update",
-            "action_type_ar": "تعديل بيانات",
-            "confidence": 1.0,
-            "requires_four_eyes": True,
-            "is_deletion_blocked": False,
-        }
         resp = self.seraj.chat_turn(
             "عدل راتب الموظف رقم 10 إلى 15000",
             chat_id=self.chat_id,
-            laya_decision=laya_dec,
         )
         self.assertIn("تنسيق طلب التعديل (سراج)", resp)
         self.assertIn("مدقق", resp)

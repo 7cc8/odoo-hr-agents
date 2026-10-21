@@ -624,7 +624,7 @@ def handle_voice_message(
         chat_id,
         f"🎙️ <b>النص المستخلص من التسجيل الصوتي:</b>\n"
         f"«<i>{transcribed_text}</i>»\n\n"
-        f"⚡ <b>جارِ التوجيه والتنفيذ الذكي عبر «لايا»...</b>",
+        f"⚡ <b>جارِ معالجة طلبك عبر «سراج»...</b>",
         reply_to_message_id=message_id,
     )
 
@@ -1056,7 +1056,6 @@ def get_main_menu_keyboard() -> Dict[str, Any]:
                 {"text": "🛡️ تقرير التدقيق الرقابي PDF (سجل)", "callback_data": "audit:pdf"},
             ],
             [
-                {"text": "🧠 وكيلة التوجيه الذكي (لايا)", "callback_data": "laya:info"},
                 {"text": "🛠️ وكيل الإصلاح الذاتي (مصلح)", "callback_data": "musleh:info"},
             ],
             [
@@ -5519,33 +5518,6 @@ def send_expiry_pdf_report(
             bot.send_message(chat_id, f"✅ تم فحص الوثائق ({scan_res.total_alerts} تنبيهاً مسجلاً).")
 
 
-def show_laya_info_card(bot: TelegramBotClient, chat_id: int | str, message_id: Optional[int] = None) -> None:
-
-
-    """Displays Laya decision engine details and capabilities."""
-    from laya_service import LayaService
-    service = LayaService()
-    info = service.get_info()
-    text = (
-        "🧠 <b>وكيلة القرار السريع والتوجيه الذكي: «لايا» (Laya Engine)</b>\n"
-        "────────────────────\n"
-        "• <b>النواة الأساسية:</b> مستودع Laya الأصلي (NandhaKishorM/laya)\n"
-        f"• <b>إصدار المحرك:</b> <code>v{info['version']}</code>\n"
-        "• <b>المعمارية:</b> Non-Autoregressive System 1 Decision Engine\n"
-        "• <b>سرعة التوجيه:</b> أقل من 50 ملي ثانية (Sub-50ms Triage)\n"
-        "• <b>دعم اللغات:</b> العربية والإنجليزية مع تحليل النصوص التلقائي\n"
-        f"• <b>المجالات المدعومة:</b> {len(info['domains_supported'])} مجالات موارد بشرية\n\n"
-        "🛡️ <b>حواجز الأمان المفعلة:</b>\n"
-        "1️⃣ رصد وإجهاض طلبات الحذف (unlink) فوراً وتحويلها لأرشفة.\n"
-        "2️⃣ إلزام مبدأ التحقق المزدوج والتأكيد الكتابي «تأكيد» لكافة التعديلات."
-    )
-    back_kb = {"inline_keyboard": [[{"text": "🔙 العودة للقائمة الرئيسية", "callback_data": "menu:main"}]]}
-    if message_id:
-        bot.edit_message_text(chat_id, message_id, text, reply_markup=back_kb)
-    else:
-        bot.send_message(chat_id, text, reply_markup=back_kb)
-
-
 def show_musleh_info_card(bot: TelegramBotClient, chat_id: int | str, message_id: Optional[int] = None) -> None:
     """Displays Musleh self-healing engine details, consultation workflow, and auto-repair status."""
     is_on = is_autofix_enabled(chat_id)
@@ -5560,7 +5532,7 @@ def show_musleh_info_card(bot: TelegramBotClient, chat_id: int | str, message_id
         "  1️⃣ <b>فاحص:</b> استعلام مراجع Odoo الحية والمؤرشفة.\n"
         "  2️⃣ <b>موفق:</b> المطابقة الضبابية الذكية (Fuzzy Matching) واقتراح البدائل.\n"
         "  3️⃣ <b>مدقق:</b> الامتثال لمواد نظام العمل السعودي والتأمينات.\n"
-        "  4️⃣ <b>لايا:</b> فحص حواجز الأمان وتصنيف المخاطر والـ Four-Eyes.\n\n"
+        "\n"
         "⚖️ <b>القرارات التنفيذية الصادرة:</b>\n"
         "  • <b>الإصلاح الفوري (APPLY_AUTO_PATCH):</b> عند الثقة ≥ 90% وخيار الإصلاح التلقائي.\n"
         "  • <b>العزل والمتابعة (QUARANTINE_AND_PROCEED):</b> عزل المعطوب لإنشاء باقي الدفعة.\n"
@@ -6991,8 +6963,6 @@ def handle_callback_dispatch(
         show_analytics_menu(bot, chat_id, message_id=msg_id)
     elif data == "audit:pdf":
         send_sijil_audit_pdf(bot, chat_id, msg_id)
-    elif data == "laya:info":
-        show_laya_info_card(bot, chat_id, message_id=msg_id)
     elif data == "musleh:info":
         show_musleh_info_card(bot, chat_id, message_id=msg_id)
     elif data == "autofix:status":
@@ -7537,11 +7507,6 @@ def run_telegram_bot_polling(poll_interval: float = 1.5) -> None:
                             show_autofix_status_card(bot, chat_id, message_id=None)
                         continue
 
-                    # 2.0.0.0.0.0.0.0.0 Laya Engine info command (Phase 21)
-                    if any(clean_text.startswith(cmd) for cmd in ("/laya", "لايا", "توجيه")):
-                        show_laya_info_card(bot, chat_id, msg_id)
-                        continue
-
                     # 2.0.0.0.0.0.0 Analytics & Executive Dashboard commands (Phase 20)
                     if any(clean_text.startswith(cmd) for cmd in ("/analytics", "/dashboard", "/kpi", "مؤشرات", "تحليلات", "لوحة", "داشبورد", "نطاقات")):
                         show_analytics_menu(bot, chat_id)
@@ -7714,7 +7679,7 @@ def run_telegram_bot_polling(poll_interval: float = 1.5) -> None:
                         continue
 
                     # 5.1 Seraj as Primary Conversational Interface and Orchestrator
-                    # Handles natural requests, consults Laya as assistive triage,
+                    # Handles natural requests,
                     # executes live Odoo queries (Read-Only), and enforces write governance.
                     try:
                         from seraj_llm_service import SerajLLMService

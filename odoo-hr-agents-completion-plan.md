@@ -8,7 +8,7 @@
 
 ## 0. كيف تُقرأ هذه الخطة
 
-**ما قرأته فعلاً (من الكود):** `graph/*` و`fahas_service.py` و`odoo_agent_tools.py` و`odoo_readonly_repository.py` و`katib_service.py` و`deletion_policy.py` و`environment_policy.py` و`odoo_write_gateway.py` و`odoo_delete_gateway.py` و`seraj_llm_service.py` و`seraj_session_manager.py` و`laya_service.py` و`agent_events_service.py` و`validator.py` و`writer.py` و`approval_schema.py` و`musleh_service.py` و`agents/base_agent.py` و`agents/fahas_agent.py` و`agents/katib_agent.py` و`agents/seraj_meta_agent.py` و`graph/agentic_nodes.py` وثلاث وثائق في `docs/`.
+**ما قرأته فعلاً (من الكود):** `graph/*` و`fahas_service.py` و`odoo_agent_tools.py` و`odoo_readonly_repository.py` و`katib_service.py` و`deletion_policy.py` و`environment_policy.py` و`odoo_write_gateway.py` و`odoo_delete_gateway.py` و`seraj_llm_service.py` و`seraj_session_manager.py` و`agent_events_service.py` و`validator.py` و`writer.py` و`approval_schema.py` و`musleh_service.py` و`agents/base_agent.py` و`agents/fahas_agent.py` و`agents/katib_agent.py` و`agents/seraj_meta_agent.py` و`graph/agentic_nodes.py` وثلاث وثائق في `docs/`.
 
 **ما لم أقرأه (ولا تُبنى عليه أحكام):** `telegram_bot.py` و`web_service.py` و`sijil_audit_service.py` و`hares_agent` و`mudaqqiq_agent` و`muwaffaq_agent` و`sijil_agent` و`memory/*` و`agents/llm_provider.py` (إلا ما ذُكر) وخدمات الإجازات والرواتب وباقي الاختبارات.
 
@@ -122,7 +122,7 @@
 - [ ] **الشركة المحفوظة:** لا تتغير إلا إذا استخدم الدور شركة صريحة **واحدة**؛ وأي `company_id` صريح داخل توزيع على الشركات لا يحدّث الحالة.
 - [ ] **عبارات المسح:** إضافة «ككل» و«في النظام» و«الإجمالي» و«إجمالي الموظفين» (حل مؤقت، ثم تُنقل إلى `classify_intent`).
 - [ ] **مطابقة الشركات حتمية:** تطبيع عربي وتضمين جزئي وأقرب تطابق، بحيث «شركة النخبة الذكية» = «شركة النخبة الذكية للتقنية»، وعند أكثر من مرشح يسأل ولا يخمّن.
-- [ ] **`classify_intent`:** بدل الثابت `"read"`، قواعد حتمية بحدود كلمات (لا تطابق جزئي)، بحيث «غير النشطين» و«معدل» لا يصنَّفان تعديلاً. ويمكن إعادة استخدام `LayaService.triage_request` بعد إصلاح التصنيف.
+- [ ] **`classify_intent`:** بدل الثابت `"read"`، قواعد حتمية بحدود كلمات (لا تطابق جزئي)، بحيث «غير النشطين» و«معدل» لا يصنَّفان تعديلاً.
 - [ ] **عقدة `clarify` حتمية:** عند «الشركة الثانية/الأخرى/نفسها» مع أكثر من مرشح، تعرض الخيارات مرقمة بلا استدعاء نموذج. وتُنقل آلية `pending_clarification` (نوع `select_company`) من `seraj_session_manager` إلى حالة الرسم.
 - [ ] **تعارض الـ prompt:** `_build_system_prompt` القديم يقول «الشركة: غير محددة» بينما `build_session_context` يضيف الشركة المحفوظة. يُوحَّد المصدر (حالة الرسم)، وتُراجع القاعدة 7 («استدعِ `list_companies` واسأل المستخدم»).
 - [ ] **`MAX_TURNS`** من 5 إلى 8، و`finalize`: عند وجود نتائج أدوات ولا نص، يعرض **كل** النتائج منسقة (لا آخر نتيجة فقط ولا JSON خام لـ `count_records`).
@@ -155,7 +155,7 @@
 
 - [ ] إعادة استخدام ضمانات `writer.py`: إعادة التدقيق قبل الكتابة، `allowed_company_ids` في السياق، `_verify_readback` (مقارنة القيم المخزنة بالمتوقعة)، والتوقف عند `outcome_uncertain`.
 - [ ] الاعتماد بربطه بمحتوى الخطة: `run_id` و`source_hash` و`row_hash` لكل صف (من `approval_schema.py`)، مع إضافة **تاريخ صلاحية**.
-- [ ] **الموافقة المزدوجة (four-eyes)** عند أكثر من 10 صفوف (تُقرأ من لايا) وتُفرض في الرسم.
+- [ ] **الموافقة المزدوجة (four-eyes)** عند أكثر من 10 صفوف (الحد الحالي `FOUR_EYES_THRESHOLD` في `graph/excel_nodes.py`) وتُفرض في الرسم.
 - [ ] `musleh`: التحقق من صلاحية التاريخ بـ `datetime.strptime` (حالياً «45/13/2026» يصير «2026-13-45»)، وعدم افتراض اليوم أولاً بصمت، وعدم إسقاط `+` من الأرقام غير السعودية.
 - [ ] رفع الملف وحده لا يكتب شيئاً: كل كتابة تتطلب خطة واعتماداً.
 
@@ -276,7 +276,7 @@
 | S11 | عالٍ | `write_record` بلا قائمة حقول | `odoo_write_gateway.py` | P5 |
 | S12 | عالٍ | `SAFE_MODEL_PREFIXES` واسعة وحقول حرة (خصوصية) | `fahas_service.py` | P2 |
 | S13 | حرج | `FahasAgent` يتجاوز ضوابط `fahas_service` (نموذج وحقول من النموذج اللغوي) | `agents/fahas_agent.py` | P6 |
-| S14 | متوسط | لايا تصنف «غير» و«عدل» (تطابق جزئي) كتعديل | `laya_service.py` | P2 |
+| S14 | متوسط | تصنيف «غير» و«عدل» بتطابق جزئي كتعديل (مثل «معدل الغياب») | `seraj_llm_service.py` | P2 |
 | S15 | متوسط | سجل كاتب يخلط مخططين في `writer_audit_log.jsonl` | `agents/katib_agent.py` | P3/P5 |
 | S16 | متوسط | `approve_with_conditions` تُعد موافقة دون فرض الشروط | `graph/agentic_nodes.py` | P5 |
 | S17 | متوسط | الموافقة المزدوجة (أكثر من 10 صفوف) غير مفروضة في الرسم | الرسم | P4/P5 |

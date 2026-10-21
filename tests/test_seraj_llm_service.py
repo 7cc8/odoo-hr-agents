@@ -24,7 +24,6 @@ class TestSerajLLMService(unittest.TestCase):
         resp = self.service.generate_grounded_response(
             user_query="كم رصيد إجازاتي؟",
             user_name="خالد",
-            laya_decision={"domain_ar": "إدارة الإجازات", "action_type_ar": "استعلام"},
         )
         self.assertIsNotNone(resp)
         self.assertIn("المادة 109", resp)

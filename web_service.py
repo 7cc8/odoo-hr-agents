@@ -3530,12 +3530,8 @@ def simulate_saudization_endpoint(payload: SaudizationSimPayload, request: Reque
 
 
 # ==============================================================================
-# Phase 21: وكيل الرقابة «سجل» (Sijil) & وكيلة القرار «لايا» (Laya) Endpoints
+# Phase 21: وكيل الرقابة «سجل» (Sijil) Endpoints
 # ==============================================================================
-
-class LayaTriagePayload(BaseModel):
-    text: str
-
 
 @app.get("/api/sijil/summary")
 def get_sijil_summary_endpoint(request: Request) -> Dict[str, Any]:
@@ -3656,16 +3652,6 @@ def get_sijil_recent_operations_endpoint(
         "offset": offset,
         "page": (offset // limit) + 1 if limit else 1,
     }
-
-
-@app.post("/api/laya/triage")
-def post_laya_triage_endpoint(payload: LayaTriagePayload, request: Request) -> Dict[str, Any]:
-    """Fast non-autoregressive triage and intent classification via agent Laya."""
-    audit_log_access("/api/laya/triage", request, payload.model_dump())
-    from laya_service import LayaService
-    service = LayaService()
-    decision = service.triage_request(payload.text)
-    return {"status": "success", "decision": decision.to_dict()}
 
 
 # ==============================================================================
@@ -4647,6 +4633,15 @@ def get_main_dashboard_html() -> str:
     """Returns the primary multi-agent operations cockpit (templates/dashboard.html)."""
     raw_content = DASHBOARD_FILE.read_text(encoding="utf-8") if DASHBOARD_FILE.exists() else DASHBOARD_HTML_PAGE
     return raw_content
+
+
+@app.get("/chat", response_class=HTMLResponse)
+def get_standalone_chat_html() -> str:
+    """Returns standalone Seraj chat view (templates/chat.html)."""
+    chat_file = Path("templates") / "chat.html"
+    if chat_file.exists():
+        return chat_file.read_text(encoding="utf-8")
+    return get_main_dashboard_html()
 
 
 @app.get("/unified-dashboard", response_class=HTMLResponse)

@@ -7,7 +7,7 @@
 3. عدم وجود مسار قراءة موازٍ داخل سراج يكرر دور فاحص.
 4. حظر عمليات الكتابة أو التعديل أو الحذف أمنياً على فاحص وسراج.
 5. حظر النماذج غير المصرح بها أمنياً.
-6. مسار المعالجة: المستخدم -> سراج -> لايا عند الغموض -> فاحص للاستعلام -> سراج للشرح.
+6. مسار المعالجة: المستخدم -> سراج -> فاحص للاستعلام -> سراج للشرح.
 """
 
 import json
@@ -173,7 +173,6 @@ class TestFahasServiceAndSeparation(unittest.TestCase):
     def test_fahas_does_not_have_chat_or_conversational_interface(self):
         # فاحص لا يملك chat_turn أو توليد ردود محادثة للمستخدم
         self.assertFalse(hasattr(self.fahas, "chat_turn"))
-        self.assertFalse(hasattr(self.fahas, "consult_laya"))
         self.assertTrue(hasattr(self.fahas, "execute_query_task"))
 
 

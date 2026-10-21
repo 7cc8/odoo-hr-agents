@@ -268,7 +268,7 @@ def seraj_think(state: SerajState) -> Dict[str, Any]:
 
     svc = _seraj()
     session = svc.session_manager.get_session(state.get("chat_id", "default"))
-    system_prompt = svc._build_system_prompt(session, state.get("user_name", "مستخدم"), None)
+    system_prompt = svc._build_system_prompt(session, state.get("user_name", "مستخدم"))
     system_prompt += build_session_context(state.get("company_id"), state.get("company_name"))
     messages = [{"role": "system", "content": system_prompt}] + trim_history(state.get("messages", []))
 

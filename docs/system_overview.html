@@ -319,7 +319,7 @@
       }
       .pipeline {
         display: grid;
-        grid-template-columns: repeat(8, minmax(120px, 1fr));
+        grid-template-columns: repeat(7, minmax(120px, 1fr));
         gap: 10px;
         position: relative;
       }
@@ -364,10 +364,6 @@
       }
       .agent-card.manager p {
         color: #c6d0ca;
-      }
-      .agent-card.laya {
-        background: var(--amber-soft);
-        border-color: #e6c27f;
       }
       .agent-card.writer {
         background: var(--teal-soft);
@@ -706,23 +702,18 @@
             <h3>موفّق</h3>
             <p>يطابق الشركة والقسم والوظيفة مع سجلات Odoo.</p>
           </article>
-          <article class="agent-card laya">
-            <div class="agent-number">05 · DECISION</div>
-            <h3>لبيب / Laya</h3>
-            <p>قرار typed مساعد عند الغموض، لا يملك صلاحية الكتابة.</p>
-          </article>
           <article class="agent-card">
-            <div class="agent-number">06 · RISK</div>
+            <div class="agent-number">05 · RISK</div>
             <h3>حارس</h3>
             <p>يطبق السياسة: تنفيذ، مراجعة، أو رفض.</p>
           </article>
           <article class="agent-card writer">
-            <div class="agent-number">07 · WRITE</div>
+            <div class="agent-number">06 · WRITE</div>
             <h3>كاتب</h3>
             <p>الوكيل المستهدف للكتابة، بعد الموافقة وفي بيئة مصرح بها.</p>
           </article>
           <article class="agent-card">
-            <div class="agent-number">08 · AUDIT</div>
+            <div class="agent-number">07 · AUDIT</div>
             <h3>سِجِلّ</h3>
             <p>يحفظ القرار، الدليل، النتيجة، والخطأ إن وجد.</p>
           </article>
@@ -812,7 +803,7 @@
       </section>
 
       <div class="security-note">
-        <strong>حدود الأتمتة:</strong> في الرؤية المستهدفة، Laya تقترح، سراج
+        <strong>حدود الأتمتة:</strong> في الرؤية المستهدفة، سراج
         ينسق، حارس يطبق السياسة، وكاتب ينفذ فقط بعد تحقق الموافقة.
       </div>
       <footer class="footer">

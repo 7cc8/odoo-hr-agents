@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """Acceptance test for Excel Upload -> Real Dry-Run Report workflow without unauthorized write."""
 
+import os
 import unittest
 from pathlib import Path
 from fastapi.testclient import TestClient
@@ -11,9 +12,19 @@ from agent_events_service import get_events_service
 
 
 class TestExcelDryRunWorkflow(unittest.TestCase):
+    API_HEADERS = {"X-API-Key": "test-secret"}
+
     def setUp(self):
+        self._previous_write_token = os.environ.get("WRITE_API_TOKEN")
+        os.environ["WRITE_API_TOKEN"] = "test-secret"
         self.client = TestClient(app)
         self.events_service = get_events_service()
+
+    def tearDown(self):
+        if self._previous_write_token is None:
+            os.environ.pop("WRITE_API_TOKEN", None)
+        else:
+            os.environ["WRITE_API_TOKEN"] = self._previous_write_token
 
     def test_excel_upload_produces_real_dry_run_report(self):
         # 1. Create a test Excel workbook
@@ -34,7 +45,8 @@ class TestExcelDryRunWorkflow(unittest.TestCase):
             res = self.client.post(
                 "/api/agents/upload",
                 files={"file": ("test_sample_upload.xlsx", f, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
-                data={"chat_id": "test_excel_user"}
+                data={"chat_id": "test_excel_user"},
+                headers=self.API_HEADERS,
             )
 
         self.assertEqual(res.status_code, 200)

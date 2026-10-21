@@ -27,6 +27,11 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 from agents.base_agent import BaseAgent
+from matching_thresholds import (
+    MUWAFFAQ_HIGH_CONFIDENCE,
+    MUWAFFAQ_LOW_CONFIDENCE,
+    MUWAFFAQ_MEDIUM_CONFIDENCE,
+)
 
 logger = logging.getLogger("muwaffaq_agent")
 
@@ -96,9 +101,9 @@ class MuwaffaqAgent(BaseAgent):
         
         # عتبات الثقة
         self.confidence_thresholds = {
-            "high": 0.90,  # قبول تلقائي
-            "medium": 0.70,  # اقتراح للمراجعة
-            "low": 0.50,  # رفض أو تصعيد
+            "high": MUWAFFAQ_HIGH_CONFIDENCE,  # قبول تلقائي
+            "medium": MUWAFFAQ_MEDIUM_CONFIDENCE,  # اقتراح للمراجعة
+            "low": MUWAFFAQ_LOW_CONFIDENCE,  # رفض أو تصعيد
         }
         
         logger.info(f"✅ Muwaffaq Agent initialized")
@@ -125,7 +130,7 @@ class MuwaffaqAgent(BaseAgent):
             "field_type": match_request.get("field_type", "text"),  # text, name, id, etc.
             "candidates": match_request.get("candidates", []),
             "context": match_request.get("context", {}),
-            "min_confidence": match_request.get("min_confidence", 0.7),
+            "min_confidence": match_request.get("min_confidence", MUWAFFAQ_MEDIUM_CONFIDENCE),
             "raw_request": match_request,
         }
         

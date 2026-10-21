@@ -8,8 +8,6 @@
 - «مدقق» (Mudaqqiq): التحقق من الامتثال لنظام العمل السعودي.
 - «سجل» (Sijil): مسجل الأحداث والسجل التدقيقي.
 
-ملاحظة: تم حذف لايا (Laya) في P6 لتبسيط المشروع.
-
 ثم يصدر مصلح واحداً من 4 قرارات تنفيذية محددة:
 1. APPLY_AUTO_PATCH: الإصلاح والتمرير الفوري إذا كانت الثقة >= 90% وخيار الإصلاح التلقائي مفعّل.
 2. QUARANTINE_AND_PROCEED: عزل الصف المعطوب لتفادي تعطيل الدفعة.
@@ -50,6 +48,12 @@ from saudi_labor_law_rules import (
 from sijil_audit_service import SijilAuditService
 
 
+from matching_thresholds import (
+    AUTO_REPAIR_MIN_CONFIDENCE,
+    FUZZY_CANDIDATE_CUTOFF,
+    PROPOSE_PATCH_MIN_CONFIDENCE,
+)
+
 # =============================================================================
 # 1. ثوابت قرارات مصلح التنفيذية (Executive Decision Constants)
 # =============================================================================
@@ -59,7 +63,7 @@ DECISION_QUARANTINE_AND_PROCEED = "QUARANTINE_AND_PROCEED"
 DECISION_PROPOSE_MISSING_ENTITY = "PROPOSE_MISSING_ENTITY"
 DECISION_ESCALATE_TO_HUMAN = "ESCALATE_TO_HUMAN"
 
-CONFIDENCE_THRESHOLD_AUTO_REPAIR = 0.90  # عتبة الثقة الإلزامية للإصلاح التلقائي (90%)
+CONFIDENCE_THRESHOLD_AUTO_REPAIR = AUTO_REPAIR_MIN_CONFIDENCE  # عتبة الإصلاح التلقائي (انظر matching_thresholds.py)
 
 
 @dataclass
@@ -224,7 +228,7 @@ class MuslehService:
         live_snapshot: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
-        استشارة الوكلاء الأربعة: فاحص، موفق، مدقق، ولايا.
+        استشارة الوكلاء الثلاثة: فاحص، موفق، مدقق.
         """
         fields = row.get("fields", {})
         company_val = fields.get("company", {}).get("value", "")
@@ -332,13 +336,13 @@ class MuslehService:
             mudaqqiq_report["labor_law_notes"].append("تاريخ التعيين غير صحيح أو خارج النطاق المنطقي لنظام العمل.")
 
         # ---------------------------------------------------------
-        # د. P6: لايا محذوفة - نستخدم قواعد حتمية بسيطة
+        # د. قواعد حتمية بسيطة
         # ---------------------------------------------------------
         # نحدد requires_four_eyes بناءً على العدد (حد أدنى 10)
         requires_four_eyes = False  # يُحدد لاحقاً في Excel workflow
         is_deletion_blocked = False  # لا حذف في مسار Excel
         
-        # P6: استشارة بسيطة حتمية موحدة (بدون laya)
+        # استشارة بسيطة حتمية موحدة
         simple_report = {
             "domain": "general",
             "action_type": "create",
@@ -437,7 +441,7 @@ class MuslehService:
             sug_dept = muwaffaq["suggested_department"]
             dept_conf = muwaffaq["department_confidence"]
             overall_confidence = min(overall_confidence, dept_conf)
-            if sug_dept and dept_conf >= 0.80:
+            if sug_dept and dept_conf >= PROPOSE_PATCH_MIN_CONFIDENCE:
                 patched_fields["department"] = sug_dept
                 patches_to_apply.append(("department", sug_dept))
 
@@ -447,7 +451,7 @@ class MuslehService:
             sug_job = muwaffaq["suggested_job"]
             job_conf = muwaffaq["job_confidence"]
             overall_confidence = min(overall_confidence, job_conf)
-            if sug_job and job_conf >= 0.80:
+            if sug_job and job_conf >= PROPOSE_PATCH_MIN_CONFIDENCE:
                 patched_fields["job"] = sug_job
                 patches_to_apply.append(("job", sug_job))
 
@@ -763,7 +767,7 @@ class MuslehService:
             return cand_map[val_key], 1.0
 
         # البحث عن أقرب تطابق
-        close = get_close_matches(val_key, list(cand_map.keys()), n=1, cutoff=0.5)
+        close = get_close_matches(val_key, list(cand_map.keys()), n=1, cutoff=FUZZY_CANDIDATE_CUTOFF)
         if not close:
             return None, 0.0
 
