@@ -50,8 +50,12 @@ from sijil_audit_service import SijilAuditService
 
 from matching_thresholds import (
     AUTO_REPAIR_MIN_CONFIDENCE,
+    ESCALATION_DECISION_CONFIDENCE,
     FUZZY_CANDIDATE_CUTOFF,
+    MISSING_ENTITY_PROPOSAL_CONFIDENCE,
+    PROPOSE_MISSING_ENTITY_BELOW_CONFIDENCE,
     PROPOSE_PATCH_MIN_CONFIDENCE,
+    STATIC_CONSULTATION_REPORT_CONFIDENCE,
 )
 
 # =============================================================================
@@ -347,7 +351,7 @@ class MuslehService:
             "domain": "general",
             "action_type": "create",
             "intent_type": "heal_employee_data",
-            "confidence": 0.85,
+            "confidence": STATIC_CONSULTATION_REPORT_CONFIDENCE,
             "failure_patterns": [failure_code] if failure_code else [],
             "requires_four_eyes": requires_four_eyes,
             "is_deletion_blocked": is_deletion_blocked,
@@ -490,8 +494,8 @@ class MuslehService:
         # القرار 3: اقتراح تأسيس كيان مفقود (PROPOSE_MISSING_ENTITY)
         # -----------------------------------------------------------------
         if (
-            (dept_val and not fahas["department_exists"] and muwaffaq["department_confidence"] < 0.60)
-            or (job_val and not fahas["job_exists"] and muwaffaq["job_confidence"] < 0.60)
+            (dept_val and not fahas["department_exists"] and muwaffaq["department_confidence"] < PROPOSE_MISSING_ENTITY_BELOW_CONFIDENCE)
+            or (job_val and not fahas["job_exists"] and muwaffaq["job_confidence"] < PROPOSE_MISSING_ENTITY_BELOW_CONFIDENCE)
         ):
             missing_name = dept_val if not fahas["department_exists"] else job_val
             entity_type = "قسم" if not fahas["department_exists"] else "مسمى وظيفي"
@@ -502,7 +506,7 @@ class MuslehService:
                 decision=DECISION_PROPOSE_MISSING_ENTITY,
                 decision_ar="اقتراح تأسيس كيان مفقود في Odoo",
                 verdict_ar=f"تم رصد {entity_type} جديد ('{missing_name}') غير مسجل في Odoo. يوصى بإنشائه أولاً.",
-                confidence=0.95,
+                confidence=MISSING_ENTITY_PROPOSAL_CONFIDENCE,
                 patched_fields={"missing_entity": missing_name, "entity_type": entity_type},
                 patched_row=None,
                 consultation_log=consultation,
@@ -571,7 +575,7 @@ class MuslehService:
         verdict_ar: str,
         options: List[ActionableOption],
         patched_fields: Optional[Dict[str, Any]] = None,
-        confidence: float = 0.5,
+        confidence: float = ESCALATION_DECISION_CONFIDENCE,
     ) -> MuslehDecisionResult:
         """بناء قرار الإحالة للمسؤول البشري المرفوع حصراً إلى سراج."""
         excel_row_number = row.get("excel_row_number", validation_result.get("excel_row_number", 0))

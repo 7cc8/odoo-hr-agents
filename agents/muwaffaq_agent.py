@@ -31,6 +31,8 @@ from matching_thresholds import (
     MUWAFFAQ_HIGH_CONFIDENCE,
     MUWAFFAQ_LOW_CONFIDENCE,
     MUWAFFAQ_MEDIUM_CONFIDENCE,
+    MUWAFFAQ_MIN_CANDIDATE_SIMILARITY,
+    MUWAFFAQ_SAME_DEPARTMENT_BOOST,
 )
 
 logger = logging.getLogger("muwaffaq_agent")
@@ -377,7 +379,7 @@ class MuwaffaqAgent(BaseAgent):
             # حساب التشابه
             similarity = SequenceMatcher(None, query_lower, candidate_lower).ratio()
             
-            if similarity >= 0.6:  # عتبة التشابه
+            if similarity >= MUWAFFAQ_MIN_CANDIDATE_SIMILARITY:  # عتبة التشابه
                 matches.append(MatchCandidate(
                     candidate_id=self._extract_candidate_id(candidate),
                     display_name=candidate_name,
@@ -417,9 +419,9 @@ class MuwaffaqAgent(BaseAgent):
             
             # تعزيز النتيجة إذا كان من نفس القسم
             if preferred_department and candidate_dept == preferred_department:
-                base_similarity = min(base_similarity + 0.15, 1.0)
+                base_similarity = min(base_similarity + MUWAFFAQ_SAME_DEPARTMENT_BOOST, 1.0)
             
-            if base_similarity >= 0.6:
+            if base_similarity >= MUWAFFAQ_MIN_CANDIDATE_SIMILARITY:
                 matches.append(MatchCandidate(
                     candidate_id=self._extract_candidate_id(candidate),
                     display_name=candidate_name,

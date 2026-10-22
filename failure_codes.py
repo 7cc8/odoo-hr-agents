@@ -25,12 +25,14 @@ UNVERIFIED_NO_EMAIL = "unverified_no_email"
 INSUFFICIENT_DUPLICATE_SIGNAL = "insufficient_duplicate_signal"
 INVALID_WORK_EMAIL = "invalid_work_email"
 DUPLICATE_CHECK_UNAVAILABLE = "duplicate_check_unavailable"
+# Employee name is empty. Emitted by validator.py as "rejected" (the writer stage uses its own
+# ROW_REVALIDATION_ERROR constant in writer.py, not this one).
+VALIDATION_ERROR = "validation_error"
 
 # --- Katib / writer stage (reserved; writer.py is not yet built) ---
 APPROVAL_STALE = "approval_stale"
 REFERENCE_CHANGED = "reference_changed"
 ACCESS_ERROR = "access_error"
-VALIDATION_ERROR = "validation_error"
 MODULE_CONFLICT = "module_conflict"
 SYSTEM_ERROR = "system_error"
 ENVIRONMENT_GUARD_ERROR = "environment_guard_error"
@@ -58,11 +60,11 @@ STATUS_BY_FAILURE_CODE = {
     UNVERIFIED_NO_EMAIL: "needs_review",
     INSUFFICIENT_DUPLICATE_SIGNAL: "needs_review",
     INVALID_WORK_EMAIL: "rejected",
+    VALIDATION_ERROR: "rejected",
     DUPLICATE_CHECK_UNAVAILABLE: "needs_review",
     APPROVAL_STALE: "failed",
     REFERENCE_CHANGED: "failed",
     ACCESS_ERROR: "failed",
-    VALIDATION_ERROR: "failed",
     MODULE_CONFLICT: "failed",
     SYSTEM_ERROR: "failed",
     ENVIRONMENT_GUARD_ERROR: "failed",

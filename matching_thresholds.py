@@ -16,9 +16,22 @@ AUTO_REPAIR_MIN_CONFIDENCE = 0.90
 PROPOSE_PATCH_MIN_CONFIDENCE = 0.80
 # Musleh: difflib cutoff when collecting candidate references.
 FUZZY_CANDIDATE_CUTOFF = 0.5
+# Musleh: when a department/job is missing in Odoo AND its best similarity is below this,
+# the row proposes creating the missing entity (no patch is proposed).
+PROPOSE_MISSING_ENTITY_BELOW_CONFIDENCE = 0.60
+# Musleh: fixed label attached to a "create the missing entity" proposal. NOT computed.
+MISSING_ENTITY_PROPOSAL_CONFIDENCE = 0.95
+# Musleh: fixed label attached to the static consultation report. NOT computed, not used in decisions.
+STATIC_CONSULTATION_REPORT_CONFIDENCE = 0.85
 # Validator: difflib cutoff for the "closest match" hint on a rejected reference.
 CLOSEST_MATCH_SUGGESTION_CUTOFF = 0.6
 # Muwaffaq agent: accept / suggest / reject bands.
 MUWAFFAQ_HIGH_CONFIDENCE = 0.90
 MUWAFFAQ_MEDIUM_CONFIDENCE = 0.70
 MUWAFFAQ_LOW_CONFIDENCE = 0.50
+# Muwaffaq agent: minimum difflib similarity for a fuzzy / contextual candidate to be kept at all.
+MUWAFFAQ_MIN_CANDIDATE_SIMILARITY = 0.60
+# Muwaffaq agent: similarity added when the candidate belongs to the same department as the row.
+MUWAFFAQ_SAME_DEPARTMENT_BOOST = 0.15
+# Musleh: default confidence label for a hand-off-to-human (escalation) decision. NOT computed.
+ESCALATION_DECISION_CONFIDENCE = 0.50
