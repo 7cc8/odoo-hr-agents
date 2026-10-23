@@ -12,6 +12,7 @@ from normalization import (
     clean_value_text, to_text_preserve, normalize_header, normalize_date_text,
     email_match_key, name_match_key, reference_match_key, phone_match_key,
 )
+from cleaning import clean_field
 
 MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024  # 10 MB (كان 2 MB)
 MAX_ROWS = 10000  # 10,000 صف (كان 1,000)
@@ -187,6 +188,7 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
     for excel_row in range(data_start_row, ws.max_row + 1):
         row_raw, row_value, row_match = {}, {}, {}
         flags = []
+        corrections, cleaning_issues = [], []
         is_all_empty = True
 
         for header in ALL_HEADERS:
@@ -194,8 +196,19 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
                 cell = ws.cell(row=excel_row, column=header_map[header])
                 raw_text = to_text_preserve(cell.value)
                 value_text = clean_value_text(raw_text)
+                before_value, applied_rules = value_text, []
                 if header == "hiring_date":
-                    value_text = normalize_date_text(value_text)
+                    normalized_date = normalize_date_text(value_text)
+                    if normalized_date != value_text:
+                        applied_rules.append("normalize_date_text")
+                    value_text = normalized_date
+                cleaned = clean_field(header, value_text)
+                value_text = cleaned.value
+                applied_rules.extend(cleaned.rules)
+                if value_text != before_value:
+                    corrections.append({"field": header, "before": before_value, "after": value_text, "rules": applied_rules})
+                for issue_code in cleaned.issues:
+                    cleaning_issues.append({"field": header, "code": issue_code, "value": value_text})
                 match_text = _match_key_for(header, value_text)
 
                 if header in PHONE_HEADERS and cell.data_type == "n" and raw_text:
@@ -213,6 +226,11 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
 
         if is_all_empty:
             continue
+
+        if header_map.get("work_phone") == header_map.get("mobile_phone"):
+            # work_phone is an alias of the mobile column: report each change once, under mobile_phone
+            corrections = [c for c in corrections if c["field"] != "work_phone"]
+            cleaning_issues = [i for i in cleaning_issues if i["field"] != "work_phone"]
 
         duplicate_key = row_match["work_email"] if row_match["work_email"] else None
         possible_duplicate_key = None
@@ -235,6 +253,8 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
             "duplicate_key": duplicate_key,
             "possible_duplicate_key": possible_duplicate_key,
             "parser_flags": flags,
+            "corrections": corrections,
+            "cleaning_issues": cleaning_issues,
         })
 
     for row in rows:

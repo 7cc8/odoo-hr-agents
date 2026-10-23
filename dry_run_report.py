@@ -220,6 +220,8 @@ def build_report_dict(
                 "run_id": validated.get("run_id"),
                 "source_hash": validated.get("source_hash"),
                 "parser_warnings": parsed_row.get("parser_flags") or [],
+                "corrections": parsed_row.get("corrections") or [],
+                "cleaning_issues": parsed_row.get("cleaning_issues") or [],
             }
         )
 
@@ -242,6 +244,11 @@ def build_report_dict(
         "summary": {
             "status_counts": status_counts,
             "row_count": len(report_rows),
+            "cleaning": {
+                "rows_with_corrections": sum(1 for r in report_rows if r["corrections"]),
+                "corrections_count": sum(len(r["corrections"]) for r in report_rows),
+                "issues_count": sum(len(r["cleaning_issues"]) for r in report_rows),
+            },
         },
         "rows": report_rows,
     }
