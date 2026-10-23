@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 from zipfile import ZIP_DEFLATED, ZipFile
 from xml.sax.saxutils import escape
 
-from parser import parse_xlsx
+from parser import ParserError, parse_xlsx
 from validator import Validator
 from odoo_readonly_repository import OdooReadonlyRepository
 
@@ -302,6 +302,21 @@ def write_xlsx(report_dict: Dict[str, Any], file_path: str | Path) -> None:
     _MiniXlsxEmitter(file_path).emit(rows)
 
 
+def _detect_template_domain(input_xlsx_path: str | Path) -> str | None:
+    """Domain key ("employee", "contract", ...) of a system template, or None if undetectable.
+
+    None sends the file to the template validator, which is the behaviour before routing existed.
+    """
+    try:
+        import openpyxl
+        from excel_template_validator import identify_template_and_sheet
+
+        wb = openpyxl.load_workbook(str(input_xlsx_path), data_only=True)
+        return identify_template_and_sheet(wb, Path(input_xlsx_path).name)[0]
+    except Exception:
+        return None
+
+
 def build_full_report(input_xlsx_path: str | Path) -> Dict[str, Any]:
     """Parses, validates, and assembles the report dict. Does NOT write
     any output files and does NOT call create/write/unlink on Odoo.
@@ -327,23 +342,27 @@ def build_full_report(input_xlsx_path: str | Path) -> Dict[str, Any]:
             or any(s.startswith(("1_", "2_", "3_", "4_", "5_", "6_", "7_", "8_", "9_", "10_", "11_", "12_", "13_")) for s in sheetnames)
             or any(k in Path(input_xlsx_path).name.lower() for k in ["template_", "master_", "attendance", "contract", "payroll", "timeoff", "loan", "overtime", "disciplinary", "appraisal", "recruitment"])
         )
-        if is_template:
+        if is_template and _detect_template_domain(input_xlsx_path) != "employee":
+            # Other HR domains (contracts, leave, payroll, ...) keep the template validator.
+            # Employee templates fall through to the strict pipeline below.
             return validate_template_workbook(str(input_xlsx_path), repo=repository)
     except Exception:
         pass
 
-    # 2. Try classic employee pipeline
+    # 2. Strict employee pipeline (parser + Validator). Its row_hash is what writer.py re-computes.
     try:
         parsed_report = parse_xlsx(str(input_xlsx_path))
-        snapshot = repository.get_live_reference_snapshot()
-        validator = Validator(repository)
-        validated_rows = validator.validate_rows(parsed_report["rows"])
-        repo_info = repository.get_session_info()
-        return build_report_dict(parsed_report, validated_rows, repo_info, snapshot)
-    except Exception:
-        # 3. Fallback: try template validator in case sheet names had variations
+    except ParserError:
+        # 3. Not employee-shaped (e.g. a template with renamed sheets): let the template validator try.
+        # Only a structural ParserError falls back; any other failure (Odoo, a bug) must surface
+        # instead of silently downgrading to the lenient template validator.
         from excel_template_validator import validate_template_workbook
         return validate_template_workbook(str(input_xlsx_path), repo=repository)
+    snapshot = repository.get_live_reference_snapshot()
+    validator = Validator(repository)
+    validated_rows = validator.validate_rows(parsed_report["rows"])
+    repo_info = repository.get_session_info()
+    return build_report_dict(parsed_report, validated_rows, repo_info, snapshot)
 
 
 def write_report_files(report_dict: Dict[str, Any], output_dir: str | Path) -> Dict[str, Path]:

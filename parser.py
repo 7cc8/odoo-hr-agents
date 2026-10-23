@@ -27,6 +27,12 @@ PHONE_HEADERS = {"work_phone", "mobile_phone"}
 TEMPLATE_EXAMPLE_ID = "1088776655"
 TEMPLATE_EXAMPLE_NAME = "عبدالله بن محمد الغامدي"
 
+# Example row (row 2, header on row 1) of the official Employees template written by
+# generate_employee_template.py. Skipped only when BOTH values match exactly, so an edited
+# row (or a real employee with the same name but another e-mail) is never dropped.
+OFFICIAL_TEMPLATE_EXAMPLE_NAME = "أحمد محمد العتيبي"
+OFFICIAL_TEMPLATE_EXAMPLE_EMAIL = "ahmed@company.com"
+
 
 class ParserError(Exception):
     pass
@@ -171,6 +177,12 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
         if row3_vals and (TEMPLATE_EXAMPLE_ID in row3_vals or row3_vals[0] == TEMPLATE_EXAMPLE_NAME):
             data_start_row = 4
             warnings = sorted(set(warnings) | {"template_example_row_skipped:3"})
+    elif header_row_idx == 1 and ws.max_row >= 2 and "name" in header_map and "work_email" in header_map:
+        example_name = clean_value_text(to_text_preserve(ws.cell(row=2, column=header_map["name"]).value))
+        example_email = clean_value_text(to_text_preserve(ws.cell(row=2, column=header_map["work_email"]).value)).lower()
+        if example_name == OFFICIAL_TEMPLATE_EXAMPLE_NAME and example_email == OFFICIAL_TEMPLATE_EXAMPLE_EMAIL:
+            data_start_row = 3
+            warnings = sorted(set(warnings) | {"template_example_row_skipped:2"})
 
     for excel_row in range(data_start_row, ws.max_row + 1):
         row_raw, row_value, row_match = {}, {}, {}
