@@ -3,12 +3,12 @@
 <div align="center">
 
 ![Python Version](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python)
-![Odoo Version](https://img.shields.io/badge/Odoo-16%20%7C%2017%20%7C%2018-purple?logo=odoo)
+![Odoo Version](https://img.shields.io/badge/Odoo-19.0%2Be%20Enterprise-purple?logo=odoo)
 ![Tests](https://img.shields.io/badge/Tests-700%2B%20Passing-brightgreen?logo=pytest)
 ![Architecture](https://img.shields.io/badge/Architecture-Dual--Track%20Hybrid-orange)
 ![Security](https://img.shields.io/badge/Security-Fail--Closed%20%26%20RBAC-red)
 
-**المنظومة الهجينة الذكية لإدارة وأتمتة الموارد البشرية في Odoo**  
+**المنظومة الهجينة الذكية لإدارة وأتمتة الموارد البشرية في Odoo 19 Enterprise**  
 *تجمع بين خط أنابيب حتمي صارم لمعالجة بيانات Excel، وفريق عمل من 8 وكلاء ذكاء اصطناعي، ومحرك تحليلات متقدم لنسب التوطين ونطاقات وفق نظام العمل السعودي.*
 
 [المميزات](#-أبرز-المميزات) • [معمارية المسارين](#-المعمارية-الهجينة-ذات-المسارين-dual-track) • [فريق الوكلاء الثمانية](#-فريق-الوكلاء-الذكية-the-8-ai-agents) • [محرك التحليلات والتوطين](#-محرك-التحليلات-التنفيذية-ونظام-التوطين-ونطاقات) • [سيناريوهات الاستخدام](#-سيناريوهات-العمل-ورحلة-المستخدم) • [التشغيل السريع](#-التشغيل-السريع-quickstart) • [دليل الـ API](#-دليل-واجهات-البرمجة-core-api-reference)
@@ -27,7 +27,7 @@
 
 ### ✅ الحل المعماري المتكامل:
 يقدم مشروع **odoo-hr-agents** حلاً شاملاً عبر **نظام هجين متطور**:
-1. **مسار تنظيف وتدقيق حتمي (Deterministic & Fail-Closed):** يصحح البيانات الشائعة تلقائياً، ويتحقق من السجلات في Odoo، ويطلب موافقة بشرية موقعة تشفيرياً (`row_hash`) قبل أي كتابة.
+1. **مسار تنظيف وتدقيق حتمي (Deterministic & Fail-Closed):** يصحح البيانات الشائعة تلقائياً، ويتحقق من السجلات في Odoo 19، ويطلب موافقة بشرية موقعة تشفيرياً (`row_hash`) قبل أي كتابة.
 2. **منظومة متكاملة من 8 وكلاء ذكاء اصطناعي:** يتولون التنسيق، الاستعلام الآمن، مطابقة البيانات الضبابية، التدقيق العمالي، حراسة الأمان والخصوصية، وتشخيص الأخطاء.
 3. **محرك تحليلات تنفيذية ومحاكاة التوطين:** احتساب نطاقات ونسب السعودة ومخصصات التأمينات، مع محاكاة أثر التعيين قبل تنفيذه.
 
@@ -48,35 +48,58 @@
 
 يعتمد النظام فصلاً تاماً بين عمليات **التعديل والكتابة** الحساسة، وعمليات **الاستعلام والمحادثة**:
 
-```
-                              ┌─────────────────────────────────────────────────────────┐
-                              │                 odoo-hr-agents Engine                   │
-                              └───────────────────────────┬─────────────────────────────┘
-                                                          │
-                    ┌─────────────────────────────────────┴─────────────────────────────────────┐
-                    ▼                                                                           ▼
-      [المسار الأول: المعالجة والكتابة الصارمة]                                   [المسار الثاني: الاستعلام والوكلاء الذكية]
-         Strict Deterministic Pipeline                                              LLM-Driven Agent Runtime
-                    │                                                                           │
-  Excel File Upload (Web / Telegram)                                            User Chat (Dashboard / Telegram)
-                    │                                                                           │
-  1. Parser & Deterministic Cleaning (cleaning.py)                              1. Seraj (Meta-Agent / Orchestrator)
-     - استعادة الصفر للجوال السعودي (05x)                                         - إدارة الحوار وتفكيك الاستعلامات
-     - توحيد التواريخ غير الملتبسة (ISO)                                        │
-     - إزالة التطويل وتوحيد الكاف والياء                                        2. Shared Agent Runtime (agent_runtime.py)
-                    │                                                               - سقف الأدوار (Max Turns = 5)
-  2. Strict Validation (validator.py)                                           - مهلة صارمة للأدوات (Tool Timeout = 60s)
-     - مطابقة الشركة والقسم والمسمى الوظيفي                                     - بتر النتائج الضخمة (Max 8000 Chars)
-     - فحص تكرار البريد في Odoo (Fail-Closed)                                    - بث أحداث لحظية للوحة التحكم (SSE)
-                    │                                                           │
-  3. Dry-Run Inspection Report & Row Hashes                                     3. Cognitive Agents Delegation
-                    │                                                               - فاحص (استعلام Odoo)
-  4. Explicit HR Approval (approval_schema.py)                                  - مدقق (فحص الامتثال العمالي)
-                    │                                                               - حارس (فحص الصلاحيات والحجب)
-  5. Provenance-Bound Writer (writer.py)                                            - مصلح وموفق (التشخيص والمطابقة)
-     - إعادة التحليل ومقارنة row_hash قبل أي إدخال                              │
-     - كتابة مقيدة ومحمية في Odoo (hr.employee)                                 ▼
-     - سجل تدقيق كامل JSONL (Sijil)                                     إجابة موثقة + تحديثات لوحة التحكم الحية
+```mermaid
+flowchart TD
+    classDef primary fill:#1e293b,stroke:#3b82f6,stroke-width:2px,color:#fff
+    classDef strict fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff
+    classDef agent fill:#4c1d95,stroke:#8b5cf6,stroke-width:2px,color:#fff
+    classDef result fill:#1f2937,stroke:#64748b,stroke-width:1px,color:#fff
+
+    User(["👤 المستخدم / موظف الموارد البشرية"])
+    
+    subgraph Core ["odoo-hr-agents Engine"]
+        Router{"توجيه العملية"}
+    end
+
+    subgraph Track1 ["المسار الأول: خط المعالجة الحتمي الصارم (Strict Pipeline)"]
+        direction TB
+        Upload["📁 رفع ملف Excel (الويب / تيليجرام)"]
+        Cleaning["🧹 1. التنظيف الحتمي (cleaning.py)<br/>استعادة 05x • توحيد التواريخ • إزالة التطويل"]
+        Validation["🛡️ 2. التدقيق الصارم (validator.py)<br/>مطابقة الهيكل • فحص البريد في Odoo (Fail-Closed)"]
+        DryRun["📋 3. تقرير الفحص التجريبي وتوليد الـ Hashes"]
+        Approval["✍️ 4. الاعتماد البشري الرسمي (approval_schema.py)"]
+        Writer["💾 5. كاتب Odoo الموثوق (writer.py)<br/>إعادة التحقق من الـ Hash والكتابة المقيدة"]
+        SijilLog["📝 سجل تدقيق جنائي غير قابل للتلاعب (JSONL)"]
+
+        Upload --> Cleaning --> Validation --> DryRun --> Approval --> Writer --> SijilLog
+    end
+
+    subgraph Track2 ["المسار الثاني: وقت تشغيل الوكلاء الذكي (Agent Runtime)"]
+        direction TB
+        ChatInput["💬 محادثة تفاعلية واستعلامات (Dashboard / Bot)"]
+        Seraj["🧠 سراج (Seraj) — المنسق العام وإدارة النوايا"]
+        Runtime["⚙️ بيئة التشغيل الموحدة (agent_runtime.py)<br/>سقف 5 أدوار • مهلة 60 ثانية • بتر عند 8000 حرف • بث لحظي (SSE)"]
+        AgentsPool["👥 تفويض المهام للوكلاء المتخصصين"]
+        
+        ChatInput --> Seraj --> Runtime --> AgentsPool
+        AgentsPool --> Fahas["🔍 فاحص (استعلام Odoo)"]
+        AgentsPool --> Mudaqqiq["⚖️ مدقق (الامتثال العمالي)"]
+        AgentsPool --> Hares["🛡️ حارس (الأمان وحجب PII)"]
+        AgentsPool --> Musleh["🩺 مصلح وموفق (التشخيص والمطابقة)"]
+    end
+
+    OdooDB[("🏢 Odoo 19.0+e Enterprise Database")]
+
+    User --> Router
+    Router -->|ملف موظفين Excel| Upload
+    Router -->|استعلام / محادثة| ChatInput
+    Writer -.->|كتابة مقيدة ومحمية| OdooDB
+    Fahas -.->|قراءة واستعلام آمن فقط| OdooDB
+
+    class User,Router primary
+    class Upload,Cleaning,Validation,DryRun,Approval,Writer,SijilLog strict
+    class ChatInput,Seraj,Runtime,AgentsPool,Fahas,Mudaqqiq,Hares,Musleh agent
+    class OdooDB result
 ```
 
 ---
@@ -112,25 +135,37 @@
 
 يعمل النظام عبر نموذج **تنسيق الوكلاء متعددي المهام (Multi-Agent Orchestration)**؛ يقودهم المنسق العام "سراج"، ويتعاونون تحت بيئة تشغيل موحدة ومحصنة ضد التعليق وانفجار الموارد (`agent_runtime.py`):
 
-```
-                                  ┌───────────────────────────────┐
-                                  │      سراج (Seraj)             │
-                                  │   Meta-Agent / Orchestrator   │
-                                  └──────────────┬────────────────┘
-                                                 │
-          ┌─────────────────┬────────────────────┼────────────────────┬─────────────────┐
-          ▼                 ▼                    ▼                    ▼                 ▼
-   ┌─────────────┐   ┌─────────────┐      ┌─────────────┐      ┌─────────────┐   ┌─────────────┐
-   │ فاحص (Fahas) │   │ مدقق (Mudaqqiq)│  │ حارس (Hares) │     │ مصلح (Musleh)│   │ موفق (Muwaffaq)│
-   │ Odoo Query  │   │ Compliance  │      │ Security    │      │ Diagnostics │   │ Matching    │
-   └─────────────┘   └─────────────┘      └─────────────┘      └─────────────┘   └─────────────┘
-                                                 │
-                                  ┌──────────────┴──────────────┐
-                                  ▼                             ▼
-                           ┌─────────────┐               ┌─────────────┐
-                           │ كاتب (Katib) │               │ سجل (Sijil) │
-                           │ Execution   │               │ Audit & Log │
-                           └─────────────┘               └─────────────┘
+```mermaid
+graph TD
+    classDef lead fill:#1e3a8a,stroke:#3b82f6,stroke-width:3px,color:#fff
+    classDef inspect fill:#065f46,stroke:#10b981,stroke-width:2px,color:#fff
+    classDef guard fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#fff
+    classDef helper fill:#581c87,stroke:#a855f7,stroke-width:2px,color:#fff
+    classDef exec fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#fff
+
+    Seraj["🧠 سراج (Seraj)<br/><b>Orchestrator & Meta-Agent</b><br/>إدارة الحوار، تصنيف النوايا، وتوزيع المهام"]
+
+    Fahas["🔍 فاحص (Fahas)<br/><b>Query Agent</b><br/>استعلام وقراءة Odoo فقط"]
+    Mudaqqiq["⚖️ مُدَقِّق (Mudaqqiq)<br/><b>Compliance Agent</b><br/>فحص الامتثال لنظام العمل السعودي"]
+    Hares["🛡️ حارس (Hares)<br/><b>Security Agent</b><br/>حجب PII، حراسة البيئة، وتقييم المخاطر"]
+    Musleh["🩺 مُصلِح (Musleh)<br/><b>Healing Agent</b><br/>تشخيص أسباب الرفض واقتراح الرقع"]
+    Muwaffaq["🎯 مُوَفِّق (Muwaffaq)<br/><b>Matching Engine</b><br/>مطابقة ضبابية وهجينة للسجلات"]
+    Katib["✍️ كاتب (Katib)<br/><b>Execution Gateway</b><br/>بوابة الكتابة المعتمدة في Odoo"]
+    Sijil["📜 سِجِل (Sijil)<br/><b>Audit Agent</b><br/>التسجيل الجنائي للأحداث (JSONL)"]
+
+    Seraj -->|تفويض الاستعلام| Fahas
+    Seraj -->|تدقيق الأنظمة واللوائح| Mudaqqiq
+    Seraj -->|فحص الأمان والخصوصية| Hares
+    Seraj -->|تشخيص الأخطاء| Musleh
+    Seraj -->|مطابقة الأسماء المتباينة| Muwaffaq
+    Seraj -->|طلب التنفيذ المعتمد| Katib
+    Katib -->|توثيق العمليات| Sijil
+
+    class Seraj lead
+    class Fahas,Mudaqqiq inspect
+    class Hares guard
+    class Musleh,Muwaffaq helper
+    class Katib,Sijil exec
 ```
 
 ### 1. سراج (Seraj) — المنسق العام ومدير المحادثة (The Orchestrator)
@@ -234,7 +269,7 @@ odoo-hr-agents/
 
 ### المتطلبات الأساسية
 - **Python:** 3.12 أو أحدث.
-- **Odoo:** إصدارات 16 أو 17 أو 18 (صلاحيات قراءة وإنشاء على موديل `hr.employee`).
+- **Odoo:** Odoo 19.0+e Enterprise (صلاحيات قراءة وإنشاء على موديل `hr.employee`).
 - **نموذج الذكاء الاصطناعي:** Ollama محلي (الموديل الموصى به: `qwen3.5:9b`) أو مفتاح سحابي (Groq / OpenAI / Anthropic).
 
 ### 1. إعداد المتغيرات (`.env`)
@@ -242,9 +277,9 @@ odoo-hr-agents/
 
 ```bash
 # -------------------------------------------------------------
-# 1. إعدادات الاتصال بـ Odoo
+# 1. إعدادات الاتصال بـ Odoo 19 Enterprise
 # -------------------------------------------------------------
-ODOO_URL=https://your-odoo-instance.com
+ODOO_URL=https://your-odoo19-instance.com
 ODOO_DB=your_database_name
 ODOO_USERNAME=your_username
 ODOO_API_KEY=your_api_key_or_password
@@ -331,7 +366,7 @@ pytest tests/test_labor_law_mudaqqiq_routing.py tests/test_mudaqqiq_agent.py -v
 ## 🔒 الأمان وحوكمة البيانات (Enterprise Governance)
 
 1. **عزل صلاحيات الحذف بالكامل (`Unlink Isolation`):** بوابة الكتابة `OdooWriteGateway` لا تحتوي كودياً على أي صلاحية حذف. أدوات التنظيف معزولة في بوابة خاصة `OdooCleanupGateway`، وتتطلب تأكيداً يدوياً صريحاً `--confirm` ومطابقة حية للبريد.
-2. **فحص البيئات الصارم (`Environment Policy`):** منع الكتابة على أي بيئة إنتاج حية إلا بشروط صريحة واستثنائية.
+2. **فحص البيئات الصارم (`Environment Policy`):** منع الكتابة على أي بيئة إنتاج حية إلا بشروط صريحة واستثنائية ومحصورة في قواعد Odoo 19 المصرح بها.
 3. **حماية الخصوصية ومراقبة الجلسات:** يتولى الوكيل "حارس" إخفاء البيانات الشخصية (PII Masking) لضمان عدم تسريب الرواتب والبيانات الحساسة في السجلات.
 4. **التطابق التشفيري (`Hash Provenance`):** لا يمكن إدخال أي سجل إلى Odoo إذا تم تعديل حرف واحد في الملف بين مرحلتي الفحص والاعتماد.
 5. **حماية الـ Endpoints برمز أمان قوي:** يُلزم بتعيين رمز كتابة معقد (`AGENT_WRITE_TOKEN`) لا يقل عن 32 خانة وتفعيل بروتوكول HTTPS في البيئات الإنتاجية.
