@@ -1,7 +1,7 @@
 # odoo-hr-agents
 
 > **Phase 1.5 — Runtime المستقر والمحصّن أمنياً (Production-Hardened Hybrid Architecture)**  
-> نظام هجين لأتمتة عمليات الموارد البشرية وإدارة الموظفين في Odoo: يجمع بين **مسار حتمي صارم (Deterministic & Fail-Closed Pipeline)** لمعالجة ملفات Excel والكتابة المعتمدة، و**محرك وكلاء ذكي (LLM Agent Runtime)** للاستعلام المباشر والمحادثة والدعم التفاعلي.
+> نظام هجين لأتمتة عمليات الموارد البشرية وإدارة الموظفين في Odoo: يجمع بين **مسار حتمي صارم (Deterministic & Fail-Closed Pipeline)** لمعالجة ملفات Excel والكتابة المعتمدة، و**محرك وكلاء ذكي (LLM Agent Runtime)** للاستعلام المباشر والمحادثة، و**منظومة تحليلات تنفيذية للموارد البشرية ونسب التوطين (Saudization & Nitaqat Engine)**.
 
 ---
 
@@ -70,6 +70,17 @@
 
 ---
 
+## 📊 التحليلات التنفيذية ونظام التوطين ونطاقات (`analytics_service.py`)
+
+يضم النظام محرك تحليلات متقدم ومخصص لبيئة الأعمال السعودية، يدعم المتابعة الحية وحساب مؤشرات الأداء (KPIs):
+
+- **مؤشر التوطين ونطاقات (`/api/analytics/workforce`):** احتساب نسب السعودة الحالية وتحديد نطاق المنشأة وفق معايير وزارة الموارد البشرية.
+- **محاكاة التوطين الفورية (`/api/analytics/simulate-saudization`):** محاكاة تأثير تعيين موظفين جدد (سعوديين أو مقيمين) على نطاق المنشأة قبل اتخاذ قرار التعيين الفعلي.
+- **الالتزامات المالية والتأمينات (`/api/analytics/financial`):** حساب اشتراكات التأمينات الاجتماعية (GOSI)، ومخصصات مكافأة نهاية الخدمة (EOS)، والرواتب.
+- **الامتثال والعمليات (`/api/analytics/compliance` و `/api/analytics/operations`):** متابعة سريان الإقامات، عقود العمل، الإجازات، ومعدلات الدوران الوظيفي.
+
+---
+
 ## 🤖 المسار الثاني: منظومة الوكلاء ووقت التشغيل (Agent Runtime)
 
 يعمل الوكلاء كفريق متكامل تحت بيئة تشغيل موحدة (`agent_runtime.py`) تضمن استقرار النظام ومنع استنزاف الموارد:
@@ -91,17 +102,47 @@
 
 ---
 
-## 🌐 الواجهات المتاحة للمستخدم
+## 🏗️ هيكل المجلدات الرئيسي (Repository Structure)
 
-### 1. لوحة التحكم الموحدة (Unified Dashboard)
-واجهة ويب متكاملة مبنية بـ FastAPI و Vanilla JS مع ثيم داكن احترافي:
-- **مركز رفع الملفات المنفصل (Decoupled Upload Center):** رفع ملفات Excel بالسحب والإفلات، وبدء الـ Dry-run، واستعراض تقارير التصحيح والـ Hashes بشكل مستقل.
-- **محادثة الوكيل اللحظية (Live Chat):** محادثة تفاعلية سريعة مع "سراج" للاستعلام عن موظفي Odoo، الأقسام، والإحصائيات.
-- **لوحة الأحداث المباشرة (Event Stream):** تتبع لحظي لما يقوم به الوكلاء خطوة بخطوة.
+```
+odoo-hr-agents/
+├── agents/                   # الوكلاء المتخصصون (Seraj, Muwaffaq, Sijil, ...)
+├── config/                   # إعدادات لوحة التحكم وبيئة العمل
+├── docs/                     # التوثيق المعماري ودليل الـ Validator وموفق
+├── graph/                    # تعريف حالات ورسم بياني لـ LangGraph
+├── memory/                   # إدارة ذاكرة المحادثة والجلسات
+├── observability/            # مقاييس الأداء (Metrics)، التتبع (Tracer)، والرصد
+├── templates/                # قوالب HTML للوحة التحكم والقوالب المعيارية (Excel)
+├── tests/                    # حزمة الاختبارات الآلية (+700 اختبار)
+├── agent_runtime.py          # محرك تشغيل دورات استدعاء الأدوات الموحد
+├── analytics_service.py      # محرك التحليلات السعودية (نطاقات، التأمينات، التوطين)
+├── cleaning.py               # مرحلة التنظيف الحتمية للمدخلات العربية
+├── dry_run_report.py         # بناء تقارير الفحص التجريبي والـ Hashes
+├── matching_thresholds.py    # ثوابت وعتبات نسب التشابه الموحدة
+├── parser.py                 # محلل ملفات Excel واستخراج الحقول
+├── seraj_llm_service.py      # خدمة التنسيق والمحادثة الذكية لسراج
+├── validator.py              # المدقق الصارم وقواعد المطابقة مع Odoo
+├── web_service.py            # تطبيق FastAPI الرئيسي والواجهة الموحدة
+└── writer.py                 # كاتب Odoo الموثوق والتحقق من التوقيعات
+```
 
-### 2. بوت تيليجرام (Telegram Bot Integration)
-- دعم تحميل وتوزيع قوالب الموظفين الرسمية.
-- رفع ملفات الإكسل ومعالجتها والحصول على تقارير dry-run مباشرة داخل تيليجرام.
+---
+
+## 📡 أهم نقاط النهاية (Core REST API Endpoints)
+
+| المسار (Endpoint) | الطريقة | الوظيفة |
+|---|---|---|
+| `/api/upload` | POST | رفع ملف Excel وفحصه الأولي وحفظه في الجلسة |
+| `/api/dry-run` | POST | تشغيل الفحص التجريبي الصارم وتوليد تقرير الـ Hashes |
+| `/api/approve` | POST | اعتماد الصفوف المقبولة وتوليد تصريح الكتابة |
+| `/api/write` | POST | تنفيذ الكتابة المقيدة في Odoo للصفوف المعتمدة |
+| `/api/write/{run_id}/stream` | GET | بث أحداث الكتابة اللحظي للمشرف (SSE Stream) |
+| `/api/analytics/dashboard` | GET | لوحة الإحصائيات الشاملة والمؤشرات التنفيذية |
+| `/api/analytics/workforce` | GET | مؤشرات التوطين، نسبة السعودة، وتصنيف نطاقات |
+| `/api/analytics/simulate-saudization` | POST | محاكاة فورية لتأثير التعيين الجديد على نطاق الشركة |
+| `/api/template/generate` | POST | توليد قالب إكسل موظفين رسمي معتمد متوافق مع Odoo |
+| `/api/leaves/summary/{emp_id}` | GET | استعلام رصيد وسجل إجازات موظف محدد |
+| `/api/status` | GET | فحص جاهزية النظام والاتصال بقاعدة Odoo |
 
 ---
 
@@ -113,7 +154,7 @@
 - نموذج ذكاء اصطناعي محلي عبر Ollama (`qwen3.5:9b` موصى به) أو مفتاح سحابي.
 
 ### 1. إعداد المتغيرات (`.env`)
-قم بنسخ ملف `.env.example` إلى `.env` وضبط الإعدادات:
+قم بضبط إعدادات الاتصال:
 ```bash
 # Odoo Connection
 ODOO_URL=https://your-odoo-instance.com
@@ -128,22 +169,15 @@ AGENT_WRITE_TOKEN=your_secure_write_token
 LLM_PROVIDER=ollama
 OLLAMA_MODEL=qwen3.5:9b
 OLLAMA_BASE_URL=http://localhost:11434
-
-# Or Cloud Providers (Groq / OpenAI / Anthropic)
-# GROQ_API_KEY=gsk_...
-# OPENAI_API_KEY=sk-...
 ```
 
 ### 2. بدء الخادم وتشغيل واجهة الويب
 على أنظمة Windows:
 ```powershell
-# تشغيل خادم الويب الموحد مباشرة
 .\start_chat.bat
 ```
 أو عبر السطر البرمجي:
 ```bash
-python web_service.py
-# أو
 uvicorn web_service:app --host 0.0.0.0 --port 8000 --reload
 ```
 افتح المتصفح على: `http://localhost:8000`
@@ -173,10 +207,3 @@ pytest tests/test_cleaning_stage.py tests/test_failure_code_status_consistency.p
 2. **فحص الصلاحيات والبيئة (`Environment Policy`):** منع أي عملية كتابة على بيئات غير مصرح بها.
 3. **حماية التكرار المحكمة (`Fail-Closed`):** عند الشك أو تعذر فحص التكرار مع Odoo، يتحول الصف تلقائياً إلى `needs_review` ولا يُقبل بصمت.
 4. **تطابق التوقيعات (`Hash Verification`):** لا يمكن كتابة أي صف في Odoo إذا تغير حرف واحد في الملف بين لحظة الفحص التجريبي ولحظة الاعتماد.
-
----
-
-## 📚 وثائق ومراجع إضافية
-- [دليل الـ Validator وموفق المعتمد من الكود](docs/validator_and_matching.md)
-- [دليل استخدام الواجهة الموحدة](docs/UNIFIED_DASHBOARD_GUIDE.md)
-- [خطة التدقيق والمطابقة وإدارة الفشل](failure_codes.py)
