@@ -1,0 +1,2868 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example - Modal multi-page UI</title>
+  <link rel="stylesheet" href="assets/fonts/fonts.css" />
+  <script>
+    (function seedThemeBeforePaint() {
+      // Prevent light->dark flash inside embedded iframes by setting
+      // data-theme before CSS parses. Priority:
+      // 1) explicit ?theme= param
+      // 2) parent document theme (same-origin embed)
+      // 3) OS preference fallback
+      var html = document.documentElement;
+      var params = new URLSearchParams(window.location.search);
+      var q = params.get("theme");
+      if (q === "dark" || q === "light") {
+        html.dataset.theme = q;
+        return;
+      }
+      var seeded = null;
+      if (params.get("embed") === "1") {
+        try {
+          if (window.parent && window.parent !== window) {
+            var parentTheme = window.parent.document.documentElement.dataset.theme;
+            if (parentTheme === "dark" || parentTheme === "light") seeded = parentTheme;
+          }
+        } catch (_) {}
+      }
+      if (!seeded && window.matchMedia) {
+        seeded = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      if (seeded) html.dataset.theme = seeded;
+    })();
+  </script>
+  <style>
+    /* ──────────────────────────────────────────────────────────────
+       Design tokens — pulled 1:1 from Figma node 450:649 (light) and
+       450:1101 (dark inversion). Light is the source of truth; dark
+       mirrors it via overrides so every literal value is in one place.
+       ────────────────────────────────────────────────────────────── */
+    :root {
+      /* Surfaces */
+      --bg-page: #fdfdfd;
+      --bg-modal: #ffffff;
+      --bg-input: rgba(58, 58, 58, 0.04);
+      --bg-tab-active: rgba(61, 61, 61, 0.04);
+      --bg-ghost-hover: rgba(61, 61, 61, 0.04);
+      --bg-org-ring: transparent;
+      --bg-backdrop: rgba(0, 0, 0, 0.12);
+
+      /* Text */
+      --text-strong: #1b1b1b;
+      --text-body: #474747;
+      --text-muted: #676767;
+      --text-soft: #5e6073;
+      --text-tab-idle: #717171;
+      --text-placeholder: #9e9e9e;
+      --text-on-primary: #ffffff;
+      --text-on-dropdown: #17181c;
+      --text-error: #cc000b;
+
+      /* Strokes */
+      --stroke-input: rgba(0, 0, 0, 0.04);
+      --stroke-input-hover: rgba(0, 0, 0, 0.08);
+      --stroke-input-focus: rgba(0, 0, 0, 0.78);
+      --stroke-divider: #d9d9d9;
+      --opacity-divider: 0.3;
+
+      /* Primary action — 5 states from Figma 450:1512.
+         Default → Hover gets one shade lighter, Pressed gets two
+         shades lighter, Focused stays at Default with a 3px halo,
+         Disabled stays at Default with the label at 50% opacity. */
+      --primary-bg: #2d2d2d;
+      --primary-bg-hover: #4d4d4d;
+      --primary-bg-active: #5e5e5e;
+      --primary-text: #ffffff;
+      --primary-focus-ring: rgba(0, 0, 0, 0.3);
+
+      /* Iconography (uses currentColor so theme flips just work) */
+      --icon-strong: #1b1b1b;
+
+      /* Shadows — Figma "Light Mode/Shadow 25" */
+      --shadow-modal:
+        0 0 0 1px rgba(0, 0, 0, 0.06),
+        0 2px 6px 0 rgba(0, 0, 0, 0.05),
+        0 4px 42px 0 rgba(0, 0, 0, 0.06);
+      --shadow-primary:
+        0 1px 1px rgba(0, 0, 0, 0.2),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+
+      /* Radii / sizes */
+      --radius-modal: 12px;
+      --radius-menu: 18px;
+      --radius-tab: 50px;
+      --radius-ghost: 8px;
+      --radius-button: 10px;
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       Transitions.dev — universal install. Drop-in semantic
+       tokens that every t-* snippet reads from. Sourced verbatim
+       from transitions-dev skill _root.css.
+       ────────────────────────────────────────────────────────────── */
+    :root {
+      /* Card resize — sourced from the transitions-dev skill
+         (01-card-resize.md). Drives the modal-card growing /
+         shrinking when the error state toggles, plus the
+         absolutely-positioned children that slide to make room. */
+      --resize-dur: 300ms;
+      --resize-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      /* Menu dropdown */
+      --dropdown-open-dur: 250ms;
+      --dropdown-close-dur: 150ms;
+      --dropdown-pre-scale: 0.97;
+      --dropdown-closing-scale: 0.99;
+      --dropdown-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      /* Modal open / close */
+      --modal-open-dur: 250ms;
+      --modal-close-dur: 150ms;
+      --modal-scale: 0.96;
+      --modal-scale-close: 0.96;
+      --modal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      /* Page side-by-side */
+      --page-slide-dur: 200ms;
+      --page-fade-dur: 200ms;
+      --page-slide-distance: 8px;
+      --page-blur: 3px;
+      --page-stagger: 0ms;
+      --page-exit-enabled: 1;
+      --page-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --page-fade-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      /* Icon swap */
+      --icon-swap-dur: 200ms;
+      --icon-swap-blur: 2px;
+      --icon-swap-start-scale: 0.25;
+      --icon-swap-ease: ease-in-out;
+      /* Text states swap — synced to the published skill
+         (P6 defaults): 150ms duration, 4px travel, 2px blur,
+         ease-in-out. The shorter dur + smaller travel keep
+         the swap feeling crisp under the publish flow's
+         two-phase choreography (fade-blur exit, then text-swap
+         entry) without dragging the badge / check / button
+         entry beat. enter-delay is the gap (or overlap, if
+         negative) between the exit beat finishing and the entry
+         beat starting; 0 means the new content arrives the
+         instant the old has cleared. */
+      --text-swap-dur: 150ms;
+      --text-swap-enter-delay: 0ms;
+      --text-swap-translate-y: 4px;
+      --text-swap-blur: 2px;
+      --text-swap-ease: ease-in-out;
+      /* Success check */
+      --check-opacity-dur: 550ms;
+      --check-rotate-dur: 550ms;
+      --check-rotate-from: 80deg;
+      --check-bob-dur: 450ms;
+      --check-y-amount: 40px;
+      --check-blur-dur: 500ms;
+      --check-blur-from: 10px;
+      --check-path-dur: 550ms;
+      --check-path-delay: 80ms;
+      --check-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --check-ease-opacity: cubic-bezier(0.22, 1, 0.36, 1);
+      --check-ease-rotate: cubic-bezier(0.22, 1, 0.36, 1);
+      --check-ease-bob: cubic-bezier(0.34, 1.35, 0.64, 1);
+      --check-ease-path: cubic-bezier(0.22, 1, 0.36, 1);
+      /* Avatar group hover */
+      --avatar-lift: -4px;
+      --avatar-dur: 320ms;
+      --avatar-scale: 1.05;
+      --avatar-falloff: 0.45;
+      --avatar-ease-in: cubic-bezier(0.22, 1, 0.36, 1);
+      --avatar-ease-out: cubic-bezier(0.34, 3.85, 0.64, 1);
+      /* Error state shake */
+      --shake-distance: 6px;
+      --shake-overshoot: 4px;
+      --shake-dur-a: 80ms;
+      --shake-dur-b: 60ms;
+      --shake-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --revert-hold: 3000ms;
+      --revert-dur: 280ms;
+    }
+
+    /* Dark mode — values traced from Figma node 450:1101 */
+    html[data-theme="dark"] {
+      --bg-page: #070707;
+      --bg-modal: #181818;
+      --bg-input: rgba(245, 245, 245, 0.04);
+      --bg-tab-active: rgba(245, 245, 245, 0.04);
+      --bg-ghost-hover: rgba(245, 245, 245, 0.06);
+      --bg-backdrop: rgba(0, 0, 0, 0.55);
+
+      --text-strong: #f7f7f7;
+      --text-body: #f7f7f7;
+      --text-muted: #888888;
+      --text-soft: #c6c6c6;
+      --text-tab-idle: #c6c6c6;
+      --text-placeholder: #9e9e9e;
+      --text-on-primary: #1b1b1b;
+      --text-on-dropdown: #f7f7f7;
+
+      --stroke-input: rgba(255, 255, 255, 0.04);
+      --stroke-input-hover: rgba(255, 255, 255, 0.08);
+      --stroke-input-focus: rgba(255, 255, 255, 0.8);
+      --stroke-divider: rgba(255, 255, 255, 0.1);
+      --opacity-divider: 1;
+
+      --primary-bg: #f7f7f7;
+      --primary-bg-hover: #d7d7d7;
+      --primary-bg-active: #c4c4c4;
+      --primary-text: #1b1b1b;
+      --primary-focus-ring: rgba(255, 255, 255, 0.3);
+
+      --icon-strong: #f7f7f7;
+
+      --shadow-modal:
+        0 1px 3px 0 rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(0, 0, 0, 0.06),
+        0 2px 6px 0 rgba(0, 0, 0, 0.05),
+        0 4px 42px 0 rgba(0, 0, 0, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.06),
+        inset 0 0 0 1px rgba(196, 196, 196, 0.1);
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       Base — antialiased text on every browser so 13/14px Inter
+       reads clean on macOS, Windows ClearType, and Firefox/X11.
+       ────────────────────────────────────────────────────────────── */
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      font-smooth: always;
+      text-rendering: optimizeLegibility;
+      -webkit-text-size-adjust: 100%;
+      font-feature-settings: "cv11", "ss01";
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg-page);
+      color: var(--text-strong);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 16px;
+      transition: background-color 200ms ease, color 200ms ease;
+    }
+    button {
+      font-family: inherit;
+      -webkit-font-smoothing: inherit;
+      -moz-osx-font-smoothing: inherit;
+      /* iOS Safari paints a gray/blue tap flash on controls inside
+         the embedded compare iframe. Clear it globally for buttons
+         so tab/copy/access taps feel native and don't blink. */
+      -webkit-tap-highlight-color: transparent;
+    }
+    input {
+      font-family: inherit;
+      -webkit-font-smoothing: inherit;
+      -moz-osx-font-smoothing: inherit;
+    }
+    /* Coarse pointers: avoid long-press callout / accidental
+       text-selection flashes on high-frequency tap targets in the
+       modal (tabs, copy, access). */
+    @media (hover: none) and (pointer: coarse) {
+      .tab-btn,
+      .copy-link-btn,
+      .access-btn {
+        -webkit-touch-callout: none;
+        user-select: none;
+      }
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       Embed mode — when the page is loaded inside an iframe with
+       ?embed=1, drop the toolbar/backdrop, make the body
+       transparent, and let the modal sit naturally in the iframe's
+       flow so its container can size it.
+       ────────────────────────────────────────────────────────────── */
+    body[data-embed="true"] {
+      background: transparent;
+      min-height: 0;
+      width: 100%;
+      overflow-x: hidden;
+    }
+    html[data-embed="true"] {
+      background: transparent;
+    }
+    html[data-embed="true"][data-theme="dark"] {
+      background: transparent;
+      color-scheme: dark;
+    }
+    html[data-embed="true"][data-theme="dark"] body[data-embed="true"] {
+      background: transparent;
+    }
+    body[data-embed="true"] .toolbar { display: none; }
+    body[data-embed="true"] .modal-backdrop { display: none; }
+    body[data-embed="true"] .modal-root {
+      position: relative;
+      inset: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 100vh;
+      padding: 24px 16px;
+      box-sizing: border-box;
+      overflow: visible;
+    }
+    body[data-embed="true"] .modal-card {
+      position: relative;
+      left: auto;
+      top: auto;
+      transform: none;
+      /* Fluid width inside the 16px-padded root — caps at the
+         340px canvas instead of scaling the whole UI down. */
+      width: 100%;
+      max-width: 340px;
+      height: auto;
+      min-height: 389px;
+    }
+    body[data-embed="true"] .modal-card[data-error="true"] {
+      height: auto;
+      min-height: 411px;
+    }
+    body[data-embed="true"] .page-stage.t-page-slide {
+      min-height: 389px;
+      /* Share the card's resize tween — the stage is absolute-inset
+         inside the modal-card, so without this min-height change
+         the inner content area snaps to its new height even though
+         the card itself is animating. */
+      transition: min-height var(--resize-dur) var(--resize-ease);
+    }
+    body[data-embed="true"] .modal-card[data-error="true"] .page-stage.t-page-slide {
+      min-height: 411px;
+    }
+    /* Share row — input grows, Invite pins to the right edge. */
+    body[data-embed="true"] .invite-field-wrap {
+      right: 109px; /* 81px button + 12px gap + 16px inset */
+      width: auto;
+    }
+    body[data-embed="true"] .state-share > .primary-btn {
+      left: auto;
+      right: 16px;
+    }
+    body[data-embed="true"] .member-list,
+    body[data-embed="true"] .general-row {
+      right: 16px;
+      width: auto;
+    }
+    body[data-embed="true"] .member-main {
+      min-width: 0;
+    }
+    body[data-embed="true"] .member-text {
+      min-width: 0;
+    }
+    body[data-embed="true"] .member-name,
+    body[data-embed="true"] .member-mail {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    /* Publish tab — hero block stays centred but can shrink. */
+    body[data-embed="true"] .publish-center {
+      width: min(280px, calc(100% - 32px));
+    }
+    body[data-embed="true"] .publish-copy {
+      width: auto;
+      max-width: 280px;
+    }
+    /* Narrow embed viewports: the card is width:100%, so raising
+       max-width alone does nothing — the modal-root's 16px side
+       padding is what caps the rendered width. Shave 15px per side
+       (+30px total) so the card actually grows on mobile. */
+    @media (max-width: 760px) {
+      body[data-embed="true"] .modal-root {
+        padding-left: 1px;
+        padding-right: 1px;
+      }
+      body[data-embed="true"] .modal-card {
+        max-width: 370px;
+      }
+    }
+
+    /* "Generic AI output" style — strip all of the calibrated
+       motion (icon swap, text swap, modal open, success check,
+       error shake, …) so they snap, then RE-ADD three transitions
+       (dropdown, page slide, avatar group hover) using the kind of
+       timing a generic AI tends to produce: slow, plain `ease`,
+       and an over-aggressive 85% start scale on the dropdown.
+       This is the contrast the side-by-side compare toggle is
+       designed to surface — the "Generic" pane has motion, but
+       motion that reads as off-the-shelf rather than crafted. */
+    body[data-style="generic"] *,
+    body[data-style="generic"] *::before,
+    body[data-style="generic"] *::after {
+      transition: none !important;
+      animation: none !important;
+    }
+    /* The fade-in classes we use elsewhere rely on opacity easing;
+       without the transition, force the end state so the element
+       isn't stuck invisible. */
+    body[data-style="generic"] .t-input-wrap.is-error .error-msg,
+    body[data-style="generic"] .error-msg[data-show="true"] {
+      opacity: 1;
+      visibility: visible;
+    }
+    body[data-style="generic"] .error-msg:not([data-show="true"]) {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    /* ── Generic-mode "amateurish" transitions ────────────────
+       The blanket kill above turned everything off; this block
+       turns three things back on, but with the deliberately
+       under-tuned values a generic AI tends to emit:
+         • dropdown:   85% pre-scale + plain `ease` + 205ms
+         • page slide: same slide+fade+blur shape as skill mode,
+                       but with a chunky 30px distance, 300ms,
+                       and plain `ease` — so the swap is
+                       perceptibly slower and the slide reads as
+                       a sluggish drag instead of a precise glide
+         • avatar:     scale-only on hover (no Y lift, no falloff
+                       polish), 1.2× chunky scale, plain `ease` + 100ms
+
+       Wrapped in prefers-reduced-motion: no-preference so a user
+       who has reduced-motion enabled still gets the snap-instant
+       behaviour from the kill rule above. */
+    @media (prefers-reduced-motion: no-preference) {
+      /* Dropdown — 85% start scale is intentionally too small;
+         it pops noticeably instead of feeling locked to the
+         trigger. The matching close uses the same scale so the
+         dropdown collapses awkwardly back into nothing. */
+      body[data-style="generic"] .t-dropdown {
+        transform: scale(0.85) !important;
+        opacity: 0 !important;
+        transition:
+          transform 205ms ease,
+          opacity   205ms ease !important;
+      }
+      body[data-style="generic"] .t-dropdown.is-open {
+        transform: scale(1) !important;
+        opacity: 1 !important;
+      }
+      body[data-style="generic"] .t-dropdown.is-closing {
+        transform: scale(0.85) !important;
+        opacity: 0 !important;
+      }
+
+      /* Page transition — same slide+fade+blur shape as skill
+         mode (P8), but the knobs are turned to obviously generic
+         values: distance 30px (4× skill's 8px) so the slide is
+         a chunky drag rather than a subtle nudge, duration 300ms
+         (1.5× skill's 200ms), easing plain `ease`. We override
+         the CSS variables on the body so the existing
+         .t-page-slide .t-page rule recomputes its translateX /
+         blur / transitions automatically; the explicit
+         `transition` override is needed only to defeat the
+         blanket `transition: none !important` reset above. */
+      body[data-style="generic"] {
+        --page-slide-distance: 30px;
+        --page-slide-dur: 300ms;
+        --page-fade-dur: 300ms;
+        --page-slide-ease: ease;
+        --page-fade-ease: ease;
+      }
+      body[data-style="generic"] .t-page-slide .t-page {
+        transition:
+          opacity   var(--page-fade-dur)  var(--page-fade-ease),
+          transform var(--page-slide-dur) var(--page-slide-ease),
+          filter    var(--page-slide-dur) var(--page-slide-ease) !important;
+      }
+
+      /* Avatar group hover — kill the Y lift entirely and let the
+         hovered avatar grow by a chunky +20%. JS reads --avatar-lift
+         and --avatar-scale via computed style, so overriding the
+         CSS variables is enough; lift=0 makes every neighbor's
+         --shift compute to 0px (no position movement) and scale=1.2
+         flows through to the hovered avatar's --scale-active. The
+         non-hovered siblings still receive scale(1) from JS, so
+         only the active one resizes. */
+      body[data-style="generic"] {
+        --avatar-lift: 0px;
+        --avatar-scale: 1.2;
+      }
+      body[data-style="generic"] .t-avatar {
+        transition: transform 100ms ease !important;
+      }
+    }
+
+    /* Small toolbar so the demo is interactive */
+    .toolbar {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      display: flex;
+      gap: 8px;
+      z-index: 40;
+    }
+    .tool-btn {
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 10px;
+      background: var(--bg-modal);
+      border: 1px solid var(--stroke-input-hover);
+      color: var(--text-strong);
+      font-weight: 500;
+      font-size: 13px;
+      line-height: 16px;
+      cursor: pointer;
+      box-shadow: var(--shadow-modal);
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       Compare stage (standalone non-embed view). Renders BOTH the
+       generic and the skill-driven motion in two iframes side-by-side
+       so the standalone /example.html page shows both at once — no
+       toggle needed. The standalone modal + toolbar are hidden in
+       non-embed mode so this stage owns the layout. In embed mode
+       (when example.html is loaded inside skill.html's compare iframe)
+       this stage stays hidden and the modal renders directly.
+       ────────────────────────────────────────────────────────────── */
+    .compare-stage {
+      display: none;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 64px 24px;
+      gap: 24px;
+      flex-direction: row;
+      justify-content: center;
+      align-items: stretch;
+      flex-wrap: wrap;
+      box-sizing: border-box;
+    }
+    body:not([data-embed="true"]) .compare-stage { display: flex; }
+    body:not([data-embed="true"]) .modal-root,
+    body:not([data-embed="true"]) #accessMenuShell { display: none !important; }
+    /* Standalone compare view has no on-page modal — only the dark-
+       mode toggle is meaningful. Hide "Open modal" so the toolbar
+       doesn't offer a dead-end action. */
+    body:not([data-embed="true"]) #reopenModal { display: none; }
+
+    .compare-pane {
+      flex: 1 1 360px;
+      min-width: 0;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .compare-pane-heading {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    /* Figma 450:547 / 459:1516–459:1518 — 20px status badge with
+       outer elevation + inset bezel, red (generic) or green (skill). */
+    .compare-pane-badge {
+      width: 20px;
+      height: 20px;
+      border-radius: 20px;
+      flex: 0 0 20px;
+      display: inline-grid;
+      place-items: center;
+      box-shadow:
+        0 1px 1px rgba(0, 0, 0, 0.1),
+        0 1px 4px rgba(0, 0, 0, 0.08),
+        inset 0 0 0 1px rgba(0, 0, 0, 0.05),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.09);
+    }
+    .compare-pane-badge--off { background: #f03434; }
+    .compare-pane-badge--on  { background: #35ba00; }
+    .compare-pane-badge svg {
+      display: block;
+      width: 10px;
+      height: 10px;
+    }
+    .compare-pane-label {
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 14px;
+      color: #232323;
+      letter-spacing: 0;
+    }
+    html[data-theme="dark"] .compare-pane-label { color: #ededed; }
+    .compare-pane-iframe {
+      display: block;
+      width: 100%;
+      height: 460px;
+      border: 0;
+      border-radius: 14px;
+      background: #f9f9f9;
+      box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+    }
+    html[data-theme="dark"] .compare-pane-iframe {
+      background: #181818;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+    /* Narrow viewports — stack the two panes. */
+    @media (max-width: 760px) {
+      .compare-stage { flex-direction: column; align-items: stretch; padding: 32px 16px; }
+      .compare-pane { max-width: 100%; }
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       Modal — 340 × 389, rounded 12, Figma drop-shadow stack.
+       ────────────────────────────────────────────────────────────── */
+    .modal-root {
+      position: fixed;
+      inset: 0;
+      display: none;
+      z-index: 20;
+    }
+    .modal-root[data-open="true"] { display: block; }
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: var(--bg-backdrop);
+    }
+    .modal-card {
+      position: absolute;
+      width: 340px;
+      height: 389px;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--bg-modal);
+      border-radius: var(--radius-modal);
+      box-shadow: var(--shadow-modal);
+      overflow: hidden;
+      color: var(--text-strong);
+      /* Skill mode card resize. Tween both `height` (canvas mode)
+         and `min-height` (embed mode) so the iframe pane animates
+         the same as the standalone modal — embed mode runs on
+         height:auto so the height property never changes there. */
+      transition:
+        height     var(--resize-dur) var(--resize-ease),
+        min-height var(--resize-dur) var(--resize-ease);
+      will-change: height, min-height;
+    }
+    /* Error state: grow the modal by 22px so the validation copy
+       gets its own space, and push every absolutely-positioned
+       block below the input down by the same amount. */
+    .modal-card[data-error="true"] { height: 411px; }
+    .modal-card[data-error="true"] .member-list   { top: 158px; }
+    .modal-card[data-error="true"] .general-label { top: 329px; }
+    .modal-card[data-error="true"] .general-row   { top: 360px; }
+
+    /* ── Top row: tab + copy link ─────────────────────────────────
+       Tabs container at (16, 16). Copy link button at (313, 18). */
+    .tabs {
+      position: absolute;
+      left: 16px;
+      top: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      z-index: 3;
+    }
+    .tab-btn {
+      height: 36px;
+      padding: 0 16px;
+      border: 0;
+      background: transparent;
+      border-radius: var(--radius-tab);
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 16px;
+      color: var(--text-tab-idle);
+      cursor: pointer;
+      transition: background-color 120ms ease, color 120ms ease;
+    }
+    .tab-btn:hover {
+      background: var(--bg-ghost-hover);
+      color: var(--text-strong);
+    }
+    .tab-btn[aria-selected="true"] {
+      background: var(--bg-tab-active);
+      color: var(--text-strong);
+    }
+
+    .copy-link-btn {
+      position: absolute;
+      top: 18px;
+      right: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: var(--radius-ghost);
+      background: transparent;
+      color: var(--text-strong);
+      font-weight: 500;
+      font-size: 13px;
+      line-height: 16px;
+      cursor: pointer;
+      z-index: 3;
+    }
+    .copy-link-btn:hover { background: var(--bg-ghost-hover); }
+
+    /* Width-pinned slot for the t-text-swap label. The ::before
+       ghost text always reads "Copy link" (the widest state) and
+       reserves the slot's layout box, so when the swap morphs to
+       the shorter "Copied" the slot doesn't collapse and the
+       button — anchored right:16px — doesn't push the icon
+       sideways. The visible t-text-swap is absolutely positioned
+       on top of the ghost, left-aligned, so its transform-based
+       enter/exit animation still plays without affecting layout. */
+    .copy-text-slot {
+      position: relative;
+      display: inline-block;
+      line-height: 16px;
+    }
+    .copy-text-slot::before {
+      content: 'Copy link';
+      display: inline-block;
+      visibility: hidden;
+      white-space: nowrap;
+    }
+    .copy-text-slot .t-text-swap {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    /* Generic icon slot — fixed 16×16 box with the SVG centered.
+       Without this, inline SVG sits on the text baseline and looks
+       a couple of pixels too high relative to flex-centered text. */
+    .icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      line-height: 0;
+    }
+    .icon svg { display: block; }
+    .copy-link-btn .icon,
+    .access-btn .icon,
+    .error-msg .icon { color: currentColor; }
+    /* Soften the chevron + copy/check icons so the label reads as
+       the primary surface — Figma uses ~70% icon opacity on these
+       ghost controls, and using opacity (not a baked rgba) lets the
+       icons inherit currentColor for both themes. */
+    .copy-link-btn .icon,
+    .access-btn .icon-chevron { opacity: 0.7; }
+
+    /* Divider directly under top row, modal-wide. */
+    .modal-divider {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 68px;
+      height: 1px;
+      background: var(--stroke-divider);
+      opacity: var(--opacity-divider);
+    }
+
+    /* Per-state panels. Stacked inside .page-stage; visibility is
+       driven by the .t-page-slide[data-page] selectors so the page
+       transition snippet owns the show/hide motion. */
+    /* The dual-class selector .page-stage.t-page-slide beats the
+       snippet's .t-page-slide { position: relative } on specificity
+       so the stage can actually fill the modal-card. Without this
+       override the relative wrapper collapses to 0×0 (its children
+       are all position:absolute), pulling every page's content to
+       the top-left corner. */
+    .page-stage.t-page-slide {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+    .state {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* ── Share state ──────────────────────────────────────────────
+       Input at (16, 85) w215 h36. Invite at (243, 85) w81 h36.
+       Member list at (16, 136) w308, gap 16. */
+    .invite-field-wrap {
+      position: absolute;
+      left: 16px;
+      top: 85px;
+      width: 215px;
+    }
+    .invite-field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 36px;
+      padding: 0 8px;
+      background: var(--bg-input);
+      border: 1px solid var(--stroke-input);
+      border-radius: var(--radius-button);
+      /* Use an inset box-shadow for the thicker focus/error stroke
+         so padding stays put and content doesn't shift. */
+      transition: border-color 120ms ease, box-shadow 120ms ease;
+    }
+    .invite-field:hover { border-color: var(--stroke-input-hover); }
+    .invite-field:focus-within {
+      border-color: var(--stroke-input-focus);
+      box-shadow: inset 0 0 0 0.5px var(--stroke-input-focus);
+    }
+    .invite-field.is-error {
+      border-color: var(--text-error);
+      box-shadow: inset 0 0 0 0.5px var(--text-error);
+    }
+    .invite-field input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--text-strong);
+      font-weight: 400;
+      font-size: 13px;
+      line-height: 22px;
+    }
+    .invite-field input::placeholder {
+      color: var(--text-placeholder);
+      opacity: 1;
+    }
+    .field-right { display: inline-flex; align-items: center; }
+
+    /* Error message floats absolutely beneath the input so the wrap
+       keeps its 36px footprint at rest — the modal-card resize +
+       member-list shift create space for it on error. Visibility +
+       opacity tween is owned by t-error-msg (P12). */
+    .error-msg {
+      position: absolute;
+      left: 0;
+      top: 42px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--text-error);
+      font-weight: 500;
+      font-size: 11px;
+      line-height: 14px;
+      opacity: 0;
+      visibility: hidden;
+      transition:
+        opacity    var(--revert-dur, 280ms) ease-out,
+        visibility 0s linear var(--revert-dur, 280ms);
+    }
+    .t-input-wrap.is-error .error-msg,
+    .error-msg[data-show="true"] {
+      opacity: 1;
+      visibility: visible;
+      transition:
+        opacity    var(--revert-dur, 280ms) ease-out,
+        visibility 0s linear 0s;
+    }
+
+    .primary-btn {
+      position: absolute;
+      left: 243px;
+      top: 85px;
+      width: 81px;
+      height: 36px;
+      border: 0;
+      border-radius: var(--radius-button);
+      background: var(--primary-bg);
+      color: var(--primary-text);
+      font-weight: 500;
+      font-size: 13px;
+      line-height: 16px;
+      box-shadow: var(--shadow-primary);
+      cursor: pointer;
+      /* Suppress the browser's default focus outline on click —
+         Figma 450:1509 specifies a translucent gray ring that we
+         paint via box-shadow on :focus-visible (keyboard) below.
+         Click-focus shows just the hover/active surface, matching
+         the Figma "Pressed" frame which has no surrounding ring. */
+      outline: none;
+      -webkit-tap-highlight-color: transparent;
+      transition:
+        background-color 120ms ease,
+        box-shadow 120ms ease,
+        transform 120ms ease;
+    }
+    /* Figma 450:1507 — Hover lifts the surface to #4d4d4d (a
+       distinct +32 lightness jump from the resting #2d2d2d) so
+       the change reads at a glance instead of merely tinting. */
+    .primary-btn:hover {
+      background: var(--primary-bg-hover);
+    }
+    /* Figma 450:1508 — Pressed deepens the highlight to #5e5e5e
+       and adds an inset 1px shadow + 0.5px nudge so the pill
+       feels seated under the cursor. */
+    .primary-btn:active {
+      background: var(--primary-bg-active);
+      box-shadow:
+        0 1px 1px rgba(0, 0, 0, 0.16),
+        inset 0 1px 1px rgba(0, 0, 0, 0.14);
+      transform: translateY(0.5px);
+    }
+    /* Figma 450:1509 — focused state keeps the resting fill and
+       adds a 3px translucent halo around the pill. Box-shadow
+       spread is used (instead of an outline) so the halo blends
+       cleanly with the existing drop shadow. Only fires on
+       keyboard focus to avoid noise on mouse clicks. */
+    .primary-btn:focus-visible {
+      box-shadow:
+        0 0 0 3px var(--primary-focus-ring),
+        var(--shadow-primary);
+    }
+    /* Figma 450:1510 — disabled keeps the dark surface; only the
+       label is dimmed to 50% opacity. We achieve this with a
+       color-mix on the text (instead of opacity on the whole
+       button) so the surface stays fully opaque. Hover/active are
+       suppressed so the button can't appear to react to pointer
+       events while it's unavailable. */
+    .primary-btn:disabled,
+    .primary-btn[aria-disabled="true"] {
+      cursor: not-allowed;
+      color: color-mix(in srgb, var(--primary-text) 50%, transparent);
+    }
+    .primary-btn:disabled:hover,
+    .primary-btn[aria-disabled="true"]:hover {
+      background: var(--primary-bg);
+    }
+    .primary-btn:disabled:active,
+    .primary-btn[aria-disabled="true"]:active {
+      background: var(--primary-bg);
+      box-shadow: var(--shadow-primary);
+      transform: none;
+    }
+
+    .member-list {
+      position: absolute;
+      left: 16px;
+      top: 136px;
+      width: 308px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      /* Sync with .modal-card so the rows slide down in the same
+         beat as the card grows. Same tokens (--resize-*) keep all
+         three children locked to the card's resize tween. */
+      transition: top var(--resize-dur) var(--resize-ease);
+    }
+    .member-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .member-main {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      background: rgba(0, 0, 0, 0.06);
+    }
+    .member-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .member-name {
+      font-weight: 500;
+      font-size: 13px;
+      line-height: 16px;
+      color: var(--text-body);
+    }
+    .member-mail {
+      font-weight: 400;
+      font-size: 13px;
+      line-height: 16px;
+      color: var(--text-muted);
+    }
+    html[data-theme="dark"] .member-name { color: var(--text-strong); }
+
+    /* Figma 450:693 — 32px tall, asymmetric padding (8px left for
+       the label, 6px right for the chevron), gap 6, radius 8. The
+       parent member row centers it vertically against the 32px
+       avatar via align-items: center. */
+    .access-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 6px 0 8px;
+      border: 0;
+      border-radius: var(--radius-ghost);
+      background: transparent;
+      color: var(--text-strong);
+      font-weight: 500;
+      font-size: 13px;
+      line-height: 16px;
+      cursor: pointer;
+      transition: background-color 120ms ease;
+    }
+    .access-btn:hover { background: var(--bg-ghost-hover); }
+    .access-btn[aria-expanded="true"] { background: var(--bg-ghost-hover); }
+
+    /* General access label at (16, 307). */
+    .general-label {
+      position: absolute;
+      left: 16px;
+      top: 307px;
+      margin: 0;
+      font-weight: 500;
+      font-size: 13px;
+      line-height: 16px;
+      color: var(--text-muted);
+      transition: top var(--resize-dur) var(--resize-ease);
+    }
+    html[data-theme="dark"] .general-label { color: var(--text-soft); }
+
+    /* General access row at (16, 338) w308. */
+    .general-row {
+      position: absolute;
+      left: 16px;
+      top: 338px;
+      width: 308px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: top var(--resize-dur) var(--resize-ease);
+    }
+    .right-cluster {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Avatar stack — five 28px avatars overlapping + "+N" pill.
+       `isolation: isolate` contains the explicit z-indices below so
+       the stack ordering can't leak out and react with surrounding
+       elements. Each avatar lives inside a `.t-avatar-wrap` shell
+       that owns the positioning context for its hover tooltip — the
+       IMG itself can still be `transform`ed by the avatar-group
+       hover snippet without disturbing the tooltip's anchor. */
+    .avatar-stack {
+      display: inline-flex;
+      align-items: center;
+      isolation: isolate;
+    }
+    .avatar-stack .t-avatar-wrap {
+      position: relative;
+      display: inline-flex;
+      z-index: 1;
+    }
+    .avatar-stack .t-avatar-wrap + .t-avatar-wrap { margin-left: -4px; }
+    .avatar-stack .pill {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      border: 1.5px solid var(--bg-modal);
+    }
+    /* +N overflow badge — mirrors Figma 450:1502 / 450:1505.
+       26×26 circle — slightly smaller than the 28×28 avatars beside
+       it, semi-transparent grey fill, and the dual-tone inset shadow
+       border from Figma instead of the solid white ring on avatars.
+       Sits BEHIND the rightmost avatar (z-index: 0) so the avatar's
+       circle is never clipped by the badge — the overlap shows
+       through only on the badge's left edge, where there's no text. */
+    .avatar-stack .more {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 26px;
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border-radius: 50%;
+      background: rgba(217, 217, 217, 0.62);
+      /* Figma 450:1502 — inset ring + bottom edge */
+      box-shadow:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.04),
+        inset 0 -1px 0 0 rgba(0, 0, 0, 0.04);
+      color: #3a3a3a;
+      font-weight: 500;
+      font-size: 10px;
+      line-height: 16px;
+      letter-spacing: 0;
+      margin-left: -4px;
+      position: relative;
+      z-index: 0;
+    }
+    /* Small Inter glyphs read ~0.5px low when centered geometrically
+       inside the 26px circle — nudge the inner text up for optical
+       centering without changing the box. */
+    .avatar-stack .more > span { transform: translateY(-0.5px); }
+    html[data-theme="dark"] .avatar-stack .more {
+      background: rgba(255, 255, 255, 0.10);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+        inset 0 -1px 0 0 rgba(0, 0, 0, 0.25);
+      color: #c6c6c6;
+    }
+
+    /* ─── Avatar hover tooltip (shared, animated retarget) ─────
+       Single tooltip element for the whole avatar stack. On hover
+       change we keep it mounted and animate ONLY its x-position +
+       width while updating text, so moving across avatars doesn't
+       blink close/open. A 50ms hide delay keeps it alive during
+       micro-gaps between adjacent targets.
+       ────────────────────────────────────────────────────────── */
+    .avatar-tooltip {
+      position: absolute;
+      left: 0;
+      bottom: calc(100% + 8px);
+      transform: translateX(0);
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      border-radius: 40px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 400;
+      line-height: 16px;
+      letter-spacing: 0;
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+      visibility: hidden;
+      width: 0;
+      overflow: hidden;
+      transition:
+        transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+        width 160ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 120ms cubic-bezier(0.22, 1, 0.36, 1) 50ms,
+        visibility 0s linear 170ms;
+      background: #ffffff;
+      color: #17181c;
+      box-shadow:
+        0 2px 8px 0 rgba(0, 0, 0, 0.04),
+        0 0 0 1px rgba(0, 0, 0, 0.06),
+        0 1px 1px 0 rgba(0, 0, 0, 0.04);
+    }
+    .avatar-tooltip[data-show="true"] {
+      opacity: 1;
+      visibility: visible;
+      transition:
+        transform 160ms cubic-bezier(0.22, 1, 0.36, 1),
+        width 160ms cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 120ms cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0s linear 0s;
+    }
+    .avatar-tooltip-text {
+      display: inline-block;
+      white-space: nowrap;
+      padding: 0;
+      line-height: 32px;
+    }
+    html[data-theme="dark"] .avatar-tooltip {
+      background: #181818;
+      color: #e3e3e3;
+      box-shadow:
+        0 1px 16px 0 rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 0 rgba(255, 255, 255, 0.04),
+        inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 0 rgba(0, 0, 0, 0.06),
+        inset 0 0 0 1px rgba(196, 196, 196, 0.08);
+    }
+
+    /* ── Publish state — unified container that morphs between
+       "Publish to web" and "Page published" in place. The whole
+       block stays vertically centered around (50% + 23) so the
+       text settles in the same spot in both states; the badge
+       slot above grows from 0 → 48 when publishedFlag flips,
+       and the success-check fades in inside it. text-swap
+       (P4) drives the actual title/copy/button label changes. */
+    .publish-center {
+      position: absolute;
+      left: 50%;
+      top: calc(50% + 23px);
+      transform: translate(-50%, -50%);
+      width: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 21px;
+      text-align: center;
+      /* Local text-swap retune for the publish-center hero beat:
+         • translate-y: 12 px (skill default 4 px is intentionally
+           restrained for inline label swaps, but in this hero
+           context — large vertical space, single beat per state —
+           a more pronounced lift is needed for the "new text
+           appearing" half to read).
+         • dur: 300 ms (skill default 150 ms is snappy for inline
+           swaps but feels rushed at this scale). The JS publish
+           choreography (setPublished's mid-phase timer + the
+           badge fade-out transition) reads this scoped value via
+           publishTextDur so the handoffs stay in sync.
+         • ease: ease-out so the entry decelerates into rest — the
+           rise feels like it "lands" rather than coasting through
+           (ease-in-out, the skill default, has symmetric in + out
+           so the deceleration is less pronounced).
+         All three vars cascade to every t-text-swap / t-fade-blur
+         transition inside .publish-center; the global tokens at
+         :root stay untouched for the copy-link and other call
+         sites. */
+      --text-swap-translate-y: 12px;
+      --text-swap-dur: 200ms;
+      --text-swap-ease: ease-out;
+    }
+    .badge-slot {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      width: 48px;
+      height: 0;
+      /* Cancel the parent flex gap while the slot is collapsed
+         so the title sits at its un-published baseline. The slot
+         intentionally has NO transition — setPublished snaps the
+         layout during the invisible mid-phase of the cross-fade
+         so the texts that fade back in don't slide vertically
+         (the user spec: "no position animation"). */
+      margin-bottom: -21px;
+      overflow: visible;
+    }
+    .publish-center[data-published="true"] .badge-slot {
+      height: 48px;
+      margin-bottom: 0;
+    }
+    .published-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      line-height: 0;
+    }
+    .publish-title {
+      margin: 0 0 7px;
+      font-weight: 500;
+      font-size: 16px;
+      line-height: 16px;
+      color: #262626;
+    }
+    html[data-theme="dark"] .publish-title { color: var(--text-strong); }
+    .publish-copy {
+      margin: 0;
+      width: 280px;
+      font-weight: 400;
+      font-size: 13px;
+      line-height: 18px;
+      color: var(--text-soft);
+    }
+    .publish-center .primary-btn { position: static; }
+
+    /* Published state — the action button morphs from the dark
+       primary "Publish" to a Figma ghost-button "Unpublish" (450:723
+       "Ghost button" column). The class list on the button doesn't
+       change; the parent's data-published attribute drives the
+       visual swap so it rides inside the existing t-fade-blur
+       cycle — the new ghost surface fades in as the old primary
+       surface fades out. Spec: 32px tall, auto width, 8px h-padding,
+       transparent default, gray-tinted hover, 8px radius. */
+    .publish-center[data-published="true"] .publish-action {
+      height: 32px;
+      width: auto;
+      padding: 0 8px;
+      background: transparent;
+      color: var(--text-strong);
+      border-radius: var(--radius-ghost);
+      box-shadow: none;
+    }
+    .publish-center[data-published="true"] .publish-action:hover {
+      background: var(--bg-ghost-hover);
+      box-shadow: none;
+      transform: none;
+    }
+    .publish-center[data-published="true"] .publish-action:active {
+      background: var(--bg-ghost-hover);
+      box-shadow: none;
+      transform: none;
+    }
+    .publish-center[data-published="true"] .publish-action:focus-visible {
+      box-shadow: 0 0 0 3px var(--primary-focus-ring);
+    }
+    .published-badge svg { display: block; }
+
+    /* ──────────────────────────────────────────────────────────────
+       Access-level dropdown.
+       Light: Figma 450:1213 — padding 4, radius 14, rows 36 / r8,
+       text 13/22 (selected 13/16 medium).
+       Dark:  Figma 450:1149 — padding 8, radius 12, rows 40 / r12,
+       text 14/22 (selected 14/16 medium). The container's elevation
+       ring (the subtle rgba(196,196,196,0.1) inset highlight that
+       separates the dropdown from the modal in dark mode) is already
+       baked into --shadow-modal, so we just need to retune the size
+       and rhythm here.
+       ────────────────────────────────────────────────────────────── */
+    /* Access-level dropdown shell — pure positioning wrapper. The JS
+       sets left/top on the shell; everything visible (background,
+       shadow) lives on the inner .access-menu, so the menu and its
+       shadow are one composited layer that scales and moves together.
+       Shadow uses native box-shadow via --shadow-modal (Figma 450:717)
+       on the scaling element to match Figma rendering exactly. */
+    .access-menu-shell {
+      position: fixed;
+      z-index: 50;
+      visibility: hidden;
+      pointer-events: none;
+      /* No background / border / shadow — the inner menu owns all
+         the visible styling. Shell only carries the floating
+         position. */
+    }
+    .access-menu-shell.is-open,
+    .access-menu-shell.is-closing {
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .access-menu {
+      position: relative;
+      left: auto;
+      top: auto;
+      width: 188px;
+      padding: 4px;
+      background: var(--bg-modal);
+      border: 0;
+      border-radius: 14px;
+      box-sizing: border-box;
+      /* Figma 450:717 — exact Light Mode dropdown shadow stack via
+         --shadow-modal. Native box-shadow matches Figma rendering;
+         lives on the scaling element so it stays aligned during the
+         t-dropdown open/close animation. */
+      box-shadow: var(--shadow-modal);
+      filter: none;
+      z-index: 50;
+      visibility: visible;
+    }
+    .access-option {
+      width: 100%;
+      height: 36px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--text-on-dropdown);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 400;
+      font-size: 13px;
+      line-height: 22px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .access-option:hover { background: var(--bg-ghost-hover); }
+    .access-option[data-selected="true"] {
+      font-weight: 500;
+      line-height: 16px;
+    }
+    .access-option .check { visibility: hidden; display: inline-flex; }
+    .access-option[data-selected="true"] .check { visibility: visible; }
+    /* Optical sizing — scale the check to 80% and sit it 1px higher
+       than the previous nudge so it aligns with the option label. */
+    .access-option .check { transform: translateY(0) scale(0.8); }
+
+    /* Dark-mode-specific overrides — the dark dropdown in Figma uses
+       slightly chunkier rhythm: bigger padding around the menu, taller
+       rows with the same radius as the container, and a one-step
+       larger label so the text doesn't feel undersized against the
+       lower-contrast surface. */
+    html[data-theme="dark"] .access-menu {
+      padding: 8px;
+      border-radius: 12px;
+      border: 0;
+      /* Figma 450:1149 — dark dropdown uses the dark --shadow-modal
+         token (outer depth + inset bezel layers). */
+      box-shadow: var(--shadow-modal);
+      filter: none;
+    }
+    html[data-theme="dark"] .access-option {
+      height: 40px;
+      border-radius: 12px;
+      font-size: 14px;
+      line-height: 22px;
+    }
+    html[data-theme="dark"] .access-option[data-selected="true"] {
+      line-height: 16px;
+    }
+
+    /* Tiny utility for absolute-positioned blocks that should sit
+       above the inert background fill. */
+    .above { z-index: 2; }
+
+    /* ──────────────────────────────────────────────────────────────
+       Transitions.dev — t-* snippets, pasted verbatim from the
+       skill reference files. Each rule reads from the semantic
+       tokens above. Generic-style mode (body[data-style="generic"])
+       wipes every transition/animation via the !important rules
+       at the top of this stylesheet, so these only show in the
+       "with skill" pane.
+       ────────────────────────────────────────────────────────────── */
+
+    /* Menu dropdown (05-menu-dropdown.md).
+       Every transform value below carries a trailing translateZ(0)
+       to pre-promote the compositor layer. Safari has a long-
+       standing quirk where box-shadow on a scale-animated element
+       is painted lazily — the shadow snaps in ~150-200 ms after
+       the open animation starts, because WebKit defers the layer's
+       paint (including its baked-in shadow) until the transform
+       settles. translateZ(0) forces the layer to be created with
+       paint ready from frame 1, so the shadow rides in with the
+       rest of the dropdown. */
+    .t-dropdown {
+      transform-origin: top left;
+      transform: scale(var(--dropdown-pre-scale)) translateZ(0);
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        transform var(--dropdown-open-dur) var(--dropdown-ease),
+        opacity   var(--dropdown-open-dur) var(--dropdown-ease);
+      will-change: transform, opacity;
+    }
+    .t-dropdown[data-origin="top-right"]     { transform-origin: top right; }
+    .t-dropdown[data-origin="top-center"]    { transform-origin: top center; }
+    .t-dropdown[data-origin="bottom-left"]   { transform-origin: bottom left; }
+    .t-dropdown[data-origin="bottom-center"] { transform-origin: bottom center; }
+    .t-dropdown[data-origin="bottom-right"]  { transform-origin: bottom right; }
+    .t-dropdown.is-open {
+      transform: scale(1) translateZ(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .t-dropdown.is-closing {
+      transform: scale(var(--dropdown-closing-scale)) translateZ(0);
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        transform var(--dropdown-close-dur) var(--dropdown-ease),
+        opacity   var(--dropdown-close-dur) var(--dropdown-ease);
+    }
+
+    /* Page side-by-side (08-page-side-by-side.md). Extended for a
+       3rd page so the published view slides in from the right too. */
+    .t-page-slide { position: relative; }
+    .t-page-slide .t-page[data-page-id="1"] {
+      --t-page-from-x: calc(var(--page-slide-distance) * -1);
+    }
+    .t-page-slide .t-page[data-page-id="2"],
+    .t-page-slide .t-page[data-page-id="3"] {
+      --t-page-from-x: var(--page-slide-distance);
+    }
+    .t-page-slide .t-page {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(calc(var(--t-page-from-x, 0px) * var(--page-exit-enabled)));
+      filter: blur(calc(var(--page-blur) * var(--page-exit-enabled)));
+      transition:
+        opacity   var(--page-fade-dur)  var(--page-fade-ease),
+        transform var(--page-slide-dur) var(--page-slide-ease),
+        filter    var(--page-slide-dur) var(--page-slide-ease);
+      will-change: opacity, transform, filter;
+    }
+    .t-page-slide[data-page="1"] .t-page[data-page-id="1"],
+    .t-page-slide[data-page="2"] .t-page[data-page-id="2"],
+    .t-page-slide[data-page="3"] .t-page[data-page-id="3"] {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+      filter: blur(0);
+      transition-delay: var(--page-stagger);
+    }
+
+    /* Icon swap (09-icon-swap.md) */
+    .t-icon-swap {
+      position: relative;
+      display: inline-grid;
+    }
+    .t-icon-swap .t-icon {
+      grid-area: 1 / 1;
+      transition:
+        opacity   var(--icon-swap-dur) var(--icon-swap-ease),
+        filter    var(--icon-swap-dur) var(--icon-swap-ease),
+        transform var(--icon-swap-dur) var(--icon-swap-ease);
+      will-change: opacity, filter, transform;
+    }
+    .t-icon-swap[data-state="a"] .t-icon[data-icon="a"],
+    .t-icon-swap[data-state="b"] .t-icon[data-icon="b"] {
+      opacity: 1;
+      filter: blur(0);
+      transform: scale(1);
+    }
+    .t-icon-swap[data-state="a"] .t-icon[data-icon="b"],
+    .t-icon-swap[data-state="b"] .t-icon[data-icon="a"] {
+      opacity: 0;
+      filter: blur(var(--icon-swap-blur));
+      transform: scale(var(--icon-swap-start-scale));
+    }
+
+    /* Text states swap (04-text-states-swap.md) */
+    .t-text-swap {
+      display: inline-block;
+      transform: translateY(0);
+      filter: blur(0);
+      opacity: 1;
+      transition:
+        transform var(--text-swap-dur) var(--text-swap-ease),
+        filter    var(--text-swap-dur) var(--text-swap-ease),
+        opacity   var(--text-swap-dur) var(--text-swap-ease);
+      will-change: transform, filter, opacity;
+    }
+    .t-text-swap.is-exit {
+      transform: translateY(var(--text-swap-translate-y));
+      filter: blur(var(--text-swap-blur));
+      opacity: 0;
+    }
+    .t-text-swap.is-enter-start {
+      transform: translateY(calc(var(--text-swap-translate-y) * -1));
+      filter: blur(var(--text-swap-blur));
+      opacity: 0;
+      transition: none;
+    }
+    /* Plain fade + blur — no translate. For elements that should
+       just disappear and reappear (e.g. Publish button + body copy
+       in the publish-center) rather than morphing position. Shares
+       the text-swap timing tokens so the rhythm matches the title
+       morph that plays alongside it. */
+    .t-fade-blur {
+      opacity: 1;
+      filter: blur(0);
+      transition:
+        filter  var(--text-swap-dur) var(--text-swap-ease),
+        opacity var(--text-swap-dur) var(--text-swap-ease);
+      will-change: filter, opacity;
+    }
+    .t-fade-blur.is-fading {
+      opacity: 0;
+      filter: blur(var(--text-swap-blur));
+      pointer-events: none;
+    }
+    /* When an element carries BOTH t-fade-blur AND t-text-swap
+       (publish-title, publish-copy), the t-fade-blur transition
+       rule above shadows .t-text-swap's because both share single-
+       class specificity and t-fade-blur is declared later. That
+       drops `transform` from the transition list, which means the
+       text-swap entry's translateY(-text-swap-translate-y) → 0
+       snaps instead of animating — the rise wouldn't be visible.
+       Re-declare the full triplet at 2-class specificity so the
+       entry-only text-swap actually transitions all three axes. */
+    .t-fade-blur.t-text-swap {
+      transition:
+        transform var(--text-swap-dur) var(--text-swap-ease),
+        filter    var(--text-swap-dur) var(--text-swap-ease),
+        opacity   var(--text-swap-dur) var(--text-swap-ease);
+    }
+    /* …but the rule above also out-specifies .t-text-swap.is-enter-
+       start's `transition: none`, which would let the translateY
+       snap from 0 → -text-swap-translate-y animate too — and JS
+       removes the class one tick later, so the half-played transform
+       would just reverse and the user would never see the rise. Pin
+       the entry-start pose + transition: none at 3-class specificity
+       so it always wins: the parking step snaps, and only the
+       subsequent removal triggers the visible rise to rest. */
+    .t-fade-blur.t-text-swap.is-enter-start {
+      transform: translateY(calc(var(--text-swap-translate-y) * -1));
+      filter: blur(var(--text-swap-blur));
+      opacity: 0;
+      transition: none;
+    }
+    /* Inside .publish-center the rise direction is flipped: the
+       new texts start BELOW their rest pose (positive translateY)
+       and rise UP into place. The canonical text-swap default is
+       a top-down fall (negative translateY), but in this hero
+       context a bottom-up rise reads better — it's the visual
+       equivalent of "supporting content surfacing" after the
+       success badge punches in above. Selector beats the 3-class
+       rule above by adding .publish-center to the chain. */
+    .publish-center .t-fade-blur.t-text-swap.is-enter-start {
+      transform: translateY(var(--text-swap-translate-y));
+    }
+
+    /* Success check (10-success-check.md) — verbatim from the
+       transitions-dev skill. The published-badge SVG contains a
+       single <path> for the check stroke (the disc itself is a
+       <circle>), so the canonical `svg path` selector targets only
+       the check — no extra class needed. dasharray:20 matches the
+       canonical check geometry (3-segment path, total length ≈ 20). */
+    .t-success-check {
+      display: inline-block;
+      transform-origin: center;
+      opacity: 0;
+      will-change: transform, opacity, filter;
+    }
+    .t-success-check svg { display: block; overflow: visible; }
+    .t-success-check svg path {
+      stroke-dasharray: 20;
+      stroke-dashoffset: 20;
+    }
+    .t-success-check[data-state="in"] {
+      animation:
+        t-check-fade   var(--check-opacity-dur) var(--check-ease-opacity) forwards,
+        t-check-rotate var(--check-rotate-dur)  var(--check-ease-rotate)  forwards,
+        t-check-blur   var(--check-blur-dur)    var(--check-ease-out)     forwards,
+        t-check-bob    var(--check-bob-dur)     var(--check-ease-bob)     forwards;
+    }
+    .t-success-check[data-state="in"] svg path {
+      animation: t-check-draw var(--check-path-dur) var(--check-ease-path) var(--check-path-delay, 0ms) forwards;
+    }
+    @keyframes t-check-fade { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes t-check-rotate {
+      from { transform: rotate(var(--check-rotate-from)); }
+      to   { transform: rotate(0deg); }
+    }
+    @keyframes t-check-blur {
+      from { filter: blur(var(--check-blur-from)); }
+      to   { filter: blur(0); }
+    }
+    @keyframes t-check-bob {
+      from { translate: 0 var(--check-y-amount); }
+      to   { translate: 0 0; }
+    }
+    @keyframes t-check-draw { to { stroke-dashoffset: 0; } }
+
+    /* Avatar group hover (11-avatar-group-hover.md) */
+    .t-avatar {
+      transform-origin: center;
+      transform:
+        translateY(var(--shift, 0px))
+        scale(var(--scale-active, 1));
+      transition: transform var(--avatar-dur) var(--avatar-ease-in);
+      will-change: transform;
+    }
+
+    /* Error state shake (12-error-state-shake.md). The border-color
+       and is-error rules already live in .invite-field; this block
+       only owns the shake keyframe + message reveal tween. */
+    .t-input { will-change: transform; }
+    .t-input.is-shaking {
+      animation: t-input-shake calc(
+          var(--shake-dur-a) * 2 + var(--shake-dur-b) * 2
+        ) linear;
+    }
+    @keyframes t-input-shake {
+      0%      { transform: translateX(0);                                 animation-timing-function: var(--shake-ease); }
+      28.57%  { transform: translateX(var(--shake-distance));             animation-timing-function: var(--shake-ease); }
+      57.14%  { transform: translateX(calc(var(--shake-distance) * -1)); animation-timing-function: var(--shake-ease); }
+      78.57%  { transform: translateX(var(--shake-overshoot));            animation-timing-function: var(--shake-ease); }
+      100%    { transform: translateX(0); }
+    }
+
+    /* prefers-reduced-motion guards — required by every snippet. */
+    @media (prefers-reduced-motion: reduce) {
+      .t-dropdown,
+      .t-page-slide .t-page,
+      .t-icon-swap .t-icon,
+      .t-text-swap,
+      .t-avatar,
+      .modal-card,
+      .member-list,
+      .general-label,
+      .general-row,
+      .page-stage.t-page-slide {
+        transition: none !important;
+      }
+      .t-avatar { transform: none !important; }
+      .t-success-check { animation: none !important; opacity: 1; }
+      .t-success-check svg path { animation: none !important; stroke-dashoffset: 0 !important; }
+      .t-input { animation: none !important; transform: none !important; }
+    }
+
+    /* Generic-style publish state — runs the same two-phase
+       choreography as skill mode (fade-blur exit, then text-swap
+       entry on title / body / button) so the state change reads
+       as a real transition rather than a snap. The blanket
+       `body[data-style="generic"] *` rule above kills every
+       transition / animation by default; the rules below
+       selectively reinstate the bits the publish flow needs,
+       using !important to defeat that reset.
+
+       The single deliberate difference vs. skill: the green disc.
+       Skill mode plays a five-part entry (fade + rotate + blur +
+       Y bob + path draw). Generic mode uses just opacity + a
+       double scale bounce — two visible scale peaks that settle
+       to rest — with NO position movement (no Y bob, no rotate),
+       plus a simple stroke-dashoffset transition for the check
+       path. Result: the disc lands on its final spot from the
+       start and pops in place, which reads as a generic
+       "spring-on-arrival" rather than the crafted skill entry.
+
+       Wrapped in prefers-reduced-motion: no-preference so users
+       who request reduced motion still fall through to the
+       @media (prefers-reduced-motion: reduce) block above (which
+       forces opacity:1 / stroke-dashoffset:0 with no animation). */
+    /* Single subtle overshoot: 0 → 1.1 (one peak) → 1. opacity
+       is restated on every keyframe (not just 0% / 50%) so
+       animation-fill-mode: forwards retains opacity:1 in the
+       last keyframe. If opacity is omitted from the 100% step
+       the browser reverts it to the underlying rule's opacity:0
+       once the animation ends and the disc disappears. */
+    @keyframes t-check-bounce {
+      0%   { opacity: 0; transform: scale(0); }
+      60%  { opacity: 1; transform: scale(1.1); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      body[data-style="generic"] .t-fade-blur {
+        transition:
+          filter  var(--text-swap-dur) var(--text-swap-ease) !important,
+          opacity var(--text-swap-dur) var(--text-swap-ease) !important;
+      }
+      body[data-style="generic"] .t-fade-blur.is-fading {
+        opacity: 0;
+        filter: blur(var(--text-swap-blur));
+      }
+      body[data-style="generic"] .t-text-swap {
+        transition:
+          transform var(--text-swap-dur) var(--text-swap-ease) !important,
+          filter    var(--text-swap-dur) var(--text-swap-ease) !important,
+          opacity   var(--text-swap-dur) var(--text-swap-ease) !important;
+      }
+      body[data-style="generic"] .t-text-swap.is-enter-start {
+        transition: none !important;
+      }
+      /* When an element wears both classes, the entry needs all
+         three axes in its transition list (matches the skill
+         rule at .t-fade-blur.t-text-swap above). */
+      body[data-style="generic"] .t-fade-blur.t-text-swap {
+        transition:
+          transform var(--text-swap-dur) var(--text-swap-ease) !important,
+          filter    var(--text-swap-dur) var(--text-swap-ease) !important,
+          opacity   var(--text-swap-dur) var(--text-swap-ease) !important;
+      }
+
+      /* Disc entry — pure scale + opacity with a single subtle
+         overshoot (1.1×), no translate / rotate / blur, and no
+         path-draw skill on the check stroke. The tick is rendered
+         fully drawn from the start (override the base
+         .t-success-check svg path { stroke-dashoffset: 20 } with
+         0) so the whole icon scales in as one piece. */
+      body[data-style="generic"] .t-success-check {
+        opacity: 0;
+        transform: scale(0);
+        transform-origin: center;
+      }
+      body[data-style="generic"] .t-success-check[data-state="in"] {
+        animation: t-check-bounce 450ms cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+      }
+      body[data-style="generic"] .t-success-check svg path {
+        stroke-dashoffset: 0 !important;
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="toolbar">
+    <button class="tool-btn" id="themeToggle" type="button">Dark mode</button>
+    <button class="tool-btn" id="reopenModal" type="button">Open modal</button>
+  </div>
+
+  <!-- ─── Side-by-side compare stage (standalone non-embed view).
+       Two iframes load the embed-mode modal — one with ?style=generic,
+       one without — so /example.html shows both motion styles at the
+       same time, no toggle needed. Hidden in embed mode via CSS. -->
+  <div class="compare-stage" role="group" aria-label="Compare AI output">
+    <div class="compare-pane">
+      <div class="compare-pane-heading">
+        <span class="compare-pane-badge compare-pane-badge--off" aria-hidden="true">
+          <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M2.25 2.25L7.75 7.75M7.75 2.25L2.25 7.75" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="compare-pane-label">Generic AI output</span>
+      </div>
+      <iframe
+        id="compareIframeOff"
+        class="compare-pane-iframe"
+        src="example.html?embed=1&style=generic&v=20260521-13"
+        title="Modal demo without Transitions.dev skill — no motion"
+        loading="lazy"
+      ></iframe>
+    </div>
+    <div class="compare-pane">
+      <div class="compare-pane-heading">
+        <span class="compare-pane-badge compare-pane-badge--on" aria-hidden="true">
+          <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.55 2.27a.75.75 0 0 1 0 1.06L4.28 7.6a.75.75 0 0 1-1.06 0L1.45 5.83a.75.75 0 1 1 1.06-1.06l1.24 1.24 3.74-3.74a.75.75 0 0 1 1.06 0Z" fill="#ffffff"/>
+          </svg>
+        </span>
+        <span class="compare-pane-label">With Transitions Skill</span>
+      </div>
+      <iframe
+        id="compareIframeOn"
+        class="compare-pane-iframe"
+        src="example.html?embed=1&v=20260521-13"
+        title="Modal demo with Transitions.dev skill"
+        loading="lazy"
+      ></iframe>
+    </div>
+  </div>
+
+  <div class="modal-root" id="modalRoot" data-open="true">
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+
+    <section class="modal-card" role="dialog" aria-modal="true" aria-label="Share modal">
+      <!-- ── Top row ─────────────────────────────────────────── -->
+      <div class="tabs" role="tablist" aria-label="Modal pages">
+        <button id="tabShare"   class="tab-btn" role="tab" aria-selected="true"  type="button">Share</button>
+        <button id="tabPublish" class="tab-btn" role="tab" aria-selected="false" type="button">Publish</button>
+      </div>
+
+      <button class="copy-link-btn" id="copyLinkBtn" type="button" aria-label="Copy link">
+        <!-- Icon swap (P9): copy ↔ check stacked in same grid cell. -->
+        <span class="t-icon-swap copy-icon-swap" id="copyIconSwap" data-state="a">
+          <span class="t-icon icon" data-icon="a" id="copyIconA"></span>
+          <span class="t-icon icon" data-icon="b" id="copyIconB"></span>
+        </span>
+        <!-- Text swap (P4) in a width-pinned slot. The slot's
+             ::before ghost text reserves the "Copy link" width so
+             the button doesn't shrink (and the icon doesn't drift
+             right) when the label morphs to the shorter "Copied". -->
+        <span class="copy-text-slot">
+          <span class="t-text-swap" id="copyLinkText">Copy link</span>
+        </span>
+      </button>
+
+      <div class="modal-divider"></div>
+
+      <!-- Page slider (P8): Share = 1, Publish = 2, Published = 3.
+           The published view inherits page 2's direction so it
+           continues the rightward flow of the publish action. -->
+      <div class="t-page-slide page-stage" id="pageStage" data-page="1">
+
+        <!-- ── State: Share ───────────────────────────────── -->
+        <section class="t-page state state-share" data-page-id="1" id="stateShare">
+          <!-- Error shake (P12): wrap + input + message hooks. -->
+          <div class="t-input-wrap invite-field-wrap above" id="inviteFieldWrap">
+            <div class="t-input invite-field" id="inviteField">
+              <input id="inviteInput" type="text" placeholder="Add people"
+                     aria-label="Add people email" autocomplete="off" />
+              <span class="field-right" id="fieldRightIcon"></span>
+            </div>
+            <div class="t-error-msg error-msg" id="errorMsg" data-show="false">
+              <span>Incorrect email address</span>
+            </div>
+          </div>
+
+          <button class="primary-btn above" id="inviteBtn" type="button">Invite</button>
+
+          <ul class="member-list above" id="memberList"></ul>
+
+          <p class="general-label above">General access</p>
+
+          <div class="general-row above">
+            <div class="member-main">
+              <!-- Avatar group hover (P11): items get .t-avatar so JS
+                   can drive distance-falloff lift on mouseenter. -->
+              <div class="t-avatar-group avatar-stack" id="generalAvatars"></div>
+            </div>
+            <div class="right-cluster">
+              <button class="access-btn" type="button"
+                      data-access-owner="general"
+                      aria-haspopup="menu" aria-expanded="false">
+                <span class="access-label">Full access</span>
+                <span class="icon icon-chevron"></span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── State: Publish / Page published ────────────────
+             Single page that swaps between the unpublished and
+             published states with zero morph continuity. Every
+             visible piece (title, copy, button, and the badge
+             when going to unpublished) fades out together via
+             t-fade-blur — opacity 0 + 2 px blur, no translate.
+             The layout snaps to its new state while everything
+             is invisible (badge-slot grows from 0 to 48 px,
+             data-published flips, text content swaps), then the
+             new content fades back in (also opacity + 2 px blur,
+             no translate) while the published-badge plays the
+             canonical t-success-check on top. publishedFlag
+             drives data-published; setPublished() owns the
+             whole sequence — see the JS section below. -->
+        <section class="t-page state state-publish" data-page-id="2" id="statePublish">
+          <div class="publish-center" id="publishCenter" data-published="false">
+            <div class="badge-slot" aria-hidden="true">
+              <span class="t-success-check published-badge" id="publishedBadge" data-state="out"></span>
+            </div>
+            <div>
+              <!-- Title + body copy carry BOTH t-fade-blur and
+                   t-text-swap. setPublished uses the two halves on
+                   different phases:
+                     • Exit  → t-fade-blur (opacity 0 + 2 px blur,
+                               in place, no translate).
+                     • Entry → t-text-swap entry-only (is-enter-start
+                               parks at translateY(-8) + blur + opacity
+                               0, reflow, then settle to rest — the
+                               "new text appears" half of the canonical
+                               text-swap, with no exit phase).
+                   The button stays on plain t-fade-blur (no entry
+                   rise) so it just dissolves in below the texts. -->
+              <h2 class="publish-title t-fade-blur t-text-swap" id="publishTitle">Publish to web</h2>
+              <p class="publish-copy t-fade-blur t-text-swap" id="publishCopy">When published to web, anyone with the link can view this page's content and see contributor names and emails.</p>
+            </div>
+            <button class="primary-btn publish-action t-fade-blur" id="publishBtn" type="button">Publish</button>
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
+
+  <!-- Floating access-level menu (positioned at runtime). Shadow
+       lives on .access-menu-shell; scale animation on inner .t-dropdown
+       so Safari paints the drop-shadow from frame 1. -->
+  <div class="access-menu-shell" id="accessMenuShell" aria-hidden="true">
+  <div class="t-dropdown access-menu" id="accessMenu" data-open="false" data-origin="top-right" role="menu" aria-label="Access levels">
+    <button class="access-option" type="button" data-value="Full access">
+      <span>Full access</span><span class="check icon icon-check"></span>
+    </button>
+    <button class="access-option" type="button" data-value="Can edit">
+      <span>Can edit</span><span class="check icon icon-check"></span>
+    </button>
+    <button class="access-option" type="button" data-value="View only">
+      <span>View only</span><span class="check icon icon-check"></span>
+    </button>
+  </div>
+  </div>
+
+  <script>
+    /* ──────────────────────────────────────────────────────────────
+       Icons — each Figma asset is a small viewBox positioned inside
+       a 16×16 slot via inset percentages. We replicate that by
+       drawing into a 16×16 SVG and translating the original path so
+       the visual size matches Figma exactly (no stretching).
+       ────────────────────────────────────────────────────────────── */
+
+    // copy-01 — 16×16 stroked, 1.5px, currentColor.
+    function iconCopy() {
+      return [
+        '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">',
+        '<path d="M3.33333 10C2.71208 10 2.40145 10 2.15642 9.89851C1.82972 9.76318 1.57015 9.50361 1.43483 9.17691C1.33333 8.93188 1.33333 8.62125 1.33333 8V3.46667C1.33333 2.71993 1.33333 2.34656 1.47866 2.06135C1.60649 1.81046 1.81046 1.60649 2.06135 1.47866C2.34656 1.33333 2.71993 1.33333 3.46667 1.33333H8C8.62125 1.33333 8.93188 1.33333 9.17691 1.43483C9.50361 1.57015 9.76318 1.82972 9.89851 2.15642C10 2.40145 10 2.71208 10 3.33333M8.13333 14.6667H12.5333C13.2801 14.6667 13.6534 14.6667 13.9387 14.5213C14.1895 14.3935 14.3935 14.1895 14.5213 13.9387C14.6667 13.6534 14.6667 13.2801 14.6667 12.5333V8.13333C14.6667 7.3866 14.6667 7.01323 14.5213 6.72801C14.3935 6.47713 14.1895 6.27316 13.9387 6.14532C13.6534 6 13.2801 6 12.5333 6H8.13333C7.3866 6 7.01323 6 6.72801 6.14532C6.47713 6.27316 6.27316 6.47713 6.14532 6.72801C6 7.01323 6 7.3866 6 8.13333V12.5333C6 13.2801 6 13.6534 6.14532 13.9387C6.27316 14.1895 6.47713 14.3935 6.72801 14.5213C7.01323 14.6667 7.3866 14.6667 8.13333 14.6667Z"',
+        ' stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
+        '</svg>'
+      ].join('');
+    }
+
+    // chevron — Figma path is 7.5×4.5 sitting at inset (4.25, 6.25)
+    // inside a 16×16 box. We replicate via SVG transform.
+    function iconChevron() {
+      return [
+        '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">',
+        '<path transform="translate(4.25 6.25)" fill-rule="evenodd" clip-rule="evenodd" ',
+        'd="M0.21967 0.21967C0.512563 -0.0732233 0.987437 -0.0732233 1.28033 0.21967L3.75 2.68934L6.21967 0.21967C6.51256 -0.0732233 6.98744 -0.0732233 7.28033 0.21967C7.57322 0.512563 7.57322 0.987437 7.28033 1.28033L4.28033 4.28033C3.98744 4.57322 3.51256 4.57322 3.21967 4.28033L0.21967 1.28033C-0.0732233 0.987437 -0.0732233 0.512563 0.21967 0.21967Z"',
+        ' fill="currentColor"/>',
+        '</svg>'
+      ].join('');
+    }
+
+    // check — Figma path is 11.5×8.5 at inset (2.25, 4.25) within 16×16.
+    function iconCheck() {
+      return [
+        '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">',
+        '<path transform="translate(2.25 4.25)" fill-rule="evenodd" clip-rule="evenodd" ',
+        'd="M11.2803 0.21967C11.5732 0.512563 11.5732 0.987437 11.2803 1.28033L4.28033 8.28033C3.98744 8.57322 3.51256 8.57322 3.21967 8.28033L0.21967 5.28033C-0.0732233 4.98744 -0.0732233 4.51256 0.21967 4.21967C0.512563 3.92678 0.987437 3.92678 1.28033 4.21967L3.75 6.68934L10.2197 0.21967C10.5126 -0.0732233 10.9874 -0.0732233 11.2803 0.21967Z"',
+        ' fill="currentColor"/>',
+        '</svg>'
+      ].join('');
+    }
+
+    // warning — Figma path is 14.83×14.83 at inset 3.65% (≈0.584) within 16×16.
+    function iconWarning() {
+      return [
+        '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">',
+        '<path transform="translate(0.583 0.583)" fill-rule="evenodd" clip-rule="evenodd" ',
+        'd="M7.41667 1.5C4.14898 1.5 1.5 4.14898 1.5 7.41667C1.5 10.6844 4.14898 13.3333 7.41667 13.3333C10.6844 13.3333 13.3333 10.6844 13.3333 7.41667C13.3333 4.14898 10.6844 1.5 7.41667 1.5ZM0 7.41667C0 3.32055 3.32055 0 7.41667 0C11.5128 0 14.8333 3.32055 14.8333 7.41667C14.8333 11.5128 11.5128 14.8333 7.41667 14.8333C3.32055 14.8333 0 11.5128 0 7.41667ZM7.41667 4C7.83088 4 8.16667 4.33579 8.16667 4.75V7.41667C8.16667 7.83088 7.83088 8.16667 7.41667 8.16667C7.00245 8.16667 6.66667 7.83088 6.66667 7.41667V4.75C6.66667 4.33579 7.00245 4 7.41667 4ZM6.66667 10.0833C6.66667 9.66912 7.00245 9.33333 7.41667 9.33333H7.42333C7.83755 9.33333 8.17333 9.66912 8.17333 10.0833C8.17333 10.4975 7.83755 10.8333 7.42333 10.8333H7.41667C7.00245 10.8333 6.66667 10.4975 6.66667 10.0833Z"',
+        ' fill="#CC000B"/>',
+        '</svg>'
+      ].join('');
+    }
+
+    // Published badge — 48×48 disc with white check + Figma drop-shadow stack.
+    function iconPublishedBadge() {
+      return [
+        '<svg viewBox="0 0 56 56" width="48" height="48" fill="none" aria-hidden="true">',
+        '<defs><filter id="badgeShadow" x="0" y="0" width="56" height="56" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">',
+        '<feFlood flood-opacity="0" result="bg"/>',
+        '<feColorMatrix in="SourceAlpha" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 127 0" result="hard"/>',
+        '<feOffset dy="1"/><feGaussianBlur stdDeviation="2"/>',
+        '<feComposite in2="hard" operator="out"/>',
+        '<feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.08 0"/>',
+        '<feBlend in2="bg" result="ds1"/>',
+        '<feColorMatrix in="SourceAlpha" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 127 0" result="hard2"/>',
+        '<feOffset dy="1"/><feGaussianBlur stdDeviation="0.5"/>',
+        '<feComposite in2="hard2" operator="out"/>',
+        '<feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.1 0"/>',
+        '<feBlend in2="ds1" result="ds2"/>',
+        '<feBlend in="SourceGraphic" in2="ds2" result="shape"/>',
+        '<feColorMatrix in="SourceAlpha" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 127 0" result="hard3"/>',
+        '<feOffset dy="-1"/><feGaussianBlur stdDeviation="0.5"/>',
+        '<feComposite in2="hard3" operator="arithmetic" k2="-1" k3="1"/>',
+        '<feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.09 0"/>',
+        '<feBlend in2="shape" result="is1"/>',
+        '<feColorMatrix in="SourceAlpha" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 127 0" result="hard4"/>',
+        '<feMorphology radius="1" operator="erode" in="SourceAlpha" result="is2src"/>',
+        '<feOffset/><feComposite in2="hard4" operator="arithmetic" k2="-1" k3="1"/>',
+        '<feColorMatrix values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0"/>',
+        '<feBlend in2="is1"/></filter></defs>',
+        '<g filter="url(#badgeShadow)"><circle cx="28" cy="27" r="24" fill="#35BA00"/></g>',
+        '<path d="M21.2803 27.9602L25.7603 32.7602L34.7203 23.1602" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>',
+        '</svg>'
+      ].join('');
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       Refs
+       ────────────────────────────────────────────────────────────── */
+    const $ = (id) => document.getElementById(id);
+    const modalRoot       = $('modalRoot');
+    const modalBackdrop   = $('modalBackdrop');
+    const themeToggle     = $('themeToggle');
+    const reopenModal     = $('reopenModal');
+    const tabShare        = $('tabShare');
+    const tabPublish      = $('tabPublish');
+    const stateShare      = $('stateShare');
+    const statePublish    = $('statePublish');
+    const copyLinkBtn     = $('copyLinkBtn');
+    const copyLinkText    = $('copyLinkText');
+    const copyIconSwap    = $('copyIconSwap');
+    const copyIconA       = $('copyIconA');
+    const copyIconB       = $('copyIconB');
+    const inviteField     = $('inviteField');
+    const inviteFieldWrap = $('inviteFieldWrap');
+    const inviteInput     = $('inviteInput');
+    const inviteBtn       = $('inviteBtn');
+    const fieldRightIcon  = $('fieldRightIcon');
+    const errorMsg        = $('errorMsg');
+    const memberList      = $('memberList');
+    const generalAvatars  = $('generalAvatars');
+    const publishBtn      = $('publishBtn');
+    const publishedBadge  = $('publishedBadge');
+    const publishCenter   = $('publishCenter');
+    const publishTitle    = $('publishTitle');
+    // publishCopy is now the <p> itself (t-fade-blur target),
+    // not an inner morph span — JS rewrites its textContent.
+    const publishCopy     = $('publishCopy');
+    const pageStage       = $('pageStage');
+    const accessMenu      = $('accessMenu');
+    const accessMenuShell = $('accessMenuShell');
+
+    /* Initial icon paint. Inline SVGs that need theme colours read
+       currentColor on their fills/strokes, so the body's text colour
+       drives them and a theme flip propagates automatically. The
+       copy button stacks both icons in the same grid cell via
+       t-icon-swap, so we paint both up-front and let data-state
+       drive the cross-fade. */
+    function paintStaticIcons() {
+      copyIconA.innerHTML     = iconCopy();
+      copyIconB.innerHTML     = iconCheck();
+      // The published badge's check stroke is the only <path> inside
+      // its SVG (the disc is a <circle>), so the canonical
+      // `.t-success-check svg path` selector targets it directly
+      // and the canonical dasharray:20 fits the path geometry —
+      // no post-render JS tweaks needed.
+      publishedBadge.innerHTML = iconPublishedBadge();
+      document.querySelectorAll('.icon-chevron').forEach((el) => { el.innerHTML = iconChevron(); });
+      document.querySelectorAll('.icon-check').forEach((el)   => { el.innerHTML = iconCheck();   });
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       Random member list with public Unsplash portrait photos
+       ────────────────────────────────────────────────────────────── */
+    const firstNames = ['Liam','Noah','Elijah','James','Olivia','Emma','Sophia','Maya','Ava','Ella','Mila','Leo','Zoe','Iris','Theo'];
+    const lastNames  = ['Smith','Johnson','Brown','Miller','Davis','Wilson','Taylor','Clark','Moore','Hall','Evans','Reed','Cole','Hart'];
+
+    // Public, hot-linkable Unsplash portraits (auto-resized via query).
+    const avatarUrls = [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80',
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d',
+      'https://images.unsplash.com/photo-1544005313-94ddf0286df2',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
+      'https://images.unsplash.com/photo-1542206395-9feb3edaa68d',
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
+      'https://images.unsplash.com/photo-1531123897727-8f129e1688ce',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9'
+    ];
+    function avatarUrl(base, px) {
+      return base + '?auto=format&fit=crop&w=' + (px * 2) + '&h=' + (px * 2) + '&q=80';
+    }
+    function pickUnique(arr, n) {
+      const pool = arr.slice();
+      const out = [];
+      while (pool.length && out.length < n) {
+        out.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+      }
+      return out;
+    }
+    function makeMember() {
+      const f = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const l = lastNames[Math.floor(Math.random() * lastNames.length)];
+      return {
+        name: f + ' ' + l,
+        email: f.toLowerCase() + '@gmail.com'
+      };
+    }
+
+    const memberAvatars = pickUnique(avatarUrls, 3);
+    const stackAvatars  = pickUnique(avatarUrls, 5);
+    const members = Array.from({ length: 3 }, makeMember);
+    /* Pair each general-access avatar with a fake person so the
+       hover tooltip has a name to show. Generated alongside the
+       avatars (not from the same pool as the member rows above)
+       so the stack can collide with the listed members visually
+       without the names matching. */
+    const stackPeople = stackAvatars.map((url) => Object.assign(
+      { url },
+      makeMember()
+    ));
+
+    /* Permissions are kept in a map so each row owns its own state. */
+    const permissions = new Map();
+    let activeAccessOwner = null;
+
+    function renderMemberRow(member, idx) {
+      const ownerKey = 'm' + idx;
+      permissions.set(ownerKey, 'Full access');
+      const li = document.createElement('li');
+      li.className = 'member-row';
+      li.innerHTML =
+        '<div class="member-main">' +
+          '<img class="avatar" alt="" src="' + avatarUrl(memberAvatars[idx], 32) + '">' +
+          '<div class="member-text">' +
+            '<span class="member-name"></span>' +
+            '<span class="member-mail"></span>' +
+          '</div>' +
+        '</div>' +
+        '<button class="access-btn" type="button" aria-haspopup="menu" aria-expanded="false">' +
+          '<span class="access-label">Full access</span>' +
+          '<span class="icon icon-chevron"></span>' +
+        '</button>';
+      li.querySelector('.member-name').textContent = member.name;
+      li.querySelector('.member-mail').textContent = member.email;
+      const btn = li.querySelector('.access-btn');
+      btn.dataset.accessOwner = ownerKey;
+      btn.querySelector('.icon-chevron').innerHTML = iconChevron();
+      return li;
+    }
+
+    const canHoverAvatarTooltips = window.matchMedia
+      ? window.matchMedia('(hover: hover)').matches
+      : false;
+    let avatarTooltipHideTimer = null;
+    let avatarTooltip = null;
+    let avatarTooltipText = null;
+
+    function cancelAvatarTooltipHide() {
+      if (avatarTooltipHideTimer) {
+        clearTimeout(avatarTooltipHideTimer);
+        avatarTooltipHideTimer = null;
+      }
+    }
+    function hideAvatarTooltipSoon() {
+      if (!avatarTooltip) return;
+      cancelAvatarTooltipHide();
+      avatarTooltipHideTimer = setTimeout(function () {
+        avatarTooltip.setAttribute('data-show', 'false');
+        avatarTooltip.setAttribute('aria-hidden', 'true');
+      }, 50);
+    }
+    function placeAvatarTooltip(targetWrap, text) {
+      if (!avatarTooltip || !avatarTooltipText || !targetWrap) return;
+      cancelAvatarTooltipHide();
+      avatarTooltipText.textContent = text;
+      // Measure after text update so width tween follows content.
+      const nextWidth = Math.ceil(avatarTooltipText.scrollWidth + 24);
+      const stackRect = generalAvatars.getBoundingClientRect();
+      const wrapRect = targetWrap.getBoundingClientRect();
+      const center = (wrapRect.left - stackRect.left) + wrapRect.width / 2;
+      let nextX = center - nextWidth / 2;
+      // Keep the bubble inside the avatar stack bounds.
+      const maxX = Math.max(0, stackRect.width - nextWidth);
+      if (nextX < 0) nextX = 0;
+      if (nextX > maxX) nextX = maxX;
+      avatarTooltip.style.width = nextWidth + 'px';
+      avatarTooltip.style.transform = 'translateX(' + nextX + 'px)';
+      avatarTooltip.setAttribute('data-show', 'true');
+      avatarTooltip.setAttribute('aria-hidden', 'false');
+    }
+
+    function renderAvatarStack() {
+      generalAvatars.innerHTML = '';
+      stackPeople.forEach((person) => {
+        /* Wrap = positioning context + stacking slot. The IMG inside
+           keeps `.t-avatar` so the avatar-group lift continues to
+           target the image (which lets it scale/translate without
+           dragging the shared tooltip with it). */
+        const wrap = document.createElement('span');
+        wrap.className = 't-avatar-wrap';
+
+        const img = document.createElement('img');
+        img.className = 't-avatar pill';
+        img.alt = person.name;
+        img.src = avatarUrl(person.url, 28);
+
+        wrap.appendChild(img);
+        if (canHoverAvatarTooltips) {
+          wrap.addEventListener('mouseenter', function () {
+            placeAvatarTooltip(wrap, person.name);
+          });
+          wrap.addEventListener('mouseleave', hideAvatarTooltipSoon);
+          wrap.addEventListener('focusin', function () {
+            placeAvatarTooltip(wrap, person.name);
+          });
+          wrap.addEventListener('focusout', hideAvatarTooltipSoon);
+        }
+        generalAvatars.appendChild(wrap);
+      });
+      const more = document.createElement('span');
+      more.className = 't-avatar more';
+      const moreText = document.createElement('span');
+      moreText.textContent = '+2';
+      more.appendChild(moreText);
+      generalAvatars.appendChild(more);
+
+      if (canHoverAvatarTooltips) {
+        avatarTooltip = document.createElement('span');
+        avatarTooltip.className = 'avatar-tooltip';
+        avatarTooltip.setAttribute('role', 'tooltip');
+        avatarTooltip.setAttribute('aria-hidden', 'true');
+        avatarTooltip.setAttribute('data-show', 'false');
+        avatarTooltipText = document.createElement('span');
+        avatarTooltipText.className = 'avatar-tooltip-text';
+        avatarTooltip.appendChild(avatarTooltipText);
+        generalAvatars.appendChild(avatarTooltip);
+        generalAvatars.addEventListener('mouseenter', cancelAvatarTooltipHide);
+        generalAvatars.addEventListener('mouseleave', hideAvatarTooltipSoon);
+      }
+    }
+
+    members.forEach((m, i) => memberList.appendChild(renderMemberRow(m, i)));
+    permissions.set('general', 'Full access');
+    paintStaticIcons();
+    renderAvatarStack();
+
+    /* ──────────────────────────────────────────────────────────────
+       View routing — tabs swap between Share and Publish, and
+       Publish itself has two stages (un-published / published).
+       Page transitions are owned by the t-page-slide snippet (P8):
+       we just flip data-page on the slider and the CSS handles the
+       slide/fade/blur. Share=1, Publish=2, Published=3 (which
+       inherits page 2's rightward exit direction so the publish
+       action keeps a single visual flow).
+       ────────────────────────────────────────────────────────────── */
+    let publishedFlag = false;
+    function isGeneric() { return document.body.dataset.style === 'generic'; }
+    function setView(view) {
+      const onShare = view === 'share';
+      tabShare.setAttribute('aria-selected', String(onShare));
+      tabPublish.setAttribute('aria-selected', String(!onShare));
+      // Two-page slider now: 1 = share, 2 = publish (which itself
+      // morphs between unpublished and published via text-swap).
+      pageStage.setAttribute('data-page', onShare ? '1' : '2');
+      copyLinkBtn.style.visibility = onShare ? 'visible' : 'hidden';
+      stateShare.dataset.active    = String(onShare);
+      statePublish.dataset.active  = String(!onShare);
+    }
+    tabShare.addEventListener('click',   () => setView('share'));
+    tabPublish.addEventListener('click', () => setView('publish'));
+
+    /* ──────────────────────────────────────────────────────────────
+       Publish / Unpublish — single synchronised cross-fade, zero
+       morph continuity between the two states.
+         Phase 1 (textSwapDur):  every visible piece (title, copy,
+                                  button, and badge if currently on
+                                  screen) fades out in place — opacity
+                                  0 + 2 px blur, no translate, no
+                                  scale.
+         Mid-phase (instant):    swap text content, flip
+                                  data-published (the layout snaps
+                                  while everything is invisible so
+                                  the fade-in below doesn't slide).
+                                  On publish, restart the canonical
+                                  success-check on the badge.
+         Phase 2 (textSwapDur):  the new texts/button fade back in
+                                  in place — opacity 0 → 1, blur
+                                  2 px → 0 — while the success-check
+                                  plays its rotate / bob / blur /
+                                  draw beat on top.
+       Net result: the old state disappears, then the new one shows
+       up — no element morphs between them.
+       ────────────────────────────────────────────────────────────── */
+    const COPY_PUBLISH   = 'Publish to web';
+    const COPY_PUBLISHED = 'Page published';
+    const BODY_PUBLISH   = 'When published to web, anyone with the link can view this page\u2019s content and see contributor names and emails.';
+    const BODY_PUBLISHED = 'Anyone with the link can view this page\u2019s content and see contributor names and emails.';
+    // Lag the title + body-copy fade-in by this many ms after the
+    // badge / button beat. Keeps the success-check on screen for a
+    // moment before the texts resolve, so the entry reads as a
+    // small sequence instead of a single simultaneous flash.
+    const TEXT_REENTER_DELAY_MS = 50;
+    // Additional lag on the body copy after the title. Reads as
+    // "headline lands first, supporting line follows". Applied in
+    // both directions (publish + unpublish) for a consistent beat.
+    const SECONDARY_TEXT_DELAY_MS = 25;
+
+    function playSuccessCheck() {
+      publishedBadge.setAttribute('data-state', 'out');
+      void publishedBadge.offsetWidth; // reflow to replay keyframes from 0
+      publishedBadge.setAttribute('data-state', 'in');
+    }
+
+    /* The published-badge wears .t-success-check, whose entry uses
+       `animation: ... forwards`. That fill mode locks opacity /
+       transform / filter / translate to the keyframe end-state, and
+       author CSS can't override animation-forwards values. To fade
+       the badge out cleanly during unpublish we:
+         1. Capture its currently-rendered pose into inline styles
+            (so the visual doesn't jump).
+         2. Snap data-state away from "in" — this removes the
+            [data-state="in"] animation declaration and releases the
+            forwards lock.
+         3. Reflow, then transition opacity to 0 via an inline
+            style (which now wins the cascade).
+       Only opacity is animated — the t-success-check entry already
+       owns the blur axis (10 px → 0 via t-check-blur), so stacking
+       another 2 px wrapper blur during the cross-fade would double-
+       count the effect and read as a too-soft fade. clearBadgeFade
+       strips the inline styles so the next publish can re-run the
+       canonical success-check from a clean slate. */
+    function fadeBadgeOut() {
+      const wrap = publishedBadge;
+      const cs = getComputedStyle(wrap);
+      wrap.style.opacity   = cs.opacity;
+      wrap.style.filter    = cs.filter;
+      wrap.style.transform = cs.transform;
+      wrap.style.translate = cs.translate;
+      wrap.setAttribute('data-state', 'out');
+      void wrap.offsetWidth;
+      // setProperty with 'important' so the inline transition
+      // beats the blanket `body[data-style="generic"] * {
+      // transition: none !important; }` reset and the badge
+      // fades out the same way in skill and generic modes.
+      wrap.style.setProperty(
+        'transition',
+        'opacity ' + publishTextDur + 'ms ease',
+        'important'
+      );
+      wrap.style.opacity = '0';
+    }
+    function clearBadgeFade() {
+      const wrap = publishedBadge;
+      wrap.style.removeProperty('transition');
+      wrap.style.opacity    = '';
+      wrap.style.filter     = '';
+      wrap.style.transform  = '';
+      wrap.style.translate  = '';
+    }
+
+    let publishStageTimer = null;
+    // Pending text-entry timers from phase 2 of setPublished. Tracked
+    // so resetPublishState can cancel them — otherwise a reset that
+    // lands between the mid-phase swap and the staggered text entry
+    // would let those callbacks ghost-animate the now-unpublished
+    // title / copy moments after the snap.
+    let publishTextTimers = [];
+    function clearPublishTextTimers() {
+      for (let i = 0; i < publishTextTimers.length; i++) {
+        clearTimeout(publishTextTimers[i]);
+      }
+      publishTextTimers.length = 0;
+    }
+    function setPublished(next) {
+      if (publishedFlag === next) return;
+      publishedFlag = next;
+
+      // The publish flow runs identically in skill and generic
+      // modes — same two-phase choreography (fade-blur exit, then
+      // text-swap entry) on the title / body / button, same JS.
+      // Generic mode only differs in how the green disc enters
+      // (double scale bounce, no position movement) — that's
+      // owned entirely by the body[data-style="generic"]
+      // .t-success-check CSS overrides further up the file.
+
+      // Phase 1 — fade everything out together. The badge only
+      // needs an explicit fade-out on the published → unpublished
+      // direction; going to published, it starts invisible from
+      // data-state="out" so there's nothing on screen to fade.
+      publishTitle.classList.add('is-fading');
+      publishCopy.classList.add('is-fading');
+      publishBtn.classList.add('is-fading');
+      if (!next) fadeBadgeOut();
+
+      // Mid-phase — swap content + layout while everything is
+      // invisible, then start phase 2 (texts fade back in +
+      // success-check entry).
+      if (publishStageTimer) clearTimeout(publishStageTimer);
+      publishStageTimer = setTimeout(() => {
+        publishStageTimer = null;
+        publishCenter.dataset.published = String(next);
+        publishTitle.textContent = next ? COPY_PUBLISHED : COPY_PUBLISH;
+        publishCopy.textContent  = next ? BODY_PUBLISHED : BODY_PUBLISH;
+        publishBtn.textContent   = next ? 'Unpublish'    : 'Publish';
+
+        if (next) {
+          clearBadgeFade();
+          playSuccessCheck();
+        } else {
+          // Leave the inline opacity/blur in place — they hold the
+          // badge invisible. data-state="out" is just bookkeeping
+          // so the next publish click starts from a clean slate.
+          publishedBadge.setAttribute('data-state', 'out');
+        }
+
+        // Button fades in right away with the badge / check entry
+        // (plain t-fade-blur — opacity + blur, no translate).
+        // Reflow before removing .is-fading so the fade-in actually
+        // transitions instead of snapping (browsers can batch class
+        // toggles together and collapse the transition otherwise).
+        void publishBtn.offsetHeight;
+        publishBtn.classList.remove('is-fading');
+
+        // Title + body copy lag the badge by a small beat. The
+        // body copy gets an extra SECONDARY_TEXT_DELAY_MS so it
+        // resolves after the title — a small stagger that reads
+        // as "headline first, supporting copy follows" instead of
+        // a single simultaneous flash.
+        if (next) {
+          // Publish direction — run the entry-only half of the
+          // canonical t-text-swap (rise + un-blur + fade in). The
+          // rise direction is flipped inside .publish-center (see
+          // the matching CSS override) so the new texts come up
+          // from below instead of falling down from above.
+          publishTextTimers.push(setTimeout(() => runTextSwapEntry(publishTitle),
+            TEXT_REENTER_DELAY_MS));
+          publishTextTimers.push(setTimeout(() => runTextSwapEntry(publishCopy),
+            TEXT_REENTER_DELAY_MS + SECONDARY_TEXT_DELAY_MS));
+        } else {
+          // Unpublish direction — no rise. Just drop .is-fading on
+          // each element so the plain t-fade-blur cross-fade owns
+          // the entry (opacity 0 → 1, blur 2 px → 0, in place).
+          // Same title-first / copy-after stagger as the publish
+          // direction for visual consistency.
+          publishTextTimers.push(setTimeout(() => {
+            void publishTitle.offsetHeight;
+            publishTitle.classList.remove('is-fading');
+          }, TEXT_REENTER_DELAY_MS));
+          publishTextTimers.push(setTimeout(() => {
+            void publishCopy.offsetHeight;
+            publishCopy.classList.remove('is-fading');
+          }, TEXT_REENTER_DELAY_MS + SECONDARY_TEXT_DELAY_MS));
+        }
+      }, publishTextDur);
+    }
+
+    /* Three-step text-swap entry (the "new text appears" half of
+       the canonical t-text-swap):
+         1. Drop .is-fading and atomically park the element at
+            .is-enter-start (translateY(+text-swap-translate-y) in
+            publish-center, blur 2 px, opacity 0, transition: none).
+            Both class ops happen in the same JS turn so no fade
+            between is-fading and is-enter-start is observable.
+         2. Force a synchronous layout so the entry-start pose gets
+            committed to the cascade.
+         3. Remove .is-enter-start — the rest pose (translateY 0,
+            blur 0, opacity 1) is now reached via the t-text-swap
+            transition. */
+    function runTextSwapEntry(el) {
+      el.classList.remove('is-fading');
+      el.classList.add('is-enter-start');
+      void el.offsetHeight;
+      el.classList.remove('is-enter-start');
+    }
+    publishBtn.addEventListener('click', () => setPublished(!publishedFlag));
+
+    /* ──────────────────────────────────────────────────────────────
+       Invite validation — minimal email check, error/clean states.
+       On invalid: toggle .is-error on wrap + input (border + msg),
+       then replay .is-shaking on the input (P12 shake). Typing
+       clears everything immediately.
+       ────────────────────────────────────────────────────────────── */
+    function isEmail(v) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+    const modalCard = document.querySelector('.modal-card');
+    const shakeCs = getComputedStyle(document.documentElement);
+    const shakeMs = () => (
+      (parseFloat(shakeCs.getPropertyValue('--shake-dur-a')) || 80) * 2 +
+      (parseFloat(shakeCs.getPropertyValue('--shake-dur-b')) || 60) * 2
+    );
+    function setError(show) {
+      inviteFieldWrap.classList.toggle('is-error', show);
+      inviteField.classList.toggle('is-error', show);
+      errorMsg.dataset.show = String(show);
+      fieldRightIcon.innerHTML = show ? iconWarning() : '';
+      modalCard.dataset.error = String(show);
+      // Auto-clear: any new setError call resets the 2 s dismiss
+      // timer. When showing, schedule the revert; when hiding (or
+      // on user input), just cancel any pending dismiss.
+      clearTimeout(setError._autoClearTimer);
+      if (show) {
+        // Replay the shake from a clean baseline.
+        inviteField.classList.remove('is-shaking');
+        void inviteField.offsetWidth;
+        inviteField.classList.add('is-shaking');
+        clearTimeout(setError._shakeTimer);
+        setError._shakeTimer = setTimeout(
+          () => inviteField.classList.remove('is-shaking'),
+          shakeMs() + 20
+        );
+        setError._autoClearTimer = setTimeout(() => setError(false), 2000);
+      } else {
+        inviteField.classList.remove('is-shaking');
+      }
+    }
+    inviteBtn.addEventListener('click', () => {
+      const value = inviteInput.value.trim();
+      if (!isEmail(value)) { setError(true); return; }
+      setError(false);
+      inviteInput.value = '';
+    });
+    inviteInput.addEventListener('input', () => setError(false));
+
+    /* ──────────────────────────────────────────────────────────────
+       Copy-link interaction — icon swap (P9) + text states swap (P4).
+       The icons live stacked in the t-icon-swap; we just flip
+       data-state="a"|"b" on the wrapper. For the label we run the
+       three-phase swap (exit → swap textContent → enter-start →
+       reflow → rest). Generic mode short-circuits to a textContent
+       update so there's no perceived delay.
+       ────────────────────────────────────────────────────────────── */
+    const textSwapDur = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--text-swap-dur')
+    ) || 200;
+    // .publish-center overrides --text-swap-dur to a longer, more
+    // deliberate value so the hero beat doesn't feel rushed. Read
+    // the scoped value here so setPublished's mid-phase timer and
+    // fadeBadgeOut's transition match the CSS exactly — otherwise
+    // the JS flip happens before the CSS fade-out finishes.
+    const publishTextDur = parseFloat(
+      getComputedStyle(publishCenter).getPropertyValue('--text-swap-dur')
+    ) || textSwapDur;
+    const textEnterDelay = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--text-swap-enter-delay')
+    ) || 0;
+    // Total exit-to-entry handoff: exit duration + optional gap.
+    // Mirrors the skill's text-swap math (dur + enter-delay) so the
+    // entry beat lands exactly where the snippet defaults dictate.
+    const textSwapAt = Math.max(0, textSwapDur + textEnterDelay);
+    function swapText(el, next) {
+      if (isGeneric()) { el.textContent = next; return; }
+      el.classList.add('is-exit');
+      setTimeout(() => {
+        el.textContent = next;
+        el.classList.remove('is-exit');
+        el.classList.add('is-enter-start');
+        void el.offsetHeight; // reflow so the next change transitions
+        el.classList.remove('is-enter-start');
+      }, textSwapAt);
+    }
+
+    let copyResetTimer = null;
+    copyLinkBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText('https://transitions.dev/example'); } catch (_) {}
+      copyIconSwap.setAttribute('data-state', 'b');
+      swapText(copyLinkText, 'Copied');
+      clearTimeout(copyResetTimer);
+      copyResetTimer = setTimeout(() => {
+        copyIconSwap.setAttribute('data-state', 'a');
+        swapText(copyLinkText, 'Copy link');
+      }, 1400);
+    });
+
+    /* ──────────────────────────────────────────────────────────────
+       Avatar group hover (P11) — distance-falloff lift with
+       direction-aware easing. We set transition-timing-function
+       inline BEFORE writing --shift / --scale-active so the
+       browser uses ease-in on hover and the bouncy ease-out on
+       mouseleave without needing a second class.
+       ────────────────────────────────────────────────────────────── */
+    function bindAvatarGroup(root) {
+      if (!root) return;
+      // Read computed style from the avatar-group element itself,
+      // not from <html>. Generic mode overrides --avatar-lift /
+      // --avatar-scale on body[data-style="generic"], which only
+      // cascades to descendants of <body>; <html> never sees it.
+      // Resolving via `root` lets the cascade pick up :root's
+      // skill-mode defaults OR body's generic-mode overrides
+      // automatically. Re-read on every setShifts call so a runtime
+      // mode switch (compare toggle) takes effect on the next hover.
+      const num = (cs, name, fb) => {
+        const v = parseFloat(cs.getPropertyValue(name));
+        return Number.isFinite(v) ? v : fb;
+      };
+      const ease = (cs, name, fb) => cs.getPropertyValue(name).trim() || fb;
+      const items = () => Array.from(root.querySelectorAll('.t-avatar'));
+      function setShifts(activeIdx, phase) {
+        const cs = getComputedStyle(root);
+        const lift    = num(cs, '--avatar-lift', -4);
+        const falloff = num(cs, '--avatar-falloff', 0.45);
+        const scale   = num(cs, '--avatar-scale', 1.05);
+        const tf      = phase === 'out'
+          ? ease(cs, '--avatar-ease-out', 'cubic-bezier(0.34, 3.85, 0.64, 1)')
+          : ease(cs, '--avatar-ease-in',  'cubic-bezier(0.22, 1, 0.36, 1)');
+        items().forEach((el, i) => {
+          el.style.transitionTimingFunction = tf;
+          if (activeIdx == null) {
+            el.style.setProperty('--shift', '0px');
+            el.style.setProperty('--scale-active', '1');
+            return;
+          }
+          const d = Math.abs(i - activeIdx);
+          el.style.setProperty(
+            '--shift',
+            (lift * Math.pow(falloff, d)).toFixed(3) + 'px'
+          );
+          el.style.setProperty(
+            '--scale-active',
+            i === activeIdx ? String(scale) : '1'
+          );
+        });
+      }
+      // Re-bind on every render — the items() lookup is live, but the
+      // listeners need to be attached to the current DOM nodes.
+      items().forEach((el, i) => {
+        el.addEventListener('mouseenter', () => setShifts(i, 'in'));
+      });
+      root.addEventListener('mouseleave', () => setShifts(null, 'out'));
+    }
+    bindAvatarGroup(generalAvatars);
+
+    /* ──────────────────────────────────────────────────────────────
+       Access-level menu (P5 dropdown) — single floating dropdown
+       reused by every trigger. Anchored under the clicked button,
+       right-aligned to the button's right edge. .t-dropdown owns
+       the open/close scale + opacity; we manage .is-open and
+       .is-closing here (close → wait close-dur → strip .is-closing).
+       ────────────────────────────────────────────────────────────── */
+    const dropdownCloseMs = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--dropdown-close-dur')
+    ) || 150;
+    function syncAccessShell(open, closing) {
+      accessMenuShell.classList.toggle('is-open', open);
+      accessMenuShell.classList.toggle('is-closing', closing);
+      accessMenuShell.setAttribute('aria-hidden', open || closing ? 'false' : 'true');
+    }
+    function closeMenu() {
+      if (accessMenu.dataset.open !== 'true' && !accessMenu.classList.contains('is-open')) return;
+      accessMenu.dataset.open = 'false';
+      accessMenu.classList.remove('is-open');
+      accessMenu.classList.add('is-closing');
+      syncAccessShell(false, true);
+      clearTimeout(closeMenu._t);
+      closeMenu._t = setTimeout(() => {
+        accessMenu.classList.remove('is-closing');
+        syncAccessShell(false, false);
+      }, dropdownCloseMs);
+      if (activeAccessOwner) {
+        const btn = document.querySelector('[data-access-owner="' + activeAccessOwner + '"]');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+      }
+      activeAccessOwner = null;
+    }
+    function openMenuFor(owner, anchor) {
+      activeAccessOwner = owner;
+      const selected = permissions.get(owner) || 'Full access';
+      accessMenu.querySelectorAll('.access-option').forEach((opt) => {
+        opt.dataset.selected = String(opt.dataset.value === selected);
+      });
+      const r = anchor.getBoundingClientRect();
+      // Measure the menu's natural height by making it laid-out but
+      // invisible. Padding+3 rows at 36px = ~116 in light mode, but
+      // dark mode's chunkier rhythm bumps that to ~136 — measuring
+      // keeps the upward flip honest across themes.
+      const prevVis = accessMenuShell.style.visibility;
+      const prevDisp = accessMenuShell.style.display;
+      accessMenuShell.style.visibility = 'hidden';
+      accessMenuShell.style.display = 'block';
+      const menuH = accessMenu.offsetHeight;
+      accessMenuShell.style.visibility = prevVis;
+      accessMenuShell.style.display = prevDisp;
+      // Flip the dropdown above the trigger when there isn't enough
+      // room below in the viewport (the modal is embedded in a
+      // 460px iframe on the skill page, so general-access triggers
+      // routinely run out of space underneath). Origin follows the
+      // anchor edge so the t-dropdown scale grows from the trigger.
+      const vh = window.innerHeight || document.documentElement.clientHeight;
+      const gap = 8;
+      const edgePad = 8;
+      const spaceBelow = vh - r.bottom;
+      const openUp = spaceBelow < menuH + gap + edgePad && r.top > spaceBelow;
+      const top = openUp
+        ? Math.round(r.top - gap - menuH)
+        : Math.round(r.bottom + gap);
+      // Right-align the 188px menu with the anchor's right edge.
+      accessMenuShell.style.left = Math.round(r.right - 188) + 'px';
+      accessMenuShell.style.top  = top + 'px';
+      accessMenu.setAttribute('data-origin', openUp ? 'bottom-right' : 'top-right');
+      accessMenu.dataset.open = 'true';
+      accessMenu.classList.remove('is-closing');
+      syncAccessShell(true, false);
+      // Force a layout read so the scale(pre) baseline is applied
+      // before .is-open swaps it to scale(1) — keeps the open
+      // animation from skipping its first frame after a close.
+      void accessMenu.offsetWidth;
+      accessMenu.classList.add('is-open');
+      anchor.setAttribute('aria-expanded', 'true');
+    }
+    function applyPermission(owner, value) {
+      permissions.set(owner, value);
+      const btn = document.querySelector('[data-access-owner="' + owner + '"]');
+      if (btn) btn.querySelector('.access-label').textContent = value;
+    }
+    document.addEventListener('click', (e) => {
+      const trigger = e.target.closest('[data-access-owner]');
+      if (trigger) {
+        const owner = trigger.dataset.accessOwner;
+        if (activeAccessOwner === owner && accessMenu.dataset.open === 'true') {
+          closeMenu();
+        } else {
+          if (activeAccessOwner) closeMenu();
+          openMenuFor(owner, trigger);
+        }
+        return;
+      }
+      const option = e.target.closest('.access-option');
+      if (option && activeAccessOwner) {
+        applyPermission(activeAccessOwner, option.dataset.value);
+        closeMenu();
+        return;
+      }
+      if (!e.target.closest('#accessMenu') && !e.target.closest('#accessMenuShell')) closeMenu();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+
+    /* ──────────────────────────────────────────────────────────────
+       Misc UI plumbing
+       ────────────────────────────────────────────────────────────── */
+    reopenModal.addEventListener('click', () => { modalRoot.dataset.open = 'true'; });
+    modalBackdrop.addEventListener('click', () => {
+      modalRoot.dataset.open = 'false';
+      closeMenu();
+    });
+
+    /* applyTheme keeps every theme-dependent inline-rendered icon in
+       sync. The chevron/check use currentColor so a CSS flip is
+       enough, but the badge needs a fresh re-render. The canonical
+       skill's stroke-dasharray:20 ships with the new <path> via
+       CSS, so the only thing we have to patch up by hand is the
+       drawn state — if the badge was already 'in' before the
+       theme flip, snap dashoffset to 0 on the freshly-rendered
+       path so the check stays visible instead of resetting. */
+    function applyTheme(next) {
+      const html = document.documentElement;
+      html.dataset.theme = next;
+      themeToggle.textContent = next === 'dark' ? 'Light mode' : 'Dark mode';
+      copyIconA.innerHTML = iconCopy();
+      copyIconB.innerHTML = iconCheck();
+      if (errorMsg.dataset.show === 'true') fieldRightIcon.innerHTML = iconWarning();
+      publishedBadge.innerHTML = iconPublishedBadge();
+      if (publishedBadge.getAttribute('data-state') === 'in') {
+        const checkPath = publishedBadge.querySelector('svg path');
+        if (checkPath) checkPath.style.strokeDashoffset = '0';
+      }
+      document.querySelectorAll('.icon-chevron').forEach((el) => { el.innerHTML = iconChevron(); });
+      document.querySelectorAll('.icon-check').forEach((el)   => { el.innerHTML = iconCheck();   });
+    }
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      /* In standalone (non-embed) mode the page shows two iframes
+         side-by-side. Forward the theme flip to both of them so the
+         compare stays in sync — they each listen for {type:'theme'}
+         via initEmbed's postMessage handler. */
+      ['compareIframeOff', 'compareIframeOn'].forEach((id) => {
+        const f = document.getElementById(id);
+        if (f && f.contentWindow) {
+          try { f.contentWindow.postMessage({ type: 'theme', theme: next }, '*'); }
+          catch (_) {}
+        }
+      });
+    });
+
+    /* Hard-snap the publish flow back to the unpublished baseline,
+       bypassing every transition. Used by the host page when the
+       compare toggle flips, so each side of the comparison starts
+       from the same clean state regardless of what the user did
+       last time. Safe to call when already unpublished — every step
+       is idempotent.
+         1. Cancel any in-flight mid-phase timer so the swap doesn't
+            land seconds after we've snapped the state away.
+         2. Clear any inline badge fade-out styles left behind from
+            a mid-unpublish call (opacity / filter / transform /
+            translate / transition all wiped via clearBadgeFade).
+         3. Strip the transient text-swap / fade-blur classes so
+            the title + copy + button aren't stuck mid-pose.
+         4. Snap content, data-published, and the badge data-state. */
+    function resetPublishState() {
+      if (publishStageTimer) {
+        clearTimeout(publishStageTimer);
+        publishStageTimer = null;
+      }
+      clearPublishTextTimers();
+      clearBadgeFade();
+      [publishTitle, publishCopy, publishBtn].forEach((el) => {
+        el.classList.remove('is-fading', 'is-enter-start', 'is-exit');
+      });
+      publishedFlag = false;
+      publishCenter.dataset.published = 'false';
+      publishTitle.textContent = COPY_PUBLISH;
+      publishCopy.textContent  = BODY_PUBLISH;
+      publishBtn.textContent   = 'Publish';
+      publishedBadge.setAttribute('data-state', 'out');
+    }
+
+    /* ──────────────────────────────────────────────────────────────
+       Embed mode — initialise on load. Sets the body data flag,
+       picks up initial theme from ?theme=, and listens for both
+       theme updates AND reset-publish requests via postMessage
+       from the host page (skill.html fires reset-publish when its
+       compare toggle flips so the two sides start from the same
+       baseline).
+       ────────────────────────────────────────────────────────────── */
+    (function initEmbed() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('embed') !== '1') return;
+      document.documentElement.dataset.embed = 'true';
+      document.body.dataset.embed = 'true';
+      const style = params.get('style');
+      if (style === 'generic') document.body.dataset.style = 'generic';
+      const initialTheme = params.get('theme');
+      if (initialTheme === 'dark' || initialTheme === 'light') {
+        applyTheme(initialTheme);
+      }
+
+      window.addEventListener('message', (event) => {
+        const data = event.data;
+        if (!data) return;
+        if (data.type === 'theme') {
+          if (data.theme === 'dark' || data.theme === 'light') applyTheme(data.theme);
+        } else if (data.type === 'reset-publish') {
+          resetPublishState();
+        }
+      });
+    })();
+
+    setView('share');
+  </script>
+</body>
+</html>

@@ -2245,7 +2245,8 @@
       position: relative;
     }
 
-    .dropzone-box:hover, .dropzone-box.drag-over {
+    .dropzone-box:hover,
+    .dropzone-box.drag-over {
       border-color: var(--color-phosphor-green);
       background: rgba(62, 207, 142, 0.05);
       box-shadow: 0 0 20px rgba(62, 207, 142, 0.15);
@@ -2403,8 +2404,9 @@
         </select>
       </div>
 
-      <div id="aiEngineStatusBadge" class="stream-status-pill" title="محرك الذكاء الاصطناعي النشط - انقر للانتقال للإعدادات"
-        style="cursor: pointer; margin-left: 8px;" onclick="switchView('view-settings')">
+      <div id="aiEngineStatusBadge" class="stream-status-pill"
+        title="محرك الذكاء الاصطناعي النشط - انقر للانتقال للإعدادات" style="cursor: pointer; margin-left: 8px;"
+        onclick="switchView('view-settings')">
         <span class="stream-dot" id="aiEngineStatusDot" style="background: var(--color-phosphor-green);"></span>
         <span id="aiEngineStatusText">AI: جاري الفحص…</span>
       </div>
@@ -2453,7 +2455,7 @@
   <!-- ==================== MAIN CONTENT ==================== -->
 
 
-  
+
 
 
   <main class="main-wrapper">
@@ -2535,7 +2537,9 @@
               <div class="suggestion-chip" onclick="sendQuickPrompt('أرشفة الموظف فهد')">طلب أرشفة</div>
               <div class="suggestion-chip" onclick="sendQuickPrompt('فحص الوثائق والإقامات المنتهية')">رصد الوثائق
                 المنتهية</div>
-              <div class="suggestion-chip" onclick="switchView('view-upload')" style="border-color: rgba(62, 207, 142, 0.4); color: var(--color-phosphor-green);">📤 مركز استيراد ورفع الملفات</div>
+              <div class="suggestion-chip" onclick="switchView('view-upload')"
+                style="border-color: rgba(62, 207, 142, 0.4); color: var(--color-phosphor-green);">📤 مركز استيراد ورفع
+                الملفات</div>
             </div>
 
             <form id="chatForm" class="chat-form" onsubmit="handleChatSubmit(event)">
@@ -2556,7 +2560,9 @@
             </form>
             <div class="composer-footer">
               <span>Enter للإرسال · Shift+Enter لسطر جديد</span>
-              <span>لرفع ملفات Excel وفحصها: <a href="javascript:void(0)" onclick="switchView('view-upload')" style="color: var(--color-phosphor-green); text-decoration: underline; font-weight: 600;">انتقل لمركز الاستيراد 📤</a></span>
+              <span>لرفع ملفات Excel وفحصها: <a href="javascript:void(0)" onclick="switchView('view-upload')"
+                  style="color: var(--color-phosphor-green); text-decoration: underline; font-weight: 600;">انتقل لمركز
+                  الاستيراد 📤</a></span>
             </div>
           </div>
         </div>
@@ -2699,7 +2705,8 @@
       <div class="panel-card" style="margin-bottom: 24px; padding: 20px 24px;">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
           <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(62, 207, 142, 0.12); border: 1px solid var(--color-phosphor-green); display: flex; align-items: center; justify-content: center; color: var(--color-phosphor-green);">
+            <div
+              style="width: 48px; height: 48px; border-radius: 12px; background: rgba(62, 207, 142, 0.12); border: 1px solid var(--color-phosphor-green); display: flex; align-items: center; justify-content: center; color: var(--color-phosphor-green);">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="17 8 12 3 7 8"></polyline>
@@ -2707,7 +2714,8 @@
               </svg>
             </div>
             <div>
-              <div class="panel-title" style="font-size: 18px;">مركز استيراد ملفات Excel والفحص المحكوم (Safe Dry-Run)</div>
+              <div class="panel-title" style="font-size: 18px;">مركز استيراد ملفات Excel والفحص المحكوم (Safe Dry-Run)
+              </div>
               <div style="font-size: 13px; color: var(--color-silver-mist); margin-top: 4px;">
                 منطقة مخصصة ومستقلة لرفع وتدقيق ملفات الموظفين والعقود والرواتب آلياً قبل إجراء أي تعديل في Odoo
               </div>
@@ -2731,7 +2739,8 @@
           </div>
 
           <div style="margin-bottom: 16px;">
-            <label for="dedicatedCompanySelect" style="display: block; font-size: 13px; font-weight: 600; color: var(--color-snow); margin-bottom: 8px;">
+            <label for="dedicatedCompanySelect"
+              style="display: block; font-size: 13px; font-weight: 600; color: var(--color-snow); margin-bottom: 8px;">
               المنشأة المستهدفة (Target Company):
             </label>
             <select id="dedicatedCompanySelect" onchange="handleDedicatedCompanyChange(this.value)"
@@ -2741,8 +2750,10 @@
           </div>
 
           <!-- Drag and Drop Box -->
-          <div id="dedicatedDropZone" class="dropzone-box" onclick="document.getElementById('dedicatedFileInput').click()">
-            <input type="file" id="dedicatedFileInput" accept=".xlsx,.xls" style="display: none;" onchange="handleDedicatedFileSelect(this)">
+          <div id="dedicatedDropZone" class="dropzone-box"
+            onclick="document.getElementById('dedicatedFileInput').click()">
+            <input type="file" id="dedicatedFileInput" accept=".xlsx,.xls" style="display: none;"
+              onchange="handleDedicatedFileSelect(this)">
             <div class="dropzone-icon">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -2764,17 +2775,20 @@
               <span style="font-size: 24px;">📊</span>
               <div>
                 <div id="dedicatedFileName" style="font-weight: 600; font-size: 14px; color: var(--color-snow);">—</div>
-                <div id="dedicatedFileSize" style="font-size: 12px; color: var(--color-silver-mist); margin-top: 2px;">—</div>
+                <div id="dedicatedFileSize" style="font-size: 12px; color: var(--color-silver-mist); margin-top: 2px;">—
+                </div>
               </div>
             </div>
-            <button type="button" class="btn btn-sm btn-secondary" onclick="clearDedicatedFile()" style="color: var(--color-coral);">
+            <button type="button" class="btn btn-sm btn-secondary" onclick="clearDedicatedFile()"
+              style="color: var(--color-coral);">
               ✕ إلغاء الملف
             </button>
           </div>
 
           <!-- Action Button -->
           <div style="margin-top: 20px;">
-            <button id="startDryRunBtn" class="btn btn-primary" onclick="startDedicatedDryRun()" style="width: 100%; height: 46px; font-size: 15px; justify-content: center;" disabled>
+            <button id="startDryRunBtn" class="btn btn-primary" onclick="startDedicatedDryRun()"
+              style="width: 100%; height: 46px; font-size: 15px; justify-content: center;" disabled>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="10"></circle>
                 <polygon points="10 8 16 12 10 16 10 8"></polygon>
@@ -2782,7 +2796,8 @@
               <span>بدء الفحص الأولي المحكوم (Safe Dry-Run)</span>
             </button>
           </div>
-          <div id="dedicatedUploadStatus" style="font-size: 13px; text-align: center; margin-top: 10px; color: var(--color-silver-mist);"></div>
+          <div id="dedicatedUploadStatus"
+            style="font-size: 13px; text-align: center; margin-top: 10px; color: var(--color-silver-mist);"></div>
         </div>
 
         <!-- Card 2: Results & Direct Governance -->
@@ -2793,21 +2808,25 @@
           </div>
 
           <!-- Empty State -->
-          <div id="dedicatedResultsEmpty" style="padding: 40px 20px; text-align: center; color: var(--color-silver-mist);">
+          <div id="dedicatedResultsEmpty"
+            style="padding: 40px 20px; text-align: center; color: var(--color-silver-mist);">
             <div style="font-size: 40px; margin-bottom: 12px; opacity: 0.6;">🔍</div>
             <div style="font-weight: 600; font-size: 15px; color: var(--color-snow); margin-bottom: 6px;">
               في انتظار رفع ملف لبدء الفحص
             </div>
             <div style="font-size: 13px; max-width: 380px; margin: 0 auto; line-height: 1.6;">
-              عند فحص الملف، سيعرض النظام هنا تفاصيل الصفوف المقبولة والمرفوضة وأسباب الرفض وخيار الاعتماد النهائي في Odoo.
+              عند فحص الملف، سيعرض النظام هنا تفاصيل الصفوف المقبولة والمرفوضة وأسباب الرفض وخيار الاعتماد النهائي في
+              Odoo.
             </div>
           </div>
 
           <!-- Completed Results (hidden by default) -->
           <div id="dedicatedResultsContent" style="display: none;">
-            <div id="dedicatedResultAlert" class="alert" style="padding: 14px; border-radius: var(--radius-inputs); margin-bottom: 16px; background: rgba(62, 207, 142, 0.1); border: 1px solid var(--color-phosphor-green); color: var(--color-snow);">
+            <div id="dedicatedResultAlert" class="alert"
+              style="padding: 14px; border-radius: var(--radius-inputs); margin-bottom: 16px; background: rgba(62, 207, 142, 0.1); border: 1px solid var(--color-phosphor-green); color: var(--color-snow);">
               <div id="dedicatedResultMsg" style="font-weight: 600; font-size: 14px;"></div>
-              <div id="dedicatedTemplateDetected" style="font-size: 12px; color: var(--color-silver-mist); margin-top: 4px;"></div>
+              <div id="dedicatedTemplateDetected"
+                style="font-size: 12px; color: var(--color-silver-mist); margin-top: 4px;"></div>
             </div>
 
             <!-- Metric Strip -->
@@ -2828,7 +2847,8 @@
 
             <!-- Drawer Trigger Button -->
             <div style="margin: 16px 0;">
-              <button id="viewRejectionDetailsBtn" class="btn btn-secondary" onclick="openDedicatedRejectionDrawer()" style="width: 100%; justify-content: center;">
+              <button id="viewRejectionDetailsBtn" class="btn btn-secondary" onclick="openDedicatedRejectionDrawer()"
+                style="width: 100%; justify-content: center;">
                 📋 عرض تقرير الصفوف وأسباب الرفض التفصيلي
               </button>
             </div>
@@ -2839,10 +2859,12 @@
                 القرار التشغيلي (لا كتابة في Odoo دون اعتماد صريح):
               </div>
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                <button id="dedicatedApproveBtn" class="btn btn-primary" onclick="handleDedicatedApprove()" style="justify-content: center; background: linear-gradient(135deg, var(--color-phosphor-green), var(--color-mint-pulse)); color: var(--color-obsidian); font-weight: 700;">
+                <button id="dedicatedApproveBtn" class="btn btn-primary" onclick="handleDedicatedApprove()"
+                  style="justify-content: center; background: linear-gradient(135deg, var(--color-phosphor-green), var(--color-mint-pulse)); color: var(--color-obsidian); font-weight: 700;">
                   ✅ اعتماد وتنفيذ في Odoo
                 </button>
-                <button id="dedicatedCancelBtn" class="btn btn-secondary" onclick="handleDedicatedCancel()" style="justify-content: center; color: var(--color-coral);">
+                <button id="dedicatedCancelBtn" class="btn btn-secondary" onclick="handleDedicatedCancel()"
+                  style="justify-content: center; color: var(--color-coral);">
                   ✕ إلغاء العملية
                 </button>
               </div>
@@ -2854,125 +2876,129 @@
       <!-- Integrated Template Generation Section -->
       <div style="margin-top: 10px;">
         <!-- ==================== TEMPLATE GENERATION SECTION ==================== -->
-  <section class="template-section" style="max-width: 1400px; margin: 20px auto; padding: 0 20px;">
-    <div class="panel-card">
-      <div class="panel-header">
-        <div class="panel-title-group">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)"
-              stroke-width="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-              <polyline points="14 2 14 8 20 8"></polyline>
-              <line x1="16" y1="13" x2="8" y2="13"></line>
-              <line x1="16" y1="17" x2="8" y2="17"></line>
-              <polyline points="10 9 9 9 8 9"></polyline>
-            </svg>
-            <div>
-              <div class="panel-title">📋 Generate Company-Specific Template / توليد قالب استيراد الموظفين المخصص</div>
-              <div style="font-size: 12px; color: var(--color-silver-mist); margin-top: 4px;">
-                توليد ملف Excel متطابق مع بيانات المنشأة في نظام Odoo مباشرة
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div style="padding: 24px;">
-        <form id="templateForm" action="/api/template/generate" method="POST">
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-
-            <!-- Company Selector -->
-            <div class="form-group">
-              <label for="companySelect"
-                style="display: block; font-size: 13px; font-weight: 600; color: var(--color-snow); margin-bottom: 8px;">
-                المنشأة (Company):
-              </label>
-              <select id="companySelect" name="company_id"
-                style="width: 100%; padding: 12px; border-radius: var(--radius-inputs); background: var(--color-ash); border: 1px solid var(--color-slate); color: var(--color-snow); font-family: var(--font-arabic); font-size: 14px;">
-                <option value="">اختر المنشأة... (Select Company)</option>
-                <option value="1">Company 1 - المنشأة الرئيسية</option>
-              </select>
-              <div style="font-size: 11px; color: var(--color-silver-mist); margin-top: 6px;">
-                يتم تضمين أقسام ووظائف المنشأة المحددة فقط
+        <section class="template-section" style="max-width: 1400px; margin: 20px auto; padding: 0 20px;">
+          <div class="panel-card">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)"
+                    stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10 9 9 9 8 9"></polyline>
+                  </svg>
+                  <div>
+                    <div class="panel-title">📋 Generate Company-Specific Template / توليد قالب استيراد الموظفين المخصص
+                    </div>
+                    <div style="font-size: 12px; color: var(--color-silver-mist); margin-top: 4px;">
+                      توليد ملف Excel متطابق مع بيانات المنشأة في نظام Odoo مباشرة
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            <!-- Template Type -->
-            <div class="form-group">
-              <label for="templateType"
-                style="display: block; font-size: 13px; font-weight: 600; color: var(--color-snow); margin-bottom: 8px;">
-                نوع القالب (Template Type):
-              </label>
-              <select id="templateType" name="template_type"
-                style="width: 100%; padding: 12px; border-radius: var(--radius-inputs); background: var(--color-ash); border: 1px solid var(--color-slate); color: var(--color-snow); font-family: var(--font-arabic); font-size: 14px;">
-                <option value="employee">Employee / موظفين</option>
-                <option value="contract">Contract / عقود</option>
-              </select>
-            </div>
+            <div style="padding: 24px;">
+              <form id="templateForm" action="/api/template/generate" method="POST">
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px;">
 
-            <!-- Language & Options -->
-            <div class="form-group">
-              <label for="templateLanguage"
-                style="display: block; font-size: 13px; font-weight: 600; color: var(--color-snow); margin-bottom: 8px;">
-                اللغة (Language):
-              </label>
-              <select id="templateLanguage" name="language"
-                style="width: 100%; padding: 12px; border-radius: var(--radius-inputs); background: var(--color-ash); border: 1px solid var(--color-slate); color: var(--color-snow); font-family: var(--font-arabic); font-size: 14px;">
-                <option value="ar">العربية (Arabic)</option>
-                <option value="en">English</option>
-              </select>
-              <div style="margin-top: 10px;">
-                <label
-                  style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-snow); cursor: pointer;">
-                  <input type="checkbox" id="includeExample" name="include_example_row" value="true" />
-                  <span>تضمين صف تجريبي (Include example row)</span>
-                </label>
+                  <!-- Company Selector -->
+                  <div class="form-group">
+                    <label for="companySelect"
+                      style="display: block; font-size: 13px; font-weight: 600; color: var(--color-snow); margin-bottom: 8px;">
+                      المنشأة (Company):
+                    </label>
+                    <select id="companySelect" name="company_id"
+                      style="width: 100%; padding: 12px; border-radius: var(--radius-inputs); background: var(--color-ash); border: 1px solid var(--color-slate); color: var(--color-snow); font-family: var(--font-arabic); font-size: 14px;">
+                      <option value="">اختر المنشأة... (Select Company)</option>
+                      <option value="1">Company 1 - المنشأة الرئيسية</option>
+                    </select>
+                    <div style="font-size: 11px; color: var(--color-silver-mist); margin-top: 6px;">
+                      يتم تضمين أقسام ووظائف المنشأة المحددة فقط
+                    </div>
+                  </div>
+
+                  <!-- Template Type -->
+                  <div class="form-group">
+                    <label for="templateType"
+                      style="display: block; font-size: 13px; font-weight: 600; color: var(--color-snow); margin-bottom: 8px;">
+                      نوع القالب (Template Type):
+                    </label>
+                    <select id="templateType" name="template_type"
+                      style="width: 100%; padding: 12px; border-radius: var(--radius-inputs); background: var(--color-ash); border: 1px solid var(--color-slate); color: var(--color-snow); font-family: var(--font-arabic); font-size: 14px;">
+                      <option value="employee">Employee / موظفين</option>
+                      <option value="contract">Contract / عقود</option>
+                    </select>
+                  </div>
+
+                  <!-- Language & Options -->
+                  <div class="form-group">
+                    <label for="templateLanguage"
+                      style="display: block; font-size: 13px; font-weight: 600; color: var(--color-snow); margin-bottom: 8px;">
+                      اللغة (Language):
+                    </label>
+                    <select id="templateLanguage" name="language"
+                      style="width: 100%; padding: 12px; border-radius: var(--radius-inputs); background: var(--color-ash); border: 1px solid var(--color-slate); color: var(--color-snow); font-family: var(--font-arabic); font-size: 14px;">
+                      <option value="ar">العربية (Arabic)</option>
+                      <option value="en">English</option>
+                    </select>
+                    <div style="margin-top: 10px;">
+                      <label
+                        style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--color-snow); cursor: pointer;">
+                        <input type="checkbox" id="includeExample" name="include_example_row" value="true" />
+                        <span>تضمين صف تجريبي (Include example row)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Generate Button -->
+                <div style="display: flex; align-items: center; gap: 16px;">
+                  <button type="submit" id="generateTemplateBtn" class="btn btn-primary"
+                    style="padding: 12px 24px; border-radius: var(--radius-inputs); background: linear-gradient(135deg, var(--color-phosphor-green), var(--color-mint-pulse)); color: var(--color-obsidian); font-weight: 700; font-size: 14px; border: none; cursor: pointer; font-family: var(--font-arabic); transition: all 0.2s; display: flex; align-items: center; gap: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Generate Template / توليد القالب</span>
+                  </button>
+                  <div id="templateGenerationStatus" style="font-size: 13px; color: var(--color-silver-mist);"></div>
+                </div>
+              </form>
+
+              <!-- Template Result / Download Link -->
+              <div id="templateResult" style="display: none; margin-top: 20px;">
+                <div class="alert alert-success"
+                  style="padding: 16px; border-radius: var(--radius-inputs); background: rgba(34, 197, 94, 0.1); border: 1px solid var(--color-phosphor-green);">
+                  <div
+                    style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+                    <div>
+                      <h4 style="margin: 0 0 8px 0; color: var(--color-phosphor-green); font-size: 15px;">✅ Template
+                        Generated
+                        Successfully / تم توليد القالب بنجاح</h4>
+                      <p style="margin: 4px 0; font-size: 13px; color: var(--color-snow);">عدد الصفحات (Sheet Count):
+                        <span id="sheetCount" class="mono">3</span></p>
+                      <p style="margin: 4px 0; font-size: 13px; color: var(--color-silver-mist);">وقت التوليد (Generated
+                        At):
+                        <span id="generatedAt" class="mono">—</span>
+                      </p>
+                    </div>
+                    <a id="downloadLink" href="#" class="btn btn-success" download
+                      style="padding: 10px 20px; border-radius: var(--radius-inputs); background: var(--color-iris-violet); color: var(--color-snow); font-weight: 600; text-decoration: none; font-size: 13px; transition: all 0.2s;">
+                      📥 Download Template / تحميل القالب
+                    </a>
+                  </div>
+                </div>
               </div>
-            </div>
 
-          </div>
-
-          <!-- Generate Button -->
-          <div style="display: flex; align-items: center; gap: 16px;">
-            <button type="submit" id="generateTemplateBtn" class="btn btn-primary"
-              style="padding: 12px 24px; border-radius: var(--radius-inputs); background: linear-gradient(135deg, var(--color-phosphor-green), var(--color-mint-pulse)); color: var(--color-obsidian); font-weight: 700; font-size: 14px; border: none; cursor: pointer; font-family: var(--font-arabic); transition: all 0.2s; display: flex; align-items: center; gap: 8px;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              <span>Generate Template / توليد القالب</span>
-            </button>
-            <div id="templateGenerationStatus" style="font-size: 13px; color: var(--color-silver-mist);"></div>
-          </div>
-        </form>
-
-        <!-- Template Result / Download Link -->
-        <div id="templateResult" style="display: none; margin-top: 20px;">
-          <div class="alert alert-success"
-            style="padding: 16px; border-radius: var(--radius-inputs); background: rgba(34, 197, 94, 0.1); border: 1px solid var(--color-phosphor-green);">
-            <div
-              style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
-              <div>
-                <h4 style="margin: 0 0 8px 0; color: var(--color-phosphor-green); font-size: 15px;">✅ Template Generated
-                  Successfully / تم توليد القالب بنجاح</h4>
-                <p style="margin: 4px 0; font-size: 13px; color: var(--color-snow);">عدد الصفحات (Sheet Count): <span
-                    id="sheetCount" class="mono">3</span></p>
-                <p style="margin: 4px 0; font-size: 13px; color: var(--color-silver-mist);">وقت التوليد (Generated At):
-                  <span id="generatedAt" class="mono">—</span></p>
-              </div>
-              <a id="downloadLink" href="#" class="btn btn-success" download
-                style="padding: 10px 20px; border-radius: var(--radius-inputs); background: var(--color-iris-violet); color: var(--color-snow); font-weight: 600; text-decoration: none; font-size: 13px; transition: all 0.2s;">
-                📥 Download Template / تحميل القالب
-              </a>
             </div>
           </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-  <!-- ==================== END TEMPLATE GENERATION SECTION ==================== -->
+        </section>
+        <!-- ==================== END TEMPLATE GENERATION SECTION ==================== -->
       </div>
     </section>
 
@@ -3216,14 +3242,16 @@
 
       <!-- ==================== AI ENGINE & PROVIDERS SETTINGS ==================== -->
       <div class="panel-card" style="max-width: 800px; margin: 24px auto 0;">
-        <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-charcoal); padding-bottom: 14px; margin-bottom: 20px;">
+        <div class="panel-header"
+          style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-charcoal); padding-bottom: 14px; margin-bottom: 20px;">
           <div>
             <div class="panel-title" style="display: flex; align-items: center; gap: 8px;">
               <span style="font-size: 20px;">🤖</span>
               <span>إعدادات محرك الذكاء الاصطناعي والمشغلات</span>
             </div>
             <div style="font-size: 13px; color: var(--color-smoke); margin-top: 4px;">
-              التحكم في مصادر التفكير والاستعلام: التبديل بين المحرك المحلي والذكاء الاصطناعي السحابي، وإضافة مفاتيح المشغلات (API Keys)
+              التحكم في مصادر التفكير والاستعلام: التبديل بين المحرك المحلي والذكاء الاصطناعي السحابي، وإضافة مفاتيح
+              المشغلات (API Keys)
             </div>
           </div>
           <div id="llmEffectiveBadge" class="badge badge-success" style="font-size: 12px; padding: 6px 12px;">
@@ -3231,30 +3259,39 @@
           </div>
         </div>
 
-        <form id="llmSettingsForm" onsubmit="saveLlmSettings(event)" style="display: flex; flex-direction: column; gap: 22px;">
-          
+        <form id="llmSettingsForm" onsubmit="saveLlmSettings(event)"
+          style="display: flex; flex-direction: column; gap: 22px;">
+
           <!-- 1. نمط التشغيل (Auto vs Manual) -->
           <div>
-            <label style="font-size: 14px; font-weight: 700; color: var(--color-snow); display: block; margin-bottom: 8px;">
+            <label
+              style="font-size: 14px; font-weight: 700; color: var(--color-snow); display: block; margin-bottom: 8px;">
               نمط التشغيل والتبديل:
             </label>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
               <!-- خيار التلقائي الذكي -->
-              <label id="modeAutoCard" class="llm-mode-card" style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--color-ash); border: 2px solid var(--color-phosphor-green); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+              <label id="modeAutoCard" class="llm-mode-card"
+                style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--color-ash); border: 2px solid var(--color-phosphor-green); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
-                  <span style="font-weight: 700; color: var(--color-snow); font-size: 14px;">🔄 تبديل تلقائي ذكي (Auto)</span>
-                  <input type="radio" name="llm_mode" value="auto" checked onchange="handleLlmModeChange('auto')" style="accent-color: var(--color-phosphor-green); width: 18px; height: 18px;">
+                  <span style="font-weight: 700; color: var(--color-snow); font-size: 14px;">🔄 تبديل تلقائي ذكي
+                    (Auto)</span>
+                  <input type="radio" name="llm_mode" value="auto" checked onchange="handleLlmModeChange('auto')"
+                    style="accent-color: var(--color-phosphor-green); width: 18px; height: 18px;">
                 </div>
                 <span style="font-size: 12px; color: var(--color-silver-mist); line-height: 1.5;">
-                  تفضيل المشغل الأساسي، مع التحول التلقائي للمشغل البديل (سحابي أو محلي) فوراً عند تعطل أحدهما أو انتهاء الحصة دون انقطاع.
+                  تفضيل المشغل الأساسي، مع التحول التلقائي للمشغل البديل (سحابي أو محلي) فوراً عند تعطل أحدهما أو انتهاء
+                  الحصة دون انقطاع.
                 </span>
               </label>
 
               <!-- خيار اليدوي الصريح -->
-              <label id="modeManualCard" class="llm-mode-card" style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--color-ash); border: 1px solid var(--color-charcoal); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
+              <label id="modeManualCard" class="llm-mode-card"
+                style="display: flex; flex-direction: column; gap: 6px; padding: 14px; background: var(--color-ash); border: 1px solid var(--color-charcoal); border-radius: 10px; cursor: pointer; transition: all 0.2s;">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
-                  <span style="font-weight: 700; color: var(--color-snow); font-size: 14px;">🎛️ تحكم يدوي صريح (Manual)</span>
-                  <input type="radio" name="llm_mode" value="manual" onchange="handleLlmModeChange('manual')" style="accent-color: var(--color-phosphor-green); width: 18px; height: 18px;">
+                  <span style="font-weight: 700; color: var(--color-snow); font-size: 14px;">🎛️ تحكم يدوي صريح
+                    (Manual)</span>
+                  <input type="radio" name="llm_mode" value="manual" onchange="handleLlmModeChange('manual')"
+                    style="accent-color: var(--color-phosphor-green); width: 18px; height: 18px;">
                 </div>
                 <span style="font-size: 12px; color: var(--color-silver-mist); line-height: 1.5;">
                   تحديد المشغل المعتمد صراحة (محلي أو سحابي فقط) دون تبديل تلقائي بينهما.
@@ -3264,16 +3301,21 @@
           </div>
 
           <!-- 2. تحديد المشغل النشط (محلي أم سحابي) -->
-          <div id="activeProviderContainer" style="background: rgba(255,255,255,0.02); border: 1px solid var(--color-charcoal); border-radius: 10px; padding: 16px;">
+          <div id="activeProviderContainer"
+            style="background: rgba(255,255,255,0.02); border: 1px solid var(--color-charcoal); border-radius: 10px; padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <span style="font-size: 13.5px; font-weight: 700; color: var(--color-snow);">المشغل المعتمد / ذو الأولوية:</span>
-              <span id="activeProviderHint" style="font-size: 12px; color: var(--color-smoke);">في وضع Auto: يتم تشغيل المشغل السحابي، وإذا لم يستجب يتحول تلقائياً إلى المحرك المحلي لضمان عدم توقف الوكلاء.</span>
+              <span style="font-size: 13.5px; font-weight: 700; color: var(--color-snow);">المشغل المعتمد / ذو
+                الأولوية:</span>
+              <span id="activeProviderHint" style="font-size: 12px; color: var(--color-smoke);">في وضع Auto: يتم تشغيل
+                المشغل السحابي، وإذا لم يستجب يتحول تلقائياً إلى المحرك المحلي لضمان عدم توقف الوكلاء.</span>
             </div>
             <div style="display: flex; gap: 12px;">
-              <button type="button" id="btnSelectCloud" class="btn" onclick="setActiveProvider('cloud')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--color-charcoal); background: var(--color-ash); color: var(--color-silver-mist); font-weight: 700; cursor: pointer; transition: all 0.2s;">
+              <button type="button" id="btnSelectCloud" class="btn" onclick="setActiveProvider('cloud')"
+                style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--color-charcoal); background: var(--color-ash); color: var(--color-silver-mist); font-weight: 700; cursor: pointer; transition: all 0.2s;">
                 ☁️ الذكاء الاصطناعي السحابي (Cloud Provider)
               </button>
-              <button type="button" id="btnSelectLocal" class="btn" onclick="setActiveProvider('local')" style="flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid var(--color-phosphor-green); background: rgba(62, 207, 142, 0.1); color: var(--color-snow); font-weight: 700; cursor: pointer; transition: all 0.2s;">
+              <button type="button" id="btnSelectLocal" class="btn" onclick="setActiveProvider('local')"
+                style="flex: 1; padding: 10px; border-radius: 8px; border: 1.5px solid var(--color-phosphor-green); background: rgba(62, 207, 142, 0.1); color: var(--color-snow); font-weight: 700; cursor: pointer; transition: all 0.2s;">
                 💻 المحرك المحلي (Ollama)
               </button>
             </div>
@@ -3281,11 +3323,13 @@
           </div>
 
           <!-- 3. قسم الذكاء الاصطناعي السحابي (Cloud AI Provider) -->
-          <div id="cloudSettingsSection" style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616; display: none;">
+          <div id="cloudSettingsSection"
+            style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616; display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 18px;">☁️</span>
-                <span style="font-size: 14.5px; font-weight: 700; color: var(--color-snow);">إعدادات المشغل السحابي (Cloud Provider & API Key)</span>
+                <span style="font-size: 14.5px; font-weight: 700; color: var(--color-snow);">إعدادات المشغل السحابي
+                  (Cloud Provider & API Key)</span>
               </div>
               <div id="cloudStatusBadge" class="badge" style="background: rgba(255,255,255,0.06); font-size: 11px;">
                 غير مهيأ
@@ -3293,15 +3337,21 @@
             </div>
 
             <!-- بطاقة توضيحية للتبديل التلقائي -->
-            <div style="background: rgba(62, 207, 142, 0.08); border: 1px solid rgba(62, 207, 142, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--color-silver-mist); line-height: 1.6; margin-bottom: 14px;">
-              🔄 <strong>ميزة التبديل التلقائي الذكي:</strong> عند تفعيل الوضع التلقائي (Auto)، إذا لم يستجب المشغل السحابي أو انتهت الحصة أو حدث خطأ اتصال، سيتحول النظام تلقائياً وبشكل فوري إلى المحرك المحلي (Ollama) لضمان عدم توقف الوكلاء وسراج عن العمل إطلاقاً.
+            <div
+              style="background: rgba(62, 207, 142, 0.08); border: 1px solid rgba(62, 207, 142, 0.25); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--color-silver-mist); line-height: 1.6; margin-bottom: 14px;">
+              🔄 <strong>ميزة التبديل التلقائي الذكي:</strong> عند تفعيل الوضع التلقائي (Auto)، إذا لم يستجب المشغل
+              السحابي أو انتهت الحصة أو حدث خطأ اتصال، سيتحول النظام تلقائياً وبشكل فوري إلى المحرك المحلي (Ollama)
+              لضمان عدم توقف الوكلاء وسراج عن العمل إطلاقاً.
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 14px;">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div>
-                  <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اختر المشغل (Provider):</label>
-                  <select id="cloudPresetSelector" onchange="handleCloudPresetChange(this.value)" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-arabic);">
+                  <label
+                    style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اختر
+                    المشغل (Provider):</label>
+                  <select id="cloudPresetSelector" onchange="handleCloudPresetChange(this.value)"
+                    style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-arabic);">
                     <option value="openrouter">OpenRouter (موصى به - نماذج مجانية ومتعددة)</option>
                     <option value="openai">OpenAI (رسمي - GPT-4o / GPT-4o-mini)</option>
                     <option value="groq">Groq (سرعة فائقة - Llama 3.3 70B)</option>
@@ -3311,39 +3361,54 @@
                 </div>
 
                 <div>
-                  <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اسم النموذج (Model Name):</label>
-                  <input id="cloudModelInput" type="text" dir="ltr" placeholder="مثال: openrouter/auto أو gpt-4o-mini" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+                  <label
+                    style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اسم
+                    النموذج (Model Name):</label>
+                  <input id="cloudModelInput" type="text" dir="ltr" placeholder="مثال: openrouter/auto أو gpt-4o-mini"
+                    style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
                 </div>
               </div>
 
               <div>
-                <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">رابط المشغل الأساسي (Base URL):</label>
-                <input id="cloudBaseUrlInput" type="url" dir="ltr" placeholder="https://openrouter.ai/api/v1" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+                <label
+                  style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">رابط
+                  المشغل الأساسي (Base URL):</label>
+                <input id="cloudBaseUrlInput" type="url" dir="ltr" placeholder="https://openrouter.ai/api/v1"
+                  style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
               </div>
 
               <div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                   <label style="font-size: 12.5px; color: var(--color-silver-mist);">مفتاح الـ API (API Key):</label>
                   <div style="display: flex; gap: 10px; align-items: center;">
-                    <a id="getApiKeyHelpLink" href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" style="font-size: 11.5px; color: #38bdf8; text-decoration: underline;">
+                    <a id="getApiKeyHelpLink" href="https://openrouter.ai/keys" target="_blank"
+                      rel="noopener noreferrer" style="font-size: 11.5px; color: #38bdf8; text-decoration: underline;">
                       🔑 احصل على مفتاح API ↗
                     </a>
-                    <span id="cloudKeySavedIndicator" style="font-size: 11px; color: var(--color-phosphor-green); display: none;">✓ تم حفظ المفتاح مسبقاً</span>
+                    <span id="cloudKeySavedIndicator"
+                      style="font-size: 11px; color: var(--color-phosphor-green); display: none;">✓ تم حفظ المفتاح
+                      مسبقاً</span>
                   </div>
                 </div>
                 <div style="position: relative; display: flex; align-items: center;">
-                  <input id="cloudApiKeyInput" type="password" dir="ltr" autocomplete="new-password" placeholder="ألصق مفتاح الـ API Key هنا (مثل sk-or-v1-...)" style="width: 100%; padding: 9px 40px 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
-                  <button type="button" onclick="toggleApiKeyVisibility()" style="position: absolute; left: 10px; background: none; border: none; cursor: pointer; color: var(--color-smoke); font-size: 16px;" title="إظهار/إخفاء المفتاح">
+                  <input id="cloudApiKeyInput" type="password" dir="ltr" autocomplete="new-password"
+                    placeholder="ألصق مفتاح الـ API Key هنا (مثل sk-or-v1-...)"
+                    style="width: 100%; padding: 9px 40px 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+                  <button type="button" onclick="toggleApiKeyVisibility()"
+                    style="position: absolute; left: 10px; background: none; border: none; cursor: pointer; color: var(--color-smoke); font-size: 16px;"
+                    title="إظهار/إخفاء المفتاح">
                     👁️
                   </button>
                 </div>
                 <div style="font-size: 11.5px; color: var(--color-smoke); margin-top: 4px;">
-                  🔒 يُحفظ المفتاح محلياً بشكل محمي ومستبعد تماماً من Git في ملف <span class="mono">config/llm_config.json</span>.
+                  🔒 يُحفظ المفتاح محلياً بشكل محمي ومستبعد تماماً من Git في ملف <span
+                    class="mono">config/llm_config.json</span>.
                 </div>
               </div>
 
               <div style="display: flex; justify-content: flex-end;">
-                <button type="button" id="btnTestCloud" class="btn btn-secondary" onclick="testLlmConnection('cloud')" style="font-size: 13px; padding: 7px 16px;">
+                <button type="button" id="btnTestCloud" class="btn btn-secondary" onclick="testLlmConnection('cloud')"
+                  style="font-size: 13px; padding: 7px 16px;">
                   ⚡ فحص واختبار الاتصال السحابي
                 </button>
               </div>
@@ -3351,11 +3416,13 @@
           </div>
 
           <!-- 4. قسم المحرك المحلي (Local Ollama) -->
-          <div id="localSettingsSection" style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616; display: none;">
+          <div id="localSettingsSection"
+            style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616; display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 18px;">💻</span>
-                <span style="font-size: 14.5px; font-weight: 700; color: var(--color-snow);">إعدادات المحرك المحلي (Local Ollama / LM Studio)</span>
+                <span style="font-size: 14.5px; font-weight: 700; color: var(--color-snow);">إعدادات المحرك المحلي
+                  (Local Ollama / LM Studio)</span>
               </div>
               <div id="localStatusBadge" class="badge" style="background: rgba(255,255,255,0.06); font-size: 11px;">
                 جاري الفحص...
@@ -3363,28 +3430,38 @@
             </div>
 
             <!-- بطاقة توضيحية للمحرك المحلي -->
-            <div style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--color-charcoal); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--color-silver-mist); line-height: 1.6; margin-bottom: 14px;">
-              💻 <strong>المحرك المحلي:</strong> يعمل مباشرة على جهازك دون اتصال بالإنترنت، ويعمل كخط دفاع وبديل فوري جاهز للاستلام عند انقطاع المشغل السحابي أو انتهاء رصيده.
+            <div
+              style="background: rgba(255, 255, 255, 0.04); border: 1px solid var(--color-charcoal); border-radius: 8px; padding: 10px 14px; font-size: 12px; color: var(--color-silver-mist); line-height: 1.6; margin-bottom: 14px;">
+              💻 <strong>المحرك المحلي:</strong> يعمل مباشرة على جهازك دون اتصال بالإنترنت، ويعمل كخط دفاع وبديل فوري
+              جاهز للاستلام عند انقطاع المشغل السحابي أو انتهاء رصيده.
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 14px;">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div>
-                  <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">رابط خادم Ollama المحلي:</label>
-                  <input id="localBaseUrlInput" type="url" dir="ltr" placeholder="http://localhost:11434/v1" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+                  <label
+                    style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">رابط
+                    خادم Ollama المحلي:</label>
+                  <input id="localBaseUrlInput" type="url" dir="ltr" placeholder="http://localhost:11434/v1"
+                    style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
                 </div>
 
                 <div>
-                  <label style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اسم النموذج المحلي:</label>
-                  <input id="localModelInput" type="text" dir="ltr" placeholder="qwen3.5:9b أو qwen2.5:7b" style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
+                  <label
+                    style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اسم
+                    النموذج المحلي:</label>
+                  <input id="localModelInput" type="text" dir="ltr" placeholder="qwen3.5:9b أو qwen2.5:7b"
+                    style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
                 </div>
               </div>
 
               <div style="display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap;">
-                <button type="button" id="btnStartLocalOllama" class="btn" onclick="startLocalOllamaService()" style="font-size: 13px; padding: 7px 16px; border: 1px solid var(--color-phosphor-green); color: var(--color-phosphor-green); background: rgba(62, 207, 142, 0.08); border-radius: 8px; font-weight: 600; cursor: pointer;">
+                <button type="button" id="btnStartLocalOllama" class="btn" onclick="startLocalOllamaService()"
+                  style="font-size: 13px; padding: 7px 16px; border: 1px solid var(--color-phosphor-green); color: var(--color-phosphor-green); background: rgba(62, 207, 142, 0.08); border-radius: 8px; font-weight: 600; cursor: pointer;">
                   🚀 تشغيل خادم Ollama المحلي الآن
                 </button>
-                <button type="button" id="btnTestLocal" class="btn btn-secondary" onclick="testLlmConnection('local')" style="font-size: 13px; padding: 7px 16px;">
+                <button type="button" id="btnTestLocal" class="btn btn-secondary" onclick="testLlmConnection('local')"
+                  style="font-size: 13px; padding: 7px 16px;">
                   ⚡ فحص خادم Ollama المحلي
                 </button>
               </div>
@@ -3392,12 +3469,15 @@
           </div>
 
           <!-- صندوق رسائل الفحص والاختبار -->
-          <div id="llmTestResultBox" style="display: none; padding: 12px 16px; border-radius: 8px; font-size: 13px; line-height: 1.5;"></div>
+          <div id="llmTestResultBox"
+            style="display: none; padding: 12px 16px; border-radius: 8px; font-size: 13px; line-height: 1.5;"></div>
 
           <!-- زر الحفظ النهائي -->
-          <div style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--color-charcoal); padding-top: 16px;">
+          <div
+            style="display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--color-charcoal); padding-top: 16px;">
             <div id="llmSaveStatusMsg" style="font-size: 13px;"></div>
-            <button id="saveLlmBtn" type="submit" class="btn btn-primary" style="padding: 10px 24px; font-weight: 700; font-size: 14px;">
+            <button id="saveLlmBtn" type="submit" class="btn btn-primary"
+              style="padding: 10px 24px; font-weight: 700; font-size: 14px;">
               💾 حفظ وتطبيق إعدادات الذكاء الاصطناعي
             </button>
           </div>
@@ -3453,7 +3533,7 @@
       if (response.status === 401 || response.status === 503) {
         const entered = window.prompt("أدخل رمز جلسة التشغيل المصرّح به:");
         if (entered) {
-          try { sessionStorage.setItem("odoo_hr_api_token", entered); } catch (_) {}
+          try { sessionStorage.setItem("odoo_hr_api_token", entered); } catch (_) { }
           options.headers = options.headers || {};
           if (options.headers instanceof Headers) options.headers.set("X-API-Key", entered);
           else options.headers["X-API-Key"] = entered;

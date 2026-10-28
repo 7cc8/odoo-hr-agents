@@ -1,0 +1,38 @@
+{
+  "name": "transitions-refine",
+  "version": "0.3.34",
+  "description": "Live, agent-driven Refine panel for CSS/Motion transitions — injects a timeline + Refine UI and runs transitions.dev suggestions via your coding agent.",
+  "type": "module",
+  "bin": {
+    "refine": "bin/cli.mjs"
+  },
+  "files": [
+    "bin",
+    "server",
+    "demo.html",
+    ".agents/skills"
+  ],
+  "scripts": {
+    "prepack": "node scripts/sync-skill.mjs",
+    "build:website-demo": "node scripts/build-website-demo.mjs",
+    "live": "node bin/cli.mjs live",
+    "relay": "node server/relay.mjs"
+  },
+  "keywords": [
+    "transitions",
+    "css",
+    "motion",
+    "animation",
+    "timeline",
+    "refine",
+    "cursor",
+    "agent"
+  ],
+  "homepage": "https://transitions.dev/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jakubantalik/transitions.dev.git",
+    "directory": "refine"
+  },
+  "license": "MIT"
+}

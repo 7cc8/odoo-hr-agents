@@ -1,0 +1,33 @@
+{
+  "name": "transitions-dev",
+  "version": "0.3.0",
+  "description": "Install transitions.dev UI transitions into your project — CSS, React, and TypeScript. Free transitions work out of the box; Pro recipes and the Pro agent skill unlock after a browser sign-in.",
+  "type": "module",
+  "bin": {
+    "transitions-dev": "bin/transitions-dev.mjs"
+  },
+  "files": [
+    "bin",
+    "free",
+    "free-manifest.json"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "css",
+    "transitions",
+    "animations",
+    "react",
+    "typescript",
+    "ui",
+    "agent-skill"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jakubantalik/transitions.dev.git",
+    "directory": "cli"
+  },
+  "homepage": "https://transitions.dev"
+}

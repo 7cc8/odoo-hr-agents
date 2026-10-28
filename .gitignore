@@ -61,3 +61,15 @@ graphify-out/cache/
 # Generated knowledge-graph exports; regenerate with run_graphify_pipeline.py.
 graphify-out/
 
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
+
+# Scratch directory and temporary scripts
+scratch/
+*.patch
+.archify/
+.vscode/
+.windsurf/
+.kiro/
+data/
+diagram*.png

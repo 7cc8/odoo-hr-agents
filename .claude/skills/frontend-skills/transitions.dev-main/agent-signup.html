@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <title>Transitions Motion Agent sign-up</title>
+  <meta name="description" content="Get your free Transitions Motion Agent license key." />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="assets/favicon-light-mode.png?v=4" type="image/png" sizes="any" />
+  <link rel="icon" href="assets/favicon-darkmode.png?v=4" media="(prefers-color-scheme: dark)" type="image/png" />
+  <link rel="stylesheet" href="assets/fonts/fonts.css" />
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("tdev:theme");
+        var dark = stored ? stored === "dark"
+          : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.documentElement.setAttribute("data-theme", "dark");
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    /* Mirrors the sign-in modal (assets/pro-client.js, Figma 2330:2574 +
+       2330:2712): 369px card, 24px radius, inset hairlines, 40px pill
+       input and buttons. */
+    :root {
+      color-scheme: light;
+      --bg: #fdfdfd;
+      --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+      --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    html[data-theme="dark"] { color-scheme: dark; --bg: #121212; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: var(--bg); font-family: var(--font-sans); padding: 24px;
+    }
+    .card {
+      position: relative; width: min(92vw, 369px);
+      background: #fff; color: #0d0d0d;
+      border-radius: 24px; padding: 20px;
+      display: flex; flex-direction: column; gap: 24px;
+      box-shadow:
+        0 1px 3px rgba(0, 0, 0, .04),
+        inset 0 0 0 1px rgba(0, 0, 0, .06),
+        inset 0 -1px 0 0 rgba(0, 0, 0, .06),
+        inset 0 0 0 1px rgba(196, 196, 196, .1);
+    }
+    html[data-theme="dark"] .card { background: #1b1b1d; color: #f2f2f2; }
+    h1 { margin: 0; font-size: 16px; line-height: 24.2px; font-weight: 400; }
+    .muted { color: #8a8a8a; display: block; }
+    .code {
+      font-family: var(--font-mono); font-size: 12px; line-height: 18px;
+      padding: 1px 4px; border-radius: 6px;
+      border: 1px solid rgba(0, 0, 0, .08); background: rgba(0, 0, 0, .04); color: #0d0d0d;
+    }
+    html[data-theme="dark"] .code { border-color: rgba(255, 255, 255, .08); background: rgba(255, 255, 255, .06); color: #ededed; }
+    form { display: flex; flex-direction: column; gap: 12px; }
+    form[hidden] { display: none; }
+    input[type="email"], input[type="text"] {
+      width: 100%; height: 40px; padding: 4px 4px 4px 12px;
+      font-family: inherit; font-size: 13px; line-height: 1.4; color: #0f0f0f;
+      background: #fff; border: 1px solid #dcdcdc; border-radius: 60px; outline: none;
+      transition: border-color 120ms ease;
+    }
+    input[type="email"]::placeholder, input[type="text"]::placeholder { color: #828282; }
+    input[type="email"]:focus, input[type="text"]:focus { border: 1.5px solid #585858; padding-left: 11.5px; }
+    html[data-theme="dark"] input[type="email"], html[data-theme="dark"] input[type="text"] { background: #151517; color: #f2f2f2; border-color: #3a3a3d; }
+    html[data-theme="dark"] input[type="email"]:focus, html[data-theme="dark"] input[type="text"]:focus { border-color: #a5a5a5; }
+    button {
+      width: 100%; height: 40px; border: 0; border-radius: 26px;
+      background: #17181c; color: #fff;
+      font-family: inherit; font-size: 13px; line-height: 13px; font-weight: 500; cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, .2);
+      transition: scale 120ms cubic-bezier(0.22, 1, 0.36, 1), opacity 120ms ease;
+    }
+    button:not([disabled]):active { scale: .96; }
+    button[disabled] { opacity: .6; cursor: default; }
+    html[data-theme="dark"] button { background: #f2f2f2; color: #111; }
+    .msg { margin: 0; font-size: 13px; line-height: 1.4; }
+    .msg:empty { display: none; }
+    .msg[data-kind="ok"] { color: #16a34a; }
+    .msg[data-kind="err"] { color: #d62b11; }
+    .foot { margin: 0; font-size: 13px; line-height: 16px; color: #17181c; }
+    .foot a { color: inherit; font-weight: 500; text-decoration: none; }
+    .foot a:hover { text-decoration: underline; }
+    html[data-theme="dark"] .foot { color: #e5e5e5; }
+    @media (prefers-reduced-motion: reduce) { button, input { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1 id="intro">Get your free Transitions Motion Agent key
+      <span class="muted">10 hosted polish fixes a month. The key goes to your terminal and your inbox.</span></h1>
+    <form id="form" novalidate>
+      <input type="email" id="email" placeholder="you@example.com" required autocomplete="email" aria-label="Email address" autofocus />
+      <button type="submit" id="submit">Get my free key</button>
+    </form>
+    <form id="otp-form" novalidate hidden>
+      <input type="text" id="otp" placeholder="XXXX-XXXX" autocomplete="one-time-code" spellcheck="false" style="text-transform:uppercase" aria-label="One-time code" />
+      <button type="submit" id="otp-submit">Verify and connect</button>
+    </form>
+    <p class="msg" id="msg" role="status"></p>
+    <p class="foot">Need revamp and 200 fixes a month? <a href="/pro.html">See Business</a></p>
+  </main>
+  <script>
+    (function () {
+      "use strict";
+      var API = "https://api.transitions.dev";
+      var code = (new URLSearchParams(location.search).get("code") || "").toUpperCase();
+      var form = document.getElementById("form");
+      var msg = document.getElementById("msg");
+      var btn = document.getElementById("submit");
+      if (code) {
+        document.getElementById("intro").innerHTML =
+          "Get your free Transitions Motion Agent key" +
+          '<span class="muted">Connecting terminal session <span class="code">' + code.replace(/[^A-Z0-9-]/g, "") +
+          "</span>. The key lands in your waiting terminal and your inbox.</span>";
+      }
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var email = document.getElementById("email").value.trim();
+        btn.disabled = true;
+        msg.removeAttribute("data-kind");
+        msg.textContent = "Issuing your key...";
+        fetch(API + "/agent/signup", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(code ? { email: email, code: code } : { email: email }),
+        }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+          .then(function (res) {
+            if (res.ok && res.d.verify) {
+              // Terminal flow: the emailed code proves this address.
+              form.hidden = true;
+              otpForm.hidden = false;
+              msg.removeAttribute("data-kind");
+              msg.textContent = "We sent a code to " + email + ". Enter it to connect your terminal.";
+              document.getElementById("otp").focus();
+            } else if (res.ok) {
+              msg.setAttribute("data-kind", "ok");
+              msg.textContent = "Done. Check your inbox for the license key.";
+            } else {
+              btn.disabled = false;
+              msg.setAttribute("data-kind", "err");
+              msg.textContent = "That didn't go through (" + (res.d.error || "error") + "). Try again.";
+            }
+          })
+          .catch(function () {
+            btn.disabled = false;
+            msg.setAttribute("data-kind", "err");
+            msg.textContent = "Could not reach the server. Try again.";
+          });
+      });
+
+      var otpForm = document.getElementById("otp-form");
+      var otpBtn = document.getElementById("otp-submit");
+      otpForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var otp = document.getElementById("otp").value.trim();
+        if (!otp) return;
+        otpBtn.disabled = true;
+        msg.removeAttribute("data-kind");
+        msg.textContent = "Verifying...";
+        fetch(API + "/agent/signup/verify", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ code: code, otp: otp }),
+        }).then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+          .then(function (res) {
+            if (res.ok) {
+              otpForm.hidden = true;
+              msg.setAttribute("data-kind", "ok");
+              msg.textContent = "Done. Your terminal picks the key up in a few seconds - you can close this tab.";
+            } else {
+              otpBtn.disabled = false;
+              msg.setAttribute("data-kind", "err");
+              msg.textContent = res.d.error === "wrong_code"
+                ? "That code didn't match - " + res.d.remaining + " tries left."
+                : res.d.error === "too_many_attempts" ? "Too many attempts. Run signup again in your terminal."
+                : "Session expired. Run signup again in your terminal.";
+            }
+          })
+          .catch(function () {
+            otpBtn.disabled = false;
+            msg.setAttribute("data-kind", "err");
+            msg.textContent = "Could not reach the server. Try again.";
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

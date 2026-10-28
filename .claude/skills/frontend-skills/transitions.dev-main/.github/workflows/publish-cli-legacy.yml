@@ -1,0 +1,48 @@
+name: Publish CLI (legacy name)
+
+# Publishes cli-legacy/ (transitions-pro) to npm using the REFINE repository
+# secret as the npm auth token. That package is only a shim: it forwards every
+# command to transitions-dev, which is what cli/ publishes. Runs on demand, and
+# automatically when cli-legacy/ changes on main (skips if already published).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "cli-legacy/**"
+      - ".github/workflows/publish-cli-legacy.yml"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Check if version already published
+        id: check
+        working-directory: cli-legacy
+        run: |
+          NAME=$(node -p "require('./package.json').name")
+          VERSION=$(node -p "require('./package.json').version")
+          echo "Resolving $NAME@$VERSION"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "$NAME@$VERSION is already on npm, skipping publish."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish to npm
+        if: steps.check.outputs.exists == 'false'
+        working-directory: cli-legacy
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.REFINE }}

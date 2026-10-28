@@ -125,6 +125,61 @@ def sanitize_model_fields(model: str, fields: Optional[List[str]]) -> List[str]:
     return sanitized
 
 
+# P5-S12 (تنفيذ فعلي): FORBIDDEN_READ_FIELDS كانت معرّفة ولا يُشار إليها في أي مكان، فكانت الأدوات
+# تمرّر هذه الحقول إلى Odoo. تُطبَّق الآن القائمة نفسها كما كتبها أصحاب المشروع، بلا إضافات:
+# على الحقول المطلوبة، وعلى التصفية (domain)، والفرز (order)، والتجميع (groupby)، وعلى المخرجات.
+# أي حقل حساس آخر في نسخة Odoo لديك (مثل بدلات أو رواتب في نموذج آخر) لا يُمنع إلا بإضافته
+# صراحةً إلى FORBIDDEN_READ_FIELDS؛ لا نخمّن أسماء الحقول.
+
+
+def is_forbidden_read_field(path: Any) -> bool:
+    """True if a segment of a field path ("contract_id.wage", "create_date:month", "wage desc") is listed."""
+    return any(
+        segment in FORBIDDEN_READ_FIELDS for segment in re.split(r"[.:\s]+", str(path or "").strip()) if segment
+    )
+
+
+def assert_read_policy(
+    *,
+    fields: Optional[List[Any]] = None,
+    domain: Optional[List[Any]] = None,
+    order: Optional[str] = None,
+    groupby_field: Optional[str] = None,
+) -> None:
+    """Refuse reads that name, filter, sort or group by a forbidden field."""
+    named: List[str] = [f for f in (fields or []) if isinstance(f, str)]
+    for cond in domain or []:
+        if isinstance(cond, (list, tuple)) and cond and isinstance(cond[0], str):
+            named.append(cond[0])
+    if order:
+        named.extend(part.strip() for part in str(order).split(","))
+    if groupby_field:
+        named.append(str(groupby_field))
+    blocked = sorted({n for n in named if is_forbidden_read_field(n)})
+    if blocked:
+        raise FahasSecurityError(
+            f"P5-S12: الحقول {blocked} ضمن FORBIDDEN_READ_FIELDS ومحظورة عبر فاحص؛ "
+            "لا قراءة ولا تصفية ولا فرز ولا تجميع حسبها."
+        )
+
+
+def default_read_fields(model: str) -> List[str]:
+    """Fields returned when the caller names none (never "all fields")."""
+    if model == "hr.employee":
+        return ["id", "name", "work_email", "job_title", "department_id", "company_id", "active"]
+    return ["id", "name"]
+
+
+def strip_forbidden_keys(records: Any) -> Any:
+    """Belt and braces: drop forbidden keys from whatever Odoo returned."""
+    if isinstance(records, list):
+        return [
+            {k: v for k, v in rec.items() if not is_forbidden_read_field(k)} if isinstance(rec, dict) else rec
+            for rec in records
+        ]
+    return records
+
+
 def enrich_records_with_aliases(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """إثراء السجلات بأسماء الحقول المقروءة لتسهيل استيعاب النموذج للنتائج."""
     for rec in records:
@@ -383,6 +438,7 @@ class FahasAgent:
     ) -> Dict[str, Any]:
         """حساب عدد السجلات الفعلية المطابقة للشروط عبر search_count."""
         model_clean = validate_model_name(model)
+        assert_read_policy(domain=domain)
         repo = self.get_repository(connection_id)
 
         query_domain = list(domain) if domain and isinstance(domain, list) else []
@@ -444,6 +500,7 @@ class FahasAgent:
     ) -> Dict[str, Any]:
         """البحث في السجلات وجلب حقول محددة عبر search_read ضمن سقف أمان أقصى 50 سجلاً."""
         model_clean = validate_model_name(model)
+        assert_read_policy(fields=fields, domain=domain, order=order)
         repo = self.get_repository(connection_id)
 
         # ✅ limit=0 يعني "الكل" (حتى 50)
@@ -464,10 +521,9 @@ class FahasAgent:
 
         if fields and isinstance(fields, list):
             safe_fields = sanitize_model_fields(model_clean, fields)
-        elif model_clean == "hr.employee":
-            safe_fields = ["id", "name", "work_email", "job_title", "department_id", "company_id", "active"]
         else:
-            safe_fields = ["id", "name"]
+            safe_fields = default_read_fields(model_clean)
+        assert_read_policy(fields=safe_fields)  # بعد تصحيح الأسماء المستعارة
 
         try:
             kwargs: Dict[str, Any] = {
@@ -489,7 +545,7 @@ class FahasAgent:
                 [query_domain],
                 kwargs,
             )
-            records = enrich_records_with_aliases(records)
+            records = enrich_records_with_aliases(strip_forbidden_keys(records))
             return {
                 "model": model_clean,
                 "records_count": len(records),
@@ -515,6 +571,7 @@ class FahasAgent:
         يكمل الشركات الفارغة بالصفر.
         """
         model_clean = validate_model_name(model)
+        assert_read_policy(domain=domain, groupby_field=groupby_field)
         repo = self.get_repository(connection_id)
 
         query_domain = list(domain) if domain and isinstance(domain, list) else []
@@ -620,6 +677,7 @@ class FahasAgent:
     ) -> Dict[str, Any]:
         """قراءة تفاصيل سجلات محددة بأرقام معرفاتها عبر read."""
         model_clean = validate_model_name(model)
+        assert_read_policy(fields=fields)
         repo = self.get_repository(connection_id)
 
         if not ids or not isinstance(ids, list):
@@ -627,6 +685,9 @@ class FahasAgent:
 
         clean_ids = [int(i) for i in ids[:50]]
         safe_fields = sanitize_model_fields(model_clean, fields) if fields and isinstance(fields, list) else []
+        if not safe_fields:  # بلا حقول يعيد Odoo كل الحقول (رواتب وهويات): نستخدم الافتراضي الآمن
+            safe_fields = default_read_fields(model_clean)
+        assert_read_policy(fields=safe_fields)
 
         try:
             records = repo._models.execute_kw(
@@ -636,9 +697,9 @@ class FahasAgent:
                 model_clean,
                 "read",
                 [clean_ids],
-                {"fields": safe_fields} if safe_fields else {},
+                {"fields": safe_fields},
             )
-            records = enrich_records_with_aliases(records)
+            records = enrich_records_with_aliases(strip_forbidden_keys(records))
             return {
                 "model": model_clean,
                 "records_count": len(records),

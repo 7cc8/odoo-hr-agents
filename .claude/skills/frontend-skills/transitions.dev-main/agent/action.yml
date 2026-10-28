@@ -1,0 +1,103 @@
+name: "Transitions Motion Agent"
+description: "Scan pull requests for missing or janky UI transitions. Posts a motion score comment, proposes fixes as a pull request into the branch, and can gate merges on a minimum score."
+branding:
+  icon: "activity"
+  color: "purple"
+
+inputs:
+  min-score:
+    description: "Fail the check when the motion score is below this number (0 disables the gate)."
+    default: "0"
+  comment:
+    description: "Post or update a motion score comment on the pull request."
+    default: "true"
+  working-directory:
+    description: "Directory to scan."
+    default: "."
+  github-token:
+    description: "Token used to post the PR comment and open fix pull requests."
+    default: ${{ github.token }}
+  license:
+    description: "Transitions Motion Agent license key. Needed for automatic fixes; without it the comment shows how to set it up."
+    default: ""
+  auto-fix:
+    description: "Propose fixes automatically: a fix pull request into the pull request's branch, never main. Needs a license, contents: write, and the repository setting that lets Actions create pull requests."
+    default: "false"
+  fix-mode:
+    description: "polish (values onto the motion scale) or revamp (install library recipes, Business plan). A `revamp` or `polish` label on the pull request overrides it; `no-motion-fix` skips it."
+    default: "polish"
+  api:
+    description: "Fix service URL."
+    default: "https://api.transitions.dev"
+
+outputs:
+  score:
+    description: "The motion score (0-100)."
+    value: ${{ steps.scan.outputs.score }}
+  fix-pr:
+    description: "URL of the fix pull request, when one was opened or updated."
+    value: ${{ steps.autofix.outputs.fix-pr }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Scan
+      id: scan
+      shell: bash
+      run: |
+        node "${{ github.action_path }}/bin/transitions-agent.mjs" --json --dir "${{ inputs.working-directory }}" > "$RUNNER_TEMP/tagent.json"
+        echo "score=$(node -p "JSON.parse(require('fs').readFileSync(process.env.RUNNER_TEMP + '/tagent.json','utf8')).score")" >> "$GITHUB_OUTPUT"
+
+    - name: Propose fixes
+      id: autofix
+      if: ${{ inputs.auto-fix == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      env:
+        TA_LICENSE: ${{ inputs.license }}
+        TA_MODE: ${{ inputs.fix-mode }}
+        TA_MIN_SCORE: ${{ inputs.min-score }}
+        TA_DIR: ${{ inputs.working-directory }}
+        TA_API: ${{ inputs.api }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        node "${{ github.action_path }}/action/autofix.mjs" "$RUNNER_TEMP/tagent.json" "$RUNNER_TEMP/tagent-autofix.json" || true
+        echo "fix-pr=$(node -p "try { (JSON.parse(require('fs').readFileSync(process.env.RUNNER_TEMP + '/tagent-autofix.json','utf8')).pr || {}).url || '' } catch { '' }")" >> "$GITHUB_OUTPUT"
+
+    - name: Comment body
+      if: ${{ inputs.comment == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      env:
+        TA_HAS_LICENSE: ${{ inputs.license != '' && '1' || '0' }}
+      run: |
+        node "${{ github.action_path }}/action/comment.mjs" "$RUNNER_TEMP/tagent.json" "" "$RUNNER_TEMP/tagent-autofix.json" > "$RUNNER_TEMP/tagent-comment.md"
+
+    - name: Comment on PR
+      if: ${{ inputs.comment == 'true' && github.event_name == 'pull_request' }}
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ inputs.github-token }}
+        script: |
+          const fs = require("fs");
+          const body = fs.readFileSync(process.env.RUNNER_TEMP + "/tagent-comment.md", "utf8");
+          const marker = "<!-- transitions-agent -->";
+          const { owner, repo } = context.repo;
+          const issue_number = context.payload.pull_request.number;
+          const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+          const existing = comments.find((c) => c.body && c.body.includes(marker));
+          if (existing) {
+            await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+          } else {
+            await github.rest.issues.createComment({ owner, repo, issue_number, body });
+          }
+
+    - name: Score gate
+      if: ${{ inputs.min-score != '0' }}
+      shell: bash
+      run: |
+        score=${{ steps.scan.outputs.score }}
+        min=${{ inputs.min-score }}
+        if [ "$score" -lt "$min" ]; then
+          echo "Motion score $score is below the required minimum $min."
+          exit 1
+        fi
+        echo "Motion score $score meets the minimum $min."

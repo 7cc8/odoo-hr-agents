@@ -13,6 +13,8 @@ from sijil_audit_service import SijilAuditService
 class TestSijilPageAndExport(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
+        import os
+        os.environ["WRITE_API_TOKEN"] = "hr-write-secret-token"
         cls.client = TestClient(app)
         cls.service = SijilAuditService()
 

@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+
+  <title>Privacy Policy - Transitions.dev</title>
+  <meta
+    name="description"
+    content="How Transitions.dev handles your data: what we collect for accounts and Pro, who processes it (Stripe, Resend, Cloudflare), and your rights under GDPR."
+  />
+  <meta name="author" content="Transitions.dev" />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#fdfdfd" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#070707" media="(prefers-color-scheme: dark)" />
+
+  <link rel="canonical" href="https://transitions.dev/privacy.html" />
+
+  <link rel="icon" href="assets/favicon-light-mode.png?v=4" type="image/png" sizes="any" />
+  <link rel="icon" href="assets/favicon-light-mode.png?v=4" media="(prefers-color-scheme: light)" type="image/png" />
+  <link rel="icon" href="assets/favicon-darkmode.png?v=4" media="(prefers-color-scheme: dark)" type="image/png" />
+  <link rel="apple-touch-icon" href="assets/favicon-light-mode.png?v=4" />
+  <link rel="manifest" href="site.webmanifest" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Transitions.dev" />
+  <meta property="og:url" content="https://transitions.dev/privacy.html" />
+  <meta property="og:title" content="Privacy Policy - Transitions.dev" />
+  <meta property="og:description" content="What we collect, who processes it, and your rights." />
+
+  <link rel="stylesheet" href="assets/fonts/fonts.css" />
+
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("tdev:theme");
+        var dark = stored
+          ? stored === "dark"
+          : (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.documentElement.setAttribute("data-theme", "dark");
+      } catch (e) {}
+    })();
+  </script>
+
+  <style>
+
+    /* ── iOS double-tap zoom ─────────────────────────────────────────
+       iOS Safari ignores `user-scalable=no` / `maximum-scale=1` in the
+       viewport meta (since iOS 10), and disabling pinch zoom outright
+       would fail WCAG 1.4.4. `touch-action: manipulation` suppresses
+       only the double-tap-to-zoom gesture on the things people tap,
+       leaving pinch zoom fully intact. Declared first in the sheet so
+       prototypes needing a stricter value (`touch-action: none` on the
+       tilt / drag demos) still override it further down. */
+    button,
+    a,
+    label,
+    summary,
+    input,
+    select,
+    [role="button"],
+    [role="switch"],
+    [role="checkbox"],
+    [role="tab"],
+    .card {
+      touch-action: manipulation;
+    }
+    :root {
+      color-scheme: light;
+      --bg: #fdfdfd;
+      --text: #0d0d0d;
+      --text-muted: #6c6c6c;
+      --text-subtle: #767676;
+      --text-faint: #8f8f8f;
+      --text-footer-name: #4a4a4a;
+      --rule: rgba(0, 0, 0, 0.08);
+      --code-bg: rgba(0, 0, 0, 0.04);
+      --code-text: #3a3a3a;
+      --link: #0d0d0d;
+      --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, monospace;
+    }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #121212;
+      --text: #ffffff;
+      --text-muted: rgba(202, 202, 202, 0.7);
+      --text-subtle: #767676;
+      --text-faint: #8f8f8f;
+      --text-footer-name: #e9e9e9;
+      --rule: rgba(255, 255, 255, 0.1);
+      --code-bg: rgba(255, 255, 255, 0.08);
+      --code-text: #d6d6d6;
+      --link: #ffffff;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 16px;
+      z-index: 200;
+      padding: 12px 20px;
+      border-radius: 8px;
+      background: var(--text);
+      color: var(--bg);
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: none;
+    }
+    .skip-link:focus { top: 16px; }
+
+    .wrap {
+      max-width: 680px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 0 24px;
+    }
+
+    .doc-head { padding: 80px 0 0; }
+    .eyebrow {
+      margin: 0 0 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--text-muted);
+    }
+    .eyebrow a { color: inherit; text-decoration: none; }
+    .eyebrow a:hover { color: var(--text); }
+    h1 {
+      margin: 0;
+      font-size: 34px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+      text-wrap: balance;
+    }
+    .updated { margin: 12px 0 0; font-size: 13px; color: var(--text-faint); }
+    .lede {
+      margin: 28px 0 0;
+      font-size: 16px;
+      line-height: 1.65;
+      color: var(--text-muted);
+      text-wrap: pretty;
+    }
+
+    section { padding: 36px 0 0; }
+    section + section { margin-top: 36px; border-top: 1px solid var(--rule); }
+    h2 {
+      margin: 0 0 12px;
+      font-size: 19px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    p {
+      margin: 0 0 14px;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      text-wrap: pretty;
+    }
+    p:last-child { margin-bottom: 0; }
+    strong { color: var(--text); font-weight: 600; }
+    a { color: var(--link); }
+
+    ul { margin: 0 0 14px; padding-left: 20px; }
+    li {
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    li strong { color: var(--text); }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 0.86em;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--code-bg);
+      color: var(--code-text);
+    }
+
+    /* Processor table */
+    .proc {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 4px 0 14px;
+      font-size: 14px;
+    }
+    .proc th, .proc td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--rule);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .proc th {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .proc td { color: var(--text-muted); }
+    .proc td:first-child { color: var(--text); font-weight: 500; white-space: nowrap; }
+    .proc-scroll { overflow-x: auto; }
+
+    /* ─── Footer ─── */
+    .footer {
+      width: 100%;
+      max-width: 1008px;
+      margin: 96px auto 0;
+      padding: 0 0 40px;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 18.2px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+    .footer-top { display: flex; justify-content: space-between; gap: 48px; flex-wrap: wrap; }
+    .footer-brand { display: flex; flex-direction: column; gap: 10px; max-width: 260px; }
+    .footer-brand-logo {
+      display: inline-flex; align-items: center; gap: 4px; opacity: 0.7;
+      text-decoration: none; color: var(--text);
+      transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1), opacity 150ms ease;
+      transform-origin: center;
+    }
+    .footer-brand-logo:hover { opacity: 1; }
+    @media (prefers-reduced-motion: reduce) {
+      .footer-brand-logo { transition: opacity 150ms ease; }
+      .footer-brand-logo:hover { transform: none; }
+      .footer-brand-logo:hover .brand-mark { transform: none; }
+    }
+    .brand-mark {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 24px; height: 24px; color: var(--icon-color, var(--text));
+      transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .brand-mark svg { width: 18px; height: 20.295px; display: block; }
+    .brand-word { font-size: 15px; font-weight: 500; line-height: 1; letter-spacing: -0.01em; white-space: nowrap; }
+    .brand-word-dim { color: var(--text-muted); }
+    .footer-tagline { margin: 0; color: var(--text-muted); }
+    .footer-cols { display: flex; gap: 56px; }
+    .footer-col { display: flex; flex-direction: column; gap: 8px; }
+    .footer-col-title { margin: 0 0 2px; font-weight: 500; color: var(--text-muted); }
+    .footer-col a { color: var(--text-muted); text-decoration: none; transition: color 150ms ease; }
+    .footer-col a:hover { color: var(--text); }
+    .footer-credit { margin: 0; }
+    .footer-muted { color: var(--text-faint); }
+    .footer-name { color: var(--text-footer-name); text-decoration: none; margin-left: 4px; }
+    .footer-name:hover { color: #0d0d0d; text-decoration: none; }
+    html[data-theme="dark"] .footer-name:hover { color: #ffffff; text-decoration: none; }
+    @media (max-width: 720px) {
+      .footer-top { flex-direction: column; gap: 32px; }
+      .footer-cols { gap: 40px; flex-wrap: wrap; row-gap: 32px; }
+    }
+    @media (max-width: 600px) {
+      .doc-head { padding-top: 56px; }
+      h1 { font-size: 28px; }
+    }
+    /* Legal pages: sub-headings, placeholders still to fill, the model form. */
+    .doc-head + section h3, section h3 { margin: 18px 0 6px; font-size: 15px; line-height: 22px; font-weight: 500; color: var(--text); }
+    .todo { padding: 0 4px; border-radius: 4px; background: rgba(255, 196, 0, 0.35); color: var(--text); }
+    .model-form { margin: 0 0 14px; padding: 12px 16px; border-radius: 12px; background: var(--chip-bg); color: var(--text-muted); font-size: 14px; line-height: 21px; }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <main id="main">
+    <div class="wrap">
+      <header class="doc-head">
+        <p class="eyebrow"><a href="/">Transitions.dev</a></p>
+        <h1>Privacy Policy</h1>
+        <p class="updated">Last updated 10 October 2026</p>
+        <p class="lede">
+          This policy explains what personal data Transitions.dev processes when you visit the site,
+          create an account, buy a plan or use the Transitions Motion Agent: why, on what legal basis, who
+          helps us process it, how long we keep it, and the rights you have. We collect as little as
+          the product needs, and we never sell your data.
+        </p>
+      </header>
+
+      <section>
+        <h2>Who we are</h2>
+        <p>
+          The controller of your personal data is <strong>Jakub Antalik</strong>, a sole trader
+          registered in the Czech Republic (<span class="todo">IČO [company ID]</span>), with the
+          address <span class="todo">[street, postcode, city], Czech Republic</span> ("we", "us").
+          Full company details are in the <a href="/imprint.html">legal notice</a>.
+        </p>
+        <p>
+          For anything about your data, write to
+          <a href="mailto:jakubja@gmail.com">jakubja@gmail.com</a>. We have not appointed a data
+          protection officer, because the law does not require one for a service of our size.
+        </p>
+      </section>
+
+      <section>
+        <h2>What we process</h2>
+        <h3>When you visit the site</h3>
+        <ul>
+          <li><strong>Server logs.</strong> GitHub Pages, which serves the website, and Cloudflare, which runs our API, record standard request data such as your IP address, browser and the page requested, to deliver and protect the service.</li>
+          <li><strong>Analytics.</strong> GoatCounter counts page views without cookies. It records the page, the referring site, the browser type, screen size and country, and does not store your IP address or build a profile of you.</li>
+          <li><strong>Regional pricing.</strong> To show a regional discount, our API reads the country Cloudflare derives from your IP address. We do not store it; your browser keeps the result for 24 hours.</li>
+          <li><strong>GitHub star count.</strong> Some pages ask GitHub's public API for the number of stars on our repository, so GitHub receives your IP address when that request is made.</li>
+        </ul>
+        <h3>When you create an account or sign in</h3>
+        <ul>
+          <li><strong>Your email address</strong>, used for passwordless sign-in with a one-time code or link, for your account, and for service emails.</li>
+          <li><strong>Sign-in records:</strong> one-time codes and links (stored only as hashes), your sessions, and whether you have confirmed your email address.</li>
+          <li><strong>Your name</strong>, if you add it or give it at checkout.</li>
+          <li><strong>A free Transitions Motion Agent key</strong>, created and emailed to you when you sign up.</li>
+          <li><strong>Which version of our Terms you accepted</strong>, and when, each time you continue past the sign-in or sign-up box.</li>
+          <li><strong>If you continue with GitHub:</strong> GitHub tells us your GitHub user ID, your name and your primary verified email address. We use them to sign you in and keep the user ID to recognise you next time. We don't keep GitHub's access token.</li>
+          <li><strong>If you continue with ChatGPT:</strong> OpenAI tells us your OpenAI account ID, your name and your email address. If you also let the Studio use your ChatGPT plan, OpenAI gives us access tokens for it, which we keep encrypted and use only to send your Studio drafts to OpenAI (see below).</li>
+          <li>If GitHub or ChatGPT gives us an email address that already has an account, we email that address a code and only link the two once you enter it.</li>
+        </ul>
+        <h3>When you buy a plan</h3>
+        <ul>
+          <li><strong>Billing details</strong>, handled by Stripe on its hosted checkout. We receive and store your Stripe customer and subscription identifiers, your plan, its status and your payments. <strong>We never see your card number.</strong> Stripe collects your billing address and, if you give one, your VAT number, for invoices and tax.</li>
+          <li><strong>Team data</strong>, if you own or join a team: the team name, its members, their roles and pending invitations, including the invited email addresses.</li>
+          <li><strong>Download records:</strong> an audit log of protected downloads with your IP address stored only as a salted hash.</li>
+        </ul>
+        <h3>When you use the Transitions Motion Agent</h3>
+        <ul>
+          <li><strong>Usage records:</strong> each scan or fix run with your account, plan, the number of findings and files, a score and the outcome. We do not store your source code.</li>
+          <li><strong>Hosted fixes:</strong> when you ask the Motion Agent to fix code with our hosted AI, the files in that run and their findings are sent to Anthropic, which generates the proposed edits. Anthropic processes them only to answer the request.</li>
+        </ul>
+        <h3 id="community">When you use the Community and the Studio</h3>
+        <ul>
+          <li><strong>Your Community profile:</strong> a handle, a display name (by default your account name), an optional bio and X handle, and your profile picture if you add one on the account page. Your email address is never shown on it; only you see it on your own profile. <strong>It stays private until a component of yours passes review and is published.</strong> From then on, your handle, display name, bio, picture and published components are public, with their like and view counts. Unpublish everything and the profile is private again.</li>
+          <li><strong>Components:</strong> the code, title and description you save. Drafts are visible only to you, unless we need to check one to investigate abuse, a credible report or a legal request; published ones are public and others can open, copy and remix them. Remixes credit the original author's handle.</li>
+          <li><strong>Likes</strong> you give, shown only as counts.</li>
+          <li><strong>Views:</strong> we count one view per viewer, per component, per day. To avoid counting twice we keep, for 3 days, your account ID if you are signed in, or otherwise a salted hash of your IP address.</li>
+          <li><strong>AI drafts:</strong> when you ask the Studio's AI agent to build or change a component, we send Anthropic your request, the current code, the element you selected, the images and drawings you attach, and the skills, libraries and design system you chose. Anthropic generates the component and processes the data only to answer. We keep your request text for 90 days (for abuse prevention and your monthly allowance), and a record of the draft without the text for 13 months. We do not keep the images.</li>
+          <li><strong>AI drafts on your ChatGPT plan:</strong> if you connect ChatGPT and pick it in the Studio, the same request data goes to OpenAI instead of Anthropic, under your own ChatGPT account. OpenAI processes it under its terms and privacy policy and your ChatGPT settings, and counts it against your plan and the usage limit you set for Transitions.dev. We ask OpenAI not to store the request (<code>store: false</code>). We keep the same record of the draft as for any other, without a cost.</li>
+          <li><strong>Design systems and skills</strong> you add, until you delete them. Extracting a design system from screenshots sends those screenshots to Anthropic in the same way.</li>
+          <li><strong>Content checks:</strong> when you publish a component, change a published one, or change your Community name, handle, bio or profile picture, we send the visible text (title, description, the words in the component), images in the component and your picture to OpenAI's Moderation API, which scores them for harmful content. OpenAI processes them only to give that answer and doesn't use them to train its models. We keep what the checks and our reviewers decided about your components, profile and picture until you delete your account.</li>
+          <li><strong>Reports and reviews:</strong> if you report a component or a profile, your account, the category and your explanation. The author is not told who reported it. If your component is hidden, your request for a review and its outcome.</li>
+          <li><strong>In your browser:</strong> the Studio keeps an unsaved draft (<code>tdev:studio:scratch</code>), your skill and library choices (<code>tdev:studio:context</code>) and your build mode (<code>tdev:community:mode</code>) in local storage, and briefly hands a prompt and its images from the Community page to the Studio in session storage.</li>
+        </ul>
+        <h3>When you contact us</h3>
+        <ul>
+          <li><strong>Feedback and support messages</strong>, with the page you sent them from, your browser type and country, and your email address if you give it. They reach us by email.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Why we process it, and our legal basis</h2>
+        <div class="proc-scroll">
+          <table class="proc">
+            <thead><tr><th>Purpose</th><th>Legal basis (GDPR)</th></tr></thead>
+            <tbody>
+              <tr><td>Running your account, sign-in, plans, teams, downloads and the Motion Agent, including hosted fixes</td><td>Contract, Art. 6(1)(b)</td></tr>
+              <tr><td>The Community and the Studio: profiles, components, likes, AI drafts, design systems and skills; showing what you publish</td><td>Contract, Art. 6(1)(b)</td></tr>
+              <tr><td>View counts, and handling reports, moderation and reviews</td><td>Legitimate interest in a fair, safe Community, and our legal duties as a hosting service under the Digital Services Act, Art. 6(1)(c) and (f)</td></tr>
+              <tr><td>Service emails: sign-in codes, team invitations, purchase confirmations, receipts and important account notices</td><td>Contract, Art. 6(1)(b)</td></tr>
+              <tr><td>Billing records, invoices and tax</td><td>Legal obligation, Art. 6(1)(c)</td></tr>
+              <tr><td>Security: rate limiting, abuse and fraud prevention, the download audit log, server logs</td><td>Legitimate interest in a secure service, Art. 6(1)(f)</td></tr>
+              <tr><td>Cookieless analytics and an internal customer overview that combines account, plan, Motion Agent usage and Builder usage data (drafts, credits and errors, not what the drafts contain) (for example your company name from Stripe or your email domain, and your country) so we can support customers and improve the product</td><td>Legitimate interest in understanding and supporting our customers, Art. 6(1)(f)</td></tr>
+              <tr><td>Regional pricing</td><td>Legitimate interest in fair regional prices, Art. 6(1)(f)</td></tr>
+              <tr><td>Answering your messages</td><td>Legitimate interest, or steps before or under a contract</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>We do not send marketing email. We make no decisions about you based solely on automated processing.</p>
+      </section>
+
+      <section>
+        <h2>Who processes your data for us</h2>
+        <p>These providers process personal data on our behalf, under data processing terms, only for the purposes above.</p>
+        <div class="proc-scroll">
+          <table class="proc">
+            <thead><tr><th>Provider</th><th>Purpose</th><th>Data</th></tr></thead>
+            <tbody>
+              <tr><td>Stripe (Ireland, USA)</td><td>Payments, subscriptions, invoices, tax</td><td>Email, name, billing address, VAT number, payment details, plan</td></tr>
+              <tr><td>Cloudflare (USA, global network)</td><td>API, database, key storage, request logs, country lookup</td><td>Account, team, plan and usage data, hashed logs, IP address in transit</td></tr>
+              <tr><td>GitHub (USA)</td><td>Serving the website; star count</td><td>IP address and request data</td></tr>
+              <tr><td>Resend (USA, sending from the EU)</td><td>Service email</td><td>Email address and message content</td></tr>
+              <tr><td>Anthropic (USA)</td><td>AI for the Motion Agent's hosted fixes, Studio drafts and design system extraction</td><td>Code and findings in a fix run; Studio requests, code, selected elements, attached images and chosen context</td></tr>
+              <tr><td>GitHub (USA)</td><td>Sign in with GitHub, if you use it</td><td>Your GitHub user ID, name and verified email address</td></tr>
+              <tr><td>OpenAI (USA)</td><td>Content checks for published components and Community profiles (Moderation API); Sign in with ChatGPT and Studio drafts on your ChatGPT plan, if you use them</td><td>For checks: a component's title, description, visible text and images, and your Community name, bio and profile picture. For sign-in and drafts: your OpenAI account ID, name and email address, and the same request data as Studio drafts sent to Anthropic</td></tr>
+              <tr><td>esm.sh</td><td>Loads code libraries for component previews and the Studio editor</td><td>IP address and request data when a preview loads</td></tr>
+              <tr><td>GoatCounter</td><td>Cookieless analytics</td><td>Page, referrer, browser type, screen size, country</td></tr>
+              <tr><td>Google (Gmail)</td><td>Our email inbox</td><td>Messages you send us, feedback, and account notifications we send ourselves</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>We do <strong>not</strong> sell or rent your personal data, and we don't share it with advertisers.</p>
+      </section>
+
+      <section>
+        <h2>Transfers outside the EU</h2>
+        <p>
+          Several providers above are based in the USA or process data there. Where a provider is
+          certified under the EU-U.S. Data Privacy Framework, transfers rely on the European
+          Commission's adequacy decision for it; otherwise they rely on the Commission's Standard
+          Contractual Clauses. Ask us for a copy of the relevant safeguards.
+        </p>
+      </section>
+
+      <section>
+        <h2>Cookies and browser storage</h2>
+        <p>
+          We set one cookie, <code>tp_session</code>, after you sign in. It keeps you signed in for
+          30 days, renewed while you use the site, and is deleted when you sign out. It is
+          <code>HttpOnly</code> and <code>Secure</code> and carries no tracking data.
+        </p>
+        <p>The site also keeps a few entries in your browser's local storage, only for features you use:</p>
+        <ul>
+          <li><code>tdev:theme</code>: your light or dark choice.</li>
+          <li><code>tdev:auth</code>: whether you are signed in, your plan, your email address and profile picture link, so pages show the right state at once. Kept up to 7 days and removed when you sign out.</li>
+          <li><code>tdev:geo</code>: your regional price, for 24 hours.</li>
+          <li><code>tdev:gh-stars</code>: the GitHub star count, for 5 minutes (session storage).</li>
+        </ul>
+        <p>All of these are strictly necessary for the features you use, so they need no consent and there is no cookie banner. We use no advertising or tracking cookies.</p>
+      </section>
+
+      <section>
+        <h2>How long we keep it</h2>
+        <ul>
+          <li><strong>Account, team and plan data:</strong> while your account exists. Deleting your account removes it at once.</li>
+          <li><strong>Sign-up without confirming your email:</strong> deleted after 7 days.</li>
+          <li><strong>One-time codes and links:</strong> expire after 15 minutes and are deleted within a day.</li>
+          <li><strong>Sessions:</strong> deleted when they expire, at most 30 days after your last visit.</li>
+          <li><strong>Linked GitHub and ChatGPT accounts, and ChatGPT plan tokens:</strong> until you disconnect them or delete your account. Tokens OpenAI has revoked are deleted when we notice.</li>
+          <li><strong>Sign-in with GitHub or ChatGPT in progress:</strong> 10 to 15 minutes.</li>
+          <li><strong>Team invitations:</strong> deleted 30 days after they expire, or 90 days after they are accepted or revoked.</li>
+          <li><strong>Motion Agent usage records:</strong> 24 months.</li>
+          <li><strong>Community profile, components, likes, design systems and skills:</strong> until you delete them or your account.</li>
+          <li><strong>AI draft requests:</strong> the text for 90 days, the record without it for 13 months.</li>
+          <li><strong>View de-duplication records:</strong> 3 days.</li>
+          <li><strong>Reports and reviews:</strong> while the component exists, or until your account is deleted.</li>
+          <li><strong>Download audit log:</strong> 12 months; on account deletion it stops being linked to you.</li>
+          <li><strong>Billing records and invoices:</strong> 10 years, as Czech VAT and accounting law requires. They stay with Stripe and in our accounts after account deletion.</li>
+          <li><strong>Support and feedback emails:</strong> as long as needed to answer and follow up, and no longer than 24 months.</li>
+          <li><strong>Server logs:</strong> kept by GitHub and Cloudflare for their short standard periods.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Your rights</h2>
+        <p>You have the right to:</p>
+        <ul>
+          <li><strong>Access</strong> your personal data and get a copy of it, also in a portable format.</li>
+          <li><strong>Correct</strong> data that is wrong or incomplete.</li>
+          <li><strong>Delete</strong> your data. Use <em>Delete account</em> on your <a href="/account.html">account page</a>; it removes your account and everything linked to it immediately, except the billing records we must keep by law.</li>
+          <li><strong>Restrict</strong> processing, or <strong>object</strong> to processing based on our legitimate interests, including analytics and the customer overview.</li>
+          <li><strong>Withdraw consent</strong> at any time where we rely on it, without affecting earlier processing.</li>
+          <li><strong>Complain</strong> to a data protection authority: in the Czech Republic, the Office for Personal Data Protection (<a href="https://uoou.gov.cz" target="_blank" rel="noopener">uoou.gov.cz</a>), or the authority where you live or work.</li>
+        </ul>
+        <p>
+          Email <a href="mailto:jakubja@gmail.com">jakubja@gmail.com</a> to exercise any right. We
+          answer within one month and may ask you to confirm the request from your account's email
+          address.
+        </p>
+      </section>
+
+      <section>
+        <h2>Security</h2>
+        <p>Sign-in codes, links, invitations and device secrets are stored only as hashes; sessions are signed; all traffic is encrypted; and access to our admin tools is restricted. If a breach puts your data at risk, we will tell you and the authority as the law requires.</p>
+      </section>
+
+      <section>
+        <h2>Children</h2>
+        <p>Transitions.dev is a tool for designers and developers and you must be at least 16 to create an account. We do not knowingly process data of anyone younger; if you believe we have, tell us and we will delete it.</p>
+      </section>
+
+      <section>
+        <h2>Changes to this policy</h2>
+        <p>When this policy changes we update the date above. If a change matters for how we use your data, we tell account holders by email before it takes effect.</p>
+      </section>
+
+      <footer class="footer">
+        <div class="footer-top">
+          <div class="footer-brand">
+            <a class="footer-brand-logo" href="/" aria-label="Transitions.dev home">
+              <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 18 20.2947" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M9 0L12.5409 1.99176L11.5604 3.73491L10 2.8572V5.14735H8V2.8572L6.43962 3.73491L5.45909 1.99176L9 0ZM14.3613 3.01571L18 5.0625V9.14735H16V7.3794L14.0359 8.51337L13.0359 6.78132L14.9804 5.65867L13.3807 4.75886L14.3613 3.01571ZM4.61925 4.75887L3.01961 5.65867L4.9641 6.78132L3.9641 8.51337L2 7.3794L2 9.14735H0L1.54972e-06 5.0625L3.63873 3.01572L4.61925 4.75887ZM2 11.1473V12.9153L3.9641 11.7813L4.9641 13.5134L3.01961 14.636L4.61925 15.5358L3.63873 17.279L3.57628e-07 15.2322V11.1473H2ZM18 11.1473V15.2322L14.3613 17.279L13.3807 15.5358L14.9804 14.636L13.0359 13.5134L14.0359 11.7813L16 12.9153V11.1473H18ZM10 15.1473V17.4375L11.5604 16.5598L12.5409 18.3029L9 20.2947L5.45908 18.3029L6.43961 16.5598L8 17.4375V15.1473H10Z" fill="currentColor"/>
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M12.0981 9.51337L10 10.7247V13.1474H8V10.7247L5.90192 9.51337L6.90192 7.78132L9 8.99265L11.0981 7.78132L12.0981 9.51337Z" fill="currentColor"/>
+                </svg>
+              </span>
+              <span class="brand-word"><span class="brand-word-strong">Transitions</span><span class="brand-word-dim">.dev</span></span>
+            </a>
+            <p class="footer-tagline">Better UI motion and craft start here.</p>
+          </div>
+          <nav class="footer-cols" aria-label="Footer">
+            <div class="footer-col">
+              <p class="footer-col-title">Site</p>
+              <a href="/">Home</a>
+              <a href="/">Transitions</a>
+              <a href="/skill.html">Skill</a>
+              <a href="/agent.html">Motion Agent</a>
+              <a href="/pro.html">Get Pro</a>
+            </div>
+            <div class="footer-col">
+              <p class="footer-col-title">Docs</p>
+              <a href="/skill.html">Introduction</a>
+              <a href="/skill.html#installation">Installation</a>
+              <a href="/skill.html">Accessibility</a>
+            </div>
+            <div class="footer-col">
+              <p class="footer-col-title">Legal &amp; Account</p>
+              <a href="/pro.html" id="footer-signin">Sign in</a>
+              <a href="/terms.html">Terms</a>
+              <a href="/privacy.html">Privacy</a>
+              <a href="/imprint.html">Legal notice</a>
+              <a href="mailto:jakubja@gmail.com">Contact</a>
+            </div>
+          </nav>
+        </div>
+        <p class="footer-credit"><span class="footer-muted">Created by</span><a class="footer-name" href="https://x.com/jakubantalik" target="_blank" rel="noopener noreferrer">Jakub Antalik</a></p>
+      </footer>
+    </div>
+  </main>
+  <script src="assets/brand-mark.js?v=4" defer></script>
+</body>
+</html>

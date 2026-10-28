@@ -1,0 +1,1688 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Transitions CRM</title>
+  <link rel="stylesheet" href="assets/fonts/fonts.css" />
+  <script>
+    // Same theme source as the rest of the site: tdev:theme, else the system.
+    (function () {
+      var pref = null;
+      try { pref = localStorage.getItem("tdev:theme"); } catch (e) {}
+      var dark = pref === "dark" || (!pref && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+      if (dark) document.documentElement.setAttribute("data-theme", "dark");
+    })();
+  </script>
+  <style>
+    /* Refine tool design system (refine/demo.html), keyed to the site's
+       html[data-theme="dark"] instead of the panel's data-tl-theme. */
+    :root {
+      --c-text: #17181c; --c-text-strong: #1b1b1b; --c-text-mut: #585858; --c-text-mut2: #696969; --c-text-faint: #979797;
+      --c-sec: rgba(170, 170, 170, 0.1); --c-sec-h: rgba(170, 170, 170, 0.2); --c-sec-a: rgba(170, 170, 170, 0.28);
+      --c-ghost-h: #f7f7f7; --c-ghost-a: #f0f0f0;
+      --c-field-bg: rgba(238, 238, 239, 0.51);
+      --c-line: #ededf0; --c-line2: #f0f0f0;
+      --c-blue: #0071e2; --c-blue-bg: rgba(0, 117, 237, 0.06); --c-blue-bg-h: rgba(0, 117, 237, 0.1);
+      --ring-blue: inset 0 0 0 1px rgba(0, 101, 208, 0.1), inset 0 -1px 0 0 rgba(3, 66, 142, 0.15);
+      --drop-btn: 0 1px 3px 0 rgba(4, 41, 117, 0.08);
+      --shadow-btn: 0 1px 3px 0 rgba(0, 0, 0, 0.04), inset 0 0 0 1px rgba(0, 0, 0, 0.06), inset 0 -1px 0 0 rgba(0, 0, 0, 0.10), inset 0 0 0 1px rgba(196, 196, 196, 0.10);
+      --panel-bg: #fff; --card-bg: #fff; --page-bg: #fafafa;
+      --panel-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 6px 0 rgba(0, 0, 0, 0.05), 0 4px 42px 0 rgba(0, 0, 0, 0.06);
+      --card-ring: 0 0 0 1px rgba(0, 0, 0, 0.08);
+      --menu-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.05), 0 4px 42px rgba(0, 0, 0, 0.06);
+      --row-h: #fcfcfd; --row-sel: #fafafa;
+      --chip-bg: #fff; --chip-ring: 0 0 0 1px rgba(0, 0, 0, 0.08); --chip-fg: #696969;
+      --phase-bg: rgba(15, 15, 15, 0.05); --phase-fg: #4a4a4a;
+      --kbd-bg: #f4f4f5; --kbd-ring: inset 0 0 0 1px #ececed; --kbd-fg: #4c4c4c;
+      --err-fg: #c0392b; --err-bg: rgba(192, 57, 43, 0.06);
+      --ok-fg: #18a32f; --ok-dot: #34cc20;
+      --primary-bg: #171717; --primary-fg: #fff; --primary-h: #000;
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    html[data-theme="dark"] {
+      --c-text: #fbfbfb; --c-text-strong: #fbfbfb; --c-text-mut: #979797; --c-text-mut2: #979797; --c-text-faint: #8b8b8b;
+      --c-sec: rgba(255, 255, 255, 0.06); --c-sec-h: rgba(255, 255, 255, 0.1); --c-sec-a: rgba(255, 255, 255, 0.12);
+      --c-ghost-h: rgba(255, 255, 255, 0.04); --c-ghost-a: rgba(255, 255, 255, 0.06);
+      --c-field-bg: rgba(255, 255, 255, 0.04);
+      --c-line: #262626; --c-line2: #262626;
+      --c-blue: #90dcff; --c-blue-bg: rgba(0, 128, 255, 0.17); --c-blue-bg-h: rgba(0, 128, 255, 0.25);
+      --ring-blue: inset 0 0 0 1px rgba(85, 207, 255, 0.04), inset 0 1px 0 0 rgba(85, 207, 255, 0.06);
+      --drop-btn: 0 1px 1px 0 rgba(0, 0, 0, 0.24);
+      --shadow-btn: 0 1px 1px 0 rgba(0, 0, 0, 0.24), inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+      --panel-bg: #1b1b1b; --card-bg: #202020; --page-bg: #141414;
+      --panel-shadow: 0 2px 6px 0 rgba(0, 0, 0, 0.05), 0 4px 42px 0 rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(255, 255, 255, 0.04) inset, 0 1px 0 0 rgba(255, 255, 255, 0.02) inset;
+      --card-ring: 0 0 0 1px rgba(255, 255, 255, 0.06);
+      --menu-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.05), 0 4px 42px rgba(0, 0, 0, 0.24), inset 0 0 0 1px rgba(255, 255, 255, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+      --row-h: rgba(255, 255, 255, 0.02); --row-sel: rgba(255, 255, 255, 0.04);
+      --chip-bg: rgba(255, 255, 255, 0.04); --chip-ring: 0 0 0 1px rgba(255, 255, 255, 0.08); --chip-fg: #bdbdbd;
+      --phase-bg: rgba(255, 255, 255, 0.06); --phase-fg: #cfcfcf;
+      --kbd-bg: rgba(255, 255, 255, 0.06); --kbd-ring: inset 0 0 0 1px rgba(255, 255, 255, 0.1); --kbd-fg: #cfcfcf;
+      --err-fg: #ff8a7a; --err-bg: rgba(192, 57, 43, 0.14);
+      --ok-fg: #70e984;
+      --primary-bg: #fbfbfb; --primary-fg: #1b1b1b; --primary-h: #e8e8e8;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; }
+    body {
+      background: var(--page-bg); color: var(--c-text);
+      font-family: "Inter", system-ui, -apple-system, sans-serif; font-size: 13px; line-height: 18px;
+      -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+    }
+    button, input, select { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    .tnum { font-variant-numeric: tabular-nums; }
+
+    /* ─── Shell ─────────────────────────────────────────────── */
+    .crm { max-width: 1440px; margin: 0 auto; padding: 24px; }
+    .crm-panel { background: var(--panel-bg); border-radius: 12px; box-shadow: var(--panel-shadow); overflow: hidden; }
+    .crm-head {
+      display: flex; align-items: center; gap: 8px; height: 52px; padding: 7.5px 7.5px 7.5px 14px;
+      border-bottom: 1px solid var(--c-line2);
+    }
+    .crm-title { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+    .crm-title h1 { margin: 0; font-size: 13px; line-height: 14px; font-weight: 500; color: var(--c-text); }
+    .crm-title p { margin: 0; font-size: 12px; line-height: 14px; color: var(--c-text-mut2); }
+
+    /* ─── Buttons ───────────────────────────────────────────── */
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border: none; background: transparent;
+      border-radius: 8px; font-size: 13px; font-weight: 500; line-height: 16px; color: var(--c-text-strong);
+      transition: background 0.12s ease, scale 0.12s ease;
+    }
+    .btn-ghost:hover:not(:disabled) { background: var(--c-ghost-h); }
+    .btn-ghost:active:not(:disabled) { background: var(--c-ghost-a); scale: 0.97; }
+    .btn-icon {
+      display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border: none;
+      border-radius: 60px; background: transparent; color: var(--c-text-mut2);
+      transition: background 0.14s ease, color 0.14s ease, scale 0.12s ease;
+    }
+    .btn-icon:hover { background: var(--c-sec); color: var(--c-text); }
+    .btn-icon:active { scale: 0.96; }
+    .btn-icon svg { width: 16px; height: 16px; display: block; }
+    .btn-icon.is-spinning svg { animation: spin 800ms linear infinite; }
+    @keyframes spin { to { rotate: 360deg; } }
+    .btn-primary {
+      display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 16px; border: none;
+      border-radius: 8px; background: var(--primary-bg); color: var(--primary-fg); font-size: 13px; font-weight: 500;
+      transition: background 0.12s ease, scale 0.12s ease, opacity 0.12s ease;
+    }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-h); }
+    .btn-primary:active:not(:disabled) { scale: 0.96; }
+    .btn-primary:disabled { opacity: 0.6; cursor: default; }
+    .btn-accent {
+      position: relative; isolation: isolate; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px;
+      border: none; border-radius: 8px; background: transparent; color: var(--c-blue); box-shadow: var(--drop-btn);
+      font-size: 13px; font-weight: 500; line-height: 14px; text-decoration: none; transition: scale 0.12s ease;
+    }
+    .btn-accent::before { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--c-blue-bg); z-index: 0; transition: background 0.12s ease; }
+    .btn-accent::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--ring-blue); pointer-events: none; z-index: 2; }
+    .btn-accent > * { position: relative; z-index: 1; }
+    .btn-accent:hover::before { background: var(--c-blue-bg-h); }
+    .btn-accent:active { scale: 0.96; }
+    .btn-sec {
+      display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: none; border-radius: 8px;
+      background: var(--card-bg); box-shadow: var(--shadow-btn); color: var(--c-text); font-size: 13px; font-weight: 500;
+      text-decoration: none; transition: background 0.12s ease, scale 0.12s ease;
+    }
+    .btn-sec:hover { background: var(--c-ghost-h); }
+    html[data-theme="dark"] .btn-sec { background: rgba(255, 255, 255, 0.06); }
+    html[data-theme="dark"] .btn-sec:hover { background: rgba(255, 255, 255, 0.1); }
+    .btn-sec:active { scale: 0.96; }
+    .btn-sec svg, .btn-accent svg { width: 14px; height: 14px; display: block; }
+
+    /* ─── Community moderation ──────────────────────────────── */
+    .mod-panel { margin-top: 16px; }
+    .mod-list { display: flex; flex-direction: column; }
+    .mod-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--c-line2); font-size: 13px; line-height: 18px; }
+    .mod-row:last-child { border-bottom: 0; }
+    .mod-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .mod-main a { color: var(--c-text); font-weight: 500; text-decoration: none; }
+    .mod-main a:hover { text-decoration: underline; }
+    .mod-meta { color: var(--c-text-mut2); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mod-flag { padding: 1px 6px; border-radius: 999px; background: rgba(226, 48, 20, 0.1); color: #d02c12; font-size: 11px; font-weight: 500; }
+    .mod-empty { padding: 20px 14px; color: var(--c-text-mut2); font-size: 13px; }
+    .mod-flag--review { background: rgba(0, 115, 229, 0.1); color: #0a66c2; }
+    .mod-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; }
+
+    /* ─── Stats ─────────────────────────────────────────────── */
+    .stats { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-bottom: 1px solid var(--c-line); }
+    .stat { padding: 14px 16px; border-right: 1px solid var(--c-line); display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .stat:last-child { border-right: none; }
+    .stat-label { font-size: 11px; line-height: 14px; color: var(--c-text-faint); display: flex; align-items: center; gap: 6px; }
+    .stat-value { font-size: 20px; line-height: 24px; font-weight: 500; color: var(--c-text); font-variant-numeric: tabular-nums; }
+    .stat-sub { font-size: 11px; line-height: 14px; color: var(--c-text-faint); font-variant-numeric: tabular-nums; }
+
+    /* Agent band: the same stat cells, with a 30-day fixes chart. */
+    .stats--agent { border-bottom: 1px solid var(--c-line); }
+    /* Builder band: two rows of four. */
+    .stats--four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .stats--four .stat:nth-child(4n) { border-right: none; }
+    .stats--four .stat:nth-child(-n+4) { border-bottom: 1px solid var(--c-line); }
+    .band-label {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 16px 0;
+      font-size: 11px; line-height: 14px; color: var(--c-text-faint);
+    }
+    .band-label strong { font-weight: 500; color: var(--c-text-mut2); }
+    .spark { display: block; width: 100%; height: 28px; margin-top: 2px; }
+    .spark rect { fill: var(--c-sec-a); }
+    .spark rect.has { fill: #3097fd; }
+    html[data-theme="dark"] .spark rect.has { fill: #50a7ff; }
+    .meter { height: 4px; border-radius: 4px; background: var(--c-sec); overflow: hidden; margin-top: 4px; }
+    .meter i { display: block; height: 100%; border-radius: inherit; background: #26953b; }
+    .meter.is-warn i { background: #c35c00; }
+    .agent-cell { display: flex; flex-direction: column; gap: 1px; }
+    .agent-main { color: var(--c-text); }
+    .agent-sub { font-size: 11px; line-height: 14px; color: var(--c-text-faint); }
+
+    /* ─── Daily view ────────────────────────────────────────── */
+    .view-seg { margin-right: 4px; }
+    .periods { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-bottom: 1px solid var(--c-line); }
+    .period { padding: 14px 16px; border-right: 1px solid var(--c-line); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+    .period:last-child { border-right: none; }
+    .period-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+    .period-title { font-size: 13px; line-height: 16px; font-weight: 500; color: var(--c-text); }
+    .period-date { font-size: 11px; line-height: 14px; color: var(--c-text-faint); }
+    .period dl { grid-template-columns: 1fr auto; row-gap: 6px; }
+    .period dt { font-size: 12px; }
+    .period dd { text-align: right; font-variant-numeric: tabular-nums; }
+    .period dd.big { font-size: 20px; line-height: 24px; font-weight: 500; }
+    .day-chart { padding: 14px 16px 10px; border-bottom: 1px solid var(--c-line); }
+    .day-chart svg { display: block; width: 100%; height: 100px; }
+    .day-chart .free { fill: var(--c-sec-a); }
+    .day-chart .paid { fill: #26953b; }
+    html[data-theme="dark"] .day-chart .paid { fill: #64d378; }
+    .axis-row { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; line-height: 12px; color: var(--c-text-faint); }
+    .legend { display: flex; gap: 14px; margin-top: 8px; font-size: 11px; line-height: 14px; color: var(--c-text-faint); }
+    .legend span { display: inline-flex; align-items: center; gap: 6px; }
+    .legend i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+    .day-table td { height: 40px; }
+    .day-table td.zero { color: var(--c-text-faint); }
+    .day-table tr.is-today td:first-child { font-weight: 500; }
+    .mini { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+    .mini .plan { height: 20px; padding: 0 7px; font-size: 11px; }
+    .day-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 6px 0 10px; border-radius: 36px; background: var(--c-blue-bg); color: var(--c-blue); font-size: 12px; font-weight: 500; }
+    .day-chip button { border: none; background: transparent; color: inherit; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; padding: 0; }
+    .day-chip button:hover { background: var(--c-blue-bg-h); }
+    @media (max-width: 1100px) { .periods { grid-template-columns: repeat(2, minmax(0, 1fr)); } .period:nth-child(2) { border-right: none; } .period:nth-child(-n+2) { border-bottom: 1px solid var(--c-line); } }
+    @media (max-width: 860px) { .day-table .col-agentday { display: none; } }
+
+    /* Tabs that do not apply to the current product keep their place. */
+    .seg-btn.is-off { visibility: hidden; pointer-events: none; }
+
+    /* Builder view: usage panels in the stat-cell look. */
+    .bu-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-bottom: 1px solid var(--c-line); }
+    .bu-card { padding: 14px 16px 16px; border-right: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+    .bu-card:nth-child(3n) { border-right: none; }
+    .bu-title { font-size: 13px; line-height: 16px; font-weight: 500; color: var(--c-text); display: flex; justify-content: space-between; gap: 8px; }
+    .bu-title span { font-size: 11px; font-weight: 400; color: var(--c-text-faint); }
+    .bu-bars { display: flex; flex-direction: column; gap: 7px; }
+    .bu-bar { display: grid; grid-template-columns: minmax(96px, 136px) minmax(40px, 1fr) auto; align-items: center; gap: 8px; font-size: 12px; line-height: 16px; }
+    .bu-bar .lbl { color: var(--c-text-mut2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bu-bar .val { text-align: right; color: var(--c-text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .bu-track { height: 6px; border-radius: 6px; background: var(--c-sec); overflow: hidden; }
+    .bu-track i { display: block; height: 100%; border-radius: inherit; background: #3097fd; }
+    html[data-theme="dark"] .bu-track i { background: #50a7ff; }
+    .bu-kv { display: grid; grid-template-columns: 1fr auto; row-gap: 7px; font-size: 12px; line-height: 16px; }
+    .bu-kv dt { color: var(--c-text-mut2); }
+    .bu-kv dd { margin: 0; text-align: right; color: var(--c-text); font-variant-numeric: tabular-nums; }
+    .bu-big { font-size: 20px; line-height: 24px; font-weight: 500; color: var(--c-text); font-variant-numeric: tabular-nums; }
+    .bu-note { padding: 12px 16px; font-size: 11px; line-height: 14px; color: var(--c-text-faint); }
+    @media (max-width: 1100px) { .bu-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .bu-card:nth-child(3n) { border-right: 1px solid var(--c-line); } .bu-card:nth-child(2n) { border-right: none; } }
+    @media (max-width: 640px) { .bu-grid { grid-template-columns: 1fr; } .bu-card { border-right: none !important; } }
+
+    /* Errors view. */
+    .err-sum { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 12px; border-bottom: 1px solid var(--c-line); }
+    .err-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border: none; border-radius: 36px; cursor: pointer;
+      font-size: 12px; font-weight: 500; background: var(--chip-bg); box-shadow: var(--chip-ring); color: var(--c-text-mut2); transition: background 0.12s ease; }
+    .err-chip:hover { background: var(--c-ghost-h); }
+    .err-chip.is-on { background: var(--c-blue-bg); color: var(--c-blue); box-shadow: none; }
+    .err-chip b { font-weight: 500; color: var(--c-text); font-variant-numeric: tabular-nums; }
+    .err-chip.is-on b { color: inherit; }
+    .err-dot { width: 6px; height: 6px; border-radius: 50%; background: #c2410c; }
+    .err-dot.fail { background: var(--err-fg); }
+    .err-dot.info { background: var(--c-text-faint); }
+    .err-table td { height: 44px; white-space: normal; }
+    .err-table td.when { white-space: nowrap; color: var(--c-text-mut2); }
+    .err-table td.detail { font-size: 12px; line-height: 16px; color: var(--c-text-mut2); max-width: 420px; word-break: break-word; }
+    .err-what { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+    .err-where { font-size: 11px; line-height: 14px; color: var(--c-text-faint); }
+    .err-count { color: var(--err-fg); }
+
+    /* Libraries.dev view: Studio column instead of the transitions.dev ones. */
+    .col-studio { display: none; }
+    table.is-libraries .col-studio { display: table-cell; }
+    table.is-libraries .col-agent, table.is-libraries .col-fixes, table.is-libraries .col-community,
+    table.is-libraries .col-errors, table.is-libraries .col-builder { display: none; }
+    .product-seg { margin-right: 4px; }
+
+    /* Range picker in the header: the Refine tool's select. */
+    .range-select {
+      appearance: none; -webkit-appearance: none; height: 32px; border: none; border-radius: 8px; cursor: pointer;
+      padding: 0 30px 0 12px; font-size: 13px; font-weight: 500; line-height: 16px; color: var(--c-text-strong);
+      background: #f7f7f7 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none'%3E%3Cpath d='M5.5 6.75 8 9.25l2.5-2.5' stroke='%23696969' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 8px center;
+      transition: background-color 0.12s ease;
+    }
+    .range-select:hover { background-color: var(--c-sec-h); }
+    .range-select:focus-visible { outline: none; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14); }
+    html[data-theme="dark"] .range-select { background-color: rgba(255, 255, 255, 0.04); }
+    html[data-theme="dark"] .range-select:hover { background-color: rgba(255, 255, 255, 0.06); }
+    html[data-theme="dark"] .range-select:focus-visible { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
+    .range-select.is-set { color: var(--c-blue); background-color: var(--c-blue-bg); }
+
+    /* Makers view: Builder drafts and credits replace the Agent columns. */
+    .col-builder { display: none; }
+    table.is-makers .col-builder { display: table-cell; }
+    table.is-makers .col-agent, table.is-makers .col-fixes { display: none; }
+
+    /* ─── Toolbar ───────────────────────────────────────────── */
+    .toolbar { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--c-line); flex-wrap: wrap; }
+    .field {
+      display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border-radius: 8px; background: var(--c-field-bg);
+      transition: box-shadow 0.12s ease, background 0.12s ease; width: 280px; max-width: 100%;
+    }
+    .field:hover { background: var(--c-sec-h); }
+    .field:focus-within { background: var(--c-field-bg); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.14); }
+    html[data-theme="dark"] .field:hover { background: rgba(255, 255, 255, 0.06); }
+    html[data-theme="dark"] .field:focus-within { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1); }
+    .field svg { width: 14px; height: 14px; color: var(--c-text-faint); flex: none; }
+    .field input { flex: 1; min-width: 0; height: 100%; border: none; outline: none; background: transparent; font-size: 13px; }
+    .field input::placeholder { color: #999; }
+    html[data-theme="dark"] .field input::placeholder { color: #8b8b8b; }
+    .seg { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .seg-btn {
+      display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 6px 10px 6px 12px; border: none; border-radius: 8px;
+      background: transparent; font-size: 13px; font-weight: 500; line-height: 14px; color: #676767;
+      transition: background 0.14s ease, color 0.14s ease;
+    }
+    .seg-btn:hover:not(.is-active) { background: rgba(170, 170, 170, 0.06); color: #17181c; }
+    .seg-btn.is-active { background: rgba(170, 170, 170, 0.1); color: #17181c; }
+    html[data-theme="dark"] .seg-btn { color: #8b8b8b; }
+    html[data-theme="dark"] .seg-btn:hover:not(.is-active) { background: rgba(255, 255, 255, 0.04); color: #fbfbfb; }
+    html[data-theme="dark"] .seg-btn.is-active { background: rgba(255, 255, 255, 0.1); color: #fbfbfb; }
+    .seg-count { font-size: 11px; font-weight: 400; color: var(--c-text-faint); font-variant-numeric: tabular-nums; }
+    .toolbar-end { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+    /* ─── Body: table + inspector ───────────────────────────── */
+    .crm-body { display: flex; align-items: stretch; min-height: 480px; }
+    .table-wrap { flex: 1; min-width: 0; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      position: sticky; top: 0; z-index: 1; background: var(--panel-bg); height: 36px; padding: 0 12px; text-align: left;
+      font-size: 11px; line-height: 14px; font-weight: 400; color: var(--c-text-faint); border-bottom: 1px solid var(--c-line);
+      white-space: nowrap; user-select: none;
+    }
+    th[data-sort] { cursor: pointer; }
+    th[data-sort]:hover { color: var(--c-text); }
+    th .arrow { display: inline-block; margin-left: 4px; opacity: 0; }
+    th.is-sorted { color: var(--c-text); }
+    th.is-sorted .arrow { opacity: 1; }
+    th.num, td.num { text-align: right; }
+    td { height: 52px; padding: 0 12px; border-bottom: 1px solid var(--c-line); vertical-align: middle; white-space: nowrap; }
+    tbody tr { cursor: pointer; transition: background 0.1s ease; }
+    tbody tr:hover { background: var(--row-h); }
+    tbody tr.selected { background: var(--row-sel); }
+    .who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .avatar {
+      flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+      font-size: 11px; font-weight: 500; color: var(--c-text-mut2); background: var(--c-sec);
+    }
+    .who-text { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+    .who-name { font-size: 13px; line-height: 16px; font-weight: 500; color: var(--c-text); overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+    .who-email { font-size: 12px; line-height: 14px; color: var(--c-text-mut2); overflow: hidden; text-overflow: ellipsis; max-width: 260px; }
+    .who-name.is-empty { color: var(--c-text-faint); font-weight: 400; }
+    .company { display: flex; flex-direction: column; gap: 1px; max-width: 220px; }
+    .company-name { overflow: hidden; text-overflow: ellipsis; color: var(--c-text); }
+    .company-src { font-size: 11px; line-height: 14px; color: var(--c-text-faint); }
+    .muted { color: var(--c-text-faint); }
+    .plan-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; }
+    .plan-detail { font-size: 11px; line-height: 14px; color: var(--c-text-faint); }
+
+    /* Plan badges: the Refine category pills. */
+    .plan {
+      display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 50px;
+      font-size: 12px; font-weight: 500; line-height: 16px; white-space: nowrap;
+    }
+    .plan--business { color: #a830fd; background: rgba(173, 68, 247, 0.06); box-shadow: inset 0 0 0 1px rgba(173, 68, 247, 0.18); }
+    .plan--pro { color: #3097fd; background: rgba(111, 183, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(48, 151, 253, 0.18); }
+    .plan--lifetime { color: #26953b; background: rgba(38, 149, 59, 0.06); box-shadow: inset 0 0 0 1px rgba(38, 149, 59, 0.18); }
+    .plan--comp { color: #0e9aa7; background: rgba(14, 154, 167, 0.07); box-shadow: inset 0 0 0 1px rgba(14, 154, 167, 0.20); }
+    .plan--sponsor { color: #c35c00; background: rgba(247, 152, 68, 0.06); box-shadow: inset 0 0 0 1px rgba(205, 115, 36, 0.18); }
+    .plan--churned { color: var(--phase-fg); background: var(--phase-bg); }
+    .plan--free { color: var(--chip-fg); background: var(--chip-bg); box-shadow: var(--chip-ring); }
+    html[data-theme="dark"] .plan--business { color: #c471ff; background: rgba(173, 68, 247, 0.12); }
+    html[data-theme="dark"] .plan--pro { color: #50a7ff; background: rgba(48, 151, 253, 0.12); }
+    html[data-theme="dark"] .plan--lifetime { color: #64d378; background: rgba(38, 149, 59, 0.14); }
+    html[data-theme="dark"] .plan--comp { color: #3ec9d6; background: rgba(14, 154, 167, 0.14); }
+    html[data-theme="dark"] .plan--sponsor { color: #f99032; background: rgba(247, 152, 68, 0.12); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+    .tag {
+      display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 50px; font-size: 11px; line-height: 20px;
+      background: var(--chip-bg); box-shadow: var(--chip-ring); color: var(--chip-fg);
+    }
+    .tag--warn { color: #c2410c; }
+    html[data-theme="dark"] .tag--warn { color: #ff8a7a; }
+
+    .inspector {
+      flex: 0 0 340px; border-left: 1px solid var(--c-line); padding: 16px; display: flex; flex-direction: column; gap: 14px;
+      position: sticky; top: 0; align-self: flex-start; max-height: 100vh; overflow-y: auto;
+    }
+    .inspector[hidden] { display: none; }
+    .insp-head { display: flex; align-items: flex-start; gap: 12px; }
+    .insp-head .avatar { width: 40px; height: 40px; font-size: 14px; }
+    .insp-head h2 { margin: 0; font-size: 15px; line-height: 21px; font-weight: 500; color: var(--c-text); word-break: break-word; }
+    .insp-head p { margin: 0; font-size: 12px; line-height: 16px; color: var(--c-text-mut2); word-break: break-all; }
+    .insp-head .btn-icon { margin: -6px -6px 0 auto; flex: none; }
+    .insp-divider { height: 1px; background: var(--c-line); margin: 0 -16px; }
+    .insp-section { font-size: 11px; line-height: 14px; color: var(--c-text-faint); margin-bottom: -6px; }
+    dl { margin: 0; display: grid; grid-template-columns: 110px 1fr; row-gap: 10px; column-gap: 12px; }
+    dt { font-size: 12px; line-height: 18px; color: #737373; }
+    html[data-theme="dark"] dt { color: #8b8b8b; }
+    dd { margin: 0; font-size: 13px; line-height: 18px; color: var(--c-text); min-width: 0; word-break: break-word; }
+    .insp-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    code.id { font-family: var(--mono); font-size: 12px; color: var(--c-text); background: var(--kbd-bg); border-radius: 5px; padding: 1px 5px; }
+
+    /* ─── Gate / empty / error ──────────────────────────────── */
+    .gate { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .gate-card { width: 100%; max-width: 380px; background: var(--panel-bg); border-radius: 12px; box-shadow: var(--panel-shadow); padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+    .gate-card h1 { margin: 0; font-size: 15px; line-height: 21px; font-weight: 500; color: var(--c-text); }
+    .gate-card p { margin: 0; font-size: 13px; line-height: 21px; color: var(--c-text-mut2); }
+    .gate-card .field { width: 100%; height: 36px; }
+    .gate-card .btn-primary { width: 100%; }
+    .note-err { font-size: 13px; line-height: 18px; color: var(--err-fg); background: var(--err-bg); border-radius: 10px; padding: 8px 12px; }
+    .note-err[hidden] { display: none; }
+    .empty { padding: 56px 16px; text-align: center; color: var(--c-text-faint); font-size: 13px; }
+    .kbd { display: inline-flex; align-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 5px; background: var(--kbd-bg); box-shadow: var(--kbd-ring); font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--kbd-fg); }
+
+    /* Menu (token + theme). */
+    .menu-anchor { position: relative; }
+    .menu {
+      position: absolute; top: calc(100% + 6px); right: 0; width: 220px; background: var(--card-bg); border-radius: 12px; padding: 6px;
+      box-shadow: var(--menu-shadow); z-index: 20; transform-origin: top right;
+      opacity: 0; transform: scale(0.97); pointer-events: none;
+      transition: opacity 150ms var(--ease), transform 150ms var(--ease);
+    }
+    .menu.is-open { opacity: 1; transform: scale(1); pointer-events: auto; transition-duration: 250ms; }
+    .menu-item {
+      display: flex; align-items: center; gap: 8px; width: 100%; min-height: 32px; padding: 0 8px; border: none; background: none;
+      border-radius: 8px; font-size: 13px; line-height: 16px; color: var(--c-text-strong); text-align: left; transition: background 0.1s ease;
+    }
+    .menu-item:hover { background: #f4f4f5; }
+    html[data-theme="dark"] .menu-item:hover { background: rgba(255, 255, 255, 0.04); }
+    .menu-item .menu-value { margin-left: auto; font-size: 11px; color: #8b8b8b; }
+    .menu-divider { height: 1px; background: var(--c-line2); margin: 6px -6px; }
+
+    @media (max-width: 1100px) {
+      .stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .stat:nth-child(3n) { border-right: none; }
+      .stat:nth-child(-n+3) { border-bottom: 1px solid var(--c-line); }
+      .col-country, .col-last, .col-agent, .col-community { display: none; }
+    }
+    @media (max-width: 860px) {
+      .crm { padding: 0; }
+      .crm-panel { border-radius: 0; box-shadow: none; }
+      .inspector { position: fixed; inset: auto 0 0 0; max-height: 80vh; background: var(--panel-bg); border-left: none;
+        border-radius: 12px 12px 0 0; box-shadow: var(--panel-shadow); z-index: 30; }
+      .col-company, .col-signup, .col-fixes, .col-since { display: none; }
+      .field { width: 100%; }
+      .toolbar-end { margin-left: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    }
+      /* Narrow: the Builder band goes to two columns. */
+    @media (max-width: 1100px) {
+      .stats--four { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stats--four .stat { border-right: 1px solid var(--c-line); border-bottom: 1px solid var(--c-line); }
+      .stats--four .stat:nth-child(2n) { border-right: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Token gate -->
+  <div class="gate" id="gate" hidden>
+    <form class="gate-card" id="gate-form" autocomplete="off">
+      <h1>Transitions CRM</h1>
+      <p>Paste your admin token. It stays in this browser only.</p>
+      <label class="field">
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.4"/></svg>
+        <input type="password" id="gate-token" placeholder="Admin token" aria-label="Admin token" spellcheck="false" />
+      </label>
+      <p class="note-err" id="gate-err" role="status" hidden></p>
+      <button type="submit" class="btn-primary" id="gate-btn">Open</button>
+      <button type="button" class="btn-ghost" id="gate-back" hidden style="align-self:center">Back to Transitions.dev</button>
+    </form>
+  </div>
+
+  <!-- CRM -->
+  <main class="crm" id="app" hidden>
+    <section class="crm-panel">
+      <header class="crm-head">
+        <div class="crm-title">
+          <h1 id="crm-h1">Customers</h1>
+          <p id="subtitle">Loading…</p>
+        </div>
+        <div class="seg product-seg" id="product-seg" role="tablist" aria-label="Product">
+          <button type="button" role="tab" class="seg-btn is-active" data-product="transitions" aria-selected="true">Transitions</button>
+          <button type="button" role="tab" class="seg-btn" data-product="libraries" aria-selected="false">Libraries</button>
+        </div>
+        <select class="range-select" id="range" aria-label="Joined within">
+          <option value="0">All time</option>
+          <option value="1">Last 24 hours</option>
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+          <option value="90">Last 90 days</option>
+        </select>
+        <div class="seg view-seg" id="view-seg" role="tablist" aria-label="View">
+          <button type="button" role="tab" class="seg-btn is-active" data-view="people" aria-selected="true">People</button>
+          <button type="button" role="tab" class="seg-btn" data-view="daily" aria-selected="false">Daily</button>
+          <button type="button" role="tab" class="seg-btn" data-view="builder" aria-selected="false" id="builder-tab">Builder</button>
+          <button type="button" role="tab" class="seg-btn" data-view="errors" aria-selected="false" id="errors-tab">Errors</button>
+        </div>
+        <button type="button" class="btn-sec" id="export-btn" title="Download the current view as CSV">
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M8 2.5v7.5m0 0L5 7m3 3 3-3M3 12.5h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Export CSV</span>
+        </button>
+        <button type="button" class="btn-icon" id="refresh-btn" aria-label="Refresh" title="Refresh">
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M13 8a5 5 0 1 1-1.46-3.54M13 3v2.5h-2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div class="menu-anchor">
+          <button type="button" class="btn-icon" id="menu-btn" aria-label="More" aria-haspopup="menu" aria-expanded="false">
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="8" cy="3.5" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="8" cy="12.5" r="1.3"/></svg>
+          </button>
+          <div class="menu" id="menu" role="menu">
+            <button type="button" class="menu-item" id="theme-item" role="menuitem">Appearance <span class="menu-value" id="theme-value"></span></button>
+            <div class="menu-divider"></div>
+            <button type="button" class="menu-item" id="forget-item" role="menuitem">Forget token on this device</button>
+          </div>
+        </div>
+      </header>
+
+      <div class="stats" id="stats"></div>
+      <div id="agent-band"></div>
+      <div id="builder-band"></div>
+      <div id="studio-band"></div>
+      <div id="daily-view" hidden></div>
+      <div id="errors-view" hidden></div>
+      <div id="builder-view" hidden></div>
+
+      <div class="toolbar" id="people-toolbar">
+        <label class="field">
+          <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          <input type="search" id="search" placeholder="Search name, email, company" aria-label="Search" />
+          <span class="kbd">/</span>
+        </label>
+        <div class="seg" id="filters" role="tablist" aria-label="Filter by plan"></div>
+        <span id="day-filter"></span>
+      </div>
+
+      <div class="crm-body" id="people-body">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th data-sort="name">Person<span class="arrow"></span></th>
+                <th data-sort="company" class="col-company">Company<span class="arrow"></span></th>
+                <th data-sort="plan">Plan<span class="arrow"></span></th>
+                <th data-sort="since" class="col-since" title="When the current paid plan started (an upgrade shows where it came from)">Plan since<span class="arrow"></span></th>
+                <th data-sort="agent" class="col-agent">Motion Agent<span class="arrow"></span></th>
+                <th data-sort="fixes" class="num col-fixes" title="Hosted Agent fixes">Fixes<span class="arrow"></span></th>
+                <th data-sort="builder_drafts" class="num col-builder" title="Builder drafts that finished (failed ones in the tooltip)">Drafts<span class="arrow"></span></th>
+                <th data-sort="builder_credits" class="num col-builder" title="Builder credits spent (1 credit = $0.01 of AI)">Credits<span class="arrow"></span></th>
+                <th data-sort="builder_last" class="col-builder" title="Last Builder draft or component">Last used<span class="arrow"></span></th>
+                <th data-sort="community" class="col-community" title="Community components and Builder drafts">Community<span class="arrow"></span></th>
+                <th data-sort="studio" class="col-studio" title="Studio agent requests this month">Studio<span class="arrow"></span></th>
+                <th data-sort="studio_credits" class="num col-studio" title="Studio credits used this month (1 credit = $0.01 of AI)">Credits<span class="arrow"></span></th>
+                <th data-sort="errors" class="num col-errors" title="Errors in the last 30 days (Builder and Motion Agent)">Errors<span class="arrow"></span></th>
+                <th data-sort="paid" class="num">Paid<span class="arrow"></span></th>
+                <th data-sort="created" class="col-signup">Joined<span class="arrow"></span></th>
+                <th data-sort="last" class="col-last">Last sign-in<span class="arrow"></span></th>
+                <th data-sort="country" class="col-country">Country<span class="arrow"></span></th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <div class="empty" id="empty" hidden>No one matches.</div>
+        </div>
+        <aside class="inspector" id="inspector" hidden aria-label="Person details"></aside>
+      </div>
+    </section>
+
+    <!-- Community: reported and hidden components. Hiding takes a component
+         out of every public list; restoring clears its reports. -->
+    <section class="crm-panel mod-panel" aria-labelledby="mod-title">
+      <div class="crm-head">
+        <div class="crm-title">
+          <h1 id="mod-title">Community moderation</h1>
+          <p id="mod-sub">Components waiting for review, profile photos, reports and hidden work</p>
+        </div>
+        <div class="seg" id="mod-filters" role="tablist" aria-label="Moderation filter"></div>
+      </div>
+      <div class="mod-list" id="mod-list"></div>
+    </section>
+  </main>
+
+  <script>
+  (function () {
+    "use strict";
+    var LOCAL = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+    // Two products, one page: each has its own API and admin token (a
+    // Libraries.dev token falls back to the transitions.dev one).
+    var PRODUCTS = {
+      transitions: { label: "Transitions.dev", api: LOCAL ? "http://localhost:8787" : "https://api.transitions.dev" },
+      libraries: { label: "Libraries.dev", api: LOCAL ? "http://localhost:8790" : "https://api.libraries.dev" }
+    };
+    var product = (function () { try { return localStorage.getItem("tdev:crm-product") === "libraries" ? "libraries" : "transitions"; } catch (e) { return "transitions"; } })();
+    var API = PRODUCTS[product].api;
+    var TOKEN_KEY = "tdev:admin-token";
+    function tokenKey() { return product === "libraries" ? "tdev:admin-token:libraries" : TOKEN_KEY; }
+    function loadToken() { return load(tokenKey()) || (product === "libraries" ? load(TOKEN_KEY) : null); }
+    var PLAN_LABEL = { business: "Business", pro: "Pro", lifetime: "Lifetime", comp: "Comp", sponsor: "Sponsor", churned: "Churned", free: "Free" };
+    var PLAN_ORDER = { business: 0, lifetime: 1, pro: 2, comp: 3, sponsor: 4, churned: 5, free: 6 };
+    var TR_ONLY_FILTERS = { agent: 1, "agent-fix": 1, makers: 1 };
+    var FILTERS = [
+      { id: "all", label: "All" },
+      { id: "paying", label: "Paying" },
+      { id: "business", label: "Business" },
+      { id: "pro", label: "Pro" },
+      { id: "lifetime", label: "Lifetime" },
+      { id: "churned", label: "Churned" },
+      { id: "agent", label: "Motion Agent" },
+      { id: "agent-fix", label: "Agent fixes" },
+      { id: "makers", label: "Makers" },
+      { id: "studio", label: "Studio" },
+      { id: "free", label: "Free" }
+    ];
+    var PAYING = { business: 1, pro: 1, lifetime: 1, sponsor: 1 };
+
+    var $ = function (id) { return document.getElementById(id); };
+    var state = { data: null, filter: "all", q: "", sort: "created", dir: -1, selected: null, view: "people", day: null, range: 0 };
+
+    function store(k, v) { try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
+    function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+    function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+    function money(cents, cur) {
+      try { return new Intl.NumberFormat("en-US", { style: "currency", currency: (cur || "usd").toUpperCase(), maximumFractionDigits: cents % 100 ? 2 : 0 }).format(cents / 100); }
+      catch (e) { return (cents / 100).toFixed(2) + " " + (cur || "").toUpperCase(); }
+    }
+    function paidText(paid) {
+      var keys = Object.keys(paid || {});
+      if (!keys.length) return "";
+      return keys.map(function (c) { return money(paid[c], c); }).join(" + ");
+    }
+    function paidTotal(paid) { var t = 0; for (var k in paid) t += paid[k]; return t; }
+    function day(isoStr) {
+      if (!isoStr) return "";
+      var d = new Date(isoStr);
+      return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: d.getFullYear() === new Date().getFullYear() ? undefined : "numeric" });
+    }
+    function ago(isoStr) {
+      if (!isoStr) return "";
+      var s = (Date.now() - new Date(isoStr).getTime()) / 1000;
+      if (s < 3600) return Math.max(1, Math.round(s / 60)) + "m ago";
+      if (s < 86400) return Math.round(s / 3600) + "h ago";
+      if (s < 86400 * 30) return Math.round(s / 86400) + "d ago";
+      return day(isoStr);
+    }
+    function initials(p) {
+      var src = p.name || p.email;
+      var parts = src.replace(/@.*/, "").split(/[\s._-]+/).filter(Boolean);
+      return ((parts[0] || "?")[0] + (parts[1] ? parts[1][0] : "")).toUpperCase();
+    }
+    function flag(cc) {
+      if (!cc || cc.length !== 2) return "";
+      return String.fromCodePoint.apply(null, cc.toUpperCase().split("").map(function (c) { return 127397 + c.charCodeAt(0); }));
+    }
+    function planBadge(plan) { return '<span class="plan plan--' + esc(plan) + '">' + esc(PLAN_LABEL[plan] || plan) + "</span>"; }
+    var SRC_LABEL = { stripe: "from Stripe", team: "team name", domain: "email domain" };
+    var KEY_SOURCE = { cli: "CLI signup", browser: "browser signup", account: "account page", purchase: "with a purchase" };
+    // Anyone who used the Builder (even if every draft failed) or made a component.
+    // Libraries.dev Studio credits: 1 credit = $0.01 of AI, same as Transitions.
+    function studioCredits(usd) { return Math.round((usd || 0) * 100); }
+    function hasStudio(p) { var s = p.studio; return !!(s && (s.requests_month || s.requests_prev_month || s.lifetime_usd)); }
+    function isMaker(p) { var c = p.community; return !!(c && (c.made || c.drafts || c.failed)); }
+    function hasAgent(p) { return !!(p.agent && (p.agent.key || p.agent.last_used)); }
+    // At least one hosted fix: this or last month's counter (from before the
+    // history existed) or any fix in the history.
+    function hasAgentFix(p) { return fixCount(p) > 0; }
+    // Best known total: the history once it covers more than the two monthly
+    // counters (which expire after ~2 months), the counters until then.
+    function fixCount(p) {
+      var a = p.agent;
+      return a ? Math.max(a.fixes_total || 0, (a.fixes_month || 0) + (a.fixes_prev_month || 0)) : 0;
+    }
+    function plural(n, one, many) { return n + " " + (n === 1 ? one : (many || one + "s")); }
+    function agentSummary(a) {
+      if (!a) return null;
+      var main, sub;
+      if (a.fixes_month) main = plural(a.fixes_month, "fix", "fixes") + " this month";
+      else if (a.fixes_total) main = plural(a.fixes_total, "fix", "fixes") + " total";
+      else if (a.mcp_calls) main = plural(a.mcp_calls, "MCP call");
+      else if (a.last_used) main = "Checked plan";
+      else main = "Key, not used";
+      sub = a.last_used ? "active " + ago(a.last_used) : (a.key_created_at ? "key " + day(a.key_created_at) : "");
+      return { main: main, sub: sub, idle: !a.last_used && !a.fixes_month && !a.fixes_prev_month };
+    }
+
+    /* ─── Fetch ─────────────────────────────────────────────── */
+    // The API answers from its saved copy at once; "stale" means a rebuild
+    // has started on the server, and fresh=1 (refresh button) waits for one.
+    function fetchCrm(token, fresh) {
+      return fetch(PRODUCTS[product].api + "/admin/crm?tz=" + new Date().getTimezoneOffset() + (fresh ? "&fresh=1" : ""), { headers: { Authorization: "Bearer " + token }, cache: "no-store" })
+        .then(function (r) {
+          if (r.status === 403 || r.status === 401) throw new Error("forbidden");
+          if (!r.ok) throw new Error("http " + r.status);
+          var cache = r.headers.get("x-crm-cache");
+          return r.json().then(function (data) { data._stale = cache === "stale"; return data; });
+        });
+    }
+    // After a stale copy, pick up the server's rebuild when it lands.
+    var pollT = null;
+    function pollFresh(token, tries) {
+      clearTimeout(pollT);
+      if (!tries) { state.data._stale = false; renderStats(); return; }
+      pollT = setTimeout(function () {
+        var forProduct = product;
+        fetchCrm(token).then(function (data) {
+          if (forProduct !== product || !state.data) return;
+          if (data.generated_at === state.data.generated_at) return pollFresh(token, tries - 1);
+          data._stale = false;
+          state.data = data;
+          render();
+        }).catch(function () { pollFresh(token, tries - 1); });
+      }, 5000);
+    }
+    function showGate(msg) {
+      $("app").hidden = true;
+      $("gate").hidden = false;
+      $("gate-err").hidden = !msg;
+      $("gate-err").textContent = msg || "";
+      var gh = document.querySelector(".gate-card h1");
+      if (gh) gh.textContent = product === "libraries" ? "Libraries.dev CRM" : "Transitions CRM";
+      $("gate-back").hidden = product !== "libraries";
+      $("gate-token").focus();
+    }
+    function open(token) {
+      var btn = $("gate-btn");
+      btn.disabled = true; btn.textContent = "Opening…";
+      var forProduct = product;
+      return fetchCrm(token).then(function (data) {
+        if (forProduct !== product) return;
+        store(tokenKey(), token);
+        state.data = data;
+        $("gate").hidden = true;
+        $("app").hidden = false;
+        render();
+        if (product === "transitions") loadMod();
+        if (data._stale) pollFresh(token, 12);
+      }).catch(function (e) {
+        if (forProduct !== product) return;
+        showGate(e.message === "forbidden" ? "That " + PRODUCTS[product].label + " token was not accepted." : "Could not reach the API. Try again.");
+      }).then(function () { btn.disabled = false; btn.textContent = "Open"; });
+    }
+    function refresh() {
+      var token = loadToken();
+      if (!token) return showGate();
+      var btn = $("refresh-btn");
+      btn.classList.add("is-spinning");
+      clearTimeout(pollT);
+      fetchCrm(token, true).then(function (data) { state.data = data; render(); })
+        .catch(function (e) { if (e.message === "forbidden") { store(tokenKey(), null); showGate("The saved token no longer works."); } })
+        .then(function () { btn.classList.remove("is-spinning"); });
+    }
+
+    /* ─── Render ────────────────────────────────────────────── */
+    function localDay(isoStr) {
+      if (!isoStr) return "";
+      var d = new Date(isoStr);
+      return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    }
+    // Header range: people who joined within the last N days (0 = all time).
+    function inRange(p) {
+      return !state.range || (p.created_at && Date.now() - new Date(p.created_at).getTime() <= state.range * 864e5);
+    }
+    function ranged() { return state.data.people.filter(inRange); }
+    function planCounts(list) {
+      var c = {};
+      list.forEach(function (p) { c[p.plan] = (c[p.plan] || 0) + 1; });
+      return c;
+    }
+    function visible() {
+      var q = state.q.trim().toLowerCase();
+      var rows = state.data.people.filter(function (p) {
+        if (!inRange(p)) return false;
+        if (state.day && localDay(p.created_at) !== state.day.date && localDay(p.first_paid) !== state.day.date && localDay(p.plan_since) !== state.day.date) return false;
+        if (state.filter === "paying" && !PAYING[p.plan]) return false;
+        if (state.filter === "agent" && !hasAgent(p)) return false;
+        if (state.filter === "agent-fix" && !hasAgentFix(p)) return false;
+        if (state.filter === "makers" && !isMaker(p)) return false;
+        if (state.filter === "studio" && !hasStudio(p)) return false;
+        if (state.filter !== "all" && state.filter !== "paying" && state.filter !== "agent" && state.filter !== "agent-fix" && state.filter !== "makers" && state.filter !== "studio" && p.plan !== state.filter) return false;
+        if (!q) return true;
+        return [p.name, p.email, p.company, p.country, p.plan, p.community && p.community.handle].some(function (v) { return v && String(v).toLowerCase().indexOf(q) !== -1; });
+      });
+      var key = state.sort, dir = state.dir;
+      var val = {
+        name: function (p) { return (p.name || p.email).toLowerCase(); },
+        company: function (p) { return (p.company || "~").toLowerCase(); },
+        plan: function (p) { return PLAN_ORDER[p.plan]; },
+        since: function (p) { return (PAYING_OR_COMP[p.plan] && p.plan_since) || ""; },
+        paid: function (p) { return paidTotal(p.paid); },
+        fixes: function (p) { return fixCount(p); },
+        builder_drafts: function (p) { var c = p.community; return c ? (c.drafts || 0) + (c.failed || 0) / 1e3 : -1; },
+        builder_credits: function (p) { var c = p.community; return c ? (c.credits || 0) + (c.drafts || 0) / 1e4 : -1; },
+        builder_last: function (p) { var c = p.community; return (c && c.last_at) || ""; },
+        errors: function (p) { var e = p.errors; return e ? e.count * 1e3 + e.count_7d : 0; },
+        studio: function (p) { var s = p.studio; return s ? s.requests_month * 1e3 + s.requests_prev_month : -1; },
+        studio_credits: function (p) { var s = p.studio; return s ? s.usd_month * 1e3 + s.usd_prev_month : -1; },
+        community: function (p) { var c = p.community; return c ? c.pending * 1e6 + c.live * 1e3 + c.made + c.drafts / 1e3 : -1; },
+        agent: function (p) { var a = p.agent; return a ? (a.fixes_month * 1e6 + (a.fixes_total || 0) * 1e3 + (a.last_used ? 1 : 0) + (a.key ? 0.5 : 0)) : -1; },
+        created: function (p) { return p.created_at || ""; },
+        last: function (p) { return p.last_sign_in || ""; },
+        country: function (p) { return p.country || "~"; }
+      }[key];
+      return rows.slice().sort(function (a, b) {
+        var x = val(a), y = val(b);
+        return x < y ? -dir : x > y ? dir : 0;
+      });
+    }
+    function renderStats() {
+      var d = state.data, list = ranged(), c = planCounts(list), total = list.length;
+      var paying = (c.business || 0) + (c.pro || 0) + (c.lifetime || 0) + (c.sponsor || 0);
+      var revMap = {};
+      list.forEach(function (p) { for (var k in p.paid) revMap[k] = (revMap[k] || 0) + p.paid[k]; });
+      var rev = paidText(revMap) || "$0";
+      var span = state.range ? (state.range === 1 ? "last 24 hours" : "last " + state.range + " days") : "";
+      var cells = [
+        { label: span ? "Joined, " + span : "People", value: total, sub: (c.free || 0) + " free" },
+        { label: "Paying", value: paying, sub: total ? Math.round(paying / total * 100) + "% of " + (span ? "them" : "all") : "" },
+        { label: "Business", value: c.business || 0, dot: "#a830fd" },
+        { label: "Pro", value: c.pro || 0, dot: "#3097fd" },
+        { label: "Lifetime", value: c.lifetime || 0, dot: "#26953b", sub: (c.churned || 0) + " churned" },
+        { label: span ? "Revenue from them" : "Revenue, all time", value: rev, sub: "net of refunds" }
+      ];
+      $("stats").innerHTML = cells.map(function (s) {
+        return '<div class="stat"><span class="stat-label">' + (s.dot ? '<span class="dot" style="background:' + s.dot + '"></span>' : "") + esc(s.label) +
+          '</span><span class="stat-value">' + esc(s.value) + '</span><span class="stat-sub">' + esc(s.sub || "") + "</span></div>";
+      }).join("");
+      var age = (Date.now() - new Date(d.generated_at).getTime()) / 1000;
+      $("subtitle").textContent = "Accounts and Stripe customers · updated " + (age < 60 ? "just now" : ago(d.generated_at)) +
+        (d._stale ? " · refreshing…" : "");
+    }
+    // Compact token counts: 950, 12.3k, 1.2M.
+    function tok(n) {
+      n = n || 0;
+      if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace(/\.0$/, "") + "M";
+      if (n >= 1e3) return (n / 1e3).toFixed(n >= 1e4 ? 0 : 1).replace(/\.0$/, "") + "k";
+      return String(n);
+    }
+    function num(n) { return (n || 0).toLocaleString("en-US"); }
+    // Builder allowances from the API's own settings (credits and dollars).
+    function money2(usd) { return "$" + Number(usd || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function allowanceCell(a) {
+      if (!a) return { label: "Free allowance", value: "·", sub: "" };
+      return { label: "Free allowance, per person", value: num(a.free.credits) + " credits",
+        sub: money2(a.free.usd) + " a month · Pro " + num(a.pro.credits) + " (" + money2(a.pro.usd) + ") · Business seat " + num(a.business.credits) + " (" + money2(a.business.usd) + ")" };
+    }
+    function poolCell(a) {
+      if (!a) return { label: "Free pool", value: "·", sub: "" };
+      var p = a.pool, pct = p.usd ? Math.round(p.spent_usd / p.usd * 100) : 0;
+      return { label: "Free pool this month", value: money2(p.spent_usd) + " / " + money2(p.usd),
+        html: '<div class="meter' + (pct >= 80 ? " is-warn" : "") + '"><i style="width:' + Math.min(100, pct) + '%"></i></div>',
+        sub: num(p.spent_credits) + " of " + num(p.credits) + " credits" + (p.released_usd < p.usd ? " · " + money2(p.released_usd) + " released so far" : " · all available now") };
+    }
+    // Paid allowances added up: every paying person's monthly credits
+    // (tiers included, Business per seat; lifetime packs left out).
+    function paidPoolCell(a) {
+      var p = a && a.paid_pool;
+      if (!p) return { label: "Paid allowance this month", value: "·", sub: "" };
+      var pct = p.credits ? Math.round(p.spent_credits / p.credits * 100) : 0;
+      return { label: "Paid allowance this month", value: num(p.spent_credits) + " / " + num(p.credits),
+        html: '<div class="meter' + (pct >= 80 ? " is-warn" : "") + '"><i style="width:' + Math.min(100, pct) + '%"></i></div>',
+        sub: pct + "% used · " + money2(p.spent_credits / 100) + " of " + money2(p.credits / 100) + " · " +
+          plural(p.pro, "Pro") + ", " + plural(p.business, "Business seat") + (p.other ? ", " + p.other + " other" : "") };
+    }
+    function renderBuilder() {
+      var b = state.data.builder;
+      var el = $("builder-band");
+      if (!b) { el.innerHTML = ""; return; }
+      var T = b.tiers || {}, M = b.month || {}, C = b.components || {};
+      var all = ["free", "paid", "chatgpt"].reduce(function (s, k) {
+        var v = T[k] || {}; s.drafts += v.drafts || 0; s.failed += v.failed || 0; s.credits += v.credits || 0; return s;
+      }, { drafts: 0, failed: 0, credits: 0 });
+      var monthDrafts = ["free", "paid", "chatgpt"].reduce(function (s, k) { return s + ((M[k] || {}).drafts || 0); }, 0);
+      // Per person who drafted on that tier, in credits (1 credit = $0.01 of
+      // AI); a ChatGPT plan costs no credits, so it shows tokens (input + output).
+      var perUser = function (label, k, credits) {
+        var v = T[k] || {}, m = M[k] || {};
+        return { label: label,
+          value: !v.users ? "·" : credits ? num(v.avg_credits) + " credits" : tok(v.avg_tokens) + " tokens",
+          sub: v.users
+            ? plural(v.users, "person", "people") + " · " + num(v.avg_drafts) + " drafts each" +
+              (credits ? " · " + tok(v.avg_tokens) + " tokens each" : "") +
+              (m.users ? " · this month " + (credits ? num(m.avg_credits) + " credits" : tok(m.avg_tokens)) : "")
+            : "no drafts yet" };
+      };
+      var cells = [
+        { label: "Builder drafts", value: num(all.drafts), sub: num(monthDrafts) + " this month" + (all.failed ? " · " + num(all.failed) + " failed" : "") + ((T.chatgpt || {}).drafts ? " · " + num(T.chatgpt.drafts) + " on ChatGPT plans" : "") },
+        perUser("Per free user", "free", true),
+        perUser("Per paid user", "paid", true),
+        allowanceCell(b.allowance),
+        poolCell(b.allowance),
+        paidPoolCell(b.allowance),
+        { label: "Credits used", value: num(all.credits), sub: "$" + (all.credits / 100).toFixed(2) + " of AI · free " + num((T.free || {}).credits) + " · paid " + num((T.paid || {}).credits) },
+        { label: "Components", value: num(C.made), sub: num(C.drafts) + " drafts · " + num(C.live) + " live" + (C.in_review ? " · " + num(C.in_review) + " in review" : "") }
+      ];
+      el.innerHTML = '<div class="band-label"><strong>Transitions UI Builder</strong><span>averages per person who drafted, all time</span></div>' +
+        '<div class="stats stats--agent stats--four">' + cells.map(function (c) {
+          return '<div class="stat"><span class="stat-label">' + esc(c.label) + '</span><span class="stat-value">' + esc(c.value) + "</span>" + (c.html || "") + '<span class="stat-sub">' + esc(c.sub) + "</span></div>";
+        }).join("") + "</div>";
+    }
+    function renderStudio() {
+      var el = $("studio-band");
+      var s = state.data.studio;
+      if (!s) { el.innerHTML = ""; return; }
+      var cells = [
+        { label: "Studio users", value: num(s.users_month), sub: num(s.users_prev_month) + " last month" },
+        { label: "Requests", value: num(s.requests_month), sub: num(s.requests_prev_month) + " last month" },
+        { label: "Credits this month", value: num(studioCredits(s.usd_month)), sub: num(studioCredits(s.usd_prev_month)) + " last month · $" + s.usd_month.toFixed(2) + " of AI" },
+        { label: "Per user", value: s.users_month ? num(Math.round(studioCredits(s.usd_month) / s.users_month)) + " credits" : "·", sub: s.users_month ? num(Math.round(s.requests_month / s.users_month)) + " requests each, this month" : "no use this month" },
+        { label: "Spend counter", value: "$" + s.usd_total_pool_month.toFixed(2), sub: "all Studio spend this month" }
+      ];
+      el.innerHTML = '<div class="band-label"><strong>Libraries.dev Studio agent</strong><span>monthly counters: this and last month' + (s.truncated ? " · partial" : "") + "</span></div>" +
+        '<div class="stats stats--agent">' + cells.map(function (c) {
+          return '<div class="stat"><span class="stat-label">' + esc(c.label) + '</span><span class="stat-value">' + esc(c.value) + '</span><span class="stat-sub">' + esc(c.sub) + "</span></div>";
+        }).join("") + "</div>";
+    }
+    function renderAgent() {
+      var a = state.data.agent;
+      var el = $("agent-band");
+      if (!a) { el.innerHTML = ""; return; }
+      var src = Object.keys(a.keys_by_source || {}).sort(function (x, y) { return a.keys_by_source[y] - a.keys_by_source[x]; })
+        .map(function (k) { return a.keys_by_source[k] + " " + (k === "unknown" ? "older" : k); }).join(" · ");
+      var max = Math.max.apply(null, (a.daily || []).map(function (d) { return d.fixes; }).concat([1]));
+      var bars = (a.daily || []).map(function (d, i) {
+        var h = d.fixes ? Math.max(3, Math.round(d.fixes / max * 26)) : 2;
+        return '<rect x="' + (i * 10) + '" y="' + (28 - h) + '" width="7" height="' + h + '" rx="1.5"' + (d.fixes ? ' class="has"' : "") + "><title>" +
+          esc(plural(d.fixes, "fix", "fixes") + ", " + plural(d.people, "person", "people")) + "</title></rect>";
+      }).join("");
+      var capPct = a.free_cap ? Math.min(100, Math.round(a.free_fixes_month / a.free_cap * 100)) : 0;
+      var modes = Object.keys(a.modes_month || {}).map(function (m) { return a.modes_month[m] + " " + m; }).join(" · ");
+      var cells = [
+        { label: "Agent keys", value: a.keys, sub: src || " " },
+        { label: "Active users", value: a.active_7d + " / " + a.active_30d, sub: "last 7 / 30 days" },
+        { label: "Fixes this month", value: a.fixes_month, html: '<svg class="spark" viewBox="0 0 300 28" preserveAspectRatio="none" aria-label="Fixes per day, last 30 days">' + bars + "</svg>", sub: modes || "fixes per day, 30 days" },
+        { label: "Free capacity", value: a.free_fixes_month + " / " + a.free_cap, html: '<div class="meter' + (capPct >= 80 ? " is-warn" : "") + '"><i style="width:' + capPct + '%"></i></div>', sub: capPct + "% of this month's free fixes" },
+        { label: "Hit a limit", value: a.blocked_month, sub: "quota, daily cap or revamp, this month" },
+        { label: "MCP calls", value: a.mcp_30d, sub: a.mcp_anonymous_30d + " without a key, 30 days" }
+      ];
+      el.innerHTML = '<div class="band-label"><strong>Transitions Motion Agent</strong><span>' +
+        esc(a.tracking_since ? "usage history since " + day(a.tracking_since) : "usage history starts with the next Agent run") +
+        (a.keys_pending_backfill ? " · " + a.keys_pending_backfill + " keys still indexing" : "") + "</span></div>" +
+        '<div class="stats stats--agent">' + cells.map(function (s) {
+          return '<div class="stat"><span class="stat-label">' + esc(s.label) + '</span><span class="stat-value">' + esc(s.value) + "</span>" +
+            (s.html || "") + '<span class="stat-sub">' + esc(s.sub || "") + "</span></div>";
+        }).join("") + "</div>";
+    }
+    function renderFilters() {
+      var list = ranged(), c = planCounts(list);
+      var count = {
+        all: list.length,
+        paying: (c.business || 0) + (c.pro || 0) + (c.lifetime || 0) + (c.sponsor || 0),
+        agent: list.filter(hasAgent).length,
+        "agent-fix": list.filter(hasAgentFix).length,
+        makers: list.filter(isMaker).length
+      };
+      count.studio = list.filter(hasStudio).length;
+      $("filters").innerHTML = FILTERS.filter(function (f) {
+        return product === "libraries" ? !TR_ONLY_FILTERS[f.id] : f.id !== "studio";
+      }).map(function (f) {
+        var n = f.id in count ? count[f.id] : (c[f.id] || 0);
+        return '<button type="button" role="tab" class="seg-btn' + (state.filter === f.id ? " is-active" : "") + '" data-filter="' + f.id +
+          '" aria-selected="' + (state.filter === f.id) + '">' + esc(f.label) + ' <span class="seg-count">' + n + "</span></button>";
+      }).join("");
+    }
+    function renderRows() {
+      var rows = visible();
+      document.querySelector("#people-body table").classList.toggle("is-makers", state.filter === "makers");
+      document.querySelector("#people-body table").classList.toggle("is-libraries", product === "libraries");
+      // The detail panel follows the list: a person filtered out closes it.
+      if (state.selected && !rows.some(function (p) { return p.email === state.selected; })) {
+        state.selected = null;
+        renderInspector();
+      }
+      $("empty").textContent = "No one matches.";
+      $("empty").hidden = rows.length > 0;
+      $("rows").innerHTML = rows.map(function (p) {
+        var tags = [];
+        if (!p.account) tags.push('<span class="tag">No account</span>');
+        if (p.abandoned_checkout) tags.push('<span class="tag tag--warn">Abandoned checkout</span>');
+        return '<tr data-email="' + esc(p.email) + '"' + (state.selected === p.email ? ' class="selected"' : "") + ">" +
+          '<td><div class="who"><span class="avatar">' + esc(initials(p)) + '</span><span class="who-text">' +
+            '<span class="who-name' + (p.name ? "" : " is-empty") + '">' + esc(p.name || "No name") + "</span>" +
+            '<span class="who-email">' + esc(p.email) + "</span></span></div></td>" +
+          '<td class="col-company">' + (p.company
+            ? '<div class="company"><span class="company-name">' + esc(p.company) + '</span><span class="company-src">' + esc(SRC_LABEL[p.company_source] || "") + "</span></div>"
+            : '<span class="muted">·</span>') + "</td>" +
+          '<td><div class="plan-cell"><span style="display:flex;gap:6px;align-items:center">' + planBadge(p.plan) + tags.join("") + "</span>" +
+            (p.plan_detail ? '<span class="plan-detail">' + esc(p.plan_detail) + "</span>" : "") + "</div></td>" +
+          '<td class="col-since tnum">' + (p.plan_since && PAYING_OR_COMP[p.plan]
+            ? '<div class="agent-cell"><span class="agent-main">' + esc(day(p.plan_since)) + '</span>' +
+              (FROM_LABEL[p.plan_from] ? '<span class="agent-sub">' + esc(FROM_LABEL[p.plan_from]) + "</span>" : "") + "</div>"
+            : '<span class="muted">·</span>') + "</td>" +
+          (function () {
+            var s = hasAgent(p) ? agentSummary(p.agent) : null;
+            return '<td class="col-agent">' + (s
+              ? '<div class="agent-cell"><span class="agent-main' + (s.idle ? " muted" : "") + '">' + esc(s.main) + '</span><span class="agent-sub">' + esc(s.sub) + "</span></div>"
+              : '<span class="muted">·</span>') + "</td>";
+          })() +
+          (function () {
+            var n = fixCount(p);
+            return '<td class="num tnum col-fixes"' + (n ? ' title="' + esc(plural(p.agent.fixes_month || 0, "fix", "fixes") + " this month") + '"' : "") + ">" +
+              (n ? esc(n) : '<span class="muted">·</span>') + "</td>";
+          })() +
+          (function () {
+            var c = p.community || {};
+            var tip = esc(plural(c.drafts || 0, "draft") + (c.failed ? ", " + c.failed + " failed" : "") +
+              (c.tokens_in || c.tokens_out ? ", " + tok((c.tokens_in || 0) + (c.tokens_out || 0)) + " tokens" : ""));
+            return '<td class="num tnum col-builder" title="' + tip + '">' + (c.drafts || c.failed
+                ? esc(num(c.drafts || 0)) + (c.failed ? ' <span class="muted">+' + c.failed + "</span>" : "")
+                : '<span class="muted">·</span>') + "</td>" +
+              '<td class="num tnum col-builder">' + (c.credits ? esc(num(c.credits)) : '<span class="muted">' + (c.drafts ? "0" : "·") + "</span>") + "</td>" +
+              '<td class="tnum col-builder"' + (c.last_at ? ' title="' + esc(new Date(c.last_at).toLocaleString()) + '"' : "") + ">" +
+                (c.last_at ? esc(ago(c.last_at)) : '<span class="muted">·</span>') + "</td>";
+          })() +
+          (function () {
+            var c = p.community;
+            if (!c || (!c.made && !c.drafts)) return '<td class="col-community"><span class="muted">' + (c && c.handle ? "@" + esc(c.handle) : "·") + "</span></td>";
+            var sub = [c.live ? c.live + " live" : "", c.pending ? c.pending + " in review" : "", c.drafts ? plural(c.drafts, "draft") : ""].filter(Boolean).join(" · ");
+            return '<td class="col-community"><div class="agent-cell"><span class="agent-main">' + esc((c.handle ? "@" + c.handle + " · " : "") + plural(c.made, "component")) +
+              (c.pending ? ' <span class="tag tag--warn">Review</span>' : "") + '</span><span class="agent-sub">' + esc(sub) + "</span></div></td>";
+          })() +
+          (function () {
+            var st = p.studio;
+            if (!st || !hasStudio(p)) return '<td class="col-studio"><span class="muted">·</span></td><td class="num col-studio"><span class="muted">·</span></td>';
+            return '<td class="col-studio"><div class="agent-cell"><span class="agent-main tnum">' + esc(plural(st.requests_month, "request")) +
+              '</span><span class="agent-sub">' + esc("last month " + plural(st.requests_prev_month, "request")) + "</span></div></td>" +
+              '<td class="num col-studio" title="' + esc("$" + st.usd_month.toFixed(2) + " this month, $" + st.usd_prev_month.toFixed(2) + " last month") + '"><div class="agent-cell"><span class="agent-main tnum">' + esc(num(studioCredits(st.usd_month))) +
+              '</span><span class="agent-sub">' + esc(num(studioCredits(st.usd_prev_month)) + " last month") + "</span></div></td>";
+          })() +
+          (function () {
+            var e = p.errors;
+            if (!e || !e.count) return '<td class="num tnum col-errors"><span class="muted">·</span></td>';
+            return '<td class="num tnum col-errors" title="' + esc("Last: " + errLabel(e.last_code) + ", " + ago(e.last_at) + (e.count_7d ? " · " + e.count_7d + " in 7 days" : "")) + '">' +
+              '<span class="err-count">' + esc(num(e.count)) + "</span></td>";
+          })() +
+          '<td class="num tnum">' + (paidText(p.paid) ? esc(paidText(p.paid)) : '<span class="muted">·</span>') + "</td>" +
+          '<td class="col-signup tnum">' + esc(day(p.created_at)) + "</td>" +
+          '<td class="col-last tnum">' + (p.last_sign_in ? esc(ago(p.last_sign_in)) : '<span class="muted">' + (p.account ? "Never" : "·") + "</span>") + "</td>" +
+          '<td class="col-country">' + (p.country ? esc(flag(p.country) + " " + p.country) : '<span class="muted">·</span>') + "</td>" +
+          "</tr>";
+      }).join("");
+      document.querySelectorAll("th[data-sort]").forEach(function (th) {
+        var on = th.getAttribute("data-sort") === state.sort;
+        th.classList.toggle("is-sorted", on);
+        th.querySelector(".arrow").textContent = on ? (state.dir > 0 ? "↑" : "↓") : "↓";
+      });
+    }
+    function renderInspector() {
+      var el = $("inspector");
+      var p = state.selected && state.data.people.find(function (x) { return x.email === state.selected; });
+      if (!p) { el.hidden = true; el.innerHTML = ""; return; }
+      el.hidden = false;
+      var stripeLinks = (p.stripe_customers || []).map(function (id) {
+        return '<a class="btn-accent" href="https://dashboard.stripe.com/customers/' + encodeURIComponent(id) + '" target="_blank" rel="noopener noreferrer"><span>Open in Stripe</span>' +
+          '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M6 3.5h6.5V10M12.5 3.5 4 12" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></a>';
+      });
+      var row = function (k, v) { return "<dt>" + esc(k) + "</dt><dd>" + v + "</dd>"; };
+      el.innerHTML =
+        '<div class="insp-head"><span class="avatar">' + esc(initials(p)) + "</span><div><h2>" + esc(p.name || "No name") + "</h2><p>" + esc(p.email) + "</p></div>" +
+          '<button type="button" class="btn-icon" id="insp-close" aria-label="Close"><svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="m4 4 8 8m0-8-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></button></div>' +
+        '<div class="insp-actions">' + stripeLinks.join("") +
+          '<a class="btn-sec" href="mailto:' + esc(p.email) + '">Email</a>' +
+          '<button type="button" class="btn-sec" id="insp-copy">Copy email</button></div>' +
+        '<div class="insp-divider"></div><div class="insp-section">Plan</div><dl>' +
+          row("Plan", planBadge(p.plan)) +
+          (p.plan_detail ? row("Details", esc(p.plan_detail)) : "") +
+          (p.seats ? row("Seats", esc(p.seats)) : "") +
+          row("Total paid", paidText(p.paid) ? '<span class="tnum">' + esc(paidText(p.paid)) + "</span>" : '<span class="muted">Nothing yet</span>') +
+          (p.first_paid ? row("First payment", esc(day(p.first_paid))) : "") +
+          (p.last_paid ? row("Last payment", esc(day(p.last_paid))) : "") +
+          (p.abandoned_checkout ? row("Checkout", '<span class="tag tag--warn">Started, never paid</span>') : "") +
+        '</dl><div class="insp-divider"></div><div class="insp-section">Person</div><dl>' +
+          row("Name", p.name ? esc(p.name) : '<span class="muted">Unknown</span>') +
+          row("Company", p.company ? esc(p.company) + ' <span class="muted">(' + esc(SRC_LABEL[p.company_source] || "") + ")</span>" : '<span class="muted">Unknown</span>') +
+          row("Country", p.country ? esc(flag(p.country) + " " + p.country) : '<span class="muted">Unknown</span>') +
+        (hasAgent(p) ? (function (a) {
+          return '</dl><div class="insp-divider"></div><div class="insp-section">Transitions Motion Agent</div><dl>' +
+            row("Key", a.key ? esc((a.plan === "team" ? "Business" : a.plan === "enterprise" ? "Enterprise" : "Free") + (a.active === false ? ", revoked" : "")) +
+              (a.key_created_at ? ' <span class="muted">since ' + esc(day(a.key_created_at)) + "</span>" : "") : '<span class="muted">No key</span>') +
+            (a.source ? row("Came from", esc(KEY_SOURCE[a.source] || a.source)) : "") +
+            row("This month", '<span class="tnum">' + esc(plural(a.fixes_month, "fix", "fixes")) + "</span>") +
+            row("Last month", '<span class="tnum">' + esc(plural(a.fixes_prev_month, "fix", "fixes")) + "</span>") +
+            (a.fixes_total ? row("All tracked", '<span class="tnum">' + esc(plural(a.fixes_total, "fix", "fixes")) + (a.revamps_total ? ", " + a.revamps_total + " revamp" : "") + "</span>") : "") +
+            (a.avg_score != null ? row("Avg score", '<span class="tnum">' + esc(a.avg_score) + "</span> at fix time") : "") +
+            (a.blocked_total ? row("Hit a limit", '<span class="tag tag--warn">' + esc(plural(a.blocked_total, "time")) + "</span>") : "") +
+            (a.mcp_calls ? row("MCP", esc(plural(a.mcp_calls, "call")) + (a.recipes ? ", " + esc(plural(a.recipes, "recipe")) + " fetched" : "")) : "") +
+            row("Last used", a.last_used ? esc(ago(a.last_used)) : '<span class="muted">Never</span>');
+        })(p.agent) : "") +
+        (p.studio ? (function (st) {
+          return '</dl><div class="insp-divider"></div><div class="insp-section">Studio agent</div><dl>' +
+            row("This month", '<span class="tnum">' + esc(plural(st.requests_month, "request") + ", " + num(studioCredits(st.usd_month)) + " credits ($" + st.usd_month.toFixed(2) + ")") + "</span>") +
+            row("Last month", '<span class="tnum">' + esc(plural(st.requests_prev_month, "request") + ", " + num(studioCredits(st.usd_prev_month)) + " credits ($" + st.usd_prev_month.toFixed(2) + ")") + "</span>") +
+            (st.lifetime_usd ? row("Lifetime bonus used", '<span class="tnum">' + esc(num(studioCredits(st.lifetime_usd)) + " credits ($" + st.lifetime_usd.toFixed(2) + ")") + "</span>") : "");
+        })(p.studio) : "") +
+        (p.community ? (function (c) {
+          var states = { live: "Live", review: "In review", rejected: "Not published", hidden: "Hidden", draft: "Draft" };
+          return '</dl><div class="insp-divider"></div><div class="insp-section">Community</div><dl>' +
+            row("Profile", c.handle ? '<a href="/profile.html?u=' + encodeURIComponent(c.handle) + '" target="_blank" rel="noopener">@' + esc(c.handle) + "</a>" : '<span class="muted">None</span>') +
+            row("Components", '<span class="tnum">' + esc(c.made + " made, " + c.live + " live" + (c.pending ? ", " + c.pending + " in review" : "")) + "</span>") +
+            row("Builder", c.drafts || c.failed ? '<span class="tnum">' + esc(plural(c.drafts || 0, "draft") + (c.failed ? ", " + c.failed + " failed" : "") + ", " + num(c.credits || 0) + " credits ($" + (c.ai_usd || 0).toFixed(2) + ")") + "</span>" : '<span class="muted">No drafts</span>') +
+            (c.drafts ? row("Tokens", '<span class="tnum">' + esc(tok((c.tokens_in || 0) + (c.tokens_out || 0)) + " (" + tok(c.tokens_in) + " in, " + tok(c.tokens_out) + " out)") + "</span>") : "") +
+            (c.tiers && c.drafts ? row("Drafted on", esc(Object.keys(c.tiers).map(function (k) { return c.tiers[k] + " " + ({ free: "free", paid: "paid", chatgpt: "ChatGPT plan" }[k] || k); }).join(", "))) : "") +
+            (c.last_at ? row("Last active", esc(ago(c.last_at))) : "") +
+            (c.recent && c.recent.length ? row("Recent", c.recent.map(function (r) {
+              return '<a href="/studio.html?id=' + encodeURIComponent(r.id) + (r.state === "review" ? "&review=1" : "") + '" target="_blank" rel="noopener">' + esc(r.title || "Untitled") + "</a> " +
+                '<span class="muted">' + esc(states[r.state] || r.state) + "</span>";
+            }).join("<br>")) : "");
+        })(p.community) : "") +
+        (function () {
+          // This person's errors from the last 30 days (newest first).
+          var list = ((state.data.errors && state.data.errors.list) || []).filter(function (e) { return e.email === p.email; });
+          if (!list.length) return "";
+          var shown = list.slice(0, 8);
+          return '</dl><div class="insp-divider"></div><div class="insp-section">Errors, last 30 days</div><dl>' +
+            shown.map(function (e) {
+              var kind = (ERR[e.code] || [])[1];
+              var where = (e.source === "agent" ? "Motion Agent" : "Builder") + (e.model ? " · " + String(e.model).replace(/^claude-/, "") : "");
+              return "<dt>" + esc(ago(e.at)) + "</dt><dd>" + '<span class="err-what"><span class="err-dot' + (kind === "fail" ? " fail" : kind === "info" ? " info" : "") + '"></span>' + esc(errLabel(e.code)) + "</span>" +
+                '<div class="err-where">' + esc(where + (e.detail ? " · " + e.detail : "")) + "</div></dd>";
+            }).join("") +
+            (list.length > shown.length ? "<dt></dt><dd class=\"muted\">" + esc((list.length - shown.length) + " more in the Errors tab") + "</dd>" : "");
+        })() +
+        '</dl><div class="insp-divider"></div><div class="insp-section">Activity</div><dl>' +
+          row("Joined", esc(day(p.created_at))) +
+          row("Account", p.account ? "Yes" : '<span class="muted">No, Stripe only</span>') +
+          row("Signed in", p.signed_in ? esc(ago(p.last_sign_in)) : '<span class="muted">Never</span>') +
+          ((p.stripe_customers || []).length ? row("Stripe", p.stripe_customers.map(function (id) { return '<code class="id">' + esc(id) + "</code>"; }).join(" ")) : "") +
+        "</dl>";
+      $("insp-close").addEventListener("click", function () { select(null); });
+      $("insp-copy").addEventListener("click", function (e) {
+        var b = e.currentTarget;
+        navigator.clipboard && navigator.clipboard.writeText(p.email).then(function () {
+          b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy email"; }, 1200);
+        });
+      });
+    }
+    /* ─── Daily ─────────────────────────────────────────────── */
+    var PAYING_OR_COMP = { business: 1, pro: 1, lifetime: 1, sponsor: 1, comp: 1 };
+    var FROM_LABEL = { pro: "upgraded from Pro", lifetime: "upgraded from Lifetime", member: "joined a team" };
+    var UPG_LABEL = { "pro>business": "Pro → Business", "lifetime>business": "Lifetime → Business", "lifetime>pro": "Lifetime → Pro", "pro>lifetime": "Pro → Lifetime" };
+    function upgradeChips(by) {
+      return Object.keys(by || {}).filter(function (k) { return by[k]; }).map(function (k) {
+        var to = k.split(">")[1];
+        return '<span class="plan plan--' + esc(to) + '">' + by[k] + " " + esc(UPG_LABEL[k] || k) + "</span>";
+      }).join("");
+    }
+    var PAID_ORDER = ["business", "lifetime", "pro", "sponsor"];
+    function fmtDate(ymd, withDay) {
+      var d = new Date(ymd + "T12:00:00");
+      return d.toLocaleDateString("en-US", withDay ? { weekday: "short", month: "short", day: "numeric" } : { month: "short", day: "numeric" });
+    }
+    function sumDays(days) {
+      var t = { new_people: 0, new_free: 0, new_paid: 0, renewals: 0, churned: 0, agent_keys: 0, agent_signups: 0, agent_fixes: 0, agent_blocked: 0, made: 0, published: 0,
+        ai_drafts: 0, ai_credits_free: 0, ai_credits_paid: 0, ai_tokens_free: 0, ai_tokens_paid: 0, upgrades: 0, conversions: 0, paid_by: {}, revenue: {}, upgrades_by: {} };
+      days.forEach(function (d) {
+        for (var k in t) if (typeof t[k] === "number") t[k] += d[k] || 0;
+        for (var p in d.paid_by) t.paid_by[p] = (t.paid_by[p] || 0) + d.paid_by[p];
+        for (var c in d.revenue) t.revenue[c] = (t.revenue[c] || 0) + d.revenue[c];
+        for (var u in d.upgrades_by) t.upgrades_by[u] = (t.upgrades_by[u] || 0) + d.upgrades_by[u];
+      });
+      return t;
+    }
+    function paidChips(by) {
+      return PAID_ORDER.filter(function (k) { return by[k]; }).map(function (k) {
+        return '<span class="plan plan--' + k + '">' + by[k] + " " + esc(PLAN_LABEL[k]) + "</span>";
+      }).join("");
+    }
+    function renderDaily() {
+      var days = state.data.daily || [];
+      var el = $("daily-view");
+      if (!days.length) { el.innerHTML = '<div class="empty">No daily data yet.</div>'; return; }
+      var periods = [
+        { title: "Today", date: fmtDate(days[0].date, true), t: sumDays(days.slice(0, 1)) },
+        { title: "Yesterday", date: days[1] ? fmtDate(days[1].date, true) : "", t: sumDays(days.slice(1, 2)) },
+        { title: "Last 7 days", date: days[6] ? fmtDate(days[6].date) + " to today" : "", t: sumDays(days.slice(0, 7)) },
+        { title: "Last 30 days", date: days[29] ? fmtDate(days[29].date) + " to today" : "", t: sumDays(days.slice(0, 30)) }
+      ];
+      var line = function (k, v) { return "<dt>" + esc(k) + "</dt><dd>" + v + "</dd>"; };
+      var html = '<div class="periods">' + periods.map(function (p) {
+        var t = p.t;
+        return '<div class="period"><div class="period-head"><span class="period-title">' + esc(p.title) + '</span><span class="period-date">' + esc(p.date) + "</span></div><dl>" +
+          '<dt>New people</dt><dd class="big">' + t.new_people + "</dd>" +
+          line("Free", t.new_free) +
+          line("New paying", t.new_paid ? '<span class="mini">' + paidChips(t.paid_by) + "</span>" : "0") +
+          line("Revenue", esc(paidText(t.revenue) || "$0")) +
+          line("Upgrades", t.upgrades ? '<span class="mini">' + upgradeChips(t.upgrades_by) + "</span>" : "0") +
+          line("Free to paid", t.conversions || 0) +
+          line("Renewals", t.renewals) +
+          line("Churned", t.churned) +
+          (product === "libraries" ? "" : line("Agent signups", t.agent_signups + (t.agent_keys > t.agent_signups ? ' <span class="muted">+' + (t.agent_keys - t.agent_signups) + " keys</span>" : "")) +
+          line("Agent fixes", t.agent_fixes) +
+          line("Builder drafts", num(t.ai_drafts)) +
+          line("Credits free / paid", num(t.ai_credits_free) + " / " + num(t.ai_credits_paid)) +
+          line("Components made", t.made) +
+          line("Published", t.published)) +
+          "</dl></div>";
+      }).join("") + "</div>";
+
+      // 30-day chart: new free and new paying people per day, oldest left.
+      var chartDays = days.slice(0, 30).reverse();
+      var max = Math.max.apply(null, chartDays.map(function (d) { return d.new_free + d.new_paid; }).concat([1]));
+      var W = 30 * 20, H = 100;
+      var bars = chartDays.map(function (d, i) {
+        var hf = Math.round(d.new_free / max * H), hp = Math.round(d.new_paid / max * H);
+        var x = i * 20 + 3, tip = esc(fmtDate(d.date, true) + ": " + d.new_free + " free, " + d.new_paid + " paying");
+        return '<g><title>' + tip + "</title>" +
+          (hf ? '<rect class="free" x="' + x + '" y="' + (H - hf - hp) + '" width="14" height="' + hf + '" rx="2"/>' : "") +
+          (hp ? '<rect class="paid" x="' + x + '" y="' + (H - hp) + '" width="14" height="' + hp + '" rx="2"/>' : "") +
+          (!hf && !hp ? '<rect class="free" x="' + x + '" y="' + (H - 2) + '" width="14" height="2" rx="1"/>' : "") + "</g>";
+      }).join("");
+      // Labels live outside the stretched SVG so the text keeps its shape.
+      var labels = [0, 7, 14, 21, 29].map(function (i) { return "<span>" + esc(fmtDate(chartDays[i].date)) + "</span>"; }).join("");
+      html += '<div class="day-chart"><svg viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" role="img" aria-label="New people per day, last 30 days">' + bars + "</svg>" +
+        '<div class="axis-row">' + labels + "</div>" +
+        '<div class="legend"><span><i style="background:var(--c-sec-a)"></i>New free</span><span><i class="paid-swatch" style="background:#26953b"></i>New paying</span><span>Max ' + max + " a day</span></div></div>";
+
+      // Day by day, newest first.
+      var cell = function (n, extra) { return '<td class="num tnum' + (n ? "" : " zero") + (extra ? " " + extra : "") + '">' + (n || "0") + "</td>"; };
+      html += '<div class="table-wrap"><table class="day-table"><thead><tr>' +
+        '<th>Day</th><th class="num">New</th><th class="num">Free</th><th>New paying</th><th>Upgrades</th><th class="num">Revenue</th><th class="num">Renewals</th><th class="num">Churned</th>' +
+        (product === "libraries" ? "" : '<th class="num col-agentday">Agent signups</th><th class="num col-agentday">Agent fixes</th><th class="num col-agentday">Agent active</th><th class="num">Made</th><th class="num">Published</th><th class="num">Drafts</th><th class="num" title="Builder credits used, free + paid">Credits</th>') + "</tr></thead><tbody>" +
+        days.map(function (d, i) {
+          return '<tr data-day="' + esc(d.date) + '"' + (i === 0 ? ' class="is-today"' : "") + ' title="Show who joined, paid or upgraded this day">' +
+            "<td>" + esc(i === 0 ? "Today" : i === 1 ? "Yesterday" : fmtDate(d.date, true)) + "</td>" +
+            cell(d.new_people) + cell(d.new_free) +
+            "<td>" + (d.new_paid ? '<span class="mini">' + paidChips(d.paid_by) + "</span>" : '<span class="muted">0</span>') + "</td>" +
+            "<td>" + (d.upgrades ? '<span class="mini">' + upgradeChips(d.upgrades_by) + "</span>" : '<span class="muted">0</span>') + "</td>" +
+            '<td class="num tnum' + (paidText(d.revenue) ? "" : " zero") + '">' + esc(paidText(d.revenue) || "$0") + "</td>" +
+            cell(d.renewals) + cell(d.churned) +
+            (product === "libraries" ? "" :
+            cell(d.agent_signups, "col-agentday") + cell(d.agent_fixes, "col-agentday") + cell(d.agent_active, "col-agentday") +
+            cell(d.made) + cell(d.published) + cell(d.ai_drafts) +
+            '<td class="num tnum' + (d.ai_credits_free + d.ai_credits_paid ? "" : " zero") + '" title="' + esc("free " + num(d.ai_credits_free) + " (" + tok(d.ai_tokens_free) + " tokens), paid " + num(d.ai_credits_paid) + " (" + tok(d.ai_tokens_paid) + " tokens)") + '">' +
+              num(d.ai_credits_free + d.ai_credits_paid) + "</td>") +
+            "</tr>";
+        }).join("") + "</tbody></table></div>";
+      el.innerHTML = html;
+    }
+    /* ─── Errors ────────────────────────────────────────────── */
+    // code -> [label, "limit" (a wall they hit) or "fail" (something broke)]
+    var ERR = {
+      build_failed: ["Build failed", "fail"], interrupted: ["Build interrupted", "fail"], stopped: ["Stopped by them", "info"],
+      out_of_credits: ["Out of credits", "limit"], free_capacity: ["Free pool used up", "limit"], capacity: ["Daily capacity reached", "limit"],
+      hourly_limit: ["Hourly draft limit", "limit"], draft_limit: ["Draft limit (10 private)", "limit"], agent_pro: ["Opus needs a paid plan", "limit"],
+      design_system_pro: ["Design systems need Pro", "limit"], pro_required: ["Pro skill needs Pro", "limit"],
+      review_queue_full: ["Review queue full", "limit"], publish_daily_limit: ["Publish limit for today", "limit"], account_restricted: ["Account restricted", "limit"],
+      fix_failed: ["Fix failed (AI)", "fail"], quota: ["Monthly fix quota used", "limit"], daily: ["Daily fix cap", "limit"],
+      revamp_gate: ["Revamp needs Business", "limit"], model: ["Fix failed (AI)", "fail"]
+    };
+    function errLabel(code) { return (ERR[code] || [String(code || "Error").replace(/_/g, " ")])[0]; }
+    state.errCode = null;
+    function renderErrors() {
+      var all = (state.data.errors && state.data.errors.list) || [];
+      var el = $("errors-view");
+      var counts = {};
+      all.forEach(function (e) { counts[e.code] = (counts[e.code] || 0) + 1; });
+      var codes = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+      var list = state.errCode ? all.filter(function (e) { return e.code === state.errCode; }) : all;
+      var html = '<div class="err-sum">' +
+        '<button type="button" class="err-chip' + (state.errCode ? "" : " is-on") + '" data-err="">All <b>' + num(all.length) + "</b></button>" +
+        codes.map(function (c) {
+          var kind = (ERR[c] || [])[1];
+          return '<button type="button" class="err-chip' + (state.errCode === c ? " is-on" : "") + '" data-err="' + esc(c) + '"><span class="err-dot' + (kind === "fail" ? " fail" : kind === "info" ? " info" : "") + '"></span>' +
+            esc(errLabel(c)) + " <b>" + num(counts[c]) + "</b></button>";
+        }).join("") + "</div>";
+      if (!list.length) {
+        html += '<div class="empty">No errors in the last ' + ((state.data.errors && state.data.errors.days) || 30) + " days.</div>";
+      } else {
+        html += '<div class="table-wrap"><table class="err-table"><thead><tr><th>When</th><th>Person</th><th>What</th><th>Details</th></tr></thead><tbody>' +
+          list.slice(0, 500).map(function (e) {
+            var p = e.email && state.data.people.find(function (x) { return x.email === e.email; });
+            var where = (e.source === "agent" ? "Motion Agent" : "Builder") + (e.tier ? " · " + e.tier : "") + (e.model ? " · " + e.model.replace(/^claude-/, "") : "") + (e.mode ? " · " + e.mode : "");
+            return '<tr data-email="' + esc(e.email || "") + '" title="' + esc(new Date(e.at).toLocaleString()) + '">' +
+              '<td class="when">' + esc(ago(e.at)) + "</td>" +
+              "<td>" + (e.email ? '<div class="who-text"><span class="who-name' + (p && p.name ? "" : " is-empty") + '">' + esc((p && p.name) || "No name") + '</span><span class="who-email">' + esc(e.email) + "</span></div>" : '<span class="muted">Unknown</span>') + "</td>" +
+              '<td><div class="err-what"><span class="err-dot' + ({ fail: " fail", info: " info" }[(ERR[e.code] || [])[1]] || "") + '"></span>' + esc(errLabel(e.code)) + '</div><div class="err-where">' + esc(where) + "</div></td>" +
+              '<td class="detail">' + esc(e.detail || "") + "</td></tr>";
+          }).join("") + "</tbody></table></div>" +
+          (list.length > 500 ? '<div class="empty">Showing the newest 500 of ' + num(list.length) + ".</div>" : "");
+      }
+      el.innerHTML = html;
+    }
+    /* ─── Builder usage (Transitions) ──────────────────────── */
+    // Answer kinds as the API records them: base kind, "+repair" when the
+    // agent had to fix its own output afterwards.
+    function kindLabels(obj) {
+      var base = { full: "New component", patch: "Edit", patch_fallback: "Edit, rewritten", rewrite: "Rewrite", none: "No change" };
+      var out = {};
+      Object.keys(obj || {}).forEach(function (k) {
+        var parts = k.split("+"), name = base[parts[0]] || parts[0];
+        out[k] = parts[1] === "repair" ? name + ", auto-repaired" : name;
+      });
+      return out;
+    }
+    function renderBuilderView() {
+      var el = $("builder-view");
+      var b = state.data.builder || {}, u = b.usage;
+      if (!u) { el.innerHTML = '<div class="empty">No Builder usage yet.</div>'; return; }
+      // Shares of the total; a funnel (ofFirst) compares each step with the first.
+      var bars = function (obj, labels, ofFirst) {
+        var keys = Object.keys(obj || {}).filter(function (k) { return obj[k]; });
+        if (!ofFirst) keys.sort(function (a, c) { return obj[c] - obj[a]; });
+        var total = (ofFirst ? obj[keys[0]] : keys.reduce(function (s, k) { return s + obj[k]; }, 0)) || 1;
+        return '<div class="bu-bars">' + keys.map(function (k) {
+          var pct = Math.round(obj[k] / total * 100);
+          return '<div class="bu-bar"><span class="lbl" title="' + esc(k) + '">' + esc((labels && labels[k]) || k) + '</span><span class="bu-track"><i style="width:' + pct + '%"></i></span><span class="val">' + num(obj[k]) + " · " + pct + "%</span></div>";
+        }).join("") + "</div>";
+      };
+      var kv = function (rows) { return '<dl class="bu-kv">' + rows.map(function (r) { return "<dt>" + esc(r[0]) + "</dt><dd>" + esc(r[1]) + "</dd>"; }).join("") + "</dl>"; };
+      var pct = function (a, c) { return c ? Math.round(a / c * 100) + "%" : "·"; };
+      var f = u.funnel || {}, fa = u.free_allowance_month || {}, cp = u.credits_per_draft || {};
+      var cards = [
+        { t: "Drafts", s: "last " + u.days + " days", h: '<div class="bu-big">' + num(u.drafts) + "</div>" + kv([
+            ["Finished", num(u.drafts - u.failed)], ["Failed", num(u.failed) + " (" + pct(u.failed, u.drafts) + ")"],
+            ["People", num(u.people)], ["Drafts per person", num(u.drafts_per_person)],
+            ["Came back on another day", num(u.returning) + " (" + pct(u.returning, u.people) + ")"]]) },
+        { t: "What they ask for", s: "finished drafts", h: bars(u.by_kind, kindLabels(u.by_kind)) +
+            kv([["With images or drawings", num(u.with_images) + " (" + pct(u.with_images, u.drafts) + ")"], ["Average prompt", num(u.avg_prompt_chars) + " characters"]]) },
+        { t: "Mode", s: "finished drafts", h: bars(u.by_mode, { html: "HTML, CSS, JS", react: "React", design_system: "Design system" }) },
+        { t: "Model", s: "finished drafts", h: bars(u.by_model, { "sonnet-5-5": "Sonnet 5.5", "opus-5-5": "Opus 5.5", chatgpt: "ChatGPT plan" }) },
+        { t: "Credits per draft", s: "hosted drafts", h: '<div class="bu-big">' + num(cp.median) + ' <span class="muted" style="font-size:13px;font-weight:400">median</span></div>' + kv([
+            ["Average", num(cp.avg)], ["90% of drafts under", num(cp.p90)], ["Most expensive", num(cp.max)],
+            ["Prompt cache hits", (u.cache_share || 0) + "% of input"]]) },
+        { t: "Free allowance this month", s: num(fa.allowance) + " credits each", h: bars({ "Under 25%": fa.under_25, "25 to 50%": fa.to_50, "50 to 95%": fa.to_100, "Used it all": fa.at_limit }) +
+            kv([["Hit \"out of credits\"", num((u.out_of_credits_month || {}).users) + " people, " + num((u.out_of_credits_month || {}).n) + " times"]]) },
+        { t: "Funnel", s: "all time", h: bars({ "Drafted": f.drafted, "Saved a component": f.saved, "Published (live)": f.published }, null, true) +
+            kv([["Saved after drafting", pct(f.saved, f.drafted)], ["Published after drafting", pct(f.published, f.drafted)]]) },
+        { t: "Remixes", s: "components", h: bars({ "From the library": (u.remixes || {}).library, "From the community": (u.remixes || {}).community, "Original": (u.remixes || {}).none }) }
+      ];
+      el.innerHTML = '<div class="bu-grid">' + cards.map(function (c) {
+        return '<div class="bu-card"><div class="bu-title">' + esc(c.t) + "<span>" + esc(c.s || "") + "</span></div>" + c.h + "</div>";
+      }).join("") + '</div><div class="bu-note">Usage records only. Prompt text is not shown: the privacy notice keeps it for abuse prevention and credit limits.</div>';
+    }
+    function setView(v) {
+      state.view = v;
+      document.querySelectorAll("#view-seg .seg-btn").forEach(function (b) {
+        var on = b.getAttribute("data-view") === v;
+        b.classList.toggle("is-active", on);
+        b.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      var daily = v === "daily", errs = v === "errors", bview = v === "builder", other = daily || errs || bview;
+      $("builder-view").hidden = !bview;
+      $("daily-view").hidden = !daily;
+      $("errors-view").hidden = !errs;
+      $("agent-band").hidden = other;
+      $("builder-band").hidden = other;
+      $("studio-band").hidden = other;
+      $("people-toolbar").hidden = other;
+      $("people-body").hidden = other;
+      $("export-btn").hidden = other;
+      if (daily && state.data) renderDaily();
+      if (errs && state.data) renderErrors();
+      if (bview && state.data) renderBuilderView();
+    }
+    function renderDayFilter() {
+      var el = $("day-filter");
+      if (!state.day) { el.innerHTML = ""; return; }
+      el.innerHTML = '<span class="day-chip">Joined, paid or upgraded ' + esc(fmtDate(state.day.date, true)) +
+        '<button type="button" id="day-clear" aria-label="Clear day filter"><svg viewBox="0 0 16 16" width="12" height="12" fill="none" aria-hidden="true"><path d="m4 4 8 8m0-8-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></span>';
+      $("day-clear").addEventListener("click", function () { state.day = null; renderDayFilter(); renderRows(); });
+    }
+    function render() { renderStats(); renderAgent(); renderBuilder(); renderStudio(); renderFilters(); renderDayFilter(); renderRows(); renderInspector(); if (state.view === "daily") renderDaily(); if (state.view === "errors") renderErrors(); if (state.view === "builder") renderBuilderView(); }
+    function select(email) {
+      state.selected = state.selected === email ? null : email;
+      document.querySelectorAll("#rows tr").forEach(function (tr) { tr.classList.toggle("selected", tr.getAttribute("data-email") === state.selected); });
+      renderInspector();
+    }
+
+    /* ─── CSV ───────────────────────────────────────────────── */
+    function exportCsv() {
+      var cols = ["name", "email", "company", "company_source", "plan", "plan_detail", "seats", "paid", "first_paid", "last_paid", "created_at", "last_sign_in", "country", "account", "abandoned_checkout", "stripe_customers",
+        "agent_key", "agent_plan", "agent_source", "agent_fixes", "agent_fixes_month", "agent_fixes_prev_month", "agent_fixes_total", "agent_last_used",
+        "builder_drafts", "builder_credits", "builder_tokens_in", "builder_tokens_out", "components_made", "components_live"];
+      var CM = { builder_drafts: "drafts", builder_credits: "credits", builder_tokens_in: "tokens_in", builder_tokens_out: "tokens_out", components_made: "made", components_live: "live" };
+      var AG = { agent_key: "key", agent_plan: "plan", agent_source: "source", agent_fixes_month: "fixes_month", agent_fixes_prev_month: "fixes_prev_month", agent_fixes_total: "fixes_total", agent_last_used: "last_used" };
+      var cell = function (v) { v = v == null ? "" : String(v); return /[",\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+      var lines = [cols.join(",")].concat(visible().map(function (p) {
+        return cols.map(function (c) {
+          if (c === "paid") return cell(paidText(p.paid));
+          if (c === "stripe_customers") return cell((p.stripe_customers || []).join(" "));
+          if (c === "agent_fixes") return cell(fixCount(p) || "");
+          if (AG[c]) return cell(p.agent ? p.agent[AG[c]] : "");
+          if (CM[c]) return cell(p.community ? p.community[CM[c]] : "");
+          return cell(p[c]);
+        }).join(",");
+      }));
+      var blob = new Blob([lines.join("\n")], { type: "text/csv" });
+      var a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "transitions-customers-" + new Date().toISOString().slice(0, 10) + ".csv";
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    }
+
+    /* ─── Theme + menu ──────────────────────────────────────── */
+    function themePref() { return load("tdev:theme") || "system"; }
+    function applyTheme() {
+      var pref = themePref();
+      var dark = pref === "dark" || (pref === "system" && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches);
+      if (dark) document.documentElement.setAttribute("data-theme", "dark"); else document.documentElement.removeAttribute("data-theme");
+      $("theme-value").textContent = pref[0].toUpperCase() + pref.slice(1);
+    }
+    function toggleMenu(open) {
+      var m = $("menu");
+      var on = open == null ? !m.classList.contains("is-open") : open;
+      m.classList.toggle("is-open", on);
+      $("menu-btn").setAttribute("aria-expanded", on ? "true" : "false");
+    }
+
+    /* ─── Wire ──────────────────────────────────────────────── */
+    $("gate-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var t = $("gate-token").value.trim();
+      if (t) open(t);
+    });
+    $("search").addEventListener("input", function (e) { state.q = e.target.value; renderRows(); });
+    $("range").addEventListener("change", function (e) {
+      state.range = parseInt(e.target.value, 10) || 0;
+      e.target.classList.toggle("is-set", !!state.range);
+      store("tdev:crm-range", state.range ? String(state.range) : null);
+      renderStats(); renderFilters(); renderRows();
+    });
+    (function () {
+      var r = parseInt(load("tdev:crm-range"), 10) || 0;
+      if (r) { state.range = r; $("range").value = String(r); $("range").classList.add("is-set"); }
+    })();
+    $("errors-view").addEventListener("click", function (e) {
+      var chip = e.target.closest("[data-err]");
+      if (chip) { state.errCode = chip.getAttribute("data-err") || null; renderErrors(); return; }
+      // A row opens that person in People.
+      var tr = e.target.closest("tr[data-email]");
+      var email = tr && tr.getAttribute("data-email");
+      if (!email) return;
+      state.filter = "all"; state.day = null; state.q = email; $("search").value = email;
+      setView("people");
+      renderFilters(); renderDayFilter(); renderRows();
+      if (state.selected !== email) select(email);
+    });
+    $("view-seg").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-view]");
+      if (b) setView(b.getAttribute("data-view"));
+    });
+    // A day row opens People filtered to who joined, paid or upgraded that day.
+    $("daily-view").addEventListener("click", function (e) {
+      var tr = e.target.closest("tr[data-day]");
+      if (!tr) return;
+      state.day = { date: tr.getAttribute("data-day"), field: "created_at" };
+      state.filter = "all";
+      setView("people");
+      renderFilters(); renderDayFilter(); renderRows();
+    });
+    $("filters").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-filter]");
+      if (!b) return;
+      state.filter = b.getAttribute("data-filter");
+      // Makers opens on who spent the most; other filters drop that sort.
+      if (state.filter === "makers") { state.sort = "builder_credits"; state.dir = -1; }
+      else if (/^builder_/.test(state.sort)) { state.sort = "created"; state.dir = -1; }
+      renderFilters(); renderRows();
+    });
+    document.querySelector("thead").addEventListener("click", function (e) {
+      var th = e.target.closest("th[data-sort]");
+      if (!th) return;
+      var k = th.getAttribute("data-sort");
+      if (state.sort === k) state.dir = -state.dir;
+      else { state.sort = k; state.dir = (k === "name" || k === "company" || k === "plan" || k === "country") ? 1 : -1; }
+      renderRows();
+    });
+    $("rows").addEventListener("click", function (e) {
+      var tr = e.target.closest("tr[data-email]");
+      if (tr) select(tr.getAttribute("data-email"));
+    });
+    $("refresh-btn").addEventListener("click", refresh);
+    $("export-btn").addEventListener("click", exportCsv);
+    $("menu-btn").addEventListener("click", function (e) { e.stopPropagation(); toggleMenu(); });
+    document.addEventListener("click", function (e) { if (!e.target.closest(".menu-anchor")) toggleMenu(false); });
+    $("theme-item").addEventListener("click", function () {
+      var next = { system: "light", light: "dark", dark: "system" }[themePref()];
+      store("tdev:theme", next === "system" ? null : next);
+      applyTheme();
+    });
+    $("forget-item").addEventListener("click", function () {
+      store(tokenKey(), null);
+      state.data = null; state.selected = null;
+      toggleMenu(false);
+      $("gate-token").value = "";
+      showGate();
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "/" && document.activeElement.tagName !== "INPUT" && !$("app").hidden) { e.preventDefault(); $("search").focus(); }
+      if (e.key === "Escape") { toggleMenu(false); if (state.selected) select(null); }
+    });
+    if (window.matchMedia) matchMedia("(prefers-color-scheme: dark)").addEventListener("change", applyTheme);
+
+    /* ─── Community moderation ─────────────────────────────── */
+    var MOD_FILTERS = [
+      { id: "pending", label: "In review" }, { id: "avatars", label: "Photos" }, { id: "profiles", label: "Profiles" }, { id: "reported", label: "Reported" },
+      { id: "hidden", label: "Hidden" }, { id: "appeals", label: "Appeals" }, { id: "recent", label: "Published" },
+    ];
+    var modFilter = "pending";
+    function modCall(path, body) {
+      var token = load(TOKEN_KEY);
+      return fetch(PRODUCTS.transitions.api + path, {
+        method: body ? "POST" : "GET",
+        headers: body ? { Authorization: "Bearer " + token, "content-type": "application/json" } : { Authorization: "Bearer " + token },
+        body: body ? JSON.stringify(body) : undefined,
+        cache: "no-store",
+      }).then(function (r) { return r.json(); });
+    }
+    function renderModFilters() {
+      $("mod-filters").innerHTML = MOD_FILTERS.map(function (f) {
+        return '<button type="button" role="tab" class="seg-btn' + (f.id === modFilter ? " is-active" : "") + '" data-mod="' + f.id + '" aria-selected="' + (f.id === modFilter) + '">' + f.label + "</button>";
+      }).join("");
+    }
+    function loadMod() {
+      if (!load(TOKEN_KEY)) return;
+      renderModFilters();
+      $("mod-list").innerHTML = '<div class="mod-empty">Loading…</div>';
+      if (modFilter === "avatars") { loadAvatars(); return; }
+      if (modFilter === "profiles") { loadProfiles(); return; }
+      modCall("/admin/community?filter=" + modFilter).then(function (r) {
+        var items = (r && r.items) || [];
+        if (!items.length) { $("mod-list").innerHTML = '<div class="mod-empty">Nothing here.</div>'; return; }
+        $("mod-list").innerHTML = items.map(function (c) {
+          var pending = c.review_state === "pending";
+          var flags = (c.review_flags || []).map(function (f) { return esc(f.label); }).join(" · ");
+          return '<div class="mod-row">' +
+            '<div class="mod-main"><a href="/studio.html?id=' + encodeURIComponent(c.id) + '&amp;review=1" target="_blank" rel="noopener">' + esc(c.title) + "</a>" +
+            '<span class="mod-meta">' + (c.display_name ? esc(c.display_name) + " " : "") + "@" + esc(c.handle || "?") + " · " + esc(c.email || "") + " · " + esc(c.mode) + " · " + (c.likes_count || 0) + " likes" +
+            (pending && !c.author_public ? " · first component (profile goes public)" : "") +
+            (c.bio ? " · Bio: " + esc(c.bio) : "") +
+            (c.reasons ? " · " + esc(c.reasons) : "") + (c.appeal ? " · Appeal: " + esc(c.appeal) : "") + "</span>" +
+            (flags ? '<span class="mod-meta">' + flags + "</span>" : "") + "</div>" +
+            (pending ? '<span class="mod-flag mod-flag--review">In review</span>' : "") +
+            (c.review_state === "rejected" ? '<span class="mod-flag">Rejected</span>' : "") +
+            (c.reports ? '<span class="mod-flag">' + c.reports + (c.reports === 1 ? " report" : " reports") + "</span>" : "") +
+            (c.hidden ? '<span class="mod-flag">Hidden</span>' : "") +
+            (pending
+              ? '<button type="button" class="btn-sec" data-review="' + esc(c.id) + '" data-approve="0">Reject</button>' +
+                '<button type="button" class="btn-sec" data-review="' + esc(c.id) + '" data-approve="1">Approve</button>'
+              : '<button type="button" class="btn-sec" data-hide="' + esc(c.id) + '" data-hidden="' + (c.hidden ? 1 : 0) + '">' + (c.hidden ? "Restore" : "Hide") + "</button>") +
+            (c.user_id ? '<button type="button" class="btn-sec" data-profile="' + esc(c.user_id) + '" data-act="' + (c.banned_at ? "unban" : "ban") + '">' + (c.banned_at ? "Unban maker" : "Ban maker") + "</button>" : "") +
+            "</div>";
+        }).join("");
+      }).catch(function () { $("mod-list").innerHTML = '<div class="mod-empty">Could not load community items.</div>'; });
+    }
+    $("mod-filters").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-mod]");
+      if (!b) return;
+      modFilter = b.getAttribute("data-mod");
+      loadMod();
+    });
+    // Reported, hidden (after 3 reports) and suspended profiles.
+    function loadProfiles() {
+      modCall("/admin/community/profiles").then(function (r) {
+        var items = (r && r.items) || [];
+        if (!items.length) { $("mod-list").innerHTML = '<div class="mod-empty">No reported or suspended profiles.</div>'; return; }
+        $("mod-list").innerHTML = items.map(function (p) {
+          var btn = function (act, label) { return '<button type="button" class="btn-sec" data-profile="' + esc(p.user_id) + '" data-act="' + act + '">' + label + "</button>"; };
+          return '<div class="mod-row">' + (p.avatar ? '<img class="mod-avatar" alt="" src="' + esc(p.avatar) + '">' : "") +
+            '<div class="mod-main"><a href="/profile.html?u=' + encodeURIComponent(p.handle) + '" target="_blank" rel="noopener">' +
+              esc(p.display_name || "(no name)") + " @" + esc(p.handle) + "</a>" +
+              '<span class="mod-meta">' + esc(p.email || "") + (p.x_handle ? " · x.com/" + esc(p.x_handle) : "") + (p.bio ? " · Bio: " + esc(p.bio) : "") + "</span>" +
+              (p.reasons ? '<span class="mod-meta">' + esc(p.reasons) + "</span>" : "") +
+              (p.ban_reason ? '<span class="mod-meta">Suspended: ' + esc(p.ban_reason) + "</span>" : "") + "</div>" +
+            (p.reports ? '<span class="mod-flag">' + p.reports + (p.reports === 1 ? " report" : " reports") + "</span>" : "") +
+            (p.profile_hidden ? '<span class="mod-flag">Hidden</span>' : "") +
+            (p.banned_at ? '<span class="mod-flag">Suspended</span>' : "") +
+            btn("restore", "Restore") + btn("clear", "Clear name and photo") + (p.banned_at ? btn("unban", "Unban") : btn("ban", "Ban maker")) +
+            "</div>";
+        }).join("");
+      }).catch(function () { $("mod-list").innerHTML = '<div class="mod-empty">Could not load profiles.</div>'; });
+    }
+
+    // Profile photos the Moderation API could not check.
+    function loadAvatars() {
+      modCall("/admin/avatars").then(function (r) {
+        var items = (r && r.items) || [];
+        if (!items.length) { $("mod-list").innerHTML = '<div class="mod-empty">No photos waiting.</div>'; return; }
+        $("mod-list").innerHTML = items.map(function (a) {
+          return '<div class="mod-row"><img class="mod-avatar" alt="" src="' + esc(a.src) + '">' +
+            '<div class="mod-main"><span>@' + esc(a.handle || "?") + '</span><span class="mod-meta">' + esc(a.email || "") + "</span></div>" +
+            '<button type="button" class="btn-sec" data-avatar="' + esc(a.user_id) + '" data-approve="0">Remove</button>' +
+            '<button type="button" class="btn-sec" data-avatar="' + esc(a.user_id) + '" data-approve="1">Approve</button></div>';
+        }).join("");
+      }).catch(function () { $("mod-list").innerHTML = '<div class="mod-empty">Could not load photos.</div>'; });
+    }
+    $("mod-list").addEventListener("click", function (e) {
+      var rv = e.target.closest("[data-review]");
+      if (rv) {
+        var approve = rv.getAttribute("data-approve") === "1";
+        var reason = "";
+        if (!approve) {
+          reason = window.prompt("Why? The author gets this by email and in the Studio.", "It doesn't meet the Community rules in our Terms.");
+          if (reason === null) return;
+        }
+        rv.disabled = true;
+        modCall("/admin/community/review", { id: rv.getAttribute("data-review"), approve: approve, reason: reason }).then(loadMod, loadMod);
+        return;
+      }
+      var pa = e.target.closest("[data-profile]");
+      if (pa) {
+        var act = pa.getAttribute("data-act");
+        var why = "";
+        if (act === "clear" || act === "ban") {
+          why = window.prompt(act === "ban"
+            ? "Why suspend this maker? They get this by email. Everything they published stops being public."
+            : "Why remove the name, bio, X link and photo? The owner gets this by email.",
+            act === "ban" ? "Repeated or serious breaches of the Community rules in our Terms." : "They don't meet the Community rules in our Terms.");
+          if (why === null) return;
+        }
+        pa.disabled = true;
+        modCall("/admin/community/profile", { user_id: pa.getAttribute("data-profile"), action: act, reason: why }).then(loadMod, loadMod);
+        return;
+      }
+      var av = e.target.closest("[data-avatar]");
+      if (av) {
+        av.disabled = true;
+        modCall("/admin/avatars/review", { user_id: av.getAttribute("data-avatar"), approve: av.getAttribute("data-approve") === "1" }).then(loadMod, loadMod);
+        return;
+      }
+      var b = e.target.closest("[data-hide]");
+      if (!b) return;
+      var hide = b.getAttribute("data-hidden") !== "1";
+      b.disabled = true;
+      modCall("/admin/community/hide", { id: b.getAttribute("data-hide"), hidden: hide }).then(loadMod, loadMod);
+    });
+    $("refresh-btn").addEventListener("click", loadMod);
+
+    // Product switch: same page, the other API and its token.
+    function paintProduct() {
+      document.querySelectorAll("#product-seg .seg-btn").forEach(function (b) {
+        var on = b.getAttribute("data-product") === product;
+        b.classList.toggle("is-active", on);
+        b.setAttribute("aria-selected", on ? "true" : "false");
+      });
+      $("crm-h1").textContent = product === "libraries" ? "Libraries.dev customers" : "Customers";
+      // Transitions-only tabs stay in place (hidden, not removed) so nothing shifts.
+      $("errors-tab").classList.toggle("is-off", product === "libraries");
+      $("builder-tab").classList.toggle("is-off", product === "libraries");
+      var mod = document.querySelector(".mod-panel");
+      if (mod) mod.hidden = product === "libraries";
+    }
+    function boot() {
+      paintProduct();
+      var saved = loadToken();
+      if (!saved) return showGate();
+      $("gate").hidden = true;
+      $("app").hidden = false;
+      $("empty").textContent = "Loading customers…";
+      $("empty").hidden = false;
+      $("rows").innerHTML = "";
+      open(saved);
+    }
+    function switchProduct(next) {
+      if (next === product) return;
+      product = next;
+      try { localStorage.setItem("tdev:crm-product", product); } catch (err) {}
+      clearTimeout(pollT);
+      state.data = null; state.selected = null; state.filter = "all"; state.day = null;
+      if ((state.view === "errors" || state.view === "builder") && product === "libraries") setView("people");
+      ["stats", "agent-band", "builder-band", "studio-band"].forEach(function (id) { $(id).innerHTML = ""; });
+      $("inspector").hidden = true;
+      $("subtitle").textContent = "Loading…";
+      boot();
+    }
+    $("product-seg").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-product]");
+      if (b) switchProduct(b.getAttribute("data-product"));
+    });
+    $("gate-back").addEventListener("click", function () { $("gate-token").value = ""; switchProduct("transitions"); });
+
+    // GitHub Pages lets browsers keep this page for up to 10 minutes, so a
+    // cached copy can miss the newest panels. Fetch the page fresh; if its
+    // style or script differs from what is running, reload once.
+    (function () {
+      try {
+        var styleNow = (document.querySelector("style") || {}).textContent || "";
+        var scripts = document.querySelectorAll("script:not([src])");
+        var scriptNow = (scripts[scripts.length - 1] || {}).textContent || "";
+        fetch(location.pathname + "?fresh=" + Date.now(), { cache: "no-store" }).then(function (r) { return r.ok ? r.text() : ""; }).then(function (fresh) {
+          if (!fresh || (fresh.indexOf(styleNow) !== -1 && fresh.indexOf(scriptNow) !== -1)) return;
+          var mark = "crm-reloaded:" + fresh.length;
+          try { if (sessionStorage.getItem(mark)) return; sessionStorage.setItem(mark, "1"); } catch (e) {}
+          location.replace(location.pathname + "?v=" + Date.now());
+        }).catch(function () {});
+      } catch (e) {}
+    })();
+
+    applyTheme();
+    var saved = loadToken();
+    paintProduct();
+    if (saved) {
+      // Show the shell while Stripe is read, instead of a blank page.
+      $("gate").hidden = true;
+      $("app").hidden = false;
+      $("empty").textContent = "Loading customers…";
+      $("empty").hidden = false;
+      open(saved);
+    } else showGate();
+  })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+/* The top bar's Products menu (Library, Builder, Agent, Skill), built on the
+   nav's 3-dot menu component (.tl-menu.t-dropdown). Shared by every page. */
+.nav-products { position: relative; display: inline-flex; }
+.nav-products-btn { display: inline-flex; align-items: center; gap: 2px; border: 0; background: transparent; font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.nav-products-btn svg { width: 14px; height: 14px; margin-right: -4px; opacity: 0.7; }
+.tl-menu.nav-products-menu { top: calc(100% + 8px); left: -6px; right: auto; width: 296px; padding: 6px; transform-origin: top left; }
+.nav-products-item { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; min-height: 52px; padding: 7px 10px; text-decoration: none; }
+.nav-products-name { font-size: 13px; line-height: 16px; font-weight: 500; color: var(--text); }
+.nav-products-hint { font-size: 12px; line-height: 16px; color: var(--text-muted); }
+.nav-products-item[aria-current="page"] { background: var(--chip-bg); }
+.mobile-menu-group { padding: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--text-muted); }
+.mobile-menu-link--7 { transition-delay: 240ms; }
+/* Mobile menu: the entrance staggers top to bottom (--mm-delay, set by
+   nav-products.js); the close is one quick fade with no delay, the group
+   labels included, so nothing lingers after the backdrop is gone. */
+body.menu-open .mobile-menu-list > li > .mobile-menu-link { transition-delay: var(--mm-delay, 0ms); }
+body.menu-closing .mobile-menu-link, body.menu-closing .mobile-menu-group,
+body.menu-closing .mobile-menu-cta, body.menu-closing .mobile-menu-theme {
+  /* The backdrop's curve, a touch shorter (0.2s against its 0.25s). */
+  transition: opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+  transition-delay: 0s !important;
+}
+.mobile-menu-group { opacity: 0; transition: opacity 0.2s ease; }
+body.menu-open .mobile-menu-group { opacity: 1; transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+body.menu-closing .mobile-menu-group { opacity: 0; }
+/* Mobile menu: Products expands its links (nav-products.js). */
+.mobile-menu-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; cursor: pointer; text-align: left; }
+.mobile-menu-chev { width: 18px; height: 18px; color: var(--text-muted); }
+.mobile-menu-sub { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 250ms cubic-bezier(0.22, 1, 0.36, 1); }
+.mobile-menu-products[data-open="true"] .mobile-menu-sub { grid-template-rows: 1fr; }
+.mobile-menu-sub-list { min-height: 0; overflow: hidden; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 20px;
+  opacity: 0; filter: blur(2px); transition: opacity 250ms cubic-bezier(0.22, 1, 0.36, 1), filter 250ms cubic-bezier(0.22, 1, 0.36, 1); }
+.mobile-menu-products[data-open="true"] .mobile-menu-sub-list { opacity: 1; filter: blur(0); padding-top: 20px; }
+.mobile-menu-sub-list > li { padding-bottom: 16px; }
+.mobile-menu-sub-list .mobile-menu-sublink { font-size: 17px; color: var(--text-muted); transition-delay: 0ms !important; }
+@media (prefers-reduced-motion: reduce) {
+  .mobile-menu-sub { transition: none; }
+  .mobile-menu-sub-list { filter: none; transition: opacity 150ms linear; }
+}
+/* The same top bar and footer on every page: both on the 1192px column,
+   centered on the window with a 24px gutter,
+   whatever width the page's own column runs at (the library and the
+   Community feeds go full width, the Agent page's column is 960px). Equal
+   margins center them whether or not the parent centers its children.
+   --page-w is the window without its scrollbar (nav-products.js), so a page
+   with a classic scrollbar lines up with one without. */
+@media (min-width: 901px) {
+  header.site-nav > .site-nav-inner {
+    --w: min(1192px, var(--page-w, 100vw) - 48px);
+    box-sizing: border-box; width: var(--w); max-width: none; padding-left: 0; padding-right: 0;
+    margin-left: calc((100% - var(--w)) / 2); margin-right: calc((100% - var(--w)) / 2);
+  }
+  footer.footer {
+    --w: min(1192px, var(--page-w, 100vw) - 48px);
+    box-sizing: border-box; width: var(--w) !important; max-width: none !important;
+    margin-left: calc((100% - var(--w)) / 2) !important; margin-right: calc((100% - var(--w)) / 2) !important;
+  }
+}

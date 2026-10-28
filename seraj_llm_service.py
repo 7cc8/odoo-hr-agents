@@ -41,6 +41,7 @@ from deletion_policy import (
     MODEL_LABELS,
     resolve_model_from_query,
 )
+from agent_runtime import AgentSpec, ToolOutcome, run_agent
 from fahas_service import FahasAgent, get_fahas_agent
 from katib_service import KatibAgent, get_katib_agent, KatibSecurityError, KatibExecutionError
 from odoo_agent_tools import (
@@ -99,6 +100,39 @@ def clean_math_formatting(text: str) -> str:
     # Normalize spaces
     text = re.sub(r'[ \t]{2,}', ' ', text)
     return text.strip()
+
+
+# ---- تأكيد/إلغاء العملية المعلقة ----
+# كان التأكيد مطابقة بداية الرسالة، فتأكّد «تمام» و«نعمل على ذلك لاحقاً» (تبدأ بـ«تم» و«نعم») عملية معلقة،
+# وكانت أي رسالة تحوي رمز خطة تُعدّ تأكيداً حتى لو كانت رفضاً. التأكيد الآن مطابقة تامة لما تطلبه رسالة
+# الخطة نفسها («تأكيد» أو «اعتمد») ولصيغ التأكيد الخاصة بمسارات الإضافة والتعديل.
+# حُذفت «تم» و«نعم» و«موافق»: «تم» تعني «انتهى»، و«نعم/موافق» قد تكون جواباً على سؤال آخر وقت بقاء عملية معلقة.
+CONFIRM_PHRASES = frozenset({"تأكيد", "تاكيد", "اعتمد", "تأكيد العملية", "اعتمد التعديل", "تأكيد الإضافة"})
+CANCEL_PHRASES = frozenset({"إلغاء", "الغاء", "تراجع", "لا", "cancel", "رفض"})
+_PLAN_ID_RE = re.compile(r"plan_\d+_[a-f0-9]{8}")
+_EDGE_PUNCT_RE = re.compile(r"^[\s.!?؟،,؛:;]+|[\s.!?؟،,؛:;]+$")
+
+
+def classify_pending_reply(text: str, pending_plan_id: Optional[str] = None) -> str:
+    """Classify a reply sent while an action awaits confirmation.
+
+    Returns "confirm", "cancel", "wrong_plan" (the text names a plan id that is not the pending one) or
+    "other" (not an answer to the pending action: nothing is executed or cancelled).
+    """
+    raw = text or ""
+    plan_ids = _PLAN_ID_RE.findall(raw)
+    if plan_ids and (pending_plan_id is None or any(p != pending_plan_id for p in plan_ids)):
+        return "wrong_plan"
+    rest = re.sub(r"\s+", " ", _EDGE_PUNCT_RE.sub("", _PLAN_ID_RE.sub("", raw).strip().lower()))
+    if plan_ids and rest == "":
+        return "confirm"
+    if rest in CONFIRM_PHRASES:
+        return "confirm"
+    first_word = re.split(r"[\s.!?؟،,؛:;]+", rest, maxsplit=1)[0]
+    if first_word in CANCEL_PHRASES:  # a whole first word («لا تنفذ»، «لا، ألغِ»)، لا بداية كلمة («لاحقاً»)
+        return "cancel"
+    return "other"
+
 
 
 class SerajLLMService:
@@ -257,12 +291,12 @@ class SerajLLMService:
 
         # 1. معالجة التأكيد أو الإلغاء للعملية المعلقة (Add / Edit / Archive / Delete Confirmation)
         if session.pending_action:
-            plan_id_match = re.search(r'plan_\d+_[a-f0-9]{8}', clean_query)
-            confirm_keywords = {"تاكيد", "تأكيد", "نعم", "موافق", "اعتمد", "تم", "تأكيد العملية", "اعتمد التعديل", "تأكيد الإضافة"}
-            cancel_keywords = {"إلغاء", "الغاء", "تراجع", "لا", "cancel", "رفض"}
-            norm_q = clean_query.strip().lower()
+            reply_kind = classify_pending_reply(clean_query, session.pending_action.get("plan_id"))
 
-            if any(norm_q == kw or norm_q.startswith(kw) for kw in cancel_keywords):
+            if reply_kind == "wrong_plan":
+                return "⚠️ رمز الخطة المذكور لا يطابق العملية المعلقة، ولم يُنفَّذ شيء. للتأكيد اكتب «تأكيد» أو «اعتمد»، وللتراجع «إلغاء»."
+
+            if reply_kind == "cancel":
                 session.clear_pending_action()
                 self._emit_evt(
                     operation_id=operation_id,
@@ -284,8 +318,7 @@ class SerajLLMService:
                 )
                 return "🚫 تم إلغاء العملية بناءً على طلبك، ولم يتم إجراء أي تعديل أو حذف في Odoo."
 
-            is_confirmed = bool(plan_id_match) or any(norm_q == kw or norm_q.startswith(kw) for kw in confirm_keywords)
-            if is_confirmed:
+            if reply_kind == "confirm":
                 act = session.pending_action
                 # فحص انتهاء الصلاحية
                 if act.get("expires_at") and time.time() > act["expires_at"]:
@@ -297,7 +330,7 @@ class SerajLLMService:
                     session.clear_pending_action()
                     return "⚠️ تم استهلاك رمز الاعتماد لهذه العملية مسبقاً ولا يمكن إعادة استخدامه."
 
-                plan_id = plan_id_match.group(0) if plan_id_match else act.get("plan_id")
+                plan_id = act.get("plan_id")
                 
                 # فحص خطة الاعتماد الرسمية إن وُجدت
                 if plan_id and str(plan_id).startswith("plan_"):
@@ -1073,7 +1106,9 @@ class SerajLLMService:
 
         for candidate_model in models_to_try:
             try:
-                answer = self._run_tool_calling_loop(candidate_model, messages, session, clean_query)
+                answer = self._run_tool_calling_loop(
+                    candidate_model, messages, session, clean_query, operation_id=operation_id
+                )
                 if answer and answer.strip():
                     cleaned_answer = clean_math_formatting(answer.strip())
                     # تحديث سجل الجلسة
@@ -1117,116 +1152,109 @@ class SerajLLMService:
         )
         return fallback_reply
 
+    def _agent_event_sink(self, operation_id: Optional[str]):
+        """One dashboard event per tool call made by the query loop (None when there is no operation)."""
+        if not operation_id or get_events_service is None:
+            return None
+
+        def sink(kind: str, payload: Dict[str, Any]) -> None:
+            if kind != "tool_call":
+                return
+            ok = payload.get("ok", True)
+            get_events_service().emit_event(
+                operation_id=operation_id,
+                agent="fahas",
+                from_agent="seraj",
+                to_agent="fahas",
+                event_type="odoo_query",
+                status="querying_odoo" if ok else "failed",
+                description_ar=f"فاحص ينفّذ «{payload.get('tool')}» خلال {payload.get('seconds')} ث"
+                + ("" if ok else " (فشل)"),
+                error=payload.get("error"),
+                metadata={k: payload.get(k) for k in ("turn", "tool", "args", "seconds", "result_chars", "truncated")},
+            )
+
+        return sink
+
     def _run_tool_calling_loop(
         self,
         model_name: str,
         messages: List[Dict[str, Any]],
         session: ConversationSession,
         original_user_text: str,
+        operation_id: Optional[str] = None,
     ) -> Optional[str]:
         """
         حلقة تنسيق مهام الاستعلام:
         سراج يطلب المهمة المحددة -> يفوضها لوكيل فاحص في Odoo -> فاحص يرجع النتيجة المنظمة -> سراج يشرح النتيجة للمستخدم.
-        سقف أقصى 5 دورات لمنع الحلقات غير المنتهية.
+        الآلية العامة (سقف الدورات، مهلة الأداة، قص النتائج، الأحداث) في agent_runtime.run_agent.
         """
-        current_messages = list(messages)
-        max_turns = 5
-        last_tool_error: Optional[str] = None
 
-        for _ in range(max_turns):
-            assistant_msg = self._call_llm(
-                model_name=model_name,
-                messages=current_messages,
-                tools=SERAJ_ODOO_TOOLS_SCHEMA,
-            )
-            if not assistant_msg:
+        def call_llm(msgs: List[Dict[str, Any]], tools: List[Dict[str, Any]]) -> Any:
+            reply = self._call_llm(model_name=model_name, messages=msgs, tools=tools)
+            if not reply:
                 self.last_provider_used = "fallback"
                 self.last_model_used = "rule_based"
-                return None
-
-            # التوافق مع نماذج النصوص المباشرة أو الاختبارات الوهمية (Mocks)
-            if isinstance(assistant_msg, str):
+            elif isinstance(reply, str):
+                # التوافق مع نماذج النصوص المباشرة أو الاختبارات الوهمية (Mocks)
                 self.last_provider_used = getattr(self, "last_provider_used", None) or "local"
-                return assistant_msg
+            elif isinstance(reply, dict):
+                self.last_provider_used = reply.get("_provider_used")
+                self.last_model_used = reply.get("_model_used")
+            return reply
 
-            if isinstance(assistant_msg, dict):
-                self.last_provider_used = assistant_msg.get("_provider_used")
-                self.last_model_used = assistant_msg.get("_model_used")
+        def execute_tool(fn_name: str, args: Dict[str, Any]) -> ToolOutcome:
+            # حقن سياق الجلسة إن لم يُحدد صراحة في الاستدعاء
+            if "connection_id" in args and not args["connection_id"]:
+                args["connection_id"] = session.connection_id
+            if session.company_id and "company_id" in args and args["company_id"] is None:
+                args["company_id"] = session.company_id
 
-            tool_calls = assistant_msg.get("tool_calls")
-            content = assistant_msg.get("content") or ""
+            # تفويض المهمة حصرياً إلى وكيل فاحص بأمان تام
+            try:
+                logger.debug("سراج يفوّض مهمة الاستعلام «%s» إلى وكيل فاحص مع المعاملات: %s", fn_name, args)
+                tool_result = self.fahas.execute_query_task(fn_name, args)
+                # حفظ الشركات المعلقة في الجلسة إذا استعلم النموذج عن الشركات
+                if fn_name == "list_companies" and isinstance(tool_result, list):
+                    session.pending_clarification = {
+                        "type": "select_company",
+                        "original_query": original_user_text,
+                        "companies": tool_result,
+                    }
+                return ToolOutcome(json.dumps(tool_result, ensure_ascii=False))
+            except OdooToolSecurityError as sec_err:
+                return ToolOutcome(
+                    json.dumps({"status": "security_rejected", "error": str(sec_err)}, ensure_ascii=False),
+                    error=f"رفض أمني / صلاحيات: {sec_err}",
+                )
+            except OdooToolExecutionError as exec_err:
+                return ToolOutcome(
+                    json.dumps({"status": "odoo_error", "error": str(exec_err)}, ensure_ascii=False),
+                    error=f"خطأ في الاتصال بخادم Odoo: {exec_err}",
+                )
+            except Exception as gen_err:
+                return ToolOutcome(
+                    json.dumps({"status": "error", "error": f"خطأ في الاتصال بقاعدة البيانات: {gen_err}"}, ensure_ascii=False),
+                    error=f"خطأ في الاتصال بقاعدة بيانات Odoo: {gen_err}",
+                )
 
-            # إذا لم يطلب النموذج أي أداة، فهذا هو الرد النهائي للمستخدم
-            if not tool_calls:
-                # إذا حدث خطأ اتصالي أو أمني في الأدوات ولم يذكره النموذج في رده بل قال لم نجد موظفين
-                if last_tool_error and any(phr in content for phr in ("لم يتم العثور على أي موظف", "لم نجد أي موظف", "لا يوجد موظف")):
-                    return f"⚠️ تعذر إتمام الاستعلام بسبب {last_tool_error}. يرجى مراجعة حالة الاتصال بـ Odoo والصلاحيات."
-                return content
+        def final_guard(content: str, last_tool_error: Optional[str]) -> Optional[str]:
+            # إذا حدث خطأ اتصالي أو أمني في الأدوات ولم يذكره النموذج في رده بل قال لم نجد موظفين
+            if last_tool_error and any(
+                phr in content for phr in ("لم يتم العثور على أي موظف", "لم نجد أي موظف", "لا يوجد موظف")
+            ):
+                return f"⚠️ تعذر إتمام الاستعلام بسبب {last_tool_error}. يرجى مراجعة حالة الاتصال بـ Odoo والصلاحيات."
+            return None
 
-            # إلحاق رسالة المساعد مع طلبات الأدوات
-            current_messages.append({
-                "role": "assistant",
-                "content": content,
-                "tool_calls": tool_calls,
-            })
-
-            # تنسيق وتفويض كل أداة مطلوبة إلى وكيل «فاحص»
-            for tc in tool_calls:
-                call_id = tc.get("id") or "call_1"
-                func_obj = tc.get("function") or {}
-                fn_name = func_obj.get("name", "")
-                raw_args = func_obj.get("arguments", "{}")
-
-                try:
-                    args = json.loads(raw_args) if isinstance(raw_args, str) else raw_args
-                except Exception:
-                    args = {}
-
-                # حقن سياق الجلسة إن لم يُحدد صراحة في الاستدعاء
-                if "connection_id" in args and not args["connection_id"]:
-                    args["connection_id"] = session.connection_id
-                if session.company_id and "company_id" in args and args["company_id"] is None:
-                    args["company_id"] = session.company_id
-
-                # تفويض المهمة حصرياً إلى وكيل فاحص بأمان تام
-                try:
-                    logger.debug("سراج يفوّض مهمة الاستعلام «%s» إلى وكيل فاحص مع المعاملات: %s", fn_name, args)
-                    tool_result = self.fahas.execute_query_task(fn_name, args)
-                    # حفظ الشركات المعلقة في الجلسة إذا استعلم النموذج عن الشركات
-                    if fn_name == "list_companies" and isinstance(tool_result, list):
-                        session.pending_clarification = {
-                            "type": "select_company",
-                            "original_query": original_user_text,
-                            "companies": tool_result,
-                        }
-                    result_str = json.dumps(tool_result, ensure_ascii=False)
-                except OdooToolSecurityError as sec_err:
-                    last_tool_error = f"رفض أمني / صلاحيات: {sec_err}"
-                    result_str = json.dumps(
-                        {"status": "security_rejected", "error": str(sec_err)},
-                        ensure_ascii=False,
-                    )
-                except OdooToolExecutionError as exec_err:
-                    last_tool_error = f"خطأ في الاتصال بخادم Odoo: {exec_err}"
-                    result_str = json.dumps(
-                        {"status": "odoo_error", "error": str(exec_err)},
-                        ensure_ascii=False,
-                    )
-                except Exception as gen_err:
-                    last_tool_error = f"خطأ في الاتصال بقاعدة بيانات Odoo: {gen_err}"
-                    result_str = json.dumps(
-                        {"status": "error", "error": f"خطأ في الاتصال بقاعدة البيانات: {gen_err}"},
-                        ensure_ascii=False,
-                    )
-
-                current_messages.append({
-                    "role": "tool",
-                    "tool_call_id": call_id,
-                    "name": fn_name,
-                    "content": result_str,
-                })
-
-        return None
+        run = run_agent(
+            AgentSpec(name="seraj", tools_schema=SERAJ_ODOO_TOOLS_SCHEMA, max_turns=5),
+            messages,
+            call_llm=call_llm,
+            execute_tool=execute_tool,
+            final_guard=final_guard,
+            on_event=self._agent_event_sink(operation_id),
+        )
+        return run.answer if run.answered else None
 
     def _build_system_prompt(
         self,

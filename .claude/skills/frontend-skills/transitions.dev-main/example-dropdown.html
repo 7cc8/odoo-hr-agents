@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example - Share dropdown UI</title>
+  <link rel="stylesheet" href="assets/fonts/fonts.css" />
+  <script>
+    (function seedThemeBeforePaint() {
+      // Prevent light->dark flash inside embedded iframes by setting
+      // data-theme before CSS parses. Priority:
+      // 1) explicit ?theme= param
+      // 2) parent document theme (same-origin embed)
+      // 3) OS preference fallback
+      var html = document.documentElement;
+      var params = new URLSearchParams(window.location.search);
+      var q = params.get("theme");
+      if (q === "dark" || q === "light") {
+        html.dataset.theme = q;
+        return;
+      }
+      var seeded = null;
+      if (params.get("embed") === "1") {
+        try {
+          if (window.parent && window.parent !== window) {
+            var parentTheme = window.parent.document.documentElement.dataset.theme;
+            if (parentTheme === "dark" || parentTheme === "light") seeded = parentTheme;
+          }
+        } catch (_) {}
+      }
+      if (!seeded && window.matchMedia) {
+        seeded = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+      }
+      if (seeded) html.dataset.theme = seeded;
+    })();
+  </script>
+  <style>
+    /* ──────────────────────────────────────────────────────────────
+       Design tokens — mirrors example.html (Figma light 450:649 /
+       dark 450:1101). Light is the source of truth; dark overrides.
+       ────────────────────────────────────────────────────────────── */
+    :root {
+      /* Surfaces */
+      --bg-page: #f6f6f6;
+      --bg-modal: #ffffff;
+      --bg-tab-active: rgba(94, 94, 94, 0.08);
+      --bg-ghost-hover: rgba(61, 61, 61, 0.04);
+      --bg-backdrop: rgba(0, 0, 0, 0.12);
+
+      /* Text */
+      --text-strong: #1b1b1b;
+      --text-body: #474747;
+      --text-muted: #676767;
+      --text-tab-idle: #717171;
+      --text-on-dropdown: #17181c;
+
+      /* Strokes */
+      --stroke-btn:
+        inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+        inset 0 -1px 0 0 rgba(0, 0, 0, 0.06),
+        inset 0 0 0 1px rgba(196, 196, 196, 0.1);
+
+      /* Shadows — Figma "Light Mode/Shadow 25" */
+      --shadow-modal:
+        0 0 0 1px rgba(0, 0, 0, 0.06),
+        0 2px 6px 0 rgba(0, 0, 0, 0.05),
+        0 4px 42px 0 rgba(0, 0, 0, 0.06);
+      --shadow-btn: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+
+      /* Radii */
+      --radius-menu: 18px;
+      --radius-row: 12px;
+      --radius-tab: 50px;
+      --radius-btn: 36px;
+
+      /* ── transitions.dev — universal install (from skill _root.css) ── */
+      /* Menu dropdown (05) */
+      --dropdown-open-dur: 250ms;
+      --dropdown-close-dur: 150ms;
+      --dropdown-pre-scale: 0.97;
+      --dropdown-closing-scale: 0.99;
+      --dropdown-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      /* Tabs sliding (16) */
+      --tabs-dur: 250ms;
+      --tabs-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      /* Card resize (01) — dropdown body grows/shrinks per tab */
+      --resize-dur: 300ms;
+      --resize-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      /* Texts reveal (18) — row stagger on open / tab change */
+      --reveal-dur: 320ms;
+      --reveal-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --reveal-travel: 6px;
+      --reveal-stagger: 34ms;
+      /* Page side-by-side (08) — tab content slide */
+      --page-slide-dur: 250ms;
+      --page-fade-dur: 250ms;
+      --page-slide-distance: 8px;
+      --page-blur: 3px;
+      --page-stagger: 0ms;
+      --page-exit-enabled: 1;
+      --page-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --page-fade-ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --icon-swap-dur: 200ms;
+      --icon-swap-blur: 2px;
+      --icon-swap-start-scale: 0.25;
+      --icon-swap-ease: ease-in-out;
+      /* Text states swap (04) */
+      --text-swap-dur: 150ms;
+      --text-swap-enter-delay: 0ms;
+      --text-swap-translate-y: 4px;
+      --text-swap-blur: 2px;
+      --text-swap-ease: ease-in-out;
+    }
+
+    /* Dark mode — values traced from Figma node 450:1101 */
+    html[data-theme="dark"] {
+      --bg-page: #070707;
+      --bg-modal: #181818;
+      --bg-tab-active: rgba(245, 245, 245, 0.06);
+      --bg-ghost-hover: rgba(245, 245, 245, 0.06);
+      --bg-backdrop: rgba(0, 0, 0, 0.55);
+
+      --text-strong: #f7f7f7;
+      --text-body: #f7f7f7;
+      --text-muted: #b3b3b3;
+      --text-tab-idle: #c6c6c6;
+      --text-on-dropdown: #f7f7f7;
+
+      --stroke-btn:
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+
+      --shadow-modal:
+        0 1px 3px 0 rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(0, 0, 0, 0.6),
+        0 4px 42px 0 rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+      --shadow-btn: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+    }
+
+    /* ── Base ─────────────────────────────────────────────────────── */
+    html {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      -webkit-text-size-adjust: 100%;
+      font-feature-settings: "cv11", "ss01";
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg-page);
+      color: var(--text-strong);
+      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Helvetica, Arial, sans-serif;
+      font-size: 13px;
+      line-height: 16px;
+      transition: background-color 200ms ease, color 200ms ease;
+    }
+    button {
+      font-family: inherit;
+      -webkit-font-smoothing: inherit;
+      -moz-osx-font-smoothing: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (hover: none) and (pointer: coarse) {
+      .share-btn, .dd-tab, .dd-row { -webkit-touch-callout: none; user-select: none; }
+    }
+
+    /* ── Embed mode ───────────────────────────────────────────────── */
+    html[data-embed="true"] { background: transparent; overflow: visible; }
+    body[data-embed="true"] { background: transparent; min-height: 0; width: 100%; overflow: visible; }
+    html[data-embed="true"][data-theme="dark"] { background: transparent; color-scheme: dark; }
+    body[data-embed="true"] .toolbar { display: none; }
+
+    .proto-root { display: none; }
+    body[data-embed="true"] .proto-root {
+      display: flex;
+      position: relative;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+      min-height: 100vh;
+      padding: 64px max(24px, calc((100% - 245px) / 2)) 48px;
+      box-sizing: border-box;
+      overflow: visible;
+    }
+
+    /* ── Standalone compare stage (non-embed) ─────────────────────── */
+    .compare-stage { display: none; }
+    body:not([data-embed="true"]) .compare-stage {
+      display: flex;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 64px 24px;
+      gap: 24px;
+      flex-direction: row;
+      justify-content: center;
+      align-items: stretch;
+      flex-wrap: wrap;
+      box-sizing: border-box;
+    }
+    .compare-pane {
+      flex: 1 1 360px;
+      min-width: 0;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .compare-pane-heading { display: inline-flex; align-items: center; gap: 6px; }
+    .compare-pane-badge {
+      width: 20px; height: 20px; border-radius: 20px; flex: 0 0 20px;
+      display: inline-grid; place-items: center;
+      box-shadow:
+        0 1px 1px rgba(0, 0, 0, 0.1),
+        0 1px 4px rgba(0, 0, 0, 0.08),
+        inset 0 0 0 1px rgba(0, 0, 0, 0.05),
+        inset 0 -1px 1px rgba(0, 0, 0, 0.09);
+    }
+    .compare-pane-badge--off { background: #f03434; }
+    .compare-pane-badge--on  { background: #35ba00; }
+    .compare-pane-badge svg { display: block; width: 10px; height: 10px; }
+    .compare-pane-label { font-weight: 500; font-size: 14px; line-height: 14px; color: #232323; }
+    html[data-theme="dark"] .compare-pane-label { color: #ededed; }
+    .compare-pane-iframe {
+      display: block; width: 100%; height: 460px; border: 0; border-radius: 14px;
+      background: #f6f6f6; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+    }
+    html[data-theme="dark"] .compare-pane-iframe {
+      background: #181818; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+    @media (max-width: 760px) {
+      body:not([data-embed="true"]) .compare-stage { flex-direction: column; align-items: stretch; padding: 32px 16px; }
+      .compare-pane { max-width: 100%; }
+    }
+
+    /* Always-open mode: the trigger is removed and the menu sits in
+       flow where the button was (same presentation collection.html
+       uses to show the component open in place). */
+    body[data-open-mode="always"] .share-btn { display: none; }
+    body[data-open-mode="always"] .dd-shell { position: static; }
+
+    .toolbar { position: fixed; top: 16px; right: 16px; display: flex; gap: 8px; z-index: 40; }
+    .tool-btn {
+      height: 34px; padding: 0 12px; border-radius: 10px;
+      background: var(--bg-modal); border: 1px solid rgba(0, 0, 0, 0.08);
+      color: var(--text-strong); font-weight: 500; font-size: 13px; cursor: pointer;
+      box-shadow: var(--shadow-modal);
+    }
+
+    /* ── Share button (Figma 632:3925 — Secondary/Default) ────────── */
+    /* Anchor is the full dropdown width so centering the block in the
+       embed iframe never hangs the menu off the right edge. */
+    .share-anchor {
+      position: relative;
+      overflow: visible;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 245px;
+    }
+    .share-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 36px;
+      padding: 0 12px 0 16px;
+      border: 0;
+      border-radius: var(--radius-btn);
+      background: var(--bg-modal);
+      color: var(--text-strong);
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 16px;
+      cursor: pointer;
+      box-shadow: var(--shadow-btn), var(--stroke-btn);
+      transition: background-color 130ms ease, transform 130ms ease, box-shadow 130ms ease;
+    }
+    .share-btn:hover { background: color-mix(in srgb, var(--bg-modal) 94%, #000); }
+    html[data-theme="dark"] .share-btn:hover { background: color-mix(in srgb, var(--bg-modal) 88%, #fff); }
+    .share-btn:active { transform: scale(0.97); }
+
+    /* Chevron — static; no flip on open/close. */
+    .share-btn .chev {
+      display: inline-flex;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      opacity: 0.7;
+      line-height: 0;
+    }
+    .share-btn .chev svg { display: block; }
+
+    /* ── Dropdown shell / menu (Figma 632:3816) ───────────────────── */
+    .dd-shell {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      z-index: 50;
+      overflow: visible;
+    }
+    .dropdown {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 245px;
+      box-sizing: border-box;
+      padding: 8px;
+      background: var(--bg-modal);
+      border-radius: var(--radius-menu);
+      box-shadow: var(--shadow-modal);
+      overflow: visible;
+    }
+
+    /* ── Tab row + sliding pill (16-tabs-sliding) ─────────────────── */
+    .dd-tabs { position: relative; display: inline-flex; align-items: center; gap: 4px; height: 32px; }
+    .dd-tabs-pill {
+      position: absolute; top: 0; left: 0; height: 32px; width: 0;
+      background: var(--bg-tab-active); border-radius: var(--radius-tab);
+      transform: translateX(0);
+      transition: transform var(--tabs-dur) var(--tabs-ease), width var(--tabs-dur) var(--tabs-ease);
+      will-change: transform, width; z-index: 0; pointer-events: none;
+    }
+    .dd-tab {
+      position: relative; z-index: 1; appearance: none; border: 0; background: transparent;
+      height: 32px; padding: 0 12px; border-radius: var(--radius-tab);
+      font-weight: 500; font-size: 14px; line-height: 16px; color: var(--text-tab-idle);
+      cursor: pointer; white-space: nowrap;
+      transition: color var(--tabs-dur) var(--tabs-ease);
+    }
+    .dd-tab:not([aria-selected="true"]):hover,
+    .dd-tab[aria-selected="true"] { color: var(--text-strong); }
+
+    /* ── Panels container — height tween (01) + page slide (08) ─── */
+    .dd-body.t-page-slide {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      transition: height var(--resize-dur) var(--resize-ease);
+      will-change: height;
+    }
+
+    /* Page side-by-side (08-page-side-by-side.md) */
+    .proto-root .t-page-slide .t-page[data-page-id="1"] {
+      --t-page-from-x: calc(var(--page-slide-distance) * -1);
+    }
+    .proto-root .t-page-slide .t-page[data-page-id="2"] {
+      --t-page-from-x: var(--page-slide-distance);
+    }
+    .proto-root .t-page-slide .t-page {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(calc(var(--t-page-from-x, 0px) * var(--page-exit-enabled)));
+      filter: blur(calc(var(--page-blur) * var(--page-exit-enabled)));
+      transition:
+        opacity   var(--page-fade-dur)  var(--page-fade-ease),
+        transform var(--page-slide-dur) var(--page-slide-ease),
+        filter    var(--page-slide-dur) var(--page-slide-ease);
+      will-change: opacity, transform, filter;
+    }
+    .proto-root .t-page-slide[data-page="1"] .t-page[data-page-id="1"],
+    .proto-root .t-page-slide[data-page="2"] .t-page[data-page-id="2"] {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+      filter: blur(0);
+      transition-delay: var(--page-stagger);
+    }
+
+    /* Social rows */
+    .social-row {
+      display: flex; align-items: center; gap: 6px;
+      height: 40px; padding: 0 12px; border: 0;
+      background: transparent; border-radius: var(--radius-row);
+      color: var(--text-on-dropdown); cursor: pointer; text-align: left; width: 100%;
+      font-family: inherit; font-size: 14px; line-height: 22px;
+      transition: background-color 120ms ease;
+    }
+    .social-row:hover { background: var(--bg-ghost-hover); }
+    .social-row .icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 16px; height: 16px; flex: 0 0 16px; line-height: 0; opacity: 0.85;
+    }
+    .social-row .icon svg { display: block; }
+    .social-row .label { white-space: nowrap; }
+    #copyRow { gap: 8px; }
+
+    /* Copy icon slot — fixed 16×16 grid so swap icons stay centered
+       with the row label (matches example.html .icon pattern). */
+    .copy-icon-slot {
+      position: relative;
+      display: inline-grid;
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+      line-height: 0;
+      opacity: 0.85;
+    }
+    .copy-icon-slot .t-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+    }
+    .copy-icon-slot .t-icon svg { display: block; }
+
+    /* Copy row — width-pinned text slot so "Copied" doesn't shift the icon */
+    .copy-text-slot { position: relative; display: inline-block; line-height: 22px; }
+    .copy-text-slot::before { content: 'Copy link'; display: inline-block; visibility: hidden; white-space: nowrap; }
+    .proto-root .copy-text-slot .t-text-swap { position: absolute; top: 0; left: 0; right: 0; text-align: left; white-space: nowrap; }
+
+    /* People rows */
+    .people-row {
+      display: flex; align-items: center; gap: 9px;
+      padding: 8px 6px; border: 0; background: transparent; border-radius: var(--radius-row);
+      cursor: pointer; text-align: left; width: 100%; font-family: inherit;
+      transition: background-color 120ms ease;
+    }
+    .people-row:hover { background: var(--bg-ghost-hover); }
+    .people-row .avatar {
+      width: 32px; height: 32px; border-radius: 50%; flex: 0 0 32px;
+      object-fit: cover; background: rgba(120, 120, 120, 0.16);
+    }
+    .people-row .person { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .people-row .person-name { font-weight: 500; font-size: 13px; line-height: 16px; color: var(--text-body); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .people-row .person-mail { font-weight: 400; font-size: 13px; line-height: 16px; color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── t-* snippets (from skill) ────────────────────────────────── */
+    /* Menu dropdown (05) — translateZ(0) pre-promotes the layer so the
+       box-shadow rides in with the scale animation (Safari quirk). */
+    .proto-root .t-dropdown {
+      transform-origin: top left;
+      transform: scale(var(--dropdown-pre-scale)) translateZ(0);
+      opacity: 0;
+      pointer-events: none;
+      transition:
+        transform var(--dropdown-open-dur) var(--dropdown-ease),
+        opacity   var(--dropdown-open-dur) var(--dropdown-ease);
+      will-change: transform, opacity;
+    }
+    .proto-root .t-dropdown.is-open { transform: scale(1) translateZ(0); opacity: 1; pointer-events: auto; }
+    .proto-root .t-dropdown.is-closing {
+      transform: scale(var(--dropdown-closing-scale)) translateZ(0);
+      opacity: 0; pointer-events: none;
+      transition:
+        transform var(--dropdown-close-dur) var(--dropdown-ease),
+        opacity   var(--dropdown-close-dur) var(--dropdown-ease);
+    }
+
+    /* Icon swap (09) */
+    .proto-root .t-icon-swap { position: relative; display: inline-grid; }
+    .proto-root .t-icon-swap .t-icon {
+      grid-area: 1 / 1;
+      transition:
+        opacity   var(--icon-swap-dur) var(--icon-swap-ease),
+        filter    var(--icon-swap-dur) var(--icon-swap-ease),
+        transform var(--icon-swap-dur) var(--icon-swap-ease);
+      will-change: opacity, filter, transform;
+    }
+    .proto-root .t-icon-swap[data-state="a"] .t-icon[data-icon="a"],
+    .proto-root .t-icon-swap[data-state="b"] .t-icon[data-icon="b"] { opacity: 1; filter: blur(0); transform: scale(1); }
+    .proto-root .t-icon-swap[data-state="a"] .t-icon[data-icon="b"],
+    .proto-root .t-icon-swap[data-state="b"] .t-icon[data-icon="a"] { opacity: 0; filter: blur(var(--icon-swap-blur)); transform: scale(var(--icon-swap-start-scale)); }
+
+    /* Text states swap (04) */
+    .proto-root .t-text-swap {
+      display: inline-block; transform: translateY(0); filter: blur(0); opacity: 1;
+      transition:
+        transform var(--text-swap-dur) var(--text-swap-ease),
+        filter    var(--text-swap-dur) var(--text-swap-ease),
+        opacity   var(--text-swap-dur) var(--text-swap-ease);
+      will-change: transform, filter, opacity;
+    }
+    .proto-root .t-text-swap.is-exit { transform: translateY(var(--text-swap-translate-y)); filter: blur(var(--text-swap-blur)); opacity: 0; }
+    .proto-root .t-text-swap.is-enter-start { transform: translateY(calc(var(--text-swap-translate-y) * -1)); filter: blur(var(--text-swap-blur)); opacity: 0; transition: none; }
+
+    /* prefers-reduced-motion — required by every snippet. */
+    @media (prefers-reduced-motion: reduce) {
+      .proto-root .t-dropdown, .proto-root .t-icon-swap .t-icon, .proto-root .t-text-swap, .proto-root .dd-tabs-pill, .proto-root .dd-tab, .proto-root .dd-body, .proto-root .t-page-slide .t-page {
+        transition: none !important;
+      }
+    }
+
+    /* ── "Generic AI output" mode ─────────────────────────────────── */
+    @media (prefers-reduced-motion: no-preference) {
+      /* Dropdown — 85% start scale is intentionally too small; it pops
+         instead of feeling locked to the trigger. Drive the open/close scale
+         through the recipe VARS (not a literal scale(0.85)) so the hooks stay
+         live and Refine can raise them to the skill's 0.97 / 0.99 on apply. */
+      body[data-style="generic"] .proto-root .t-dropdown {
+        --dropdown-pre-scale: 0.85;
+        --dropdown-closing-scale: 0.85;
+        transform: scale(var(--dropdown-pre-scale));
+        opacity: 0;
+        transition: transform 205ms ease, opacity 205ms ease;
+      }
+      body[data-style="generic"] .proto-root .t-dropdown.is-open { transform: scale(1); opacity: 1; }
+      body[data-style="generic"] .proto-root .t-dropdown.is-closing { transform: scale(var(--dropdown-closing-scale)); opacity: 0; }
+
+      /* Keep tabs/pill snappy in the bad example. */
+      body[data-style="generic"] .proto-root .dd-tabs-pill,
+      body[data-style="generic"] .proto-root .dd-tab {
+        transition: none;
+      }
+      /* But animate card resize when tab content changes height. */
+      body[data-style="generic"] .proto-root .dd-body {
+        transition: height 300ms ease-in-out;
+      }
+
+      /* Page transition — slide + fade only (no blur) with chunky generic
+         knobs: 30px distance, 300ms duration, plain ease. Tabs + body
+         height stay instant; only the page panels get this motion. */
+      body[data-style="generic"] .proto-root {
+        --page-slide-distance: 30px;
+        --page-slide-dur: 300ms;
+        --page-fade-dur: 300ms;
+        --page-slide-ease: ease-in-out;
+        --page-fade-ease: ease-in-out;
+        --page-blur: 0px;
+      }
+      /* No `filter: none` here: --page-blur is 0px in generic mode, so there is
+         visually no blur — but the var hook stays live, which is what lets the
+         Refine tool ADD blur on apply (it writes the var + a filter lane). */
+      body[data-style="generic"] .proto-root .t-page-slide .t-page {
+        transition:
+          opacity   var(--page-fade-dur)  var(--page-fade-ease),
+          transform var(--page-slide-dur) var(--page-slide-ease);
+      }
+
+      /* Generic copy interaction: simple fade out/fade in only. Neutralize blur
+         and scale via the recipe VARS (not `filter/transform: none`) so the vars
+         stay live and the Refine tool can raise them to the skill values. */
+      body[data-style="generic"] .proto-root .t-icon-swap {
+        --icon-swap-blur: 0px;
+        --icon-swap-start-scale: 1;
+      }
+      body[data-style="generic"] .proto-root .t-icon-swap .t-icon {
+        transition: opacity var(--icon-swap-dur) ease-in-out;
+      }
+      /* Neutralize text-swap blur + translate via the recipe VARS (not
+         filter/transform: none) so the hooks stay live and Refine can raise
+         them to the skill values on apply. */
+      body[data-style="generic"] .proto-root .t-text-swap {
+        --text-swap-blur: 0px;
+        --text-swap-translate-y: 0px;
+        transition: opacity var(--text-swap-dur) ease-in-out;
+      }
+      body[data-style="generic"] .proto-root .t-text-swap.is-enter-start {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button class="tool-btn" id="openModeToggle" type="button">Always open</button>
+    <button class="tool-btn" id="themeToggle" type="button">Dark mode</button>
+  </div>
+
+  <!-- ── Standalone compare stage (non-embed only) ────────────────── -->
+  <div class="compare-stage">
+    <div class="compare-pane">
+      <div class="compare-pane-heading">
+        <span class="compare-pane-badge compare-pane-badge--off" aria-hidden="true">
+          <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M2.25 2.25L7.75 7.75M7.75 2.25L2.25 7.75" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="compare-pane-label">Generic AI output</span>
+      </div>
+      <iframe
+        id="compareIframeOff"
+        class="compare-pane-iframe"
+        src="example-dropdown.html?embed=1&style=generic&v=20260709-15"
+        title="Share dropdown demo without Transitions.dev skill"
+        loading="lazy"
+      ></iframe>
+    </div>
+    <div class="compare-pane">
+      <div class="compare-pane-heading">
+        <span class="compare-pane-badge compare-pane-badge--on" aria-hidden="true">
+          <svg viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.55 2.27a.75.75 0 0 1 0 1.06L4.28 7.6a.75.75 0 0 1-1.06 0L1.45 5.83a.75.75 0 1 1 1.06-1.06l1.24 1.24 3.74-3.74a.75.75 0 0 1 1.06 0Z" fill="#ffffff"/>
+          </svg>
+        </span>
+        <span class="compare-pane-label">With Transitions Skill</span>
+      </div>
+      <iframe
+        id="compareIframeOn"
+        class="compare-pane-iframe"
+        src="example-dropdown.html?embed=1&v=20260709-15"
+        title="Share dropdown demo with Transitions.dev skill"
+        loading="lazy"
+      ></iframe>
+    </div>
+  </div>
+
+  <!-- ── Prototype (embed) — Share button → tabbed dropdown ───────── -->
+  <div class="proto-root">
+    <div class="share-anchor">
+      <button class="share-btn" id="shareBtn" type="button" aria-haspopup="menu" aria-expanded="false">
+        <span>Share</span>
+        <span class="chev" id="shareChev" aria-hidden="true"></span>
+      </button>
+
+      <div class="dd-shell" id="ddShell">
+        <div class="t-dropdown dropdown" id="dropdown" role="menu" aria-label="Share options">
+          <div class="dd-tabs" id="ddTabs" role="tablist" aria-label="Share destinations">
+            <span class="dd-tabs-pill" aria-hidden="true"></span>
+            <button class="dd-tab" data-tab="social" role="tab" aria-selected="true"  type="button">Social</button>
+            <button class="dd-tab" data-tab="people" role="tab" aria-selected="false" type="button">People</button>
+          </div>
+
+          <div class="dd-body t-page-slide" id="ddBody" data-page="1">
+            <!-- Social panel -->
+            <div class="t-page" data-page-id="1" data-tab="social">
+              <button class="social-row" type="button" role="menuitem">
+                <span class="icon" id="iconShareX"></span>
+                <span class="label">Share on X</span>
+              </button>
+              <button class="social-row" type="button" role="menuitem">
+                <span class="icon" id="iconChat"></span>
+                <span class="label">Share via Chat</span>
+              </button>
+              <button class="social-row" id="copyRow" type="button" role="menuitem" aria-label="Copy link">
+                <span class="copy-icon-slot t-icon-swap" id="copyIconSwap" data-state="a">
+                  <span class="t-icon" data-icon="a" id="copyIconA"></span>
+                  <span class="t-icon" data-icon="b" id="copyIconB"></span>
+                </span>
+                <span class="label copy-text-slot">
+                  <span class="t-text-swap" id="copyLinkText">Copy link</span>
+                </span>
+              </button>
+            </div>
+
+            <!-- People panel -->
+            <div class="t-page" data-page-id="2" data-tab="people" id="peoplePanel"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ── Inline icons (16×16, currentColor) ───────────────────────── */
+    function iconCopy() {
+      return '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">'
+        + '<path d="M3.33333 10C2.71208 10 2.40145 10 2.15642 9.89851C1.82972 9.76318 1.57015 9.50361 1.43483 9.17691C1.33333 8.93188 1.33333 8.62125 1.33333 8V3.46667C1.33333 2.71993 1.33333 2.34656 1.47866 2.06135C1.60649 1.81046 1.81046 1.60649 2.06135 1.47866C2.34656 1.33333 2.71993 1.33333 3.46667 1.33333H8C8.62125 1.33333 8.93188 1.33333 9.17691 1.43483C9.50361 1.57015 9.76318 1.82972 9.89851 2.15642C10 2.40145 10 2.71208 10 3.33333M8.13333 14.6667H12.5333C13.2801 14.6667 13.6534 14.6667 13.9387 14.5213C14.1895 14.3935 14.3935 14.1895 14.5213 13.9387C14.6667 13.6534 14.6667 13.2801 14.6667 12.5333V8.13333C14.6667 7.3866 14.6667 7.01323 14.5213 6.72801C14.3935 6.47713 14.1895 6.27316 13.9387 6.14532C13.6534 6 13.2801 6 12.5333 6H8.13333C7.3866 6 7.01323 6 6.72801 6.14532C6.47713 6.27316 6.27316 6.47713 6.14532 6.72801C6 7.01323 6 7.3866 6 8.13333V12.5333C6 13.2801 6 13.6534 6.14532 13.9387C6.27316 14.1895 6.47713 14.3935 6.72801 14.5213C7.01323 14.6667 7.3866 14.6667 8.13333 14.6667Z"'
+        + ' stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    }
+    function iconCheck() {
+      return '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">'
+        + '<path transform="translate(2.25 4.25)" fill-rule="evenodd" clip-rule="evenodd" '
+        + 'd="M11.2803 0.21967C11.5732 0.512563 11.5732 0.987437 11.2803 1.28033L4.28033 8.28033C3.98744 8.57322 3.51256 8.57322 3.21967 8.28033L0.21967 5.28033C-0.0732233 4.98744 -0.0732233 4.51256 0.21967 4.21967C0.512563 3.92678 0.987437 3.92678 1.28033 4.21967L3.75 6.68934L10.2197 0.21967C10.5126 -0.0732233 10.9874 -0.0732233 11.2803 0.21967Z"'
+        + ' fill="currentColor"/></svg>';
+    }
+    function iconChevron() {
+      /* Figma chevron — 7.5×4.5 at inset (4.25, 6.25) inside 16×16. */
+      return '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">'
+        + '<path transform="translate(4.25 6.25)" fill-rule="evenodd" clip-rule="evenodd" '
+        + 'd="M0.21967 0.21967C0.512563 -0.0732233 0.987437 -0.0732233 1.28033 0.21967L3.75 2.68934L6.21967 0.21967C6.51256 -0.0732233 6.98744 -0.0732233 7.28033 0.21967C7.57322 0.512563 7.57322 0.987437 7.28033 1.28033L4.28033 4.28033C3.98744 4.57322 3.51256 4.57322 3.21967 4.28033L0.21967 1.28033C-0.0732233 0.987437 -0.0732233 0.512563 0.21967 0.21967Z"'
+        + ' fill="currentColor"/></svg>';
+    }
+    function iconX() {
+      return '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">'
+        + '<path fill="currentColor" d="M9.55 2.6h1.86l-4.06 4.64L12.13 13.4H8.4L5.48 9.58 2.14 13.4H.28l4.34-4.96L.05 2.6h3.82l2.64 3.49L9.55 2.6Zm-.65 9.68h1.03L3.94 3.66H2.83l6.07 8.62Z"/></svg>';
+    }
+    function iconChat() {
+      return '<svg viewBox="0 0 16 16" width="16" height="16" fill="none" aria-hidden="true">'
+        + '<path d="M8 14.2c3.48 0 6.3-2.6 6.3-5.8S11.48 2.6 8 2.6 1.7 5.2 1.7 8.4c0 1 .28 1.94.77 2.77L1.7 14.3l3.3-.72c.9.4 1.92.62 3 .62Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>'
+        + '<path d="M5.4 7.6h5.2M5.4 9.9h3.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+    }
+
+    /* ── Avatars (same source pool as example.html) ───────────────── */
+    const avatarUrls = [
+      'https://images.unsplash.com/photo-1494790108377-be9c29b29330',
+      'https://images.unsplash.com/photo-1500648767791-00dcc994a43e',
+      'https://images.unsplash.com/photo-1438761681033-6461ffad8d80',
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d',
+      'https://images.unsplash.com/photo-1544005313-94ddf0286df2',
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d',
+      'https://images.unsplash.com/photo-1542206395-9feb3edaa68d',
+      'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
+      'https://images.unsplash.com/photo-1531123897727-8f129e1688ce',
+      'https://images.unsplash.com/photo-1517841905240-472988babdf9'
+    ];
+    function avatarUrl(base, px) {
+      return base + '?auto=format&fit=crop&w=' + (px * 2) + '&h=' + (px * 2) + '&q=80';
+    }
+    const people = [
+      { name: 'Sofia Nguyen',   mail: 'sofia@gmail.com',   avatar: avatarUrls[0] },
+      { name: 'Marcus Bailey',  mail: 'marcus@gmail.com',  avatar: avatarUrls[5] },
+      { name: 'Elena Fisher',   mail: 'elena@gmail.com',   avatar: avatarUrls[2] },
+      { name: 'Daniel Osei',    mail: 'daniel@gmail.com',  avatar: avatarUrls[7] }
+    ];
+
+    /* ── Refs ─────────────────────────────────────────────────────── */
+    const $ = (id) => document.getElementById(id);
+    const shareBtn   = $('shareBtn');
+    const shareChev  = $('shareChev');
+    const dropdown   = $('dropdown');
+    const ddTabs     = $('ddTabs');
+    const ddBody     = $('ddBody');
+    const peoplePanel = $('peoplePanel');
+    const copyRow    = $('copyRow');
+    const copyLinkText = $('copyLinkText');
+    const copyIconSwap = $('copyIconSwap');
+    const copyIconA  = $('copyIconA');
+    const copyIconB  = $('copyIconB');
+    const themeToggle = $('themeToggle');
+    const openModeToggle = $('openModeToggle');
+
+    /* ── Render static icons + people rows ────────────────────────── */
+    function renderChevron() {
+      shareChev.innerHTML = iconChevron();
+    }
+    function renderIcons() {
+      renderChevron();
+      $('iconShareX').innerHTML = iconX();
+      $('iconChat').innerHTML = iconChat();
+      copyIconA.innerHTML = iconCopy();
+      copyIconB.innerHTML = iconCheck();
+    }
+    function renderPeople() {
+      peoplePanel.innerHTML = people.map((p) =>
+        '<button class="people-row" type="button" role="menuitem">'
+        + '<img class="avatar" alt="" loading="lazy" src="' + avatarUrl(p.avatar, 32) + '">'
+        + '<span class="person">'
+        + '<span class="person-name">' + p.name + '</span>'
+        + '<span class="person-mail">' + p.mail + '</span>'
+        + '</span></button>'
+      ).join('');
+    }
+    renderIcons();
+    renderPeople();
+
+    const TAB_PAGE = { social: '1', people: '2' };
+    const panels = [...ddBody.querySelectorAll('.t-page')];
+    const tabs = [...ddTabs.querySelectorAll('.dd-tab')];
+    const pill = ddTabs.querySelector('.dd-tabs-pill');
+    const activeTab = () => tabs.find((t) => t.getAttribute('aria-selected') === 'true') || tabs[0];
+    const activePanel = () => {
+      const id = ddBody.getAttribute('data-page') || '1';
+      return panels.find((p) => p.dataset.pageId === id) || panels[0];
+    };
+    const panelForTab = (name) => panels.find((p) => p.dataset.tab === name) || panels[0];
+
+    /* ── Sliding tab pill (16-tabs-sliding) ───────────────────────── */
+    function movePill(tab, animate) {
+      if (!animate) {
+        const prev = pill.style.transition;
+        pill.style.transition = 'none';
+        pill.style.transform = 'translateX(' + tab.offsetLeft + 'px)';
+        pill.style.width = tab.offsetWidth + 'px';
+        void pill.offsetWidth;
+        pill.style.transition = prev;
+      } else {
+        pill.style.transform = 'translateX(' + tab.offsetLeft + 'px)';
+        pill.style.width = tab.offsetWidth + 'px';
+      }
+    }
+
+    /* ── Card resize between tab panels (01-card-resize) ──────────── */
+    function panelHeight(panel) {
+      if (!panel) return 0;
+      const measured = panel.offsetHeight;
+      if (measured > 0) return measured;
+      // Before the body is sized, inset-stacked pages can report 0 even
+      // though their rows are in the DOM — scrollHeight is the fallback.
+      return panel.scrollHeight;
+    }
+    function sizeBody(animate, tabName) {
+      const panel = tabName ? panelForTab(tabName) : activePanel();
+      const nextH = panelHeight(panel);
+      if (!animate) {
+        const prev = ddBody.style.transition;
+        ddBody.style.transition = 'none';
+        ddBody.style.height = nextH + 'px';
+        void ddBody.offsetHeight;
+        ddBody.style.transition = prev;
+      } else {
+        ddBody.style.height = nextH + 'px';
+      }
+    }
+
+    function selectTab(tab, animate) {
+      tabs.forEach((t) => t.setAttribute('aria-selected', t === tab ? 'true' : 'false'));
+      const name = tab.dataset.tab;
+      ddBody.setAttribute('data-page', TAB_PAGE[name] || '1');
+      movePill(tab, animate);
+      sizeBody(animate, name);
+    }
+    tabs.forEach((tab) => tab.addEventListener('click', () => {
+      if (tab.getAttribute('aria-selected') === 'true') return;
+      selectTab(tab, true);
+    }));
+
+    /* ── Dropdown open / close (05-menu-dropdown) ─────────────────── */
+    const dropdownCloseMs = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--dropdown-close-dur')
+    ) || 150;
+    let ddOpen = false;
+    let alwaysOpen = false;
+    function openDD() {
+      if (ddOpen) return;
+      ddOpen = true;
+      clearTimeout(openDD._t);
+      dropdown.classList.remove('is-closing');
+      // Snap pill + body to the active tab before the open animation.
+      movePill(activeTab(), false);
+      sizeBody(false);
+      void dropdown.offsetWidth;
+      dropdown.classList.add('is-open');
+      shareBtn.setAttribute('aria-expanded', 'true');
+    }
+    function closeDD() {
+      if (alwaysOpen) return;
+      if (!ddOpen) return;
+      ddOpen = false;
+      dropdown.classList.remove('is-open');
+      dropdown.classList.add('is-closing');
+      shareBtn.setAttribute('aria-expanded', 'false');
+      clearTimeout(openDD._t);
+      openDD._t = setTimeout(() => dropdown.classList.remove('is-closing'), dropdownCloseMs);
+    }
+    shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      ddOpen ? closeDD() : openDD();
+    });
+    document.addEventListener('click', (e) => {
+      if (!ddOpen) return;
+      if (e.target.closest('#ddShell') || e.target.closest('#shareBtn')) return;
+      closeDD();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDD(); });
+
+    /* ── Copy link — text swap (04) + icon swap (09) ──────────────── */
+    const textSwapDur = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--text-swap-dur')
+    ) || 150;
+    const textEnterDelay = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--text-swap-enter-delay')
+    ) || 0;
+    const textSwapAt = Math.max(0, textSwapDur + textEnterDelay);
+    function swapText(el, next) {
+      el.classList.add('is-exit');
+      setTimeout(() => {
+        el.textContent = next;
+        el.classList.remove('is-exit');
+        el.classList.add('is-enter-start');
+        void el.offsetHeight;
+        el.classList.remove('is-enter-start');
+      }, textSwapAt);
+    }
+    let copyResetTimer = null;
+    copyRow.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText('https://transitions.dev/example'); } catch (_) {}
+      copyIconSwap.setAttribute('data-state', 'b');
+      swapText(copyLinkText, 'Copied');
+      clearTimeout(copyResetTimer);
+      copyResetTimer = setTimeout(() => {
+        copyIconSwap.setAttribute('data-state', 'a');
+        swapText(copyLinkText, 'Copy link');
+      }, 1400);
+    });
+
+    /* ── Always-open mode ─────────────────────────────────────────── */
+    function applyOpenMode(mode) {
+      alwaysOpen = mode === 'always';
+      if (alwaysOpen) {
+        document.body.dataset.openMode = 'always';
+        // Snap open without replaying the entry animation.
+        ddOpen = true;
+        dropdown.classList.remove('is-closing');
+        dropdown.classList.add('is-open');
+        shareBtn.setAttribute('aria-expanded', 'true');
+        requestAnimationFrame(() => { movePill(activeTab(), false); sizeBody(false); });
+      } else {
+        delete document.body.dataset.openMode;
+        ddOpen = true;      // let closeDD run its exit
+        closeDD();
+      }
+      if (openModeToggle) {
+        openModeToggle.textContent = alwaysOpen ? 'With trigger' : 'Always open';
+      }
+    }
+    if (openModeToggle) {
+      openModeToggle.addEventListener('click', () => {
+        const next = alwaysOpen ? 'trigger' : 'always';
+        applyOpenMode(next);
+        ['compareIframeOff', 'compareIframeOn'].forEach((id) => {
+          const f = document.getElementById(id);
+          if (f && f.contentWindow) {
+            try { f.contentWindow.postMessage({ type: 'openMode', mode: next }, '*'); } catch (_) {}
+          }
+        });
+      });
+    }
+
+    /* ── Theme ────────────────────────────────────────────────────── */
+    function applyTheme(next) {
+      document.documentElement.dataset.theme = next;
+      themeToggle.textContent = next === 'dark' ? 'Light mode' : 'Dark mode';
+      renderIcons();
+    }
+    themeToggle.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      applyTheme(next);
+      ['compareIframeOff', 'compareIframeOn'].forEach((id) => {
+        const f = document.getElementById(id);
+        if (f && f.contentWindow) {
+          try { f.contentWindow.postMessage({ type: 'theme', theme: next }, '*'); } catch (_) {}
+        }
+      });
+    });
+
+    /* ── Embed init ───────────────────────────────────────────────── */
+    (function initEmbed() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('embed') !== '1') return;
+      document.documentElement.dataset.embed = 'true';
+      document.body.dataset.embed = 'true';
+      const style = params.get('style');
+      if (style === 'generic') document.body.dataset.style = 'generic';
+      const initialTheme = params.get('theme');
+      if (initialTheme === 'dark' || initialTheme === 'light') applyTheme(initialTheme);
+      if (params.get('open') === 'always') applyOpenMode('always');
+      window.addEventListener('message', (event) => {
+        const data = event.data;
+        if (!data) return;
+        if (data.type === 'theme' && (data.theme === 'dark' || data.theme === 'light')) applyTheme(data.theme);
+        if (data.type === 'openMode' && (data.mode === 'always' || data.mode === 'trigger')) applyOpenMode(data.mode);
+      });
+    })();
+
+    /* Prime the layout so the first open snaps pill/height correctly. */
+    requestAnimationFrame(() => { movePill(activeTab(), false); sizeBody(false); });
+    window.addEventListener('resize', () => { movePill(activeTab(), false); if (ddOpen) sizeBody(false); });
+  </script>
+</body>
+</html>

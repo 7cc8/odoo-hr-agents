@@ -1,0 +1,31 @@
+#!/bin/sh
+# Block commits that would ship readable Pro preview source.
+#
+# The Pro cards' preview CSS/JS necessarily ships to the browser, but it must
+# ship OBFUSCATED (comments stripped, pro*- identifiers renamed) — the readable
+# source lives only in the private transitions-pro repo. This guard scans the
+# STAGED content of index.html / detail.html for un-obfuscated identifiers
+# (pro<digit>-…) and refuses the commit with fix instructions.
+#
+# Enable once per clone:  git config core.hooksPath .githooks
+
+leaks=""
+for f in index.html detail.html; do
+  # Only inspect files actually staged in this commit.
+  git diff --cached --name-only | grep -qx "$f" || continue
+  if git show ":$f" | grep -qE 'pro[0-9]+-[a-z0-9-]'; then
+    leaks="$leaks $f"
+  fi
+done
+
+if [ -n "$leaks" ]; then
+  echo "✗ pre-commit: readable Pro preview source in staged:$leaks" >&2
+  echo "" >&2
+  echo "  The preview blocks must be obfuscated before they reach the public repo." >&2
+  echo "  Fix:" >&2
+  echo "    node \"../transitions-pro/scripts/obfuscate-preview.mjs\"" >&2
+  echo "    git add$leaks" >&2
+  echo "    (then re-run your commit)" >&2
+  exit 1
+fi
+exit 0

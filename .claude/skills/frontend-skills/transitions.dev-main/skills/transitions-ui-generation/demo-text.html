@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Text generation demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="./ui-generation.css" />
+<link rel="stylesheet" href="./text-image-generation.css" />
+<style>
+  /* Saans Medium, from the transitions.dev repo (falls back to Inter when the demo is served on its own) */
+  @font-face { font-family: "Saans"; src: url("../../assets/fonts/Saans-Medium.woff2") format("woff2"), url("../../assets/fonts/Saans-Medium.woff") format("woff"); font-weight: 500; font-style: normal; font-display: block; }
+  :root { --bg: #ffffff; --fg: #0f0f0f; --muted: #6c6c6c; --soft: rgba(0,0,0,.06); color-scheme: light; }
+  html[data-theme="dark"] { --bg: #0b0b0c; --fg: #f2f2f2; --muted: rgba(202,202,202,.7); --soft: rgba(255,255,255,.08); color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); font: 400 15px/24px Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  .bar { position: sticky; top: 0; z-index: 2147483647; /* above the generation overlay */ display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; padding: 14px 16px; }
+  .bar button, .bar a { height: 34px; display: inline-flex; align-items: center; padding: 0 14px; border: 0; border-radius: 999px; background: var(--soft); color: var(--fg); font: 500 14px/1 Inter, sans-serif; text-decoration: none; cursor: pointer;
+    transition: transform 150ms cubic-bezier(.22, 1, .36, 1); }
+  .bar button:active, .bar a:active { transform: scale(.97); }
+  .bar button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+
+  .stage { flex: 1; display: grid; place-items: center; padding: 48px 24px 120px; }
+  /* the Portfolio frame "Generative skill": Saans Medium 54.081 / 42.324, #0f0f0f on white */
+  .display { margin: 0; font: 500 54.081px/42.324px "Saans", Inter, sans-serif; color: var(--fg); text-align: center; }
+  @media (max-width: 480px) { .display { font-size: 40px; line-height: 32px; } }
+</style>
+<script>if (matchMedia("(prefers-color-scheme: dark)").matches) document.documentElement.dataset.theme = "dark";</script>
+</head>
+<body>
+  <div class="bar" role="toolbar" aria-label="Demo controls">
+    <button data-mode="trace" aria-pressed="true">Trace</button>
+    <button data-mode="trace-texts" aria-pressed="false">Trace + generation texts</button>
+    <button id="replay">Replay</button>
+    <a href="./demo-editorial.html">Text and images</a>
+  </div>
+
+  <main class="stage">
+    <h1 class="display" id="copy">Generative skill</h1>
+  </main>
+
+<script type="module">
+  import { generate } from "./ui-generation.js"; // the variant (text, small-text, image, auto) comes from the panel
+  import { settingsPanel } from "./demo-panel.js";
+  const copy = document.getElementById("copy");
+  let mode = "trace";
+  copy.__tTigOpacity = ""; copy.style.opacity = 0; // hidden until it plays; restored to visible after
+  // this demo's defaults: a quick, quiet build with only the flying dots around the type, letters 90ms apart on a gentle in-out curve
+  const settings = settingsPanel(() => play(), {
+    store: "tig-demo-text-settings", only: { variant: ["text", "small-text"] },
+    defaults: { variant: "text" },
+  });
+  const play = async () => { await document.fonts.ready; generate(copy, { ...settings.options(), mode, done: "Generative skill ready" }); };
+  document.querySelectorAll("[data-mode]").forEach((b) => b.addEventListener("click", () => {
+    mode = b.dataset.mode;
+    document.querySelectorAll("[data-mode]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    play();
+  }));
+  document.getElementById("replay").addEventListener("click", play);
+  play();
+</script>
+</body>
+</html>
