@@ -36,6 +36,9 @@ SAFE_WRITE_FIELDS = frozenset({
     # hr.job safe fields
     "job_title", "expected_employees", "no_of_employee", "description",
     
+    # hr.applicant safe fields
+    "partner_name", "email_from", "partner_phone", "partner_mobile", "salary_expected", "stage_id", "priority",
+
     # Common safe fields
     "note", "description", "sequence", "color",
 })
@@ -109,14 +112,43 @@ class OdooWriteGateway:
     def create_employee(self, values: Dict[str, Any], context: Optional[Dict[str, Any]] = None) -> int:
         if not isinstance(values, dict) or not values:
             raise WriteGatewayError("create_employee requires a single non-empty dict.")
+        return self.create_record(EMPLOYEE_MODEL, values, context=context, allow_list=False)
+
+    def create_record(
+        self,
+        model: str,
+        values: Dict[str, Any],
+        context: Optional[Dict[str, Any]] = None,
+        allow_list: bool = True,
+    ) -> int:
+        if model not in ALLOWED_WRITE_MODELS:
+            raise WriteGatewayError(f"Model not permitted by write gateway: {model}")
+        if not isinstance(values, dict) or not values:
+            raise WriteGatewayError("create_record requires a non-empty values dict.")
+        
+        # P5-S11: Validate fields against whitelist
+        unsafe_fields = set(values.keys()) - SAFE_WRITE_FIELDS
+        if unsafe_fields:
+            sensitive_found = unsafe_fields & SENSITIVE_FIELDS
+            if sensitive_found:
+                raise WriteGatewayError(
+                    f"P5-S11: Cannot write sensitive fields without approval: {sorted(sensitive_found)}"
+                )
+            raise WriteGatewayError(
+                f"P5-S11: Fields not in safe whitelist: {sorted(unsafe_fields)}. "
+                f"Add to SAFE_WRITE_FIELDS if safe."
+            )
+
         kwargs: Dict[str, Any] = {}
         if context is not None:
             if not isinstance(context, dict):
                 raise WriteGatewayError("context must be a dict when provided.")
             kwargs["context"] = context
-        created = self._call("create", [values], kwargs)
+        created = self._call("create", [values], kwargs, model=model)
         if isinstance(created, list):
-            raise WriteGatewayError("Gateway received a list result; single-record create expected.")
+            if not allow_list:
+                raise WriteGatewayError("Gateway received a list result; single-record create expected.")
+            return created[0]
         return created
 
     def read_employee(

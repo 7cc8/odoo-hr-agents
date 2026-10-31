@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم نظام الأوركسترا للذكاء الاصطناعي الوكيل | Agentic AI Studio</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cairo & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: {
+                            850: '#151e2e',
+                            900: '#0f172a',
+                            950: '#020617',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #060b14;
+            color: #e2e8f0;
+        }
+        /* شريط تمرير مخصص */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        /* تأثير النبض للوكيل النشط */
+        @keyframes pulse-ring {
+            0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(56, 189, 248, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+        }
+        .agent-active {
+            animation: pulse-ring 1.8s infinite;
+            border-color: #38bdf8 !important;
+            background: linear-gradient(145deg, rgba(14, 165, 233, 0.15), rgba(15, 23, 42, 0.9)) !important;
+        }
+        .maestro-active {
+            animation: pulse-ring 1.8s infinite;
+            border-color: #f59e0b !important;
+            background: linear-gradient(145deg, rgba(245, 158, 11, 0.15), rgba(15, 23, 42, 0.9)) !important;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-sky-500 selection:text-white">
+
+    <!-- الشريط العلوي (Header) -->
+    <header class="glass-panel sticky top-0 z-30 border-b border-slate-800 px-4 py-3">
+        <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-4">
+            <!-- الشعار والعنوان -->
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-sky-500 via-indigo-600 to-purple-700 flex items-center justify-center shadow-lg shadow-sky-500/20">
+                    <i class="fa-solid fa-network-wired text-white text-xl"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-lg md:text-xl font-bold bg-gradient-to-l from-white via-sky-200 to-sky-400 bg-clip-text text-transparent">
+                            أوركسترا الوكلاء المستقلة (Vanilla Agentic AI)
+                        </h1>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold">
+                            No-Framework
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">نظام هجين (Local Ollama + Cloud API) مع تحكم كامل بـ Loop & Harness</p>
+                </div>
+            </div>
+
+            <!-- مؤشرات الحالة السريعة وأزرار السيناريو -->
+            <div class="flex flex-wrap items-center gap-3">
+                <!-- شارة النموذج النشط -->
+                <div id="activeModelBadge" class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-slate-400">العقل النشط:</span>
+                    <span id="badgeModelName" class="font-mono font-bold text-sky-400">Ollama / qwen3.5:9b</span>
+                </div>
+
+                <!-- عداد الحلقات -->
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs">
+                    <i class="fa-solid fa-rotate text-amber-400" id="loopIcon"></i>
+                    <span class="text-slate-400">الحلقة (Loop):</span>
+                    <span id="loopCounterDisplay" class="font-mono font-bold text-white">0 / 5</span>
+                </div>
+
+                <!-- أزرار تشغيل المحاكاة -->
+                <div class="flex items-center gap-2">
+                    <button onclick="openMarketModal()" class="px-3 py-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 text-purple-300 border border-purple-500/40 text-xs font-semibold transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-sack-dollar"></i>
+                        <span>تقدير الأسعار وحاسبة العقود</span>
+                    </button>
+                    <button id="runSimBtn" onclick="startOrchestraSimulation()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs md:text-sm font-bold shadow-lg shadow-sky-500/25 transition flex items-center gap-2">
+                        <i class="fa-solid fa-play"></i>
+                        <span>تشغيل مهمة تجريبية</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- شريط الطبقات الهندسية الأربع (The 4 Core Engineering Pillars) -->
+    <div class="max-w-[1600px] w-full mx-auto px-4 pt-3">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5">
+            <div onclick="scrollToSection('promptEngineeringBox')" class="cursor-pointer p-2.5 rounded-xl bg-sky-950/40 border border-sky-500/40 hover:border-sky-400 transition flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-mono font-bold text-xs shrink-0">01</div>
+                <div>
+                    <div class="text-xs font-bold text-white">Prompt Engineering</div>
+                    <div class="text-[10px] text-sky-300">هندسة الأوامر والـ System Prompt</div>
+                </div>
+            </div>
+            <div onclick="scrollToSection('contextEngineeringBox')" class="cursor-pointer p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/40 hover:border-emerald-400 transition flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-mono font-bold text-xs shrink-0">02</div>
+                <div>
+                    <div class="text-xs font-bold text-white">Context Engineering</div>
+                    <div class="text-[10px] text-emerald-300">هندسة السياق وحقن ملفات RAG</div>
+                </div>
+            </div>
+            <div onclick="scrollToSection('loopEngineeringBox')" class="cursor-pointer p-2.5 rounded-xl bg-amber-950/40 border border-amber-500/40 hover:border-amber-400 transition flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-mono font-bold text-xs shrink-0">03</div>
+                <div>
+                    <div class="text-xs font-bold text-white">Loop Engineering</div>
+                    <div class="text-[10px] text-amber-300">هندسة الحلقات والتصحيح الذاتي</div>
+                </div>
+            </div>
+            <div onclick="scrollToSection('harnessEngineeringBox')" class="cursor-pointer p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/40 hover:border-rose-400 transition flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center font-mono font-bold text-xs shrink-0">04</div>
+                <div>
+                    <div class="text-xs font-bold text-white">Harness Engineering</div>
+                    <div class="text-[10px] text-rose-300">هندسة بيئة التحكم والأمان</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="flex-1 max-w-[1600px] w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+        <!-- العمود الأيمن: الإعدادات، العقل الموحد، والـ Harness (3 أعمدة) -->
+        <aside class="lg:col-span-3 space-y-4">
+            
+            <!-- 1. إعدادات العقل الموحد (Local vs Cloud API) -->
+            <div class="glass-panel rounded-2xl p-4 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-microchip text-sky-400"></i>
+                        <span>1. العقل الموحد (Unified Brain)</span>
+                    </h2>
+                    <span class="text-[11px] text-slate-400 font-mono">client.py</span>
+                </div>
+
+                <!-- أزرار التبديل بين محلي وسحابي -->
+                <div class="grid grid-cols-2 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-800">
+                    <button id="btnLocalMode" onclick="switchProvider('local')" class="py-2 px-3 rounded-lg text-xs font-bold transition bg-sky-600 text-white shadow flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-server"></i>
+                        <span>محلي (Ollama)</span>
+                    </button>
+                    <button id="btnCloudMode" onclick="switchProvider('cloud')" class="py-2 px-3 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-cloud"></i>
+                        <span>سحابي (API Key)</span>
+                    </button>
+                </div>
+
+                <!-- إعدادات الوضع المحلي -->
+                <div id="localSettingsPanel" class="space-y-3">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">النموذج المحلي المحمّل (يتناوب بالدور):</label>
+                        <select id="localModelSelect" onchange="updateModelBadge()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-sky-300 focus:outline-none focus:border-sky-500">
+                            <option value="qwen3.5:9b" selected>qwen3.5:9b (موصى به للعربية والأدوات)</option>
+                            <option value="qwen2.5-coder:7b">qwen2.5-coder:7b</option>
+                            <option value="llama3.1:8b">llama3.1:8b</option>
+                            <option value="mistral:7b">mistral:7b</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">رابط خادم Ollama المحلي:</label>
+                        <input type="text" value="http://localhost:11434/v1" class="w-full bg-slate-900/70 border border-slate-800 rounded-xl px-3 py-1.5 text-xs font-mono text-slate-300" readonly>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-[11px] text-emerald-300 flex items-start gap-2">
+                        <i class="fa-solid fa-shield-halved mt-0.5 text-emerald-400"></i>
+                        <span><strong>خصوصية 100%:</strong> المايسترو والعمال يتناوبون على نفس الموديل محلياً بتبديل الـ System Prompt دون مغادرة بياناتك للجهاز.</span>
+                    </div>
+                </div>
+
+                <!-- إعدادات الوضع السحابي (مخفي افتراضياً) -->
+                <div id="cloudSettingsPanel" class="space-y-3 hidden">
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">مزود الخدمة السحابي:</label>
+                        <select id="cloudModelSelect" onchange="updateModelBadge()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-amber-300 focus:outline-none focus:border-amber-500">
+                            <option value="gpt-4o">OpenAI - gpt-4o</option>
+                            <option value="claude-3-5-sonnet">Anthropic - claude-3.5-sonnet</option>
+                            <option value="deepseek-chat">DeepSeek - V3</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">مفتاح الواجهة البرمجية (API Key):</label>
+                        <div class="relative">
+                            <input id="apiKeyInput" type="password" placeholder="sk-proj-xxxxxxxxxxxxxxxxxxxx" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-8 pr-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500">
+                            <button onclick="togglePasswordVisibility()" class="absolute left-2.5 top-2 text-slate-400 hover:text-white text-xs">
+                                <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button onclick="saveApiKey()" class="w-full py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold transition">
+                        <i class="fa-solid fa-key ml-1"></i> تفعيل وحفظ المفتاح في الجلسة
+                    </button>
+                </div>
+            </div>
+
+            <!-- 2. هندسة بيئة التحكم والأمان (Harness Engineering) -->
+            <div id="harnessEngineeringBox" class="glass-panel rounded-2xl p-4 space-y-3 transition-all">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-user-shield text-rose-400"></i>
+                        <span>2. هندسة التحكم (Harness Eng.)</span>
+                    </h2>
+                    <span class="text-[11px] text-slate-400 font-mono">harness/</span>
+                </div>
+
+                <!-- سقف المحاولات Loop Brake -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-slate-300">كابح الحلقات (Max Loops):</span>
+                        <span id="maxLoopLabel" class="font-mono font-bold text-sky-400">5 محاولات</span>
+                    </div>
+                    <input id="maxLoopSlider" type="range" min="2" max="10" value="5" oninput="updateMaxLoops(this.value)" class="w-full accent-sky-500 cursor-pointer">
+                </div>
+
+                <!-- مفاتيح الأمان -->
+                <div class="space-y-2 pt-1">
+                    <label class="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border border-slate-800 cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-box-open text-amber-400 text-xs"></i>
+                            <span class="text-xs text-slate-200">عزل تشغيل الكود (Sandbox)</span>
+                        </div>
+                        <input type="checkbox" checked class="accent-emerald-500 w-4 h-4 rounded">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border border-slate-800 cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-hand-paper text-rose-400 text-xs"></i>
+                            <span class="text-xs text-slate-200">موافقة بشرية (HITL Gate)</span>
+                        </div>
+                        <input id="hitlToggle" type="checkbox" checked class="accent-emerald-500 w-4 h-4 rounded">
+                    </label>
+
+                    <label class="flex items-center justify-between p-2 rounded-xl bg-slate-900/80 border border-slate-800 cursor-pointer">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-filter text-purple-400 text-xs"></i>
+                            <span class="text-xs text-slate-200">فلاتر الهلوسة (Guardrails)</span>
+                        </div>
+                        <input type="checkbox" checked class="accent-emerald-500 w-4 h-4 rounded">
+                    </label>
+                </div>
+            </div>
+
+            <!-- 3. هندسة السياق والذاكرة (Context Engineering) -->
+            <div id="contextEngineeringBox" class="glass-panel rounded-2xl p-4 space-y-3 border border-emerald-500/30 transition-all">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-database text-emerald-400"></i>
+                        <span>3. هندسة السياق (Context Eng.)</span>
+                    </h2>
+                    <span class="text-[11px] text-emerald-400 font-mono">memory/rag.py</span>
+                </div>
+
+                <!-- شريط استهلاك نافذة السياق -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[11px]">
+                        <span class="text-slate-400">نافذة السياق (Context Window):</span>
+                        <span id="tokenUsageText" class="font-mono text-emerald-400">1,420 / 8,192 Tokens</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                        <div id="tokenProgressBar" class="h-full bg-gradient-to-r from-emerald-500 to-sky-500 transition-all duration-500" style="width: 18%"></div>
+                    </div>
+                </div>
+
+                <!-- تحكم تفاعلي بالملفات المحقونة في السياق (Context Injection) -->
+                <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[11px] text-slate-300 font-semibold">اختر ما يراه النموذج أمامه (RAG Context):</span>
+                        <button onclick="injectCustomContextFile()" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 transition">
+                            + حقن ملف
+                        </button>
+                    </div>
+                    <div id="ragFilesList" class="space-y-1.5 pt-1">
+                        <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 cursor-pointer text-[11px]">
+                            <span class="font-mono text-sky-300 flex items-center gap-1.5">
+                                <i class="fa-regular fa-file-code"></i> pricing_engine.py
+                            </span>
+                            <input type="checkbox" checked onchange="recalculateContextTokens()" data-tokens="620" class="rag-checkbox accent-emerald-500 w-3.5 h-3.5">
+                        </label>
+                        <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 cursor-pointer text-[11px]">
+                            <span class="font-mono text-amber-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-bug"></i> error_logs.txt
+                            </span>
+                            <input type="checkbox" checked onchange="recalculateContextTokens()" data-tokens="450" class="rag-checkbox accent-emerald-500 w-3.5 h-3.5">
+                        </label>
+                        <label class="flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-slate-800 cursor-pointer text-[11px]">
+                            <span class="font-mono text-emerald-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-book"></i> promo_policy.pdf
+                            </span>
+                            <input type="checkbox" checked onchange="recalculateContextTokens()" data-tokens="350" class="rag-checkbox accent-emerald-500 w-3.5 h-3.5">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- العمود الأوسط: مسرح الأوركسترا وتناوب الأدوار + المحادثة (6 أعمدة) -->
+        <section class="lg:col-span-6 flex flex-col gap-4">
+
+            <!-- مسرح الأوركسترا (Orchestrator & Subagents Turn-Taking) -->
+            <div class="glass-panel rounded-2xl p-4 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+                    <div>
+                        <h2 class="text-sm md:text-base font-bold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-masks-theater text-amber-400"></i>
+                            <span>مسرح الأوركسترا وتناوب الأدوار (Sequential Role-Switching)</span>
+                        </h2>
+                        <p class="text-[11px] text-slate-400">نفس النموذج يتقمص الشخصيات بالدور عبر تبديل الـ System Prompt وصندوق الرسائل المستقل</p>
+                    </div>
+                    <span id="currentTurnBadge" class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-xs font-mono text-slate-300">
+                        في انتظار المهمة...
+                    </span>
+                </div>
+
+                <!-- المايسترو في الأعلى -->
+                <div class="flex justify-center">
+                    <div id="card-maestro" onclick="inspectAgent('maestro')" class="w-full md:w-4/5 p-3.5 rounded-2xl bg-slate-900/90 border-2 border-slate-700/80 cursor-pointer transition-all hover:border-amber-500/60">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400">
+                                    <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <h3 class="text-sm font-bold text-white">المايسترو (Orchestrator Agent)</h3>
+                                        <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">المدير والمخطط</span>
+                                    </div>
+                                    <p id="status-maestro" class="text-xs text-slate-400 mt-0.5">يحلل الهدف، يوزع المهام، ويفحص جودة مخرجات العمال</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-circle-info text-slate-500 hover:text-amber-400 text-sm" title="اضغط لعرض System Prompt"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- أسهم التوزيع -->
+                <div class="flex justify-around items-center text-slate-600 text-xs px-8">
+                    <i class="fa-solid fa-arrow-down-long"></i>
+                    <span class="text-[11px] text-slate-400 font-mono bg-slate-900 px-3 py-0.5 rounded-full border border-slate-800">تناوب بالدور على نفس الموديل (Turn-Taking)</span>
+                    <i class="fa-solid fa-arrow-down-long"></i>
+                </div>
+
+                <!-- العمال / الوكلاء الفرعيون (Subagents) -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <!-- وكيل 1: الباحث والفاحص -->
+                    <div id="card-researcher" onclick="inspectAgent('researcher')" class="p-3 rounded-2xl bg-slate-900/80 border-2 border-slate-800 cursor-pointer transition-all hover:border-sky-500/50">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 rounded-lg bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-400">
+                                <i class="fa-solid fa-magnifying-glass-chart text-sm"></i>
+                            </div>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Worker 1</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-white">وكيل الفحص والـ RAG</h4>
+                        <p id="status-researcher" class="text-[11px] text-slate-400 mt-1">قراءة السجلات والملفات</p>
+                    </div>
+
+                    <!-- وكيل 2: المبرمج والمصلح -->
+                    <div id="card-coder" onclick="inspectAgent('coder')" class="p-3 rounded-2xl bg-slate-900/80 border-2 border-slate-800 cursor-pointer transition-all hover:border-sky-500/50">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400">
+                                <i class="fa-solid fa-code text-sm"></i>
+                            </div>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Worker 2</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-white">وكيل البرمجة والأدوات</h4>
+                        <p id="status-coder" class="text-[11px] text-slate-400 mt-1">كتابة الكود وتشغيل Sandbox</p>
+                    </div>
+
+                    <!-- وكيل 3: المختبر والناقد -->
+                    <div id="card-critic" onclick="inspectAgent('critic')" class="p-3 rounded-2xl bg-slate-900/80 border-2 border-slate-800 cursor-pointer transition-all hover:border-sky-500/50">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                                <i class="fa-solid fa-vial-circle-check text-sm"></i>
+                            </div>
+                            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Worker 3</span>
+                        </div>
+                        <h4 class="text-xs font-bold text-white">وكيل الاختبار (Critic)</h4>
+                        <p id="status-critic" class="text-[11px] text-slate-400 mt-1">فحص النتيجة وإقرار النجاح</p>
+                    </div>
+                </div>
+
+                <!-- عارض ومحرّر الـ System Prompt (Prompt Engineering - Layer 1) -->
+                <div id="promptEngineeringBox" class="p-3 rounded-xl bg-slate-950 border border-sky-500/40 space-y-2 transition-all">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <span id="promptViewerTitle" class="text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-terminal"></i>
+                            <span>هندسة الأوامر التأسيسية (System Prompt - المايسترو):</span>
+                        </span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30 font-mono">Prompt Engineering</span>
+                            <button onclick="saveCustomSystemPrompt()" class="text-[10px] px-2 py-0.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition">
+                                حفظ التعديل
+                            </button>
+                        </div>
+                    </div>
+                    <textarea id="promptViewerContent" rows="2" class="w-full bg-slate-900/90 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 font-mono leading-relaxed focus:outline-none focus:border-sky-500">"أنت المايسترو القائد. مهمتك تفكيك طلب المستخدم إلى خطوات، وتوجيه كل خطوة للوكيل المختص بصندوق رسائل منفصل، ومراجعة النتائج حتى يكتمل الهدف دون تجاوز سقف المحاولات."</textarea>
+                </div>
+            </div>
+
+            <!-- نافذة تنفيذ المهام وسجل التفكير الحي (Live Execution & Prompt Input) -->
+            <div id="loopEngineeringBox" class="glass-panel rounded-2xl p-4 flex-1 flex flex-col justify-between space-y-3 min-h-[340px] transition-all">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-brain text-sky-400"></i>
+                        <span>هندسة الحلقات وسجل التفكير الحي (Loop Engineering: Thought ← Action ← Observation)</span>
+                    </h2>
+                    <button onclick="clearExecutionLogs()" class="text-xs text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-trash-can ml-1"></i> مسح السجل
+                    </button>
+                </div>
+
+                <!-- صندوق الرسائل والتفكير -->
+                <div id="executionStream" class="flex-1 overflow-y-auto space-y-2.5 max-h-[320px] pr-1 font-sans">
+                    <!-- رسالة ترحيبية افتراضية -->
+                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 leading-relaxed">
+                        <div class="font-bold text-sky-400 mb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i> النظام جاهز للتشغيل المحلي أو السحابي
+                        </div>
+                        اختر مهمة من القائمة السريعة أو اكتب مهمتك بالأسفل، ثم اضغط <strong>"إرسال وتشغيل الأوركسترا"</strong> لترى كيف يتناوب الموديل على الأدوار، ويكتشف الأخطاء في الـ Loop، ويحفظ Checkpoints تلقائياً.
+                    </div>
+                </div>
+
+                <!-- شريط الموافقة البشرية HITL (يظهر عند الحاجة أثناء المحاكاة) -->
+                <div id="hitlApprovalBanner" class="hidden p-3.5 rounded-xl bg-rose-950/80 border-2 border-rose-500/70 flex flex-wrap items-center justify-between gap-3 animate-pulse">
+                    <div class="flex items-center gap-2.5">
+                        <i class="fa-solid fa-triangle-exclamation text-rose-400 text-lg"></i>
+                        <div>
+                            <h4 class="text-xs font-bold text-white">بوابة الموافقة البشرية (Human-in-the-Loop Gate)</h4>
+                            <p class="text-[11px] text-rose-200">الوكيل يطلب الإذن لاعتماد تعديل ملف الأسعار <code class="font-mono">pricing_engine.py</code> ونشره. تم حفظ Checkpoint.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="resolveHitl(true)" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition">
+                            <i class="fa-solid fa-check ml-1"></i> موافقة ومتابعة
+                        </button>
+                        <button onclick="resolveHitl(false)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-rose-700 text-rose-200 text-xs font-bold transition">
+                            <i class="fa-solid fa-xmark ml-1"></i> رفض وإيقاف
+                        </button>
+                    </div>
+                </div>
+
+                <!-- إدخال الأمر المباشر (Prompt Engineering) -->
+                <div class="pt-2 border-t border-slate-800 space-y-2">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex flex-wrap items-center gap-1.5">
+                            <span class="text-[11px] font-bold text-sky-400"><i class="fa-solid fa-pen-nib ml-1"></i>هندسة الأمر (Prompt):</span>
+                            <button onclick="setPresetTask('fix_discount')" class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-700 transition">
+                                🛠️ إصلاح كود الخصم
+                            </button>
+                            <button onclick="setPresetTask('legal_audit')" class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-purple-300 border border-slate-700 transition">
+                                ⚖️ فحص عقد قانوني
+                            </button>
+                            <button onclick="setPresetTask('data_report')" class="text-[11px] px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-slate-700 transition">
+                                📊 تحليل المبيعات
+                            </button>
+                        </div>
+                        <!-- قوالب هندسة الأوامر (Prompt Techniques) -->
+                        <div class="flex items-center gap-1">
+                            <button onclick="applyPromptTechnique('cot')" class="text-[10px] px-2 py-0.5 rounded bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 border border-indigo-500/30 transition" title="إضافة تفكير متسلسل للأمر">
+                                + Chain-of-Thought
+                            </button>
+                            <button onclick="applyPromptTechnique('strict')" class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 transition" title="إضافة قيود صارمة للأمر">
+                                + شروط صارمة
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <input id="userPromptInput" type="text" value="العملاء يشتكون أن كود الخصم لا يعمل عند الدفع، افحص السجلات وأصلح الخلل واختبره." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500" placeholder="اكتب الهدف النهائي للوكيل (Prompt Engineering)...">
+                        <button onclick="startOrchestraSimulation()" class="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold transition flex items-center gap-1.5 shrink-0">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>إرسال للأوركسترا</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- العمود الأيسر: التشيك بوينت، الهاند أوف، والأدوات (3 أعمدة) -->
+        <aside class="lg:col-span-3 space-y-4">
+
+            <!-- 4. نقاط الحفظ (Checkpoints - SQLite Snapshots) -->
+            <div class="glass-panel rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-floppy-disk text-amber-400"></i>
+                        <span>4. نقاط الحفظ (Checkpoints)</span>
+                    </h2>
+                    <button onclick="createManualCheckpoint()" class="text-[11px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30 transition">
+                        + حفظ يدوي
+                    </button>
+                </div>
+                <p class="text-[11px] text-slate-400">لقطات استعادة الحالة في <code class="font-mono text-slate-300">memory.db</code> لحماية التقدم من الانقطاع:</p>
+
+                <div id="checkpointList" class="space-y-2 max-h-[210px] overflow-y-auto pr-1">
+                    <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between text-xs">
+                        <div>
+                            <div class="font-mono font-bold text-sky-400 text-[11px]">CP #01 - تهيئة الجلسة</div>
+                            <div class="text-[10px] text-slate-400">الحالة: جاهز | السياق: 3 ملفات</div>
+                        </div>
+                        <button onclick="restoreCheckpoint('CP #01')" class="px-2 py-1 rounded bg-slate-800 hover:bg-sky-600 text-[10px] text-slate-200 transition">
+                            استرجاع
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. بروتوكول التسليم البشري (Handoff Protocol) -->
+            <div class="glass-panel rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-people-arrows text-purple-400"></i>
+                        <span>5. تسليم الراية (Handoff)</span>
+                    </h2>
+                    <span id="handoffStatusBadge" class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                        تحت سيطرة الوكيل
+                    </span>
+                </div>
+
+                <p class="text-[11px] text-slate-400 leading-relaxed">
+                    عند العجز أو تجاوز سقف المحاولات، يجهز الوكيل حقيبة سياق شاملة (Context Package) ويسلمها للمشرف البشري:
+                </p>
+
+                <div id="handoffPackageBox" class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-400 space-y-1">
+                    <div>الحالة: <span class="text-emerald-400">لا يوجد تعطل حالياً</span></div>
+                    <div>محاولات فاشلة: <span id="failedAttemptsCount" class="text-white">0</span></div>
+                </div>
+
+                <button onclick="triggerEmergencyHandoff()" class="w-full py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-bold transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-life-ring"></i>
+                    <span>تفعيل Handoff فوري للبشر</span>
+                </button>
+            </div>
+
+            <!-- 6. سجل الأدوات المتاحة (Tool Registry) -->
+            <div class="glass-panel rounded-2xl p-4 space-y-2.5">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-screwdriver-wrench text-sky-400"></i>
+                        <span>6. الأدوات (Tools JSON)</span>
+                    </h2>
+                    <span class="text-[11px] text-slate-400 font-mono">tools/</span>
+                </div>
+
+                <div class="space-y-1.5 text-xs font-mono">
+                    <div id="tool-read" class="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between">
+                        <span class="text-sky-300">read_error_logs()</span>
+                        <span class="text-[10px] text-slate-500">محلي</span>
+                    </div>
+                    <div id="tool-patch" class="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between">
+                        <span class="text-indigo-300">apply_code_patch()</span>
+                        <span class="text-[10px] text-amber-400">Sandbox</span>
+                    </div>
+                    <div id="tool-test" class="p-2 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between">
+                        <span class="text-emerald-300">run_unit_tests()</span>
+                        <span class="text-[10px] text-amber-400">Sandbox</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. المراقبة والتسعير المبني على النتائج (Telemetry & Pay-per-Resolution) -->
+            <div class="glass-panel rounded-2xl p-4 space-y-3 border border-emerald-500/30">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h2 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line text-emerald-400"></i>
+                        <span>7. العائد والتكلفة (Billing)</span>
+                    </h2>
+                    <span class="text-[11px] text-slate-400 font-mono">telemetry/cost.py</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-center">
+                    <div class="p-2 rounded-xl bg-slate-900/90 border border-slate-800">
+                        <span class="text-[10px] text-slate-400 block">تكلفة تشغيل النموذج</span>
+                        <span id="liveRunCost" class="text-xs font-mono font-bold text-sky-400">$0.00 (محلي)</span>
+                    </div>
+                    <div class="p-2 rounded-xl bg-emerald-950/30 border border-emerald-500/30">
+                        <span class="text-[10px] text-emerald-300 block">عائد النتائج ($1/مهمة)</span>
+                        <span id="liveResolutionRevenue" class="text-xs font-mono font-bold text-emerald-400">$1.00 (3.75 ر.س)</span>
+                    </div>
+                </div>
+
+                <div class="text-[11px] text-slate-400 flex items-center justify-between px-1">
+                    <span>مهام أُنجزت دون تدخل بشري:</span>
+                    <span id="resolvedTasksCounter" class="font-mono font-bold text-white">1 مهمة</span>
+                </div>
+
+                <button onclick="openMarketModal()" class="w-full py-2 rounded-xl bg-gradient-to-r from-emerald-600/30 to-teal-600/30 hover:from-emerald-600/50 hover:to-teal-600/50 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-calculator"></i>
+                    <span>عرض تفاصيل الأسعار وحاسبة العقود</span>
+                </button>
+            </div>
+
+        </aside>
+
+    </main>
+
+    <!-- نافذة منبثقة شاملة: تقدير الأسعار، نماذج الربح، وحاسبة العقود -->
+    <div id="marketModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-3 md:p-6 overflow-y-auto">
+        <div class="glass-panel rounded-2xl max-w-5xl w-full p-5 md:p-6 border border-slate-700 space-y-6 shadow-2xl my-auto max-h-[92vh] overflow-y-auto">
+            
+            <!-- رأس النافذة -->
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3 sticky top-0 bg-slate-900/95 z-10 px-2 py-1 rounded-xl">
+                <div>
+                    <h3 class="text-base md:text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-sack-dollar text-emerald-400"></i>
+                        <span>دليل تسعير مشاريع الـ Agentic AI ونماذج الربح (هامش ربح ~90%)</span>
+                    </h3>
+                    <p class="text-xs text-slate-400">تسعير الأنظمة المبنية من الصفر (No-Framework) محلياً وهجيناً بالسوق العالمي والخليجي</p>
+                </div>
+                <button onclick="closeMarketModal()" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-rose-600 text-slate-300 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- القسم الأول: جدول مستويات تقدير الأسعار حسب حجم المشروع -->
+            <div class="space-y-3">
+                <h4 class="text-sm font-bold text-sky-400 flex items-center gap-2">
+                    <i class="fa-solid fa-layer-group"></i>
+                    <span>أولاً: تقدير أسعار البيع حسب مستوى التعقيد (Pricing Tiers)</span>
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <!-- المستوى البسيط MVP -->
+                    <div class="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-col justify-between space-y-3">
+                        <div class="space-y-1.5">
+                            <span class="px-2.5 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 text-[11px] font-bold">
+                                1. المستوى البسيط (MVP / نسخة أولية)
+                            </span>
+                            <div class="pt-1">
+                                <div class="text-base font-mono font-extrabold text-white">$5,000 – $15,000</div>
+                                <div class="text-xs font-mono text-emerald-400">18,000 – 56,000 ريال سعودي</div>
+                            </div>
+                            <p class="text-slate-400 leading-relaxed pt-1">
+                                وكيل واحد أو وكيلين، أداة واحدة أو اثنتين (مثل واتساب + قراءة ملفات)، مع ربط مبدئي بسيط دون تعقيد.
+                            </p>
+                        </div>
+                        <div class="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400">
+                            ⏱️ مدة التنفيذ: 2 إلى 3 أسابيع
+                        </div>
+                    </div>
+
+                    <!-- المستوى المتوسط Medium -->
+                    <div class="p-4 rounded-2xl bg-gradient-to-b from-indigo-950/40 to-slate-900/95 border-2 border-indigo-500/50 flex flex-col justify-between space-y-3 relative">
+                        <span class="absolute -top-2.5 left-4 px-2 py-0.5 rounded bg-indigo-600 text-white text-[10px] font-bold">الأكثر طلباً</span>
+                        <div class="space-y-1.5">
+                            <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 text-[11px] font-bold">
+                                2. المستوى المتوسط (Medium AI Agent)
+                            </span>
+                            <div class="pt-1">
+                                <div class="text-base font-mono font-extrabold text-white">$15,000 – $40,000</div>
+                                <div class="text-xs font-mono text-emerald-400">56,000 – 150,000 ريال سعودي</div>
+                            </div>
+                            <p class="text-slate-300 leading-relaxed pt-1">
+                                نظام أوركسترا كامل (مايسترو + 3 عمال)، ربط مع قواعد بيانات داخلية، ذاكرة SQLite، مع نظام Checkpoints و Handoff.
+                            </p>
+                        </div>
+                        <div class="pt-2 border-t border-slate-800/80 text-[11px] text-indigo-300">
+                            ⏱️ مدة التنفيذ: 4 إلى 8 أسابيع
+                        </div>
+                    </div>
+
+                    <!-- المستوى المتقدم Enterprise -->
+                    <div class="p-4 rounded-2xl bg-slate-900/90 border border-amber-500/40 flex flex-col justify-between space-y-3">
+                        <div class="space-y-1.5">
+                            <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[11px] font-bold">
+                                3. المستوى المتقدم (Enterprise System)
+                            </span>
+                            <div class="pt-1">
+                                <div class="text-base font-mono font-extrabold text-white">$60,000 – $150,000+</div>
+                                <div class="text-xs font-mono text-emerald-400">225,000 – 560,000+ ريال سعودي</div>
+                            </div>
+                            <p class="text-slate-400 leading-relaxed pt-1">
+                                أوركسترا ضخمة، تشغيل محلي 100% على سيرفرات العميل لخصوصية البنوك والمستشفيات، Sandbox معزول، بوابات HITL، وربط ERP/CRM.
+                            </p>
+                        </div>
+                        <div class="pt-2 border-t border-slate-800/80 text-[11px] text-amber-300">
+                            ⏱️ مدة التنفيذ: 2 إلى 4 أشهر
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- القسم الثاني: نماذج العمل والربح الثلاثة (Setup + Retainer + Pay-per-Resolution) -->
+            <div class="space-y-3">
+                <h4 class="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                    <i class="fa-solid fa-coins"></i>
+                    <span>ثانياً: هيكلة العقد ونماذج الربح الثلاثة (كيف تبيع وتجني الأرباح؟)</span>
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                    <!-- 1. تكلفة التطوير والتأسيس -->
+                    <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-hammer text-sky-400"></i>
+                                1. التطوير والتأسيس (Setup Fee)
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono">دفعة تأسيسية</span>
+                        </div>
+                        <p class="text-slate-400 leading-relaxed">
+                            مبلغ مقطوع يُدفع على دفعات لبناء البنية التحتية من الصفر، تجهيز النموذج المحلي (Qwen/Llama)، بناء الـ Harness، وربط الأدوات وقواعد بيانات العميل.
+                        </p>
+                        <div class="p-2 rounded-lg bg-slate-900 text-[11px] font-mono text-sky-300">
+                            💡 تمثل الجزء الأكبر المبدئي ($5k إلى $150k حسب المستوى أعلاه).
+                        </div>
+                    </div>
+
+                    <!-- 2. اشتراك الصيانة والدعم -->
+                    <div class="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-screwdriver-wrench text-amber-400"></i>
+                                2. الصيانة والدعم (Retainer / SLA)
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">شهري متكرر</span>
+                        </div>
+                        <div class="font-mono font-bold text-amber-400 text-sm">
+                            $500 – $3,000 / شهرياً <span class="text-xs text-slate-300">(1,875 - 11,250 ر.س)</span>
+                        </div>
+                        <p class="text-slate-400 leading-relaxed">
+                            رسوم شهرية ثابتة لمراقبة مسارات تفكير الوكلاء (Logs)، تحديث الـ System Prompts، منع الهلوسة، وتحديث الأدوات عند تغير أنظمة العميل.
+                        </p>
+                    </div>
+
+                    <!-- 3. التسعير المبني على النتائج -->
+                    <div class="p-4 rounded-2xl bg-slate-950 border border-emerald-500/40 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-white flex items-center gap-1.5">
+                                <i class="fa-solid fa-bullseye text-emerald-400"></i>
+                                3. التسعير بالنتائج (Pay-per-Resolution)
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">نموذج حديث مغرٍ</span>
+                        </div>
+                        <div class="font-mono font-bold text-emerald-400 text-sm">
+                            $0.50 – $2.00 / لكل مهمة ناجحة <span class="text-xs text-slate-300">(1.8 - 7.5 ر.س)</span>
+                        </div>
+                        <p class="text-slate-400 leading-relaxed">
+                            تأخذ عمولة عن كل تذكرة دعم أو عقد أو عملية ينجزها الوكيل بالكامل دون تدخل بشري. يغري الشركات لأنها تدفع مقابل النتيجة الفعلية فقط!
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- القسم الثالث: حاسبة تسعير العقود التفاعلية (Interactive Quote Calculator) -->
+            <div class="p-4 rounded-2xl bg-slate-900/95 border border-purple-500/40 space-y-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
+                    <h4 class="text-sm font-bold text-purple-300 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>ثالثاً: حاسبة عرض السعر التفاعلية للعميل (Quote & ROI Estimator)</span>
+                    </h4>
+                    <span class="text-[11px] text-emerald-400 font-mono">هامش الربح الصافي ~90% (بدون اشتراكات أطر خارجية)</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                    <!-- اختيار حجم المشروع -->
+                    <div class="space-y-1.5">
+                        <label class="text-slate-300 font-semibold block">1. اختر مستوى المشروع (Setup Fee):</label>
+                        <select id="calcTierSelect" onchange="calculateCustomQuote()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                            <option value="10000">المستوى البسيط (MVP) - متوسط $10,000</option>
+                            <option value="25000" selected>المستوى المتوسط (Medium) - متوسط $25,000</option>
+                            <option value="85000">المستوى المتقدم (Enterprise) - متوسط $85,000</option>
+                        </select>
+                    </div>
+
+                    <!-- اختيار باقة الصيانة الشهرية -->
+                    <div class="space-y-1.5">
+                        <label class="text-slate-300 font-semibold block">2. باقة الصيانة والدعم الشهري (SLA):</label>
+                        <select id="calcRetainerSelect" onchange="calculateCustomQuote()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+                            <option value="500">باقة أساسية - $500 / شهرياً</option>
+                            <option value="1500" selected>باقة قياسية - $1,500 / شهرياً</option>
+                            <option value="3000">باقة مؤسسية 24/7 - $3,000 / شهرياً</option>
+                        </select>
+                    </div>
+
+                    <!-- تقدير عدد العمليات الشهرية للنتائج -->
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between">
+                            <label class="text-slate-300 font-semibold">3. المهام المنجزة شهرياً ($1/مهمة):</label>
+                            <span id="calcTicketsLabel" class="font-mono font-bold text-emerald-400">2,000 مهمة</span>
+                        </div>
+                        <input id="calcTicketsSlider" type="range" min="0" max="10000" step="500" value="2000" oninput="calculateCustomQuote()" class="w-full accent-emerald-500 cursor-pointer">
+                    </div>
+                </div>
+
+                <!-- مخرجات الحاسبة -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center">
+                        <span class="text-[11px] text-slate-400 block">دفعة التطوير والتأسيس (مرّة واحدة)</span>
+                        <div id="outSetupUsd" class="text-sm md:text-base font-mono font-bold text-sky-400 mt-1">$25,000</div>
+                        <div id="outSetupSar" class="text-[11px] font-mono text-slate-400">93,750 ريال سعودي</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-center">
+                        <span class="text-[11px] text-slate-400 block">الدخل الشهري المتكرر (صيانة + نتائج)</span>
+                        <div id="outMonthlyUsd" class="text-sm md:text-base font-mono font-bold text-amber-400 mt-1">$3,500 / شهرياً</div>
+                        <div id="outMonthlySar" class="text-[11px] font-mono text-slate-400">13,125 ريال / شهرياً</div>
+                    </div>
+                    <div class="p-3 rounded-xl bg-emerald-950/30 border border-emerald-500/40 text-center">
+                        <span class="text-[11px] text-emerald-300 block">إجمالي العائد السنوي المتوقع (السنة 1)</span>
+                        <div id="outYearlyUsd" class="text-sm md:text-base font-mono font-bold text-emerald-400 mt-1">$67,000</div>
+                        <div id="outYearlySar" class="text-[11px] font-mono text-emerald-300/80">251,250 ريال سعودي</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- القسم الرابع: أمثلة المشاريع الأربعة الأكثر طلباً -->
+            <div class="space-y-2.5">
+                <h4 class="text-sm font-bold text-purple-400 flex items-center gap-2">
+                    <i class="fa-solid fa-briefcase"></i>
+                    <span>رابعاً: أبرز 4 مشاريع مطلوبة جاهزة للتطبيق بهذا النظام</span>
+                </h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-sky-400">1. وكيل العمليات وخدمة العملاء الفائقة</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold">$8k - $25k (30k - 93k ر.س)</span>
+                        </div>
+                        <p class="text-slate-400">يرتبط بالواتساب وقاعدة البيانات لمعالجة الطلبات والمرتجعات تلقائياً مع نظام Handoff للموظف البشري.</p>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-purple-400">2. المساعد القانوني وفحص العقود (محلي 100%)</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold">$15k - $45k (56k - 170k ر.س)</span>
+                        </div>
+                        <p class="text-slate-400">يقرأ العقود السرية محلياً عبر Qwen ويكشف الثغرات القانونية دون رفع أي مستند للإنترنت مع موافقة HITL.</p>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-amber-400">3. وكيل المشتريات والتفاوض الآلي</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold">$20k - $50k (75k - 187k ر.س)</span>
+                        </div>
+                        <p class="text-slate-400">يقارن أسعار الموردين ويجهز أوامر الشراء عبر الأوركسترا مع التوقف عند بوابة موافقة المدير المالي (HITL).</p>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
+                        <div class="flex justify-between items-center">
+                            <span class="font-bold text-emerald-400">4. محلل البيانات والتقارير التنفيذية الذكي</span>
+                            <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono font-bold">$10k - $30k (37k - 112k ر.س)</span>
+                        </div>
+                        <p class="text-slate-400">يسحب بيانات المبيعات ويشغل كود Python في Sandbox معزول لاستخراج تقارير أسبوعية ومخططات.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button onclick="closeMarketModal()" class="px-5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold">
+                    إغلاق النافذة
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- حاوية الإشعارات الفورية (Toast Notifications) -->
+    <div id="toastContainer" class="fixed bottom-4 left-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- المنطق البرمجي التفاعلي للواجهة (JavaScript) -->
+    <script>
+        let currentProvider = 'local';
+        let maxLoops = 5;
+        let currentLoop = 0;
+        let checkpointCounter = 1;
+        let isSimulating = false;
+        let waitingForHitl = false;
+        let resolvedTasks = 1;
+        let simTimers = [];
+
+        // دالة مساعدة آمنة لتعيين النص ومنع خطأ Cannot set properties of null
+        function safeSetText(id, text) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.textContent = text;
+            }
+        }
+
+        // بيانات الـ System Prompts لكل وكيل
+        const agentPrompts = {
+            maestro: {
+                title: 'System Prompt النشط (المايسترو القائد):',
+                color: 'text-amber-400',
+                prompt: '"أنت المايسترو القائد. مهمتك تفكيك طلب المستخدم إلى خطوات، وتوجيه كل خطوة للوكيل المختص بصندوق رسائل منفصل، ومراجعة النتائج حتى يكتمل الهدف دون تجاوز سقف المحاولات."'
+            },
+            researcher: {
+                title: 'System Prompt النشط (وكيل الفحص والـ RAG):',
+                color: 'text-sky-400',
+                prompt: '"أنت وكيل فحص وبحث محلي. مهمتك قراءة سجلات الأخطاء error_logs.txt ووثائق السياسات واستخراج سبب المشكلة بدقة دون تخمين أو هلوسة."'
+            },
+            coder: {
+                title: 'System Prompt النشط (وكيل البرمجة والأدوات):',
+                color: 'text-indigo-400',
+                prompt: '"أنت مطور برمجيات خبير. قم بكتابة وتعديل الكود داخل بيئة Sandbox المعزولة فقط، واستخدم أداة apply_code_patch لإصلاح الخلل دون المساس بالبيانات الحية."'
+            },
+            critic: {
+                title: 'System Prompt النشط (وكيل الاختبار والناقد):',
+                color: 'text-emerald-400',
+                prompt: '"أنت وكيل اختبار صارم (Critic). قم بتشغيل أداة run_unit_tests للتحقق من الكود؛ إذا فشل الاختبار أعد المهمة للمايسترو لتكرار الحلقة (Loop) مع توضيح الخطأ."'
+            }
+        };
+
+        // دالة إظهار إشعار سريع عند التفاعل مع الأزرار
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const colors = {
+                info: 'bg-slate-900 border-sky-500/60 text-sky-300',
+                success: 'bg-slate-900 border-emerald-500/60 text-emerald-300',
+                warn: 'bg-slate-900 border-amber-500/60 text-amber-300',
+                rose: 'bg-slate-900 border-rose-500/60 text-rose-300'
+            };
+            const toast = document.createElement('div');
+            toast.className = `px-3.5 py-2 rounded-xl border shadow-lg text-xs font-bold flex items-center gap-2 transition-all duration-300 ${colors[type] || colors.info}`;
+            toast.innerHTML = `<i class="fa-solid fa-bolt"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // مسح المؤقتات الجارية
+        function clearSimTimers() {
+            simTimers.forEach(t => clearTimeout(t));
+            simTimers = [];
+        }
+
+        // التبديل بين الوضع المحلي (Ollama) والوضع السحابي (Cloud API)
+        function switchProvider(mode) {
+            currentProvider = mode;
+            const btnLocal = document.getElementById('btnLocalMode');
+            const btnCloud = document.getElementById('btnCloudMode');
+            const localPanel = document.getElementById('localSettingsPanel');
+            const cloudPanel = document.getElementById('cloudSettingsPanel');
+
+            if (mode === 'local') {
+                btnLocal.className = 'py-2 px-3 rounded-lg text-xs font-bold transition bg-sky-600 text-white shadow flex items-center justify-center gap-1.5';
+                btnCloud.className = 'py-2 px-3 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+                localPanel.classList.remove('hidden');
+                cloudPanel.classList.add('hidden');
+                showToast('تم التبديل إلى الوضع المحلي (Ollama)', 'info');
+            } else {
+                btnCloud.className = 'py-2 px-3 rounded-lg text-xs font-bold transition bg-amber-600 text-white shadow flex items-center justify-center gap-1.5';
+                btnLocal.className = 'py-2 px-3 rounded-lg text-xs font-bold transition text-slate-400 hover:text-white flex items-center justify-center gap-1.5';
+                cloudPanel.classList.remove('hidden');
+                localPanel.classList.add('hidden');
+                showToast('تم التبديل إلى الوضع السحابي (Cloud API)', 'warn');
+            }
+            updateModelBadge();
+        }
+
+        // تحديث شارة النموذج النشط وتكلفة التشغيل
+        function updateModelBadge() {
+            const badge = document.getElementById('badgeModelName');
+            const liveCostEl = document.getElementById('liveRunCost');
+            if (currentProvider === 'local') {
+                const selectEl = document.getElementById('localModelSelect');
+                const model = selectEl ? selectEl.value : 'qwen3.5:9b';
+                if (badge) {
+                    badge.textContent = `Ollama / ${model}`;
+                    badge.className = "font-mono font-bold text-sky-400";
+                }
+                if (liveCostEl) liveCostEl.textContent = "$0.00 (محلي)";
+            } else {
+                const selectEl = document.getElementById('cloudModelSelect');
+                const model = selectEl ? selectEl.value : 'gpt-4o';
+                if (badge) {
+                    badge.textContent = `Cloud API / ${model}`;
+                    badge.className = "font-mono font-bold text-amber-400";
+                }
+                if (liveCostEl) liveCostEl.textContent = "$0.014 / مهمة";
+            }
+        }
+
+        // إظهار أو إخفاء مفتاح الـ API
+        function togglePasswordVisibility() {
+            const input = document.getElementById('apiKeyInput');
+            const icon = document.getElementById('eyeIcon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fa-solid fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fa-solid fa-eye';
+            }
+        }
+
+        // حفظ مفتاح الـ API
+        function saveApiKey() {
+            const key = document.getElementById('apiKeyInput').value.trim();
+            if (!key) {
+                showToast('الرجاء إدخال مفتاح API أولاً', 'rose');
+                return;
+            }
+            showToast('تم حفظ وتفعيل مفتاح API في الجلسة بنجاح', 'success');
+            appendLog('إعدادات العقل الموحد', '🔑 تم ربط مفتاح الـ API السحابي بنجاح وتحديث العميل الموحد (client.py).', 'amber');
+        }
+
+        // تحديث الحد الأقصى للحلقات (Max Loops)
+        function updateMaxLoops(val) {
+            maxLoops = parseInt(val) || 5;
+            safeSetText('maxLoopLabel', `${maxLoops} محاولات`);
+            safeSetText('loopCounterDisplay', `${currentLoop} / ${maxLoops}`);
+        }
+
+        // معاينة الـ System Prompt عند النقر على بطاقة أي وكيل
+        let currentInspectedAgent = 'maestro';
+        function inspectAgent(agentKey, silent = false) {
+            currentInspectedAgent = agentKey;
+            const info = agentPrompts[agentKey];
+            if (!info) return;
+            const titleEl = document.getElementById('promptViewerTitle');
+            const contentEl = document.getElementById('promptViewerContent');
+            if (titleEl) {
+                titleEl.className = `text-[11px] font-bold flex items-center gap-1.5 ${info.color}`;
+                titleEl.innerHTML = `<i class="fa-solid fa-terminal"></i><span>${info.title}</span>`;
+            }
+            if (contentEl) {
+                contentEl.value = info.prompt;
+            }
+            if (!silent) {
+                showToast(`تم عرض System Prompt الخاص بـ (${agentKey})`, 'info');
+            }
+        }
+
+        // حفظ التعديل على الـ System Prompt (Prompt Engineering)
+        function saveCustomSystemPrompt() {
+            const contentEl = document.getElementById('promptViewerContent');
+            if (contentEl && agentPrompts[currentInspectedAgent]) {
+                agentPrompts[currentInspectedAgent].prompt = contentEl.value;
+                showToast(`تم تحديث الـ System Prompt للوكيل (${currentInspectedAgent})`, 'success');
+                appendLog('هندسة الأوامر (Prompt Engineering)', `✏️ تم تحديث التعليمات التأسيسية (System Prompt) للوكيل <strong>${currentInspectedAgent}</strong>.`, 'sky');
+            }
+        }
+
+        // تطبيق تقنيات Prompt Engineering على أمر المستخدم
+        function applyPromptTechnique(type) {
+            const input = document.getElementById('userPromptInput');
+            if (!input) return;
+            if (type === 'cot') {
+                if (!input.value.includes('فكّر خطوة بخطوة')) {
+                    input.value += ' (فكّر خطوة بخطوة، واشرح سبب العطل في سطرين قبل كتابة الكود).';
+                }
+                showToast('تمت إضافة تقنية التفكير المتسلسل (Chain-of-Thought)', 'info');
+            } else if (type === 'strict') {
+                if (!input.value.includes('دون المساس')) {
+                    input.value += ' [شرط صارم: لا تغير معادلة الضرائب الأصلية دون المساس بقاعدة البيانات الحية].';
+                }
+                showToast('تمت إضافة قيود هندسة الأوامر الصارمة', 'warn');
+            }
+        }
+
+        // إعادة حساب استهلاك الـ Tokens عند تفعيل/إلغاء ملفات السياق (Context Engineering)
+        function recalculateContextTokens() {
+            const checkboxes = document.querySelectorAll('.rag-checkbox');
+            let totalTokens = 0;
+            let activeFiles = 0;
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    totalTokens += parseInt(cb.getAttribute('data-tokens') || '300');
+                    activeFiles++;
+                }
+            });
+            const percent = Math.min(100, Math.round((totalTokens / 8192) * 100));
+            safeSetText('tokenUsageText', `${totalTokens.toLocaleString()} / 8,192 Tokens (${activeFiles} ملفات)`);
+            const bar = document.getElementById('tokenProgressBar');
+            if (bar) bar.style.width = `${percent}%`;
+            showToast(`تم تحديث السياق النشط: ${activeFiles} ملفات (${totalTokens} Tokens)`, 'info');
+        }
+
+        // حقن ملف جديد في هندسة السياق (Context Engineering)
+        let customFileIndex = 1;
+        function injectCustomContextFile() {
+            const fileNames = ['db_schema.sql', 'customer_history.json', 'security_rules.md', 'api_docs.yaml'];
+            const chosenFile = fileNames[(customFileIndex - 1) % fileNames.length];
+            const tokens = 380 + (customFileIndex * 45);
+            customFileIndex++;
+
+            const list = document.getElementById('ragFilesList');
+            if (!list) return;
+            const label = document.createElement('label');
+            label.className = 'flex items-center justify-between p-2 rounded-lg bg-slate-900 border border-emerald-500/40 cursor-pointer text-[11px]';
+            label.innerHTML = `
+                <span class="font-mono text-purple-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-file-circle-plus"></i> ${chosenFile}
+                </span>
+                <input type="checkbox" checked onchange="recalculateContextTokens()" data-tokens="${tokens}" class="rag-checkbox accent-emerald-500 w-3.5 h-3.5">
+            `;
+            list.appendChild(label);
+            recalculateContextTokens();
+            appendLog('هندسة السياق (Context Engineering)', `📂 تم حقن الملف <code>${chosenFile}</code> (${tokens} Tokens) داخل نافذة السياق النشطة.`, 'emerald');
+        }
+
+        // التمرير السلس وإبراز القسم عند الضغط على شريط الطبقات الأربع
+        function scrollToSection(elementId) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.add('ring-2', 'ring-sky-400');
+            setTimeout(() => el.classList.remove('ring-2', 'ring-sky-400'), 1800);
+        }
+
+        // إبراز الوكيل النشط حالياً في مسرح الأوركسترا
+        function highlightActiveAgent(agentKey, statusText) {
+            const agents = ['maestro', 'researcher', 'coder', 'critic'];
+            agents.forEach(a => {
+                const card = document.getElementById(`card-${a}`);
+                if (card) {
+                    card.classList.remove('agent-active', 'maestro-active');
+                }
+            });
+
+            if (agentKey) {
+                const activeCard = document.getElementById(`card-${agentKey}`);
+                if (activeCard) {
+                    activeCard.classList.add(agentKey === 'maestro' ? 'maestro-active' : 'agent-active');
+                }
+                inspectAgent(agentKey, true);
+            }
+
+            if (statusText) {
+                safeSetText('currentTurnBadge', statusText);
+            }
+        }
+
+        // إضافة رسالة إلى سجل التفكير الحي
+        function appendLog(sender, text, color = 'sky') {
+            const stream = document.getElementById('executionStream');
+            const colorMap = {
+                sky: 'border-sky-500/40 bg-sky-950/20 text-sky-300',
+                amber: 'border-amber-500/40 bg-amber-950/20 text-amber-300',
+                indigo: 'border-indigo-500/40 bg-indigo-950/20 text-indigo-300',
+                emerald: 'border-emerald-500/40 bg-emerald-950/20 text-emerald-300',
+                rose: 'border-rose-500/40 bg-rose-950/20 text-rose-300',
+                purple: 'border-purple-500/40 bg-purple-950/20 text-purple-300'
+            };
+            const item = document.createElement('div');
+            item.className = `p-3 rounded-xl border text-xs leading-relaxed ${colorMap[color] || colorMap.sky}`;
+            const time = new Date().toLocaleTimeString('ar-SA', { hour12: false });
+            item.innerHTML = `
+                <div class="flex items-center justify-between mb-1">
+                    <span class="font-bold">${sender}</span>
+                    <span class="text-[10px] font-mono opacity-75">${time}</span>
+                </div>
+                <div class="text-slate-200">${text}</div>
+            `;
+            stream.appendChild(item);
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        // مسح سجل التفكير
+        function clearExecutionLogs() {
+            clearSimTimers();
+            isSimulating = false;
+            currentLoop = 0;
+            safeSetText('loopCounterDisplay', `0 / ${maxLoops}`);
+            const hitlBanner = document.getElementById('hitlApprovalBanner');
+            if (hitlBanner) hitlBanner.classList.add('hidden');
+            highlightActiveAgent(null, 'في انتظار المهمة...');
+            const stream = document.getElementById('executionStream');
+            if (stream) {
+                stream.innerHTML = `
+                    <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-400">
+                        تم مسح السجل. جاهز لتشغيل مهمة جديدة.
+                    </div>
+                `;
+            }
+            showToast('تم مسح سجل العمليات', 'info');
+        }
+
+        // اختيار مهمة سريعة جاهزة
+        function setPresetTask(taskKey) {
+            const input = document.getElementById('userPromptInput');
+            const tasks = {
+                fix_discount: 'العملاء يشتكون أن كود الخصم لا يعمل عند الدفع، افحص السجلات وأصلح الخلل واختبره.',
+                legal_audit: 'افحص عقد التوريد المرفق محلياً واستخرج البنود المخالفة لنظام المعاملات المدنية دون رفع الملف للإنترنت.',
+                data_report: 'اسحب بيانات مبيعات الربع الأخير وشغّل كود Python في الـ Sandbox لحساب نسبة النمو ورسم التقرير.'
+            };
+            if (tasks[taskKey]) {
+                input.value = tasks[taskKey];
+                showToast('تم اختيار المهمة، اضغط "إرسال للأوركسترا" للتشغيل', 'info');
+            }
+        }
+
+        // إضافة Checkpoint جديد في القائمة
+        function addCheckpoint(title, desc) {
+            checkpointCounter++;
+            const cpId = `CP #0${checkpointCounter}`;
+            const list = document.getElementById('checkpointList');
+            const item = document.createElement('div');
+            item.className = 'p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between text-xs';
+            item.innerHTML = `
+                <div>
+                    <div class="font-mono font-bold text-amber-400 text-[11px]">${cpId} - ${title}</div>
+                    <div class="text-[10px] text-slate-400">${desc}</div>
+                </div>
+                <button onclick="restoreCheckpoint('${cpId}')" class="px-2 py-1 rounded bg-slate-800 hover:bg-sky-600 text-[10px] text-slate-200 transition">
+                    استرجاع
+                </button>
+            `;
+            list.prepend(item);
+        }
+
+        // إنشاء Checkpoint يدوي
+        function createManualCheckpoint() {
+            addCheckpoint('لقطة حفظ يدوية', `الحلقة: ${currentLoop}/${maxLoops} | محفوظ في memory.db`);
+            appendLog('نظام الحفظ (Checkpoint Manager)', `💾 تم أخذ لقطة حفظ يدوية (CP #0${checkpointCounter}) وتخزين الحالة في SQLite.`, 'amber');
+            showToast(`تم حفظ نقطة الاستعادة CP #0${checkpointCounter}`, 'success');
+        }
+
+        // استرجاع Checkpoint سابق
+        function restoreCheckpoint(cpId) {
+            clearSimTimers();
+            isSimulating = false;
+            document.getElementById('hitlApprovalBanner').classList.add('hidden');
+            highlightActiveAgent('maestro', `تمت الاستعادة إلى ${cpId}`);
+            appendLog('استرجاع الحالة (State Rollback)', `⏪ تمت استعادة حالة النظام والذاكرة إلى نقطة الحفظ <strong>${cpId}</strong> بنجاح.`, 'sky');
+            showToast(`تم استرجاع النظام إلى ${cpId}`, 'info');
+        }
+
+        // تشغيل محاكاة الأوركسترا وتناوب الأدوار والحلقات
+        function startOrchestraSimulation() {
+            if (isSimulating) {
+                showToast('المهمة قيد التشغيل حالياً...', 'warn');
+                return;
+            }
+            const promptInput = document.getElementById('userPromptInput');
+            const promptText = promptInput ? promptInput.value.trim() : '';
+            if (!promptText) {
+                showToast('الرجاء كتابة المهمة أولاً', 'rose');
+                return;
+            }
+
+            clearSimTimers();
+            isSimulating = true;
+            waitingForHitl = false;
+            currentLoop = 1;
+            safeSetText('loopCounterDisplay', `${currentLoop} / ${maxLoops}`);
+            const hitlBanner = document.getElementById('hitlApprovalBanner');
+            if (hitlBanner) hitlBanner.classList.add('hidden');
+
+            // إعادة تعيين شارة وصندوق الهاند أوف لضمان وجود عنصر failedAttemptsCount
+            const handoffBadge = document.getElementById('handoffStatusBadge');
+            if (handoffBadge) {
+                handoffBadge.textContent = 'تحت سيطرة الوكيل';
+                handoffBadge.className = 'text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+            }
+            const handoffBox = document.getElementById('handoffPackageBox');
+            if (handoffBox) {
+                handoffBox.innerHTML = `
+                    <div>الحالة: <span class="text-emerald-400">لا يوجد تعطل حالياً</span></div>
+                    <div>محاولات فاشلة: <span id="failedAttemptsCount" class="text-white">0</span></div>
+                `;
+            }
+
+            const badgeEl = document.getElementById('badgeModelName');
+            const activeModel = badgeEl ? badgeEl.textContent : 'Ollama / qwen3.5:9b';
+            appendLog('المستخدم (Prompt)', promptText, 'sky');
+
+            // الخطوة 1: المايسترو يخطط
+            highlightActiveAgent('maestro', 'الدور الحالي: المايسترو يضع الخطة...');
+            appendLog(`1. المايسترو (${activeModel})`, 'تلقيت الهدف. سأقوم بتفكيك المهمة إلى 3 مراحل وتكليف الوكلاء الفرعيين بالتناوب: (1: فحص السجلات ← 2: إصلاح الكود في Sandbox ← 3: اختبار التعديل).', 'amber');
+
+            // الخطوة 2: وكيل الفحص والـ RAG
+            simTimers.push(setTimeout(() => {
+                highlightActiveAgent('researcher', 'الدور الحالي: وكيل الفحص يقرأ الملفات...');
+                appendLog(`2. وكيل الفحص (${activeModel})`, '🔍 قمت باستدعاء الأداة <code>read_error_logs()</code> وقراءة <code>pricing_engine.py</code>. السبب: دالة حساب الخصم تقرأ التاريخ بصيغة خاطئة.', 'sky');
+                safeSetText('tokenUsageText', '2,150 / 8,192 Tokens');
+                const bar = document.getElementById('tokenProgressBar');
+                if (bar) bar.style.width = '26%';
+            }, 1800));
+
+            // الخطوة 3: وكيل البرمجة (المحاولة الأولى)
+            simTimers.push(setTimeout(() => {
+                highlightActiveAgent('coder', 'الدور الحالي: وكيل البرمجة يعدل الكود...');
+                appendLog(`3. وكيل البرمجة (${activeModel})`, '🛠️ قمت بتطبيق التعديل الأول عبر <code>apply_code_patch()</code> داخل بيئة الـ Sandbox المعزولة.', 'indigo');
+                addCheckpoint('بعد التعديل البرمجي الأول', 'الحلقة 1 | Sandbox');
+            }, 3600));
+
+            // الخطوة 4: وكيل الاختبار يكتشف خطأ (تفعيل Loop #2)
+            simTimers.push(setTimeout(() => {
+                highlightActiveAgent('critic', 'الدور الحالي: وكيل الاختبار يفحص النتيجة...');
+                appendLog(`4. وكيل الاختبار (${activeModel})`, '❌ فشل الاختبار الأول في <code>run_unit_tests()</code>! الخصم يُحسب مرتين مع الضريبة. سأعيد التقرير للمايسترو لتكرار الحلقة (Loop).', 'rose');
+                safeSetText('failedAttemptsCount', '1');
+            }, 5400));
+
+            // الخطوة 5: الحلقة الثانية (Loop #2) وإصلاح الخطأ
+            simTimers.push(setTimeout(() => {
+                currentLoop = 2;
+                safeSetText('loopCounterDisplay', `${currentLoop} / ${maxLoops}`);
+                highlightActiveAgent('coder', 'الحلقة #2: وكيل البرمجة يصحح المعادلة...');
+                appendLog(`5. التصحيح الذاتي - الحلقة #2 (${activeModel})`, '🔄 قرأت ملاحظة وكيل الاختبار، وقمت بتصحيح معادلة الضريبة في الكود وإعادة الاختبار.', 'indigo');
+                safeSetText('tokenUsageText', '3,420 / 8,192 Tokens');
+                const bar = document.getElementById('tokenProgressBar');
+                if (bar) bar.style.width = '42%';
+            }, 7400));
+
+            // الخطوة 6: نجاح الاختبار وتدخل الـ Harness (HITL)
+            simTimers.push(setTimeout(() => {
+                highlightActiveAgent('critic', 'الدور الحالي: وكيل الاختبار (نجاح)');
+                appendLog('6. وكيل الاختبار (Critic)', '✅ نجح الاختبار 100%! جميع فحوصات الدفع والخصم سليمة.', 'emerald');
+                addCheckpoint('نجاح الاختبار في الـ Sandbox', 'جاهز للاعتماد النهائي');
+
+                const hitlToggleEl = document.getElementById('hitlToggle');
+                const hitlEnabled = hitlToggleEl ? hitlToggleEl.checked : true;
+                if (hitlEnabled) {
+                    waitingForHitl = true;
+                    const banner = document.getElementById('hitlApprovalBanner');
+                    if (banner) banner.classList.remove('hidden');
+                    highlightActiveAgent('maestro', 'متوقف مؤقتاً: بانتظار الموافقة البشرية (HITL)');
+                    showToast('مطلوب موافقة بشرية (HITL) لاعتماد التعديل', 'warn');
+                } else {
+                    finishSimulationSuccess();
+                }
+            }, 9200));
+        }
+
+        // معالجة قرار بوابة الموافقة البشرية (HITL)
+        function resolveHitl(approved) {
+            const banner = document.getElementById('hitlApprovalBanner');
+            if (banner) banner.classList.add('hidden');
+            waitingForHitl = false;
+            if (approved) {
+                appendLog('بوابة الموافقة البشرية (HITL)', '👍 تمت الموافقة من المشرف البشري على اعتماد التعديل ونشره.', 'emerald');
+                showToast('تمت الموافقة ونشر التعديل بنجاح', 'success');
+                finishSimulationSuccess();
+            } else {
+                isSimulating = false;
+                highlightActiveAgent('maestro', 'تم إيقاف النشر بناءً على رفض المشرف');
+                appendLog('بوابة الموافقة البشرية (HITL)', '🛑 تم رفض التعديل من قِبل المشرف البشري وإرجاع النظام إلى آخر Checkpoint آمن.', 'rose');
+                showToast('تم رفض التعديل وإيقاف العملية', 'rose');
+            }
+        }
+
+        function finishSimulationSuccess() {
+            highlightActiveAgent('maestro', 'اكتملت المهمة بنجاح');
+            appendLog('المايسترو (النتيجة النهائية)', '🎉 تم إصلاح عطل كود الخصم والتحقق منه عبر حلقتي عمل (2 Loops) بنجاح وأمان تام.', 'emerald');
+            safeSetText('tokenUsageText', '3,890 / 8,192 Tokens');
+            const bar = document.getElementById('tokenProgressBar');
+            if (bar) bar.style.width = '48%';
+
+            // تحديث عداد التسعير المبني على النتائج (Pay-per-Resolution)
+            resolvedTasks++;
+            const sarRevenue = (resolvedTasks * 3.75).toFixed(2);
+            safeSetText('resolvedTasksCounter', `${resolvedTasks} مهام`);
+            safeSetText('liveResolutionRevenue', `$${resolvedTasks.toFixed(2)} (${sarRevenue} ر.س)`);
+
+            isSimulating = false;
+        }
+
+        // تفعيل بروتوكول الهاند أوف الفوري للبشر
+        function triggerEmergencyHandoff() {
+            clearSimTimers();
+            isSimulating = false;
+            waitingForHitl = false;
+            const banner = document.getElementById('hitlApprovalBanner');
+            if (banner) banner.classList.add('hidden');
+
+            const badge = document.getElementById('handoffStatusBadge');
+            if (badge) {
+                badge.textContent = 'تم التسليم للمشرف البشري';
+                badge.className = 'text-[10px] px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold';
+            }
+
+            const box = document.getElementById('handoffPackageBox');
+            if (box) {
+                box.innerHTML = `
+                    <div class="text-rose-400 font-bold">⚠️ تم تفعيل Handoff للبشر</div>
+                    <div>آخر نقطة حفظ: <span class="text-amber-300">CP #0${checkpointCounter}</span></div>
+                    <div>محاولات فاشلة: <span id="failedAttemptsCount" class="text-white">1</span></div>
+                    <div>الملخص المرفق: <span class="text-slate-300">تقرير كامل بسجل المحاولات جاهز للمهندس البشري.</span></div>
+                `;
+            }
+
+            highlightActiveAgent(null, 'Handoff: تم تسليم السيطرة للإنسان');
+            appendLog('بروتوكول الهاند أوف (Handoff Handler)', 'تم إيقاف عمل الوكلاء وتجهيز "حقيبة السياق" (Context Package) شاملة المشكلة، وما تم تجربته، وآخر Checkpoint، وتسليمها للمختص البشري.', 'rose');
+            showToast('تم تفعيل Handoff وتسليم المهمة للبشر', 'rose');
+        }
+
+        // فتح وإغلاق نافذة أسعار المشاريع
+        function openMarketModal() {
+            const modal = document.getElementById('marketModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            calculateCustomQuote();
+        }
+
+        function closeMarketModal() {
+            const modal = document.getElementById('marketModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // حاسبة تسعير العقود والعائد (Setup + Retainer + Pay-per-Resolution)
+        function calculateCustomQuote() {
+            const tierEl = document.getElementById('calcTierSelect');
+            const retainerEl = document.getElementById('calcRetainerSelect');
+            const ticketsEl = document.getElementById('calcTicketsSlider');
+
+            const setupUsd = tierEl ? (parseInt(tierEl.value) || 25000) : 25000;
+            const retainerUsd = retainerEl ? (parseInt(retainerEl.value) || 1500) : 1500;
+            const ticketsCount = ticketsEl ? (parseInt(ticketsEl.value) || 0) : 0;
+
+            safeSetText('calcTicketsLabel', `${ticketsCount.toLocaleString()} مهمة`);
+
+            const resolutionFeePerTicket = 1; // 1 دولار لكل مهمة ناجحة
+            const monthlyUsd = retainerUsd + (ticketsCount * resolutionFeePerTicket);
+            const yearlyUsd = setupUsd + (monthlyUsd * 12);
+
+            const sarRate = 3.75;
+            const setupSar = setupUsd * sarRate;
+            const monthlySar = monthlyUsd * sarRate;
+            const yearlySar = yearlyUsd * sarRate;
+
+            safeSetText('outSetupUsd', `$${setupUsd.toLocaleString()}`);
+            safeSetText('outSetupSar', `${setupSar.toLocaleString()} ريال سعودي`);
+
+            safeSetText('outMonthlyUsd', `$${monthlyUsd.toLocaleString()} / شهرياً`);
+            safeSetText('outMonthlySar', `${monthlySar.toLocaleString()} ريال / شهرياً`);
+
+            safeSetText('outYearlyUsd', `$${yearlyUsd.toLocaleString()}`);
+            safeSetText('outYearlySar', `${yearlySar.toLocaleString()} ريال سعودي`);
+        }
+    </script>
+</body>
+</html>

@@ -403,7 +403,7 @@ class TestPayrollApiEndpoints(unittest.TestCase):
             "approval_token": "PAY-TEST999",
             "confirmation_text": "تأكيد",
         }
-        headers = {"X-API-Key": "hr-write-secret-token"}
+        headers = {"X-API-Key": "unit-test-write-token"}
         response = self.client.post("/api/payroll/apply", json=payload, headers=headers)
         self.assertEqual(response.status_code, 200)
         data = response.json()

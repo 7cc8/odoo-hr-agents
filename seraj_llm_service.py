@@ -209,6 +209,9 @@ class SerajLLMService:
         clarification: Optional[Dict[str, Any]] = None,
         final_result: Optional[Dict[str, Any]] = None,
         error: Optional[str] = None,
+        reasoning: Optional[str] = None,
+        decision: Optional[str] = None,
+        action: Optional[str] = None,
     ) -> None:
         if not operation_id or get_events_service is None:
             return
@@ -227,6 +230,9 @@ class SerajLLMService:
                 clarification=clarification,
                 final_result=final_result,
                 error=error,
+                reasoning=reasoning,
+                decision=decision,
+                action=action,
             )
         except Exception as exc:
             logger.debug("Failed to emit agent event: %s", exc)
@@ -257,6 +263,9 @@ class SerajLLMService:
             operation_id=operation_id,
             agent="seraj",
             event_type="query_received",
+            action="intent_decomposition",
+            reasoning="استقبال مدخلات المستخدم وتفكيكها لاستخلاص نية الاستعلام وتحديد نطاق الصلاحيات.",
+            decision="بدء المسار التحليلي وتوجيه الاستعلام للوكيل المختص وفق الحوكمة.",
             status="analyzing_request",
             description_ar=f"سراج يستلم الطلب ويحلل نية المستخدم: «{clean_query[:50]}»",
         )
@@ -690,6 +699,9 @@ class SerajLLMService:
                 from_agent="seraj",
                 to_agent="fahas",
                 event_type="record_inspection",
+                action="odoo_record_lookup",
+                reasoning="الاستعلام في Odoo للتحقق من وجود السجل وحالته الحالية وأهليته لإلغاء الأرشفة وإعادة التنشيط.",
+                decision="التأكد من مطابقة السجل وتمرير النتائج لوكيل التدقيق «مدقق».",
                 status="inspecting_data",
                 description_ar=f"فاحص يستعلم عن السجل ({plan.record_name}) في Odoo ويتحقق من أهليته للاسترجاع",
             )
@@ -699,6 +711,9 @@ class SerajLLMService:
                 from_agent="fahas",
                 to_agent="modaqeq",
                 event_type="rules_check",
+                action="legal_compliance_audit",
+                reasoning="تدقيق سياسات إعادة التنشيط والامتثال لقواعد الموارد البشرية وشروط إعادة الخدمة.",
+                decision="إجازة العملية نظامياً وتحويلها لوكيل الحوكمة «حارس» لطلب اعتماد بشري صريح.",
                 status="inspecting_data",
                 description_ar="مدقق يدقق قواعد إعادة التنشيط والامتثال",
             )
@@ -708,6 +723,9 @@ class SerajLLMService:
                 from_agent="modaqeq",
                 to_agent="hares",
                 event_type="plan_prepared",
+                action="hitl_approval_request",
+                reasoning="تطبيق مبدأ الحوكمة المشروطة (HITL) نظراً لأن عملية إلغاء الأرشفة تؤثر على السجلات الحية.",
+                decision="إصدار خطة الاعتماد الرسمية وحظر الكتابة المباشرة لحين توقيع المسؤول.",
                 status="waiting_approval",
                 description_ar=f"حارس يتحقق من الصلاحيات ويُصدر خطة الاعتماد الرسمية ({plan.plan_id})",
                 plan=plan.to_dict(),
@@ -1040,6 +1058,9 @@ class SerajLLMService:
                 from_agent="seraj",
                 to_agent="modaqeq",
                 event_type="labor_law_consultation",
+                action="legal_compliance_audit",
+                reasoning="تحليل تشريعي متخصص: تفويض الاستفسار إلى وكيل «مدقق» لمطابقة السؤال مع نصوص ومواد نظام العمل السعودي المعتمدة (المواد 98 و99 و100).",
+                decision="استدعاء المعرفة القانونية وتحديد ساعات العمل المعتمدة رسمياً في رمضان للعمال المسلمين.",
                 status="inspecting_data",
                 description_ar=f"مدقق يستعرض مواد ونصوص نظام العمل السعودي بشأن: «{clean_query[:50]}»",
             )
@@ -1053,6 +1074,9 @@ class SerajLLMService:
                     from_agent="modaqeq",
                     to_agent="seraj",
                     event_type="task_completed",
+                    action="deliver_legal_advisory",
+                    reasoning="صياغة النتيجة النهائية بلغة عربية رسمية مع توثيق السند النظامي ورقم المرسوم الملكي وقيود الحوكمة.",
+                    decision="اعتماد الإجابة الصادرة وعرضها على المشغّل دون أي تعديل غير مصرح به في Odoo.",
                     status="completed",
                     description_ar="سراج يعرض الاستشارة النظامية المعتمدة المستندة لنظام العمل السعودي",
                 )
@@ -1120,6 +1144,9 @@ class SerajLLMService:
                         from_agent="seraj",
                         to_agent="fahas",
                         event_type="odoo_query",
+                        action="odoo_search_read",
+                        reasoning="استقراء سجلات قاعدة بيانات Odoo HR للتحقق من تواجد السجلات المستعلم عنها واستخلاص الحقول الحية بدقة.",
+                        decision="تجميع النتائج والتحقق من صلاحية الربط وإعادتها لوكيل التنسيق سراج.",
                         status="querying_odoo",
                         description_ar="سراج يفوض مهمة الاستعلام والبحث لوكيل الفحص «فاحص» في Odoo",
                     )
@@ -1129,6 +1156,9 @@ class SerajLLMService:
                         from_agent="fahas",
                         to_agent="seraj",
                         event_type="task_completed",
+                        action="synthesize_response",
+                        reasoning="صياغة المخرجات المسترجعة من Odoo في تقرير عربي منسق يلبي استفسار الموظف أو الإدارة.",
+                        decision="عرض البيانات المسترجعة في المحادثة وتأكيد انتهاء مرحلة الاستعلام بنجاح.",
                         status="completed",
                         description_ar="سراج يشرح النتيجة للمستخدم بلغة عربية دقيقة",
                     )
@@ -1147,6 +1177,9 @@ class SerajLLMService:
             operation_id=operation_id,
             agent="seraj",
             event_type="task_completed",
+            action="fallback_rule_resolution",
+            reasoning="تفعيل وضع الاستعلام الاحترازي المباشر من Odoo HR عبر القواعد الحتمية لضمان استمرارية الخدمة والامتثال.",
+            decision="اعتماد نتيجة محرك القواعد وتقديم الإجابة دون أي انقطاع.",
             status="completed",
             description_ar="سراج يستجيب بنجاح عبر محرك الحوكمة والقواعد الاحترازية",
         )
@@ -1505,6 +1538,11 @@ class SerajLLMService:
                 "temperature": 0.1,
                 "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "1024")),
             }
+            # للمحرك المحلي (Ollama): ضبط نافذة السياق لتستقر 100% داخل كرت الشاشة (VRAM) وتمنع الترحيل للمعالج
+            if provider_type == "local" or "11434" in endpoint_url or "localhost" in endpoint_url:
+                local_ctx = int(os.environ.get("LLM_NUM_CTX", "4096"))
+                payload["options"] = {"num_ctx": local_ctx}
+
             if tools:
                 payload["tools"] = tools
                 payload["tool_choice"] = "auto"

@@ -20,7 +20,7 @@ class TestMainAcceptancePipeline(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
         self.events_service = get_events_service()
-        self.auth_headers = {"X-API-Key": "hr-write-secret-token"}
+        self.auth_headers = {"X-API-Key": "unit-test-write-token"}
 
     def test_complete_main_acceptance_workflow(self):
         # Step 0: Ensure an active/completed operation exists in the system

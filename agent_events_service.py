@@ -49,7 +49,7 @@ AGENTS_REGISTRY: Dict[str, Dict[str, Any]] = {
         "bg_soft": "rgba(6, 182, 212, 0.08)",
         "icon": "search",
         "is_helper": False,
-        "description_short": "القراءة والاستعلام والتحقق المستقل بعد التنفيذ (Readback Verification)",
+        "description_short": "القراءة والاستعلام والتحقق المستقل بعد التنفيذ",
     },
     "modaqeq": {
         "id": "modaqeq",
@@ -451,6 +451,10 @@ class AgentEventsService:
         evt_id = f"evt_{operation_id}_{seq}"
 
         safe_result = _mask_safe_ref(result_ref) if result_ref else None
+        meta_dict = metadata or {}
+        reasoning = kwargs.get("reasoning") or meta_dict.get("reasoning")
+        decision = kwargs.get("decision") or meta_dict.get("decision")
+        action = kwargs.get("action") or meta_dict.get("action") or event_type
 
         event_data: Dict[str, Any] = {
             "event_id": evt_id,
@@ -459,6 +463,9 @@ class AgentEventsService:
             "timestamp": now_iso,
             "agent": agent,
             "event_type": event_type,
+            "action": action,
+            "reasoning": reasoning,
+            "decision": decision,
             "status": status,
             "status_label": STATUS_LABELS_AR.get(status, status),
             "description_ar": description_ar,
@@ -472,7 +479,7 @@ class AgentEventsService:
             "company_id": company_id,
             "company_name": company_name,
             "connection_id": connection_id,
-            "metadata": metadata or {},
+            "metadata": meta_dict,
         }
         if error:
             event_data["error"] = error
@@ -522,6 +529,14 @@ class AgentEventsService:
                 pass
 
         return event_data
+
+    def update_operation_status(self, operation_id: str, status: str) -> None:
+        """تحديث حالة العملية مباشرة بأمان داخل الذاكرة."""
+        with self._lock:
+            if operation_id in self.operations:
+                self.operations[operation_id]["status"] = status
+                self.operations[operation_id]["status_label"] = STATUS_LABELS_AR.get(status, status)
+                self.operations[operation_id]["updated_at"] = datetime.now(timezone.utc).isoformat()
 
     def get_operation(self, operation_id: str) -> Optional[Dict[str, Any]]:
         """استرجاع بيانات العملية وكافة أحداثها وخط سيرها."""

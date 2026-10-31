@@ -14,7 +14,7 @@ class TestSijilPageAndExport(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         import os
-        os.environ["WRITE_API_TOKEN"] = "hr-write-secret-token"
+        os.environ["WRITE_API_TOKEN"] = "unit-test-write-token"
         cls.client = TestClient(app)
         cls.service = SijilAuditService()
 
@@ -137,7 +137,7 @@ class TestSijilPageAndExport(unittest.TestCase):
         self.assertIn("غير مصرّح", unauth_res.json().get("detail", ""))
 
         # Authenticated request -> must succeed with 200
-        res = self.client.get("/api/sijil/recent?limit=5", headers={"X-API-Key": "hr-write-secret-token"})
+        res = self.client.get("/api/sijil/recent?limit=5", headers={"X-API-Key": "unit-test-write-token"})
         self.assertEqual(res.status_code, 200)
         data = res.json()
         self.assertEqual(data["status"], "success")

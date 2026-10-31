@@ -140,7 +140,11 @@ class TestAllModularExcelTemplatesUpload(unittest.TestCase):
     def test_legacy_employee_file_backward_compatibility(self, mock_repo_cls):
         mock_repo = MagicMock()
         mock_repo.get_session_info.return_value = {"odoo_url": "https://example.odoo.com", "odoo_db": "test_db", "uid": 1}
-        mock_repo.get_live_reference_snapshot.return_value = {"companies": [], "departments": [], "jobs": []}
+        mock_repo.get_live_reference_snapshot.return_value = {
+            "companies": [{"id": 1, "name": "شركة النخبة الذكية للتقنية", "active": True}],
+            "departments": [{"id": 1, "name": "الإدارة العليا / المحاسبة والمالية", "complete_name": "الإدارة العليا / المحاسبة والمالية", "company_id": [1, "شركة النخبة الذكية للتقنية"]}],
+            "jobs": [{"id": 1, "name": "محاسب", "company_id": [1, "شركة النخبة الذكية للتقنية"]}],
+        }
         mock_repo.search_employees_by_keys.return_value = []
         mock_repo_cls.return_value = mock_repo
         wb = Workbook()

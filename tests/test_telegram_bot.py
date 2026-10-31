@@ -80,7 +80,7 @@ class TelegramBotTests(unittest.TestCase):
         summary_text = summary_call[0][1]
         reply_markup = summary_call[1].get("reply_markup") or {}
 
-        self.assertIn("نتائج الفحص التجريبي", summary_text)
+        self.assertIn("نتائج الفحص", summary_text)
         self.assertIn("جاهز للاعتماد", summary_text)
         self.assertIn("inline_keyboard", reply_markup)
         self.assertIn("اعتمد وأنشئ", reply_markup["inline_keyboard"][0][0]["text"])
@@ -129,7 +129,7 @@ class TelegramBotTests(unittest.TestCase):
         mock_urlopen.assert_called_once()
         req = mock_urlopen.call_args[0][0]
         self.assertIn("/api/approve-and-execute", req.full_url)
-        self.assertEqual(req.headers.get("X-api-key"), "hr-write-secret-token")
+        self.assertEqual(req.headers.get("X-api-key"), "unit-test-write-token")
     def test_main_menu_keyboard_has_wizard_button(self):
         kb = telegram_bot.get_main_menu_keyboard()
         buttons = [btn for row in kb["inline_keyboard"] for btn in row]

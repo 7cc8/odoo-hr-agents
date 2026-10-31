@@ -20,6 +20,8 @@ from typing import Any, Callable, Dict, List, Optional
 
 from approval_schema import (
     Approval,
+    ApprovalAlreadyConsumedError,
+    ApprovalExpiredError,
     ApprovalReportMismatchError,
     ApprovalSchemaError,
     validate_approval_against_report,
@@ -36,6 +38,8 @@ STATUS_UNCERTAIN = "outcome_uncertain"
 STATUS_NOT_ATTEMPTED = "not_attempted"
 
 ABORT_APPROVAL_INVALID = "approval_invalid"
+ABORT_APPROVAL_EXPIRED = "approval_expired"
+ABORT_APPROVAL_CONSUMED = "approval_already_consumed"
 ABORT_REPORT_UNREADABLE = "report_unreadable"
 ABORT_APPROVAL_REPORT_MISMATCH = "approval_report_mismatch"
 ABORT_SOURCE_FILE_NAME_MISMATCH = "source_file_name_mismatch"
@@ -320,6 +324,10 @@ def run_writer(
 
     try:
         approval = Approval.load(approval_path)
+    except ApprovalExpiredError as exc:
+        raise WriterAbort(ABORT_APPROVAL_EXPIRED, str(exc)) from exc
+    except ApprovalAlreadyConsumedError as exc:
+        raise WriterAbort(ABORT_APPROVAL_CONSUMED, str(exc)) from exc
     except (ApprovalSchemaError, ValueError, OSError) as exc:
         raise WriterAbort(ABORT_APPROVAL_INVALID, str(exc)) from exc
     try:

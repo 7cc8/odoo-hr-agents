@@ -8,14 +8,52 @@ safe to use and test before writer.py exists.
 from __future__ import annotations
 
 import json
+import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Dict, List
 
 
+# مدة صلاحية الاعتماد. القيمة 5 دقائق هي نفسها المعتمدة في المشروع لخطط الاعتماد (approval_plan_schema) وفي
+# مسار الرسم (excel_nodes)؛ يمكن تغييرها عبر المتغير APPROVAL_TTL_MINUTES.
+DEFAULT_APPROVAL_TTL_MINUTES = 5
+
+
+def approval_ttl_minutes() -> int:
+    raw = os.environ.get("APPROVAL_TTL_MINUTES", "").strip()
+    try:
+        minutes = int(raw)
+    except ValueError:
+        return DEFAULT_APPROVAL_TTL_MINUTES
+    return minutes if minutes > 0 else DEFAULT_APPROVAL_TTL_MINUTES
+
+
+def _utc_z(moment: datetime) -> str:
+    return moment.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def default_expires_at(approved_at: datetime) -> str:
+    """ISO-8601 UTC expiry = approval time + TTL (what every approval writer must store)."""
+    return _utc_z(approved_at + timedelta(minutes=approval_ttl_minutes()))
+
+
+def new_approval_timestamps(now: datetime | None = None) -> Dict[str, Any]:
+    """approved_at / expires_at / is_consumed for a freshly written approval file."""
+    moment = now or datetime.now(timezone.utc)
+    return {"approved_at": _utc_z(moment), "expires_at": default_expires_at(moment), "is_consumed": False}
+
+
 class ApprovalSchemaError(Exception):
     """The approval file itself is malformed (missing/invalid fields)."""
+
+
+class ApprovalExpiredError(ApprovalSchemaError):
+    """The approval file has exceeded its validity TTL window (5 minutes)."""
+
+
+class ApprovalAlreadyConsumedError(ApprovalSchemaError):
+    """The approval file has already been executed and consumed (single-use idempotency)."""
 
 
 class ApprovalReportMismatchError(Exception):
@@ -49,8 +87,16 @@ class Approval:
     @staticmethod
     def from_dict(data: Dict[str, Any]) -> "Approval":
         data = dict(data)
-        if "expires_at" not in data:
-            data["expires_at"] = "2099-12-31T23:59:59Z"
+        if "expires_at" not in data and "approved_at" in data:
+            # ملفات الاعتماد القديمة بلا expires_at كانت تُعطى 2099-12-31 (لا تنتهي أبداً). الآن تنتهي بعد المدة
+            # المعتمدة من لحظة الاعتماد؛ إن تعذّر قراءة approved_at يُرفض الملف أدناه.
+            try:
+                approved_dt = datetime.fromisoformat(str(data["approved_at"]).replace("Z", "+00:00"))
+                if approved_dt.tzinfo is None:
+                    approved_dt = approved_dt.replace(tzinfo=timezone.utc)
+                data["expires_at"] = default_expires_at(approved_dt)
+            except ValueError:
+                pass
         if "is_consumed" not in data:
             data["is_consumed"] = False
 
@@ -72,9 +118,11 @@ class Approval:
         try:
             expires_dt = datetime.fromisoformat(str(expires_at_raw).replace("Z", "+00:00"))
             # التحقق من أن الاعتماد لم ينته
-            now = datetime.now(timezone.utc) if expires_dt.tzinfo is not None else datetime.now()
+            if expires_dt.tzinfo is None:  # كل أزمنة المشروع UTC؛ كانت تُقارَن بالتوقيت المحلي للجهاز
+                expires_dt = expires_dt.replace(tzinfo=timezone.utc)
+            now = datetime.now(timezone.utc)
             if now > expires_dt:
-                raise ApprovalSchemaError(
+                raise ApprovalExpiredError(
                     f"Approval has expired at {expires_at_raw}. Current time: {now.isoformat()}"
                 )
         except ValueError as exc:
@@ -85,7 +133,7 @@ class Approval:
         # P4: التحقق من أن الاعتماد لم يتم استهلاكه
         is_consumed = data.get("is_consumed", False)
         if is_consumed:
-            raise ApprovalSchemaError("Approval has already been consumed and cannot be reused.")
+            raise ApprovalAlreadyConsumedError("Approval has already been consumed and cannot be reused.")
 
         if not isinstance(data["approved_row_hashes"], list) or not all(
             isinstance(h, str) for h in data["approved_row_hashes"]

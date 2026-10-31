@@ -1,12 +1,16 @@
+import os
 import json
 import tempfile
 import unittest
+import uuid
+import shutil
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from fastapi.testclient import TestClient
 from openpyxl import Workbook
 
+from approval_schema import new_approval_timestamps
 from web_service import app
 import parser
 
@@ -26,8 +30,19 @@ def create_sample_xlsx(path: Path):
 class WebServiceTests(unittest.TestCase):
 
     def setUp(self):
+        self._orig_token = os.environ.get("WRITE_API_TOKEN")
+        os.environ["WRITE_API_TOKEN"] = "unit-test-write-token"
         self.client = TestClient(app)
-        self.tmpdir = Path(tempfile.mkdtemp())
+        self.tmpdir = Path("output") / f"test_tmp_{uuid.uuid4().hex[:8]}"
+        self.tmpdir.mkdir(parents=True, exist_ok=True)
+
+    def tearDown(self):
+        if self._orig_token is not None:
+            os.environ["WRITE_API_TOKEN"] = self._orig_token
+        else:
+            os.environ.pop("WRITE_API_TOKEN", None)
+        if hasattr(self, "tmpdir") and self.tmpdir.exists():
+            shutil.rmtree(self.tmpdir, ignore_errors=True)
 
     def test_get_root_returns_html(self):
         response = self.client.get("/")
@@ -129,6 +144,7 @@ class WebServiceTests(unittest.TestCase):
         # Test POST /approve (Section 3)
         approval_res = self.client.post(
             "/approve",
+            headers={"X-API-Key": "unit-test-write-token"},
             json={
                 "report_path": report_file_path,
                 "input_path": input_file_path,
@@ -154,6 +170,7 @@ class WebServiceTests(unittest.TestCase):
 
         response = self.client.post(
             "/approve",
+            headers={"X-API-Key": "unit-test-write-token"},
             json={
                 "report_path": str(rep_file),
                 "input_path": "dummy.xlsx",
@@ -177,7 +194,7 @@ class WebServiceTests(unittest.TestCase):
     def test_write_rejects_without_prior_approval(self):
         res = self.client.post(
             "/write",
-            headers={"X-API-Key": "hr-write-secret-token"},
+            headers={"X-API-Key": "unit-test-write-token"},
             json={"run_id": "non_existent_run"},
         )
         self.assertEqual(res.status_code, 400)
@@ -204,7 +221,7 @@ class WebServiceTests(unittest.TestCase):
             "source_hash": "hash123",
             "source_file_name": "test.xlsx",
             "approved_by": "خالد",
-            "approved_at": "2026-10-05T08:00:00Z",
+            **new_approval_timestamps(),
             "approved_row_hashes": ["rowhash2"],
         }
         rep_p = self.tmpdir / "dry_run_report.json"
@@ -216,7 +233,7 @@ class WebServiceTests(unittest.TestCase):
 
         res = self.client.post(
             "/write",
-            headers={"X-API-Key": "hr-write-secret-token"},
+            headers={"X-API-Key": "unit-test-write-token"},
             json={
                 "input_path": str(inp_p),
                 "report_path": str(rep_p),
@@ -228,9 +245,9 @@ class WebServiceTests(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         mock_writer.assert_called_once()
         args, kwargs = mock_writer.call_args
-        self.assertEqual(args[0], str(inp_p))
-        self.assertEqual(args[1], str(rep_p))
-        self.assertEqual(args[2], str(app_p))
+        self.assertEqual(Path(args[0]).resolve(), inp_p.resolve())
+        self.assertEqual(Path(args[1]).resolve(), rep_p.resolve())
+        self.assertEqual(Path(args[2]).resolve(), app_p.resolve())
         self.assertEqual(kwargs["company_id"], 15)
         self.assertEqual(kwargs["max_rows"], 5)
 

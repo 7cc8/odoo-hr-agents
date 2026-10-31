@@ -183,7 +183,7 @@ TG_AUDIT_LOG_FILE = LOGS_DIR / "telegram_audit.log"
 
 DEFAULT_COMPANY_ID = 15
 DEFAULT_MAX_ROWS = 10
-WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "hr-write-secret-token")
+WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "").strip()
 API_BASE_URL = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000")
 
 # Pending confirmations waiting for written 'تأكيد' (Section 5.1)
@@ -862,6 +862,14 @@ def execute_via_backend_api(
     reply_to_msg_id: int,
 ) -> None:
     """Executes creation by calling the centralized Backend API (/write) rather than direct writer (Section 5.2)."""
+    if not WRITE_API_TOKEN:
+        bot.send_message(
+            chat_id,
+            "⛔ <b>لم يُنفَّذ شيء:</b> رمز الكتابة غير مضبوط في بيئة البوت (WRITE_API_TOKEN).",
+            reply_to_message_id=reply_to_msg_id,
+        )
+        log_telegram_audit(user_id, chat_id, "api_write_blocked_no_token", {"run_id": run_id})
+        return
     bot.send_message(
         chat_id,
         f"⏳ <b>جارِ استدعاء الـ API الخلفي للاعتماد والإنشاء في Odoo...</b>\nمعرّف الفحص: <code>{run_id}</code>",

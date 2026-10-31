@@ -388,7 +388,7 @@ class TestLoanAPIEndpoints(unittest.TestCase):
         resp = self.client.post(
             "/api/loans/apply",
             json=payload,
-            headers={"X-API-Key": "hr-write-secret-token"},
+            headers={"X-API-Key": "unit-test-write-token"},
         )
         self.assertEqual(resp.status_code, 200)
         data = resp.json()

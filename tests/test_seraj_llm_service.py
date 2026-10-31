@@ -14,8 +14,10 @@ class TestSerajLLMService(unittest.TestCase):
 
     def test_is_configured(self):
         self.assertTrue(self.service.is_configured())
-        empty_service = SerajLLMService(api_key="")
-        self.assertFalse(empty_service.is_configured())
+        with patch("llm_config_manager.check_local_health", return_value={"available": False}):
+            with patch("llm_config_manager.load_llm_config", return_value={"mode": "auto", "cloud": {"api_key": ""}}):
+                empty_service = SerajLLMService(api_key="")
+                self.assertFalse(empty_service.is_configured())
 
     @patch("seraj_llm_service.SerajLLMService._call_llm")
     def test_generate_grounded_response_success(self, mock_call):

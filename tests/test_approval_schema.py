@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from approval_schema import (
+    new_approval_timestamps,
     Approval,
     ApprovalSchemaError,
     ApprovalReportMismatchError,
@@ -19,7 +20,7 @@ class ApprovalSchemaTests(unittest.TestCase):
             "source_hash": "ba465f8956d83e02ccdcaa1e5f8b3fc93ac0744af605e3aba1d68a5208b42e9d",
             "source_file_name": "test_employees_10.xlsx",
             "approved_by": "khaled",
-            "approved_at": "2026-09-28T22:00:00Z",
+            **new_approval_timestamps(),
             "approved_row_hashes": ["h1", "h2"],
         }
         self.report = {

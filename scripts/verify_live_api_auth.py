@@ -12,7 +12,9 @@ except Exception:
     pass
 
 dotenv.load_dotenv()
-token = os.getenv("WRITE_API_TOKEN", "hr-write-secret-token")
+token = os.getenv("WRITE_API_TOKEN", "").strip()
+if not token:
+    sys.exit("WRITE_API_TOKEN غير مضبوط: اضبط رمز الكتابة الفعلي للخادم في البيئة أو ملف .env ثم أعد التشغيل.")
 
 print("==================================================")
 print("اختبار مصادقة واجهة API الحية (/api/sijil/recent)")

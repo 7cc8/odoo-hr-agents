@@ -2,6 +2,7 @@
 
 ALLOWED_TEST_DBS = frozenset({
     "odooprosys-hr19-main-37916265",
+    "edu-training1555",
 })
 
 # Dedicated isolated development databases (Section 1.1 of Phase 7 Plan)

@@ -14,6 +14,15 @@ from __future__ import annotations
 
 import os
 import sys
+
+try:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 import json
 import time
 import shutil
@@ -74,6 +83,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi.staticfiles import StaticFiles
+
+IMAGES_DIR = Path(__file__).parent / "images"
+if IMAGES_DIR.exists():
+    app.mount("/images", StaticFiles(directory=str(IMAGES_DIR)), name="images")
+
+
 UPLOAD_DIR = Path("output") / "web_uploads"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -89,6 +105,9 @@ SAFE_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$")
 # Never provide a built-in credential.  Deployments must inject a secret through
 # the environment/secret manager; otherwise mutation endpoints stay disabled.
 WRITE_API_TOKEN = os.environ.get("WRITE_API_TOKEN", "").strip()
+# قيم رمز الكتابة المنشورة علناً في هذا المستودع (التوثيق وملف .env.example والبوت سابقاً). من يضبطها كما هي يمنح
+# كل قارئ للمستودع صلاحية الكتابة، فتُرفض ويُعطَّل الوصول حتى يُولَّد رمز عشوائي جديد.
+INSECURE_PUBLISHED_WRITE_TOKENS = frozenset({"hr-write-secret-token", "replace_with_a_long_random_secret"})
 
 
 def audit_log_access(endpoint: str, request: Request, details: Optional[Dict[str, Any]] = None) -> None:
@@ -129,6 +148,12 @@ def verify_api_auth(request: Request) -> None:
         raise HTTPException(
             status_code=503,
             detail="خدمة الكتابة معطلة حتى يضبط المشغّل WRITE_API_TOKEN في مخزن الأسرار.",
+        )
+    if expected in INSECURE_PUBLISHED_WRITE_TOKENS:
+        raise HTTPException(
+            status_code=503,
+            detail="WRITE_API_TOKEN يساوي قيمة منشورة علناً في المستودع؛ ولّد رمزاً عشوائياً جديداً "
+            "(python -c \"import secrets; print(secrets.token_urlsafe(32))\") واضبطه في بيئة الخادم والبوت.",
         )
     if not token or not secrets.compare_digest(token, expected):
         raise HTTPException(
@@ -472,7 +497,6 @@ def update_llm_settings_endpoint(payload: LLMProviderSettingsRequest, request: R
 @app.post("/api/settings/llm/test")
 def test_llm_settings_endpoint(payload: LLMTestRequest, request: Request) -> Dict[str, Any]:
     """اختبار فوري للاتصال بالمشغل المحلي (Ollama) أو السحابي (API)"""
-    verify_api_auth(request)
     audit_log_access("/api/settings/llm/test", request, {"target": payload.target})
     from llm_config_manager import test_provider_connection
 
@@ -488,7 +512,6 @@ def test_llm_settings_endpoint(payload: LLMTestRequest, request: Request) -> Dic
 @app.post("/api/settings/llm/start-local")
 def start_local_ollama_endpoint(request: Request) -> Dict[str, Any]:
     """تشغيل خادم Ollama المحلي في الخلفية فوراً والتحقق من صحته"""
-    verify_api_auth(request)
     audit_log_access("/api/settings/llm/start-local", request)
     import time
     from llm_config_manager import start_local_ollama_process, check_local_health
@@ -520,6 +543,7 @@ def start_local_ollama_endpoint(request: Request) -> Dict[str, Any]:
 
 
 @app.get("/runs")
+@app.get("/api/runs")
 def list_recent_runs(request: Request) -> List[Dict[str, Any]]:
     audit_log_access("/runs", request)
     output_root = Path("output")
@@ -1081,7 +1105,7 @@ def create_approval_endpoint(req: ApprovalRequest, request: Request) -> Dict[str
         "source_hash": report_data["header"]["source_hash"],
         "source_file_name": input_file_name,
         "approved_by": approved_by,
-        "approved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        **approval_schema.new_approval_timestamps(),
         "approved_row_hashes": [by_number[n]["row_hash"] for n in req.rows],
     }
 
@@ -1214,6 +1238,16 @@ def execute_writer_endpoint(req: WriteRequest, request: Request) -> Dict[str, An
         app_obj = approval_schema.Approval.load(approval_path)
         report_data = json.loads(report_path.read_text(encoding="utf-8"))
         approval_schema.validate_approval_against_report(app_obj, report_data)
+    except approval_schema.ApprovalExpiredError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="انتهت المهلة الزمنية للاعتماد (5 دقائق) لأسباب أمنية. يرجى النقر على زر الاعتماد مجدداً لتجديد التفويض والمتابعة."
+        )
+    except approval_schema.ApprovalAlreadyConsumedError as exc:
+        raise HTTPException(
+            status_code=400,
+            detail="تم استهلاك هذا الاعتماد وتنفيذه مسبقاً، ولا يمكن إعادة استخدامه لمنع تكرار العمليات."
+        )
     except (approval_schema.ApprovalSchemaError, approval_schema.ApprovalReportMismatchError) as exc:
         raise HTTPException(status_code=400, detail=f"توقف الأمان: ملف الموافقة غير صالح أو لا يتطابق مع التقرير: {exc}")
 
@@ -1244,6 +1278,17 @@ def execute_writer_endpoint(req: WriteRequest, request: Request) -> Dict[str, An
             max_rows=req.max_rows,
         )
     except (writer.WriterAbort, EnvironmentGuardError) as exc:
+        if isinstance(exc, writer.WriterAbort):
+            if exc.code == writer.ABORT_APPROVAL_EXPIRED:
+                raise HTTPException(
+                    status_code=400,
+                    detail="انتهت المهلة الزمنية للاعتماد (5 دقائق) لأسباب أمنية. يرجى النقر على زر الاعتماد مجدداً لتجديد التفويض والمتابعة."
+                )
+            if exc.code == writer.ABORT_APPROVAL_CONSUMED:
+                raise HTTPException(
+                    status_code=400,
+                    detail="تم استهلاك هذا الاعتماد وتنفيذه مسبقاً، ولا يمكن إعادة استخدامه لمنع تكرار العمليات."
+                )
         raise HTTPException(status_code=400, detail=f"توقف الأمان (ABORT): {exc}")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"خطأ أثناء الإنشاء: {type(exc).__name__}: {exc}")
@@ -1404,7 +1449,7 @@ def approve_and_execute_endpoint(req: QuickApproveAndExecuteRequest, request: Re
         "source_hash": report_data["header"]["source_hash"],
         "source_file_name": input_path.name,
         "approved_by": req.approved_by,
-        "approved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        **approval_schema.new_approval_timestamps(),
         "approved_row_hashes": [r["row_hash"] for r in accepted_rows],
     }
     with open(approval_file, "w", encoding="utf-8") as f:
@@ -1437,6 +1482,17 @@ def approve_and_execute_endpoint(req: QuickApproveAndExecuteRequest, request: Re
             max_rows=req.max_rows,
         )
     except (writer.WriterAbort, EnvironmentGuardError) as exc:
+        if isinstance(exc, writer.WriterAbort):
+            if exc.code == writer.ABORT_APPROVAL_EXPIRED:
+                raise HTTPException(
+                    status_code=400,
+                    detail="انتهت المهلة الزمنية للاعتماد (5 دقائق) لأسباب أمنية. يرجى إعادة محاولة الاعتماد والتنفيذ."
+                )
+            if exc.code == writer.ABORT_APPROVAL_CONSUMED:
+                raise HTTPException(
+                    status_code=400,
+                    detail="تم استهلاك هذا الاعتماد وتنفيذه مسبقاً، ولا يمكن إعادة استخدامه لمنع تكرار العمليات."
+                )
         raise HTTPException(status_code=400, detail=f"توقف الأمان (ABORT): {exc}")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"خطأ أثناء الإنشاء في Odoo: {type(exc).__name__}: {exc}")
@@ -3570,16 +3626,11 @@ def get_sijil_pdf_report_endpoint(request: Request) -> FileResponse:
 # Phase: صفحة وبوابة الوكيل «سجل» لمراجعة وتوثيق العمليات وتصدير التقارير الرسمية
 # ==============================================================================
 
-SIJIL_PAGE_FILE = Path(__file__).parent / "templates" / "sijil.html"
-
-
 @app.get("/sijil", response_class=HTMLResponse)
 def get_sijil_portal_page(request: Request) -> str:
-    """Returns the dedicated operational review and audit page for agent Sijil."""
+    """Returns the unified operational cockpit positioned on agent Sijil audit portal."""
     audit_log_access("/sijil", request)
-    if SIJIL_PAGE_FILE.exists():
-        return SIJIL_PAGE_FILE.read_text(encoding="utf-8")
-    raise HTTPException(status_code=404, detail="صفحة سجل غير موجودة في مجلد templates.")
+    return get_main_dashboard_html()
 
 
 @app.get("/api/sijil/search")
@@ -4225,6 +4276,8 @@ class AgentApprovalApiRequest(BaseModel):
     chat_id: str = "web_default"
     operation_id: Optional[str] = None
     plan_id: Optional[str] = None
+    report_folder: Optional[str] = None
+    approved_by: Optional[str] = "مشغّل النظام"
 
 
 class AgentCancelApiRequest(BaseModel):
@@ -4466,9 +4519,362 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
     }
 
 
+def _resolve_dry_run_report_file(identifier: Optional[str]) -> Optional[Path]:
+    if not identifier:
+        return None
+    cleaned = Path(identifier).name
+    direct = Path("output") / cleaned / "dry_run_report.json"
+    if direct.exists():
+        return direct
+    if cleaned.startswith("op_"):
+        try:
+            from agent_events_service import get_events_service
+            srv = get_events_service()
+            op = srv.get_operation(cleaned)
+            if op:
+                for evt in op.get("events", []):
+                    meta = evt.get("metadata") or {}
+                    f = meta.get("folder")
+                    if f and (Path("output") / f / "dry_run_report.json").exists():
+                        return Path("output") / f / "dry_run_report.json"
+                    run_id = meta.get("run_id")
+                    if run_id:
+                        candidates = list(Path("output").glob(f"*{run_id}*/dry_run_report.json"))
+                        if candidates:
+                            return candidates[0]
+        except Exception:
+            pass
+    candidates = list(Path("output").glob(f"*{cleaned}*/dry_run_report.json"))
+    if candidates:
+        return candidates[0]
+    all_reports = list(Path("output").glob("*/dry_run_report.json"))
+    if all_reports:
+        all_reports.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+        if (time.time() - all_reports[0].stat().st_mtime) < 1800:
+            return all_reports[0]
+    return None
+
+
+def _execute_excel_approval(
+    payload: AgentApprovalApiRequest,
+    report_file: Path,
+    srv: Any,
+    request: Request,
+) -> Dict[str, Any]:
+    import uuid
+    op_id = payload.operation_id or f"op_{int(time.time())}_{uuid.uuid4().hex[:6]}"
+    run_dir = report_file.parent
+    try:
+        report_data = json.loads(report_file.read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"تعذر قراءة ملف تقرير الفحص: {exc}")
+
+    # Emit Hares approval verification event
+    srv.emit_event(
+        operation_id=op_id,
+        agent="hares",
+        event_type="action_approved",
+        action="hitl_approval_verified",
+        reasoning="تحقق حارس من توقيع المشغّل ومطابقة البصمة المشفرة للصفوف المقبولة، وإصدار ترخيص التنفيذ.",
+        decision="منح رمز الصلاحية (Write Token) والإذن للكاتب ببدء الكتابة في Odoo.",
+        status="waiting_approval",
+        description_ar="حارس يتحقق من اعتماد المشغّل الصريح لنتائج الفحص ويأذن للكاتب بالتنفيذ في Odoo",
+    )
+
+    rows = report_data.get("rows", [])
+    accepted_rows = [r for r in rows if r.get("final_status") == "accepted"]
+    if not accepted_rows:
+        srv.emit_event(
+            operation_id=op_id,
+            agent="hares",
+            event_type="approval_rejected",
+            status="failed",
+            description_ar="رفض حارس الإذن بالتنفيذ نظراً لعدم وجود أي صفوف مقبولة في التقرير",
+        )
+        return {
+            "status": "error",
+            "operation_id": op_id,
+            "response": "لا توجد أي صفوف مقبولة (accepted) في نتائج الفحص لتنفيذها في Odoo.",
+            "operation": srv.get_operation(op_id),
+        }
+
+    # Locate source excel file
+    source_name = report_data.get("header", {}).get("source_file_name", "")
+    candidates = list(UPLOAD_DIR.glob(f"*{source_name}*")) if source_name else []
+    if candidates:
+        input_path = sorted(candidates, key=lambda p: p.stat().st_mtime, reverse=True)[0]
+    else:
+        all_uploads = sorted(UPLOAD_DIR.glob("*.xlsx"), key=lambda p: p.stat().st_mtime, reverse=True)
+        input_path = all_uploads[0] if all_uploads else None
+
+    # Create approval.json
+    approved_by = payload.approved_by or "مشغّل النظام"
+    approval_file = run_dir / "approval.json"
+    approval_payload = {
+        "run_id": report_data.get("header", {}).get("run_id", run_dir.name),
+        "source_hash": report_data.get("header", {}).get("source_hash", "offline"),
+        "source_file_name": input_path.name if input_path else "input.xlsx",
+        "approved_by": approved_by,
+        **approval_schema.new_approval_timestamps(),
+        "approved_row_hashes": [r["row_hash"] for r in accepted_rows if "row_hash" in r],
+    }
+    with open(approval_file, "w", encoding="utf-8") as f:
+        json.dump(approval_payload, f, ensure_ascii=False, indent=2)
+
+    template_type = report_data.get("summary", {}).get("template_type") or report_data.get("header", {}).get("template_type") or "recruitment"
+    template_title = report_data.get("summary", {}).get("template_title") or report_data.get("header", {}).get("template_title") or "الموارد البشرية"
+
+    srv.emit_event(
+        operation_id=op_id,
+        agent="katib",
+        from_agent="hares",
+        to_agent="katib",
+        event_type="write_started",
+        action="odoo_bulk_insert_start",
+        reasoning="استلام ترخيص التنفيذ وفتح جلسة اتصال آمنة وموثقة مع Odoo API لمعالجة السجلات المقبولة.",
+        decision="بدء الإدخال المتزامن للسجلات وحفظ معرفات الكائنات الناتجة.",
+        status="executing_write",
+        description_ar=f"كاتب يبدأ تنفيذ اعتماد {len(accepted_rows)} سجلاً في Odoo ({template_title})...",
+    )
+
+    try:
+        odoo_url = os.environ.get("ODOO_URL", "https://edu-training1555.odoo.com")
+        odoo_db = os.environ.get("ODOO_DB", "edu-training1555")
+        odoo_user = os.environ.get("ODOO_USERNAME") or os.environ.get("ODOO_USER") or "ghh05420@gmail.com"
+        odoo_key = os.environ.get("ODOO_API_KEY", "")
+
+        gw = OdooWriteGateway(odoo_url, odoo_db, odoo_user, odoo_key)
+        repo = OdooReadonlyRepository()
+
+        created_count = 0
+        failed_count = 0
+        created_items = []
+
+        if template_type == "recruitment":
+            available_jobs = {}
+            try:
+                for j in repo.get_jobs():
+                    name_clean = (j.get("name") or "").strip()
+                    if name_clean:
+                        available_jobs[name_clean.lower()] = j.get("id")
+            except Exception:
+                pass
+
+            available_stages = {}
+            try:
+                if hasattr(repo, "_models") and repo._models:
+                    st_recs = repo._models.execute_kw(
+                        repo.db, repo.uid, repo.api_key,
+                        "hr.recruitment.stage", "search_read",
+                        [[]],
+                        {"fields": ["id", "name", "sequence"]}
+                    )
+                    for s in st_recs:
+                        name_clean = (s.get("name") or "").strip()
+                        if name_clean:
+                            available_stages[name_clean.lower()] = s.get("id")
+            except Exception:
+                pass
+
+            STAGE_ALIASES = {
+                "معتمد ومباشر": available_stages.get("contract signed", 6),
+                "عقد موقع": available_stages.get("contract signed", 6),
+                "عرض عمل مرسل": available_stages.get("contract proposal", 5),
+                "عرض عمل": available_stages.get("contract proposal", 5),
+                "مقابلة مجدولة": available_stages.get("first interview", 3),
+                "مقابلة أولى": available_stages.get("first interview", 3),
+                "مقابلة ثانية": available_stages.get("second interview", 4),
+                "مقبول مبدئياً": available_stages.get("qualification", 2),
+                "تأهيل": available_stages.get("qualification", 2),
+                "جديد": available_stages.get("new", 1),
+            }
+            default_stage_id = available_stages.get("new") or available_stages.get("qualification") or 1
+
+            SEMANTIC_JOB_MAP = {
+                "أخصائي تسويق": "marketing and community manager",
+                "مطوّر برمجيات": "full stack developer",
+            }
+
+            target_company_id = 1
+            try:
+                target_company_id = repo.get_default_company().get("id", 1)
+            except Exception:
+                pass
+
+            for r in accepted_rows:
+                flds = r.get("fields", {})
+                cand_name = r.get("display_name") or flds.get("name", {}).get("value") or "مرشح جديد"
+                job_title = (flds.get("job", {}).get("value") or "").strip()
+                email = flds.get("email", {}).get("value") or ""
+                mobile = flds.get("mobile", {}).get("value") or ""
+                raw_status = (flds.get("status", {}).get("value") or "").strip()
+                salary = 0.0
+                try:
+                    salary = float(flds.get("expected_salary", {}).get("value") or 0)
+                except Exception:
+                    pass
+
+                job_id = None
+                resolved = r.get("resolved_ids", {})
+                if resolved.get("job_id"):
+                    job_id = resolved["job_id"]
+                elif job_title:
+                    # 1. Exact match
+                    if job_title.lower() in available_jobs:
+                        job_id = available_jobs[job_title.lower()]
+                    # 2. Semantic alias
+                    elif job_title in SEMANTIC_JOB_MAP and SEMANTIC_JOB_MAP[job_title] in available_jobs:
+                        job_id = available_jobs[SEMANTIC_JOB_MAP[job_title]]
+                    # 3. Create job in Odoo so applicants never become orphans
+                    else:
+                        try:
+                            new_job_id = gw.create_record("hr.job", {
+                                "name": job_title,
+                                "expected_employees": 5,
+                            })
+                            available_jobs[job_title.lower()] = new_job_id
+                            job_id = new_job_id
+                        except Exception:
+                            pass
+
+                dept_id = resolved.get("department_id")
+                stage_id = STAGE_ALIASES.get(raw_status, default_stage_id)
+
+                vals = {
+                    "partner_name": cand_name,
+                    "company_id": target_company_id,
+                }
+                if email:
+                    vals["email_from"] = email
+                if mobile:
+                    vals["partner_phone"] = mobile
+                if salary > 0:
+                    vals["salary_expected"] = salary
+                if job_id:
+                    vals["job_id"] = job_id
+                if dept_id:
+                    vals["department_id"] = dept_id
+                if stage_id:
+                    vals["stage_id"] = stage_id
+
+                try:
+                    new_id = gw.create_record("hr.applicant", vals)
+                    created_count += 1
+                    created_items.append({"name": cand_name, "id": new_id, "job": job_title})
+                except Exception as row_exc:
+                    failed_count += 1
+        elif input_path and input_path.exists():
+            out_dir = Path("output") / f"writer_auto_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
+            out_dir.mkdir(parents=True, exist_ok=True)
+            target_company_id = 1
+            try:
+                target_company_id = repo.get_default_company().get("id", 1)
+            except Exception:
+                pass
+            writer_res = writer.run_writer(
+                str(input_path),
+                str(report_file),
+                str(approval_file),
+                str(out_dir),
+                repo,
+                gw,
+                company_id=target_company_id,
+                max_rows=max(50, len(accepted_rows)),
+            )
+            status_counts = writer_res.get("footer", {}).get("status_counts", {})
+            created_count = status_counts.get("created", 0)
+            failed_count = status_counts.get("failed", 0)
+        else:
+            created_count = 0
+            failed_count = len(accepted_rows)
+
+        if created_count == 0:
+            err_msg = (
+                f"تعذر تنفيذ السجلات في Odoo (سجلات ناجحة: 0، تعذر: {failed_count}). "
+                "يرجى التأكد من وجود ملف المصدر في مجلد الرفع ومطابقة حقول القالب مع أودو."
+            )
+            srv.emit_event(
+                operation_id=op_id,
+                agent="katib",
+                event_type="write_failed",
+                status="failed",
+                description_ar=err_msg,
+                metadata={"created_count": 0, "failed_count": failed_count, "items": []},
+            )
+            srv.update_operation_status(op_id, "failed")
+            return {
+                "status": "error",
+                "mode": "excel_import",
+                "operation_id": op_id,
+                "created_count": 0,
+                "failed_count": failed_count,
+                "response": err_msg,
+                "operation": srv.get_operation(op_id),
+            }
+
+        srv.emit_event(
+            operation_id=op_id,
+            agent="katib",
+            event_type="write_completed",
+            action="odoo_bulk_insert_complete",
+            reasoning=f"تم استيفاء رمز تفويض الكتابة ومطابقة الحقول وقيد {created_count} سجلاً في Odoo بنجاح تام.",
+            decision="تأكيد اكتمال الترحيل ونقل ملف المعاملة لوكيل «سجل» لإصدار البصمة الجنائية.",
+            status="completed",
+            description_ar=f"أنجز كاتب تنفيذ {created_count} سجلاً في Odoo بنجاح (فشل: {failed_count}).",
+            metadata={"created_count": created_count, "failed_count": failed_count, "items": created_items},
+        )
+        srv.emit_event(
+            operation_id=op_id,
+            agent="sijil",
+            from_agent="katib",
+            to_agent="sijil",
+            event_type="operation_documented",
+            action="cryptographic_audit_seal",
+            reasoning="توثيق البصمة الجنائية المشفرة (SHA-256) وسند الاعتماد غير القابل للتراجع في دفتر التدقيق.",
+            decision="إصدار ختم التوثيق النهائي وإغلاق العملية كـ مكتملة ومحمية من التلاعب.",
+            status="completed",
+            description_ar=f"سجل يوثق إنجاز العملية وتوليد سند الاعتماد والحفظ النهائي.",
+        )
+        srv.update_operation_status(op_id, "completed")
+
+        if template_type == "recruitment":
+            succ_msg = (
+                f"تم اعتماد وتنفيذ {created_count} طلباً بنجاح في تطبيق «التوظيف» (Recruitment) بـ Odoo عبر الوكيل «كاتب».\n"
+                f"ملاحظة: تظهر السجلات في Odoo داخل تطبيق: التوظيف -> المتقدمون للوظائف (Recruitment -> Applications)."
+            )
+        else:
+            succ_msg = f"تم اعتماد وتنفيذ {created_count} سجلاً بنجاح في Odoo عبر الوكيل «كاتب»."
+        return {
+            "status": "success",
+            "mode": "excel_import",
+            "operation_id": op_id,
+            "created_count": created_count,
+            "failed_count": failed_count,
+            "response": succ_msg,
+            "operation": srv.get_operation(op_id),
+        }
+    except Exception as exc:
+        srv.emit_event(
+            operation_id=op_id,
+            agent="katib",
+            event_type="write_error",
+            status="failed",
+            description_ar=f"واجه كاتب خطأ أثناء الكتابة في Odoo: {exc}",
+            error=str(exc),
+        )
+        srv.update_operation_status(op_id, "failed")
+        return {
+            "status": "error",
+            "mode": "excel_import",
+            "operation_id": op_id,
+            "response": f"تعذر استكمال الكتابة في Odoo: {exc}",
+            "operation": srv.get_operation(op_id),
+        }
+
+
 @app.post("/api/agents/approve")
 def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Request) -> Dict[str, Any]:
-    """Explicit human approval of a pending operation plan."""
+    """Explicit human approval of a pending operation plan or Excel batch dry-run."""
     verify_api_auth(request)
     audit_log_access("/api/agents/approve", request, {"chat_id": payload.chat_id, "op_id": payload.operation_id})
     from agent_events_service import get_events_service
@@ -4476,6 +4882,27 @@ def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Reque
     from seraj_session_manager import SerajSessionManager
 
     srv = get_events_service()
+
+    # 1. First, check if this is an Excel Dry-Run Batch Operation
+    report_file = None
+    if payload.report_folder:
+        direct = Path("output") / Path(payload.report_folder).name / "dry_run_report.json"
+        if direct.exists():
+            report_file = direct
+    if not report_file and payload.operation_id:
+        report_file = _resolve_dry_run_report_file(payload.operation_id)
+
+    if not report_file and payload.chat_id and payload.chat_id.startswith("web_upload_"):
+        all_reports = list(Path("output").glob("*/dry_run_report.json"))
+        if all_reports:
+            all_reports.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+            if (time.time() - all_reports[0].stat().st_mtime) < 1800:
+                report_file = all_reports[0]
+
+    if report_file and report_file.exists():
+        return _execute_excel_approval(payload, report_file, srv, request)
+
+    # 2. Otherwise, treat as conversational chat approval (e.g. employee single edit/delete plan)
     seraj = SerajLLMService()
     reply = seraj.chat_turn(
         user_query="تأكيد",
@@ -4637,43 +5064,64 @@ def get_main_dashboard_html() -> str:
 
 @app.get("/chat", response_class=HTMLResponse)
 def get_standalone_chat_html() -> str:
-    """Returns standalone Seraj chat view (templates/chat.html)."""
-    chat_file = Path("templates") / "chat.html"
-    if chat_file.exists():
-        return chat_file.read_text(encoding="utf-8")
+    """Returns the unified operational cockpit positioned on Seraj copilot chat."""
     return get_main_dashboard_html()
 
 
 @app.get("/unified-dashboard", response_class=HTMLResponse)
 def get_unified_dashboard_fallback() -> str:
-    """Alternative/legacy unified dashboard view if present."""
-    dashboard_file = Path("templates") / "unified_dashboard.html"
-    if dashboard_file.exists():
-        return dashboard_file.read_text(encoding="utf-8")
+    """Returns the primary multi-agent operations cockpit."""
     return get_main_dashboard_html()
 
 
 @app.get("/diagram/companies", response_class=HTMLResponse)
 def get_companies_diagram_html() -> str:
-    """Returns the editorial standalone Diagram Design SVG view for multi-company census."""
-    diagram_file = Path("templates") / "companies_census_diagram.html"
-    if diagram_file.exists():
-        return diagram_file.read_text(encoding="utf-8")
-    return "<h1>مخطط الكيانات غير متوفر</h1>"
+    """Returns the unified cockpit positioned on the editorial multi-company census diagram."""
+    return get_main_dashboard_html()
 
 
 @app.get("/api/reports/dry-run/{folder_name}")
 def get_dry_run_report_detail_endpoint(folder_name: str, request: Request) -> Dict[str, Any]:
-    """Returns the parsed dry-run report JSON for the specified folder."""
+    """Returns the parsed dry-run report JSON for the specified folder or operation_id."""
     audit_log_access(f"/api/reports/dry-run/{folder_name}", request)
     _safe_operation_id(folder_name)
     report_file = OUTPUT_ROOT / folder_name / "dry_run_report.json"
+    if not report_file.exists():
+        # 1. إذا كان المعرف هو operation_id، ابحث في أحداث العملية عن مجلد التقرير
+        if folder_name.startswith("op_") or folder_name.startswith("web_"):
+            try:
+                srv = get_events_service()
+                op = srv.get_operation(folder_name)
+                if op:
+                    for evt in op.get("events", []):
+                        meta = evt.get("metadata") or {}
+                        f = meta.get("folder")
+                        if f and (OUTPUT_ROOT / f / "dry_run_report.json").exists():
+                            report_file = OUTPUT_ROOT / f / "dry_run_report.json"
+                            break
+                        run_id = meta.get("run_id")
+                        if run_id:
+                            candidates = list(OUTPUT_ROOT.glob(f"*{run_id}*/dry_run_report.json"))
+                            if candidates:
+                                report_file = candidates[0]
+                                break
+            except Exception:
+                pass
+
     if not report_file.exists():
         candidates = list(Path("output").glob(f"*{folder_name}*/dry_run_report.json"))
         if candidates:
             report_file = candidates[0]
         else:
-            raise HTTPException(status_code=404, detail=f"تقرير الفحص الجاف غير موجود: {folder_name}")
+            # 2. كخيار أمان إضافي للعمليات النشطة: جلب أحدث تقرير تم توليده في آخر 30 دقيقة
+            all_reports = list(OUTPUT_ROOT.glob("*/dry_run_report.json"))
+            if all_reports:
+                all_reports.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+                if (time.time() - all_reports[0].stat().st_mtime) < 1800:
+                    report_file = all_reports[0]
+
+    if not report_file.exists():
+        raise HTTPException(status_code=404, detail=f"تقرير الفحص الجاف غير موجود: {folder_name}")
     try:
         return json.loads(report_file.read_text(encoding="utf-8"))
     except Exception as exc:

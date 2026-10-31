@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import json
 import tempfile
 import unittest
@@ -243,6 +244,7 @@ class TestRecruitmentService(unittest.TestCase):
 
 class TestRecruitmentAPIEndpoints(unittest.TestCase):
     def setUp(self):
+        os.environ["WRITE_API_TOKEN"] = "unit-test-write-token"
         self.client = TestClient(app)
 
     @patch("web_service.get_recruitment_service_instance")
@@ -348,7 +350,7 @@ class TestRecruitmentAPIEndpoints(unittest.TestCase):
         resp = self.client.post(
             "/api/recruitment/apply",
             json=payload,
-            headers={"X-API-Key": "hr-write-secret-token"},
+            headers={"X-API-Key": "unit-test-write-token"},
         )
         self.assertEqual(resp.status_code, 200)
         data = resp.json()

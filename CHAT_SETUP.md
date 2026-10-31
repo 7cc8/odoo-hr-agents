@@ -111,7 +111,9 @@ LLM_MODEL=your-model-name
 LANGGRAPH_API_URL=http://localhost:2024
 
 # Security
-WRITE_API_TOKEN=hr-write-secret-token
+# ولّد قيمة عشوائية: python -c "import secrets; print(secrets.token_urlsafe(32))"
+# (القيم المنشورة في المستودع تُرفض: الخادم يعيد 503 حتى تغيّر الرمز)
+WRITE_API_TOKEN=
 ```
 
 ### 2. ملف `langgraph.json`

@@ -109,7 +109,7 @@ class OdooWriteGatewayTests(unittest.TestCase):
 
     def test_unlisted_method_is_refused(self):
         gw = make_gateway()
-        for method in ("unlink", "write", "search"):
+        for method in ("unlink", "delete", "search"):
             with self.assertRaises(WriteGatewayError):
                 gw._call(method, [[1]])
 

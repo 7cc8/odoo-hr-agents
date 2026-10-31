@@ -7,8 +7,9 @@ Usage:
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
 from pathlib import Path
+
+from approval_schema import new_approval_timestamps
 
 
 def main(argv=None):
@@ -47,7 +48,7 @@ def main(argv=None):
         "source_hash": report["header"]["source_hash"],
         "source_file_name": Path(args.input).name,
         "approved_by": args.approved_by,
-        "approved_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        **new_approval_timestamps(),
         "approved_row_hashes": [by_number[n]["row_hash"] for n in args.rows],
     }
     try:

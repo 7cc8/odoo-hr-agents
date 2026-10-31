@@ -1,4 +1,5 @@
 import json
+from approval_schema import new_approval_timestamps
 import tempfile
 import unittest
 from pathlib import Path
@@ -149,7 +150,7 @@ class WriterTests(unittest.TestCase):
                     "source_hash": SOURCE_HASH,
                     "source_file_name": self.input_path.name,
                     "approved_by": "test-user",
-                    "approved_at": "2026-09-30T00:00:00Z",
+                    **new_approval_timestamps(),
                     "approved_row_hashes": list(approved_hashes),
                 }
             ),

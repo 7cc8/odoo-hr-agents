@@ -598,7 +598,17 @@ def _validate_row_by_domain(
         matched_comp = _match_reference(comp, snapshot.get("companies", []))
         if matched_comp:
             resolved_ids["company_id"] = matched_comp.get("id")
-        else:
+        elif hasattr(repo, "get_default_company"):
+            try:
+                def_c = repo.get_default_company()
+                if def_c and def_c.get("id"):
+                    resolved_ids["company_id"] = def_c.get("id")
+                    parser_warnings.append("default_company_fallback")
+                    reasons.append(f"تم اعتماد المنشأة الافتراضية في Odoo («{def_c.get('name')}») لسجل الموظف.")
+            except Exception:
+                pass
+
+        if not resolved_ids.get("company_id"):
             reasons.append(f"المنشأة «{comp}» غير مسجلة في Odoo.")
 
         matched_dept = _match_reference(dept, snapshot.get("departments", []))
@@ -659,8 +669,115 @@ def _validate_row_by_domain(
         reasons.append("قيمة القسط الشهري ونسبة الاستقطاع ممتثلة تماماً للمادة 92 من نظام العمل.")
         return ("accepted", None, reasons, parser_warnings, resolved_ids)
 
-    # 6. بقية النطاقات العامة
-    reasons.append("سجل البيانات مكتمل ومستوفٍ للحقول الإلزامية والضوابط المعتمدة.")
+    # 6. قواعد شواغر التوظيف والمرشحين (Recruitment & Applicants)
+    elif domain_key == "recruitment":
+        from recruitment_service import is_job_restricted_to_saudis, get_job_accreditation_requirement
+
+        cand_name = row_raw.get("name", "").strip()
+        job_title = row_raw.get("job", "").strip()
+        dept_name = row_raw.get("dept", "").strip()
+        branch = row_raw.get("branch", "").strip()
+        nationality = row_raw.get("nationality", "").strip()
+        mobile = row_raw.get("mobile", "").strip()
+        email = row_raw.get("email", "").strip()
+        raw_status = row_raw.get("status", "").strip()
+        exp_salary_str = row_raw.get("expected_salary", "0")
+
+        # 1. فحص وتحديد الجنسية (مواطن سعودي مقابل وافد مقيم)
+        is_saudi = False
+        clean_nat = clean_value_text(nationality).lower()
+        if any(w in clean_nat for w in ["سعودي", "سعودية", "saudi", "مواطن", "مواطنة"]):
+            is_saudi = True
+
+        # 2. فحص قرارات التوطين وحظر المهن المقصورة 100% على المواطنين (وزارة الموارد البشرية)
+        is_restricted = is_job_restricted_to_saudis(job_title)
+        if not is_saudi and is_restricted:
+            return (
+                "rejected",
+                "saudization_restricted_profession",
+                [
+                    f"حظر توطين قطعي بموجب قرارات وزارة الموارد البشرية: وظيفة «{job_title}» مقصورة بنسبة 100% على المواطنين السعوديين، ويحظر نظاماً شغلها بمرشح وافد ({nationality or 'غير سعودي'})."
+                ],
+                ["saudization_violation_restricted_job"],
+                resolved_ids,
+            )
+        elif is_saudi and is_restricted:
+            reasons.append(f"متوافق مع قرارات التوطين: ترشيح مواطن سعودي لمهنة مقصورة («{job_title}») يدعم نسبة التوطين وتفادي المخالفات.")
+
+        # 3. فحص متطلبات الاعتماد والتصنيف المهني الإلزامي (SOCPA / SCE)
+        accreditation = get_job_accreditation_requirement(job_title)
+        if accreditation:
+            reasons.append(f"متطلب اعتماد وتصنيف مهني: {accreditation}")
+
+        # 4. مطابقة الوظيفة ضد شواغر Odoo الحية (Live Odoo Job Resolution)
+        all_jobs = snapshot.get("jobs", [])
+        SEMANTIC_JOB_MAP = {
+            "أخصائي تسويق": "marketing and community manager",
+            "مطوّر برمجيات": "full stack developer",
+        }
+
+        matched_job = _match_reference(job_title, all_jobs)
+        if not matched_job and job_title in SEMANTIC_JOB_MAP:
+            matched_job = _match_reference(SEMANTIC_JOB_MAP[job_title], all_jobs)
+
+        if matched_job:
+            resolved_ids["job_id"] = matched_job.get("id")
+            reasons.append(f"تمت مطابقة الشاغر الوظيفي في Odoo: «{matched_job.get('name')}» (معرف #{matched_job.get('id')}).")
+        elif job_title:
+            reasons.append(f"الشاغر «{job_title}» غير معرف مسبقاً في Odoo — سيقوم الوكيل «كاتب» بإنشائه تلقائياً في hr.job ضمن خطة الاعتماد.")
+        else:
+            return (
+                "rejected",
+                "missing_job_title",
+                ["المسمى الوظيفي مطلوب لإنشاء طلب التوظيف في Odoo."],
+                ["missing_job_title"],
+                resolved_ids,
+            )
+
+        # 5. مطابقة القسم في Odoo
+        if dept_name:
+            matched_dept = _match_reference(dept_name, snapshot.get("departments", []))
+            if matched_dept:
+                resolved_ids["department_id"] = matched_dept.get("id")
+                reasons.append(f"تمت مطابقة القسم في Odoo: «{matched_dept.get('name')}» (معرف #{matched_dept.get('id')}).")
+            else:
+                reasons.append(f"القسم «{dept_name}» غير مسجل في Odoo.")
+
+        # 6. إسناد المنشأة الافتراضية
+        companies = snapshot.get("companies", [])
+        if companies:
+            resolved_ids["company_id"] = companies[0].get("id", 1)
+
+        # 7. فحص مرحلة التوظيف ومسار كانبان في Odoo
+        STAGE_MAP_AR = {
+            "معتمد ومباشر": 6,   # Contract Signed
+            "عقد موقع": 6,
+            "عرض عمل مرسل": 5,   # Contract Proposal
+            "عرض عمل": 5,
+            "مقابلة مجدولة": 3,  # First Interview
+            "مقابلة أولى": 3,
+            "مقابلة ثانية": 4,  # Second Interview
+            "مقبول مبدئياً": 2,  # Qualification
+            "تأهيل": 2,
+            "جديد": 1,          # New
+        }
+        resolved_stage = STAGE_MAP_AR.get(raw_status, 1)
+        resolved_ids["stage_id"] = resolved_stage
+        reasons.append(f"تم توجيه المرشح إلى المرحلة رقم #{resolved_stage} في مسار التوظيف وفق حالة الملف («{raw_status or 'جديد'}»).")
+
+        # 8. فحص الراتب
+        try:
+            sal_val = float(exp_salary_str)
+            if sal_val > 0:
+                reasons.append(f"الراتب المتوقع المعتمد في السجل: {sal_val:,.0f} ر.س.")
+        except ValueError:
+            pass
+
+        return ("accepted", None, reasons, parser_warnings, resolved_ids)
+
+    # 7. بقية النطاقات العامة (مع الإفصاح الشفاف عن حدود الفحص)
+    reasons.append("تم التحقق من اكتمال وصحة الحقول الإلزامية الأساسية في بنية الجدول (فحص هيكلي).")
+    parser_warnings.append("النطاق مدعوم على مستوى فحص الأعمدة والهيكل؛ لم يتم إجراء مطابقة حية مع قواعد بيانات Odoo.")
     return ("accepted", None, reasons, parser_warnings, resolved_ids)
 
 

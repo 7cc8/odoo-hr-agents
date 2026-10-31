@@ -289,7 +289,9 @@ ODOO_USERNAME=your-user
 ODOO_API_KEY=your-key
 
 # Security
-WRITE_API_TOKEN=hr-write-secret-token
+# ولّد قيمة عشوائية: python -c "import secrets; print(secrets.token_urlsafe(32))"
+# (القيم المنشورة في المستودع تُرفض: الخادم يعيد 503 حتى تغيّر الرمز)
+WRITE_API_TOKEN=
 ```
 
 ---

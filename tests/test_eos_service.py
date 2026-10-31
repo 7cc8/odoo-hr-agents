@@ -460,7 +460,7 @@ class TestEOSAPI(unittest.TestCase):
             "confirmation_text": "تأكيد",
             "state": "confirmed",
         }
-        headers = {"Authorization": "Bearer hr-write-secret-token"}
+        headers = {"Authorization": "Bearer unit-test-write-token"}
         resp = self.client.post("/api/eos/apply", json=payload, headers=headers)
         self.assertEqual(resp.status_code, 200)
         data = resp.json()

@@ -172,7 +172,8 @@ class TestApproveEndpointPreservation:
             json={
                 "approved_by": "Test User",
                 "rows": [1, 2]
-            }
+            },
+            headers={"X-API-Key": os.environ.get("WRITE_API_TOKEN", "unit-test-write-token")}
         )
         
         # Property: Returns error when run_id/report_path missing
@@ -186,7 +187,8 @@ class TestApproveEndpointPreservation:
                 "run_id": "test",
                 "approved_by": "",  # Empty
                 "rows": [1]
-            }
+            },
+            headers={"X-API-Key": os.environ.get("WRITE_API_TOKEN", "unit-test-write-token")}
         )
         
         # Property: Rejects empty approved_by
@@ -225,7 +227,7 @@ class TestWriteEndpointPreservation:
                 "company_id": 1,
                 "max_rows": 1
             },
-            headers={"X-API-Key": os.environ.get("WRITE_API_TOKEN", "hr-write-secret-token")}
+            headers={"X-API-Key": os.environ.get("WRITE_API_TOKEN", "unit-test-write-token")}
         )
         
         # Property: With valid token, should not get 401
@@ -241,7 +243,7 @@ class TestWriteEndpointPreservation:
                 "company_id": 1,
                 "max_rows": 1
             },
-            headers={"X-API-Key": os.environ.get("WRITE_API_TOKEN", "hr-write-secret-token")}
+            headers={"X-API-Key": os.environ.get("WRITE_API_TOKEN", "unit-test-write-token")}
         )
         
         # Property: Must require approval file

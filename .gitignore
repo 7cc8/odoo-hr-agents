@@ -73,3 +73,8 @@ scratch/
 .kiro/
 data/
 diagram*.png
+
+.playwright-mcp/
+ 
+.taste-skill/
+.playwright/

@@ -424,7 +424,7 @@ class TestContractApiEndpoints(unittest.TestCase):
             "approval_token": "CTR-TEST1234",
             "confirmation_text": "تأكيد",
         }
-        headers = {"X-API-Key": "hr-write-secret-token"}
+        headers = {"X-API-Key": "unit-test-write-token"}
         response = self.client.post("/api/contracts/apply", json=payload, headers=headers)
         self.assertEqual(response.status_code, 200)
         data = response.json()
