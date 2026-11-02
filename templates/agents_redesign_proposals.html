@@ -1,0 +1,1989 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>قمرة قيادة الوكلاء التنفيذية — Odoo HR Command Center | 21st.dev & Design Charter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       HALLMARK STAMP & DESIGN SYSTEM TOKENS
+       (Hallmark Floor, Jakub Krehel Suite, 21st.dev Design Patterns, Unslop)
+       ========================================================================== */
+    /* Hallmark: floor pass | genre: modern-minimal | material: product | craft: high */
+
+    :root {
+      /* Base Surface Palette (Layered Elevation) */
+      --bg-base: #07090b;
+      --bg-surface: #0e1216;
+      --bg-card: #13181d;
+      --bg-elevated: #1a2127;
+      --bg-hover: #222b33;
+      --bg-input: #0b0e11;
+
+      /* Structural Borders */
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --border-medium: rgba(255, 255, 255, 0.12);
+      --border-strong: rgba(255, 255, 255, 0.20);
+      --border-focus: #0ea5e9;
+
+      /* Typography Scale & Palette */
+      --text-snow: #f8fafc;
+      --text-silver: #94a3b8;
+      --text-smoke: #64748b;
+      --text-muted: #475569;
+
+      /* 8 Identity Signatures */
+      --seraj: #0ea5e9;
+      --fahas: #06b6d4;
+      --modaqeq: #8b5cf6;
+      --mowafaq: #ec4899;
+      --musleh: #eab308;
+      --hares: #f97316;
+      --katib: #10b981;
+      --sijil: #64748b;
+
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+
+      /* Concentric Radii Tokens */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --radius-full: 9999px;
+
+      /* Typography */
+      --font-arabic: 'IBM Plex Sans Arabic', 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Layered Shadows (Depth over heavy borders) */
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+      --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 12px 32px -4px rgba(0, 0, 0, 0.5);
+      --shadow-glow-seraj: 0 0 24px rgba(14, 165, 233, 0.22);
+      --shadow-glow-amber: 0 0 24px rgba(245, 158, 11, 0.22);
+    }
+
+    /* Reset & The Floor Directives */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      overflow-x: clip;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-snow);
+      font-family: var(--font-arabic);
+      min-height: 100vh;
+      line-height: 1.6;
+      direction: rtl;
+      padding: 16px 24px 40px;
+      -webkit-font-smoothing: antialiased;
+      background-image: 
+        radial-gradient(ellipse 90% 50% at 50% -15%, rgba(14, 165, 233, 0.08), transparent 60%),
+        radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      background-size: 100% 100%, 24px 24px;
+    }
+
+    .container {
+      max-width: 1540px;
+      margin: 0 auto;
+    }
+
+    /* Tabular numbers for clean, jitter-free counters & metrics */
+    .mono, .badge, [data-numeric] {
+      font-variant-numeric: tabular-nums;
+      font-family: var(--font-mono);
+    }
+
+    /* Fast, visible focus indicator for accessibility */
+    :focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    /* Reduced Motion Fallback */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+
+    /* ==========================================================================
+       TOP CONTROL & EVALUATION BAR
+       ========================================================================== */
+    .eval-navbar {
+      background: linear-gradient(180deg, rgba(20, 26, 32, 0.95) 0%, rgba(14, 18, 22, 0.98) 100%);
+      border: 1px solid var(--border-medium);
+      backdrop-filter: blur(14px);
+      border-radius: var(--radius-xl);
+      padding: 12px 22px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .eval-title-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .eval-brand-badge {
+      width: 42px;
+      height: 42px;
+      border-radius: var(--radius-md);
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--seraj);
+      flex-shrink: 0;
+    }
+
+    .eval-title-group h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-snow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .eval-title-group p {
+      font-size: 12px;
+      color: var(--text-silver);
+      margin-top: 2px;
+    }
+
+    .eval-title-group p strong {
+      color: #38bdf8;
+    }
+
+    .eval-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Primary Action: Tactile Press (scale 0.96 in 150ms ease-out) */
+    .btn-adopt-design {
+      background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 9px 22px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 700;
+      font-family: var(--font-arabic);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(14, 165, 233, 0.35);
+      transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+    }
+
+    .btn-adopt-design:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(14, 165, 233, 0.5);
+    }
+
+    .btn-adopt-design:active {
+      transform: scale(0.96);
+    }
+
+    .btn-secondary-link {
+      background: var(--bg-card);
+      border: 1px solid var(--border-medium);
+      color: var(--text-silver);
+      text-decoration: none;
+      padding: 9px 16px;
+      border-radius: var(--radius-md);
+      font-size: 12.5px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+    }
+
+    .btn-secondary-link:hover {
+      background: var(--bg-elevated);
+      color: var(--text-snow);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .btn-secondary-link:active {
+      transform: scale(0.96);
+    }
+
+    /* ==========================================================================
+       SCENARIO SIMULATOR STRIP (Live Demonstration Controls)
+       ========================================================================== */
+    .sim-strip {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 9px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .sim-strip-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-silver);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sim-buttons-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-sim-trigger {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-silver);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--font-arabic);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out;
+    }
+
+    .btn-sim-trigger:hover {
+      background: var(--bg-elevated);
+      color: var(--text-snow);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-sim-trigger:active {
+      transform: scale(0.96);
+    }
+
+    .btn-sim-trigger.is-active {
+      background: rgba(14, 165, 233, 0.12);
+      border-color: var(--seraj);
+      color: #38bdf8;
+      box-shadow: 0 0 12px rgba(14, 165, 233, 0.2);
+    }
+
+    /* ==========================================================================
+       21ST.DEV MULTI-AGENT COMMAND DOCK (8 AGENTS UNIFIED GRID)
+       ========================================================================== */
+    .dock-wrapper {
+      background: linear-gradient(180deg, #12171c 0%, #0c1013 100%);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-xl);
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+    }
+
+    .dock-meta-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .dock-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dock-heading {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-snow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* 21st.dev Pulse Badge */
+    .status-badge-21st {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 11px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: var(--emerald);
+      transition: border-color 200ms ease, color 200ms ease;
+    }
+
+    .status-indicator-ping {
+      position: relative;
+      display: flex;
+      width: 6.5px;
+      height: 6.5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status-indicator-ping::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      background: inherit;
+      animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      opacity: 0.75;
+    }
+
+    @keyframes ping {
+      75%, 100% {
+        transform: scale(2.4);
+        opacity: 0;
+      }
+    }
+
+    /* 21st.dev Multi-Agent Routing Pipeline Strip */
+    .routing-pipeline-strip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-smoke);
+    }
+
+    .routing-step-tag {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 2px 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--text-silver);
+    }
+
+    .routing-step-tag.active {
+      background: rgba(14, 165, 233, 0.12);
+      border-color: var(--seraj);
+      color: #38bdf8;
+    }
+
+    .routing-arrow {
+      color: var(--text-muted);
+      font-size: 10px;
+    }
+
+    /* 8 AGENTS UNIFIED GRID — ZERO WRAPPING */
+    .agents-grid {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    @media (max-width: 1200px) {
+      .agents-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .agents-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    /* Individual Agent Card Tile (Concentric Radii + Optical Alignment) */
+    .agent-tile {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      position: relative;
+      transition: transform 150ms ease-out, background-color 150ms ease-out, border-color 150ms ease-out, box-shadow 150ms ease-out;
+      user-select: none;
+    }
+
+    .agent-tile:hover {
+      background: var(--bg-elevated);
+      border-color: rgba(255, 255, 255, 0.22);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .agent-tile:active {
+      transform: scale(0.96);
+    }
+
+    .agent-tile.is-active {
+      background: rgba(14, 165, 233, 0.10);
+      border-color: var(--agent-color, var(--seraj));
+      box-shadow: 0 0 16px rgba(14, 165, 233, 0.22);
+    }
+
+    .agent-tile.is-dimmed {
+      opacity: 0.32;
+      filter: grayscale(70%);
+      transform: scale(0.98);
+    }
+
+    /* 1px Content Outline on Avatar (better-ui standard) */
+    .agent-tile-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 1.5px solid var(--agent-color, rgba(255, 255, 255, 0.2));
+      outline: 1px solid rgba(255, 255, 255, 0.12);
+      outline-offset: -1px;
+      background: #111;
+      flex-shrink: 0;
+      position: relative;
+    }
+
+    .agent-tile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .agent-tile-info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .agent-tile-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .agent-tile-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-snow);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .agent-tile-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--emerald);
+      flex-shrink: 0;
+    }
+
+    .agent-tile-role {
+      font-size: 10.5px;
+      color: var(--text-silver);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+
+    /* Micro-popover for Agent Details */
+    .agent-tile .agent-popover {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #171d22;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 11px;
+      color: var(--text-silver);
+      white-space: nowrap;
+      box-shadow: var(--shadow-lg);
+      z-index: 60;
+      display: none;
+      pointer-events: none;
+      line-height: 1.4;
+    }
+
+    .agent-tile:hover .agent-popover {
+      display: block;
+    }
+
+    /* ==========================================================================
+       TWO-COLUMN EXECUTIVE WORKSPACE
+       Right (60%): Seraj Agent Chat (21st.dev Agent Elements)
+       Left (40%): HITL Governance Gate + 21st.dev Activity Timeline + Telemetry
+       ========================================================================== */
+    .workspace-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    @media (max-width: 1080px) {
+      .workspace-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .surface-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-xl);
+      padding: 0;
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
+
+    /* ==========================================================================
+       SERAJ AGENT CHAT (21st.dev Drop-in Shell Standard)
+       ========================================================================== */
+    .chat-shell {
+      display: flex;
+      flex-direction: column;
+      height: 680px;
+    }
+
+    .chat-header {
+      padding: 14px 20px;
+      background: linear-gradient(180deg, #161c21 0%, #11161a 100%);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-actor-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .seraj-frame {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--seraj);
+      outline: 1px solid rgba(255, 255, 255, 0.12);
+      outline-offset: -1px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .seraj-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .chat-actor-meta h2 {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-snow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-actor-meta p {
+      font-size: 11.5px;
+      color: var(--text-smoke);
+    }
+
+    .chat-status-pill {
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      color: #38bdf8;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    /* 21st.dev Suggestion Chips */
+    .suggestion-chips-bar {
+      padding: 10px 20px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .suggestion-label {
+      font-size: 11.5px;
+      color: var(--text-smoke);
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    .chip-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 4px 12px;
+      font-size: 11.5px;
+      color: var(--text-silver);
+      font-family: var(--font-arabic);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+    }
+
+    .chip-btn:hover {
+      background: var(--bg-elevated);
+      color: var(--text-snow);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .chip-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Message List */
+    .chat-feed-box {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-bubble {
+      max-width: 88%;
+      font-size: 13.5px;
+      line-height: 1.7;
+    }
+
+    .chat-bubble.assistant {
+      align-self: flex-start;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-right: 3px solid var(--seraj);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: #1c252d;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-lg);
+      padding: 12px 18px;
+      color: var(--text-snow);
+    }
+
+    /* Collapsible Reasoning Block (21st.dev Agent CoT Pattern) */
+    .reasoning-drawer {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      margin: 8px 0;
+      font-size: 12px;
+      color: var(--text-silver);
+    }
+
+    .reasoning-trigger {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #38bdf8;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .reasoning-body {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-smoke);
+      line-height: 1.5;
+    }
+
+    /* Tool Call Badge */
+    .tool-call-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(139, 92, 246, 0.12);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: #c4b5fd;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      margin: 4px 0 8px 0;
+    }
+
+    /* Composer Island */
+    .chat-composer-zone {
+      padding: 16px 20px;
+      background: linear-gradient(180deg, #13191e 0%, #0f1418 100%);
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .composer-textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text-snow);
+      font-family: var(--font-arabic);
+      font-size: 13.5px;
+      resize: none;
+      outline: none;
+      min-height: 48px;
+      line-height: 1.5;
+    }
+
+    .composer-textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .composer-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .composer-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-composer-tool {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 6px 12px;
+      font-size: 12px;
+      font-family: var(--font-arabic);
+      color: var(--text-silver);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out;
+    }
+
+    .btn-composer-tool:hover {
+      background: var(--bg-elevated);
+      color: var(--text-snow);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-composer-tool:active {
+      transform: scale(0.96);
+    }
+
+    .btn-send-chat {
+      background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+      color: #ffffff;
+      font-weight: 700;
+      font-family: var(--font-arabic);
+      border: none;
+      padding: 8px 20px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35);
+      transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+    }
+
+    .btn-send-chat:hover {
+      box-shadow: 0 6px 18px rgba(14, 165, 233, 0.5);
+    }
+
+    .btn-send-chat:active {
+      transform: scale(0.96);
+    }
+
+    /* ==========================================================================
+       LEFT OPERATIONS: 21ST.DEV AI TOOL APPROVAL & ACTIVITY TIMELINE
+       ========================================================================== */
+    .ops-sidebar-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    /* 21ST.DEV AI TOOL APPROVAL CARD (Human-in-the-Loop Governance Gate) */
+    .ai-approval-card {
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, rgba(20, 26, 31, 0.98) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: var(--radius-xl);
+      padding: 18px 20px;
+      display: none;
+      box-shadow: var(--shadow-glow-amber);
+      position: relative;
+    }
+
+    .ai-approval-card.is-active {
+      display: block;
+      animation: slideInDown 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .approval-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .approval-card-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--amber);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .approval-countdown-badge {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: var(--amber);
+      font-size: 11.5px;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .approval-diff-table-container {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 14px;
+      font-size: 12px;
+    }
+
+    .approval-diff-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+    }
+
+    .approval-diff-table th {
+      color: var(--text-smoke);
+      font-weight: 600;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .approval-diff-table td {
+      padding: 6px 0;
+      color: var(--text-silver);
+    }
+
+    .approval-diff-table td strong {
+      color: var(--emerald);
+    }
+
+    .approval-actions-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-approval-confirm {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      font-weight: 700;
+      font-family: var(--font-arabic);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: var(--radius-md);
+      padding: 9px 18px;
+      font-size: 12.5px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+    }
+
+    .btn-approval-confirm:active {
+      transform: scale(0.96);
+    }
+
+    .btn-approval-deny {
+      background: transparent;
+      border: 1px solid var(--border-medium);
+      color: var(--text-silver);
+      font-size: 12px;
+      font-family: var(--font-arabic);
+      border-radius: var(--radius-md);
+      padding: 9px 14px;
+      cursor: pointer;
+      transition: background-color 150ms ease-out, color 150ms ease-out;
+    }
+
+    .btn-approval-deny:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-snow);
+    }
+
+    .btn-approval-deny:active {
+      transform: scale(0.96);
+    }
+
+    /* 21ST.DEV ACTIVITY TIMELINE */
+    .activity-timeline-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-xl);
+      padding: 18px 20px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .timeline-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 16px;
+    }
+
+    .timeline-title-text {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-snow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timeline-track-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .timeline-track-list::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      bottom: 10px;
+      right: 15px;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .timeline-entry {
+      display: flex;
+      gap: 14px;
+      position: relative;
+      font-size: 12.5px;
+    }
+
+    .timeline-marker-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 2px solid var(--marker-color, var(--seraj));
+      outline: 1px solid rgba(255, 255, 255, 0.12);
+      outline-offset: -1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .timeline-marker-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .timeline-entry-content {
+      flex: 1;
+      padding-top: 4px;
+    }
+
+    .timeline-entry-heading {
+      color: var(--text-snow);
+      line-height: 1.5;
+    }
+
+    .timeline-entry-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-smoke);
+    }
+
+    .timeline-seal-badge {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: #38bdf8;
+      background: rgba(14, 165, 233, 0.08);
+      border: 1px solid rgba(14, 165, 233, 0.2);
+      padding: 1px 7px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* TELEMETRY METRIC CARDS */
+    .telemetry-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .telemetry-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+    }
+
+    .telemetry-label {
+      font-size: 11px;
+      color: var(--text-smoke);
+      margin-bottom: 4px;
+    }
+
+    .telemetry-metric {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-snow);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .telemetry-status-text {
+      font-size: 10.5px;
+      color: var(--emerald);
+      margin-top: 2px;
+    }
+
+    /* ==========================================================================
+       MODAL CONFIRMATION DIALOG
+       ========================================================================== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+    }
+
+    .modal-overlay.is-visible {
+      display: flex;
+    }
+
+    .modal-card {
+      background: #14191e;
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      text-align: center;
+    }
+
+    .modal-badge-ring {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--seraj);
+      margin: 0 auto 16px;
+    }
+
+    .modal-card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-snow);
+      margin-bottom: 8px;
+    }
+
+    .modal-card p {
+      font-size: 13.5px;
+      color: var(--text-silver);
+      line-height: 1.6;
+      margin-bottom: 22px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    .btn-modal-primary {
+      background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+      color: #fff;
+      font-weight: 700;
+      font-family: var(--font-arabic);
+      border: none;
+      padding: 10px 24px;
+      border-radius: var(--radius-md);
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: transform 150ms ease-out;
+    }
+
+    .btn-modal-primary:active {
+      transform: scale(0.96);
+    }
+
+    .btn-modal-dismiss {
+      background: transparent;
+      border: 1px solid var(--border-medium);
+      color: var(--text-silver);
+      font-family: var(--font-arabic);
+      padding: 10px 20px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background-color 150ms ease-out;
+    }
+
+    .btn-modal-dismiss:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-modal-dismiss:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Top Control Bar -->
+    <header class="eval-navbar">
+      <div class="eval-title-group">
+        <div class="eval-brand-badge">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div>
+          <h1>
+            <span>قمرة قيادة الوكلاء التنفيذية — Odoo HR Command Center</span>
+            <span class="badge" style="font-size: 10px; background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); padding: 2px 8px; border-radius: var(--radius-full);">21st.dev & Skills</span>
+          </h1>
+          <p>
+            تطبيق كامل لمحددات <strong>Hallmark (The Floor)</strong> وحزمة <strong>Jakub Krehel (better-ui)</strong> وأدوات <strong>21st.dev</strong>.
+          </p>
+        </div>
+      </div>
+
+      <div class="eval-actions-group">
+        <a href="/?view=cockpit" class="btn-secondary-link">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          العودة للواجهة الحالية
+        </a>
+        <button class="btn-adopt-design" onclick="openApprovalModal()">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>اعتمد هذا التصميم وطبقه في قمرة القيادة ←</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Interactive Simulator Controls -->
+    <div class="sim-strip">
+      <div class="sim-strip-label">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="var(--seraj)" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span>جرّب رد فعل المنظومة التفاعلي في الحالات التشغيلية الحية:</span>
+      </div>
+      <div class="sim-buttons-group">
+        <button class="btn-sim-trigger is-active" id="btn-scene-standby" onclick="switchScenario('standby', this)">
+          1. حالة الاستعداد الهادئة (Standby)
+        </button>
+        <button class="btn-sim-trigger" id="btn-scene-law" onclick="switchScenario('law', this)">
+          2. استشارة نظام العمل (سراج ➔ مدقق)
+        </button>
+        <button class="btn-sim-trigger" id="btn-scene-hitl" onclick="switchScenario('hitl', this)">
+          3. تدقيق ملف رواتب Odoo (تفعيل بوابة حارس HITL)
+        </button>
+      </div>
+    </div>
+
+    <!-- ==========================================================================
+         21ST.DEV MULTI-AGENT COMMAND DOCK (8 AGENTS UNIFIED GRID)
+         ========================================================================== -->
+    <section class="dock-wrapper" id="dockWrapper">
+      
+      <!-- Dock Header Bar -->
+      <div class="dock-meta-bar">
+        <div class="dock-title-group">
+          <div class="dock-heading">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--seraj)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            <span>منظومة الوكلاء الثمانية:</span>
+          </div>
+          <div class="status-badge-21st" id="dockStatusBadge">
+            <span class="status-indicator-ping"></span>
+            <span id="dockStatusText">8 وكلاء في حالة جاهزية كاملة</span>
+          </div>
+        </div>
+
+        <!-- 21st.dev Routing Indicator Strip -->
+        <div class="routing-pipeline-strip" id="routingPipelineStrip">
+          <span style="font-weight: 600;">مسار التوجيه:</span>
+          <span class="routing-step-tag active" id="route-step-user">المشغّل</span>
+          <span class="routing-arrow">➔</span>
+          <span class="routing-step-tag active" id="route-step-seraj">سراج (المنسق)</span>
+          <span class="routing-arrow">➔</span>
+          <span class="routing-step-tag" id="route-step-target">الوكيل المختص</span>
+        </div>
+      </div>
+
+      <!-- 8 Agents Grid Container — Zero Wrapping -->
+      <div class="agents-grid">
+        
+        <!-- 1. Seraj -->
+        <div class="agent-tile is-active" id="tile_seraj" style="--agent-color: var(--seraj);" onclick="handleAgentTileClick('seraj')">
+          <div class="agent-tile-avatar">
+            <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" onerror="this.src='/images/svg/seraj.svg'">
+          </div>
+          <div class="agent-tile-info">
+            <div class="agent-tile-header">
+              <span class="agent-tile-name">سراج</span>
+              <span class="agent-tile-status-dot" style="background: var(--seraj);"></span>
+            </div>
+            <div class="agent-tile-role">المنسق العام</div>
+          </div>
+          <div class="agent-popover">سراج: المنسق العام ومحاور المشغّل • انقر لإدراج أمره في الشات</div>
+        </div>
+
+        <!-- 2. Fahas -->
+        <div class="agent-tile" id="tile_fahas" style="--agent-color: var(--fahas);" onclick="handleAgentTileClick('fahas')">
+          <div class="agent-tile-avatar">
+            <img src="/images/%D9%81%D8%A7%D8%AD%D8%B5.jpg" onerror="this.src='/images/svg/fahas.svg'">
+          </div>
+          <div class="agent-tile-info">
+            <div class="agent-tile-header">
+              <span class="agent-tile-name">فاحص</span>
+              <span class="agent-tile-status-dot"></span>
+            </div>
+            <div class="agent-tile-role">استعلام Odoo</div>
+          </div>
+          <div class="agent-popover">فاحص: قراءة واستعلام بيانات Odoo 19.0e الحية بأمان تام</div>
+        </div>
+
+        <!-- 3. Modaqeq -->
+        <div class="agent-tile" id="tile_modaqeq" style="--agent-color: var(--modaqeq);" onclick="handleAgentTileClick('modaqeq')">
+          <div class="agent-tile-avatar">
+            <img src="/images/%D9%85%D8%AF%D9%82%D9%82.jpg" onerror="this.src='/images/svg/modaqeq.svg'">
+          </div>
+          <div class="agent-tile-info">
+            <div class="agent-tile-header">
+              <span class="agent-tile-name">مدقق</span>
+              <span class="agent-tile-status-dot"></span>
+            </div>
+            <div class="agent-tile-role">نظام العمل</div>
+          </div>
+          <div class="agent-popover">مدقق: مطابقة مواد ولوائح نظام العمل السعودي (40 مادة مفهرسة)</div>
+        </div>
+
+        <!-- 4. Mowafaq -->
+        <div class="agent-tile" id="tile_mowafaq" style="--agent-color: var(--mowafaq);" onclick="handleAgentTileClick('mowafaq')">
+          <div class="agent-tile-avatar">
+            <img src="/images/%D9%85%D9%88%D9%81%D9%82.jpg" onerror="this.src='/images/svg/mowafaq.svg'">
+          </div>
+          <div class="agent-tile-info">
+            <div class="agent-tile-header">
+              <span class="agent-tile-name">موفق</span>
+              <span class="agent-tile-status-dot"></span>
+            </div>
+            <div class="agent-tile-role">المطابقة الدلالية</div>
+          </div>
+          <div class="agent-popover">موفق: مطابقة المسميات والأقسام بين ملفات Excel وسجلات Odoo</div>
+        </div>
+
+        <!-- 5. Musleh -->
+        <div class="agent-tile" id="tile_musleh" style="--agent-color: var(--musleh);" onclick="handleAgentTileClick('musleh')">
+          <div class="agent-tile-avatar">
+            <img src="/images/%D9%85%D8%B5%D9%84%D8%AD.jpg" onerror="this.src='/images/svg/musleh.svg'">
+          </div>
+          <div class="agent-tile-info">
+            <div class="agent-tile-header">
+              <span class="agent-tile-name">مصلح</span>
+              <span class="agent-tile-status-dot"></span>
+            </div>
+            <div class="agent-tile-role">التشخيص الذاتي</div>
+          </div>
+          <div class="agent-popover">مصلح: كشف الأخطاء وإصلاح الشذوذ واقتراح الحلول التصحيحية</div>
+        </div>
+
+        <!-- 6. Hares -->
+        <div class="agent-tile" id="tile_hares" style="--agent-color: var(--hares);" onclick="handleAgentTileClick('hares')">
+          <div class="agent-tile-avatar">
+            <img src="/images/%D8%AD%D8%A7%D8%B1%D8%B3.jpg" onerror="this.src='/images/svg/hares.svg'">
+          </div>
+          <div class="agent-tile-info">
+            <div class="agent-tile-header">
+              <span class="agent-tile-name">حارس</span>
+              <span class="agent-tile-status-dot"></span>
+            </div>
+            <div class="agent-tile-role">حوكمة الأمان PII</div>
+          </div>
+          <div class="agent-popover">حارس: حجب البيانات الحساسة وتفعيل بوابة موافقة المشغّل البشري</div>
+        </div>
+
+        <!-- 7. Katib -->
+        <div class="agent-tile" id="tile_katib" style="--agent-color: var(--katib);" onclick="handleAgentTileClick('katib')">
+          <div class="agent-tile-avatar">
+            <img src="/images/%D9%83%D8%A7%D8%AA%D8%A8.jpg" onerror="this.src='/images/svg/katib.svg'">
+          </div>
+          <div class="agent-tile-info">
+            <div class="agent-tile-header">
+              <span class="agent-tile-name">كاتب</span>
+              <span class="agent-tile-status-dot"></span>
+            </div>
+            <div class="agent-tile-role">قيد Odoo</div>
+          </div>
+          <div class="agent-popover">كاتب: تنفيذ عمليات الإنشاء والتعديل في Odoo بعد اعتماد حارس</div>
+        </div>
+
+        <!-- 8. Sijil -->
+        <div class="agent-tile" id="tile_sijil" style="--agent-color: var(--sijil);" onclick="handleAgentTileClick('sijil')">
+          <div class="agent-tile-avatar">
+            <img src="/images/%D8%B3%D8%AC%D9%84.jpg" onerror="this.src='/images/svg/sijil.svg'">
+          </div>
+          <div class="agent-tile-info">
+            <div class="agent-tile-header">
+              <span class="agent-tile-name">سجل</span>
+              <span class="agent-tile-status-dot"></span>
+            </div>
+            <div class="agent-tile-role">الختم الرقمي</div>
+          </div>
+          <div class="agent-popover">سجل: التوثيق الرقابي والختم اللاتراجعي بتشفير SHA-256</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+       TWO-COLUMN EXECUTIVE WORKSPACE
+       ========================================================================== -->
+    <main class="workspace-layout">
+      
+      <!-- RIGHT COLUMN: SERAJ AGENT CHAT -->
+      <section class="surface-panel chat-shell">
+        
+        <!-- Header -->
+        <div class="chat-header">
+          <div class="chat-actor-meta">
+            <div class="seraj-frame">
+              <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" onerror="this.src='/images/svg/seraj.svg'">
+            </div>
+            <div>
+              <h2>
+                <span>المحادثة التنفيذية مع «سراج»</span>
+                <span style="font-size: 11px; color: var(--text-smoke); font-weight: normal;">(المنسق العام)</span>
+              </h2>
+              <p>تشغيل محلي محكوم عبر Ollama Qwen 3.5 9B • حوكمة Odoo Stage</p>
+            </div>
+          </div>
+
+          <div class="chat-status-pill">
+            <span class="status-indicator-ping" style="width: 5px; height: 5px;"></span>
+            <span>جاهز للأوامر</span>
+          </div>
+        </div>
+
+        <!-- 21st.dev Suggestion Chips -->
+        <div class="suggestion-chips-bar">
+          <span class="suggestion-label">اقتراحات سريعة:</span>
+          <button class="chip-btn" onclick="fillPrompt('ما هي ضوابط إنهاء العقد لسبب غير مشروع بموجب المادة 77 من نظام العمل السعودي؟')">
+            📜 تعويض المادة 77
+          </button>
+          <button class="chip-btn" onclick="fillPrompt('استعلم عن عدد الموظفين النشطين في Odoo وقسم الموارد البشرية')">
+            👥 استعلام موظفي Odoo
+          </button>
+          <button class="chip-btn" onclick="fillPrompt('فحص وتدقيق كشف الرواتب الشهري الجديد للتأكد من مطابقة الأجور')">
+            📊 فحص كشف الرواتب
+          </button>
+        </div>
+
+        <!-- Message Feed Container -->
+        <div class="chat-feed-box" id="chatFeedBox">
+          <div class="chat-bubble assistant">
+            مرحباً بك! أنا <strong>«سراج»</strong> المنسق العام لمنظومة الوكلاء الثمانية.
+            <br>
+            يمكنك توجيه أي استفسار حول <strong>لوائح نظام العمل السعودي</strong>، الاستعلام الآمن عن <strong>عقود وموظفي Odoo 19.0+e</strong>، أو سحب وإفلات كشف Excel هنا ليقوم فريق الوكلاء بفحصه وتدقيقه فورياً.
+          </div>
+        </div>
+
+        <!-- Composer Island (21st.dev Input Standard) -->
+        <div class="chat-composer-zone">
+          <textarea class="composer-textarea" id="chatInputArea" placeholder="اكتب طلبك أو استفسارك هنا، أو اسحب ملف Excel (.xlsx, .xls)..." onkeydown="handleKeyDown(event)"></textarea>
+          
+          <div class="composer-toolbar">
+            <div class="composer-tools">
+              <button class="btn-composer-tool" onclick="simulateFileUpload()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                <span>إرفاق ملف Excel</span>
+              </button>
+              <button class="btn-composer-tool" onclick="fillPrompt('اعرض لي ملخص حالة اتصالات الوكلاء وقاعدة Odoo')">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <span>فحص المنظومة</span>
+              </button>
+            </div>
+
+            <button class="btn-send-chat" onclick="sendMessage()">
+              <span>إرسال</span>
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- LEFT COLUMN: 21ST.DEV AI TOOL APPROVAL + ACTIVITY TIMELINE + TELEMETRY -->
+      <section class="ops-sidebar-stack">
+        
+        <!-- 21ST.DEV AI TOOL APPROVAL CARD (Human-in-the-Loop Governance Gate) -->
+        <div class="ai-approval-card" id="aiApprovalCard">
+          <div class="approval-card-top">
+            <div class="approval-card-title">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              <span>بوابة الاعتماد البشري (HITL Governance Gate)</span>
+            </div>
+            <div class="approval-countdown-badge">
+              <span class="status-indicator-ping" style="width: 5px; height: 5px; background: var(--amber);"></span>
+              <span id="approvalCountdownText">04:59</span>
+            </div>
+          </div>
+
+          <div style="font-size: 12.5px; color: var(--text-silver); line-height: 1.5; margin-bottom: 12px;">
+            أنجز الوكلاء فحص وتدقيق الملف. يتطلب ميثاق الأمان توقيعك البشري الصريح قبل سماح «حارس» لوكيل «كاتب» بتنفيذ التعديل في Odoo:
+          </div>
+
+          <!-- Parameter Diff Review Table -->
+          <div class="approval-diff-table-container">
+            <table class="approval-diff-table">
+              <thead>
+                <tr>
+                  <th>الموظف</th>
+                  <th>الحقل المعدل</th>
+                  <th>القيمة السابقة</th>
+                  <th>القيمة الجديدة</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>محمد القحطاني</td>
+                  <td>بدل السكن الشهري</td>
+                  <td>1,500 ر.س</td>
+                  <td><strong>2,000 ر.س (+500)</strong></td>
+                </tr>
+                <tr>
+                  <td>سارة الشمري</td>
+                  <td>المسمى الوظيفي</td>
+                  <td>أخصائي أول</td>
+                  <td><strong>مدير شؤون الموظفين</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="approval-actions-row">
+            <button class="btn-approval-confirm" onclick="handleHitlDecision(true)">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>اعتماد التعديلات وقيدها في Odoo ←</span>
+            </button>
+            <button class="btn-approval-deny" onclick="handleHitlDecision(false)">
+              رفض الإجراء
+            </button>
+          </div>
+        </div>
+
+        <!-- 21ST.DEV CONNECTED ACTIVITY TIMELINE -->
+        <div class="activity-timeline-card">
+          <div class="timeline-header-bar">
+            <div class="timeline-title-text">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--emerald)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              <span>سجل التتبع والعمليات الحية (الأثر الرقابي)</span>
+            </div>
+            <span class="badge" style="font-size: 10px; color: var(--text-smoke); background: rgba(255,255,255,0.04); padding: 2px 6px; border-radius: var(--radius-sm);">SHA-256 Validated</span>
+          </div>
+
+          <div class="timeline-track-list" id="timelineTrackList">
+            
+            <!-- Event 1 -->
+            <div class="timeline-entry">
+              <div class="timeline-marker-avatar" style="--marker-color: var(--seraj);">
+                <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" onerror="this.src='/images/svg/seraj.svg'">
+              </div>
+              <div class="timeline-entry-content">
+                <div class="timeline-entry-heading">
+                  <strong>جاهزية المنظومة:</strong> تفعيل قمرة القيادة والتحقق من سلامة خطوط التوجيه بين الوكلاء.
+                </div>
+                <div class="timeline-entry-meta">
+                  <span>منذ قليل • وكيل: سراج</span>
+                  <span class="timeline-seal-badge">SEAL: 7f8a9b1c</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Event 2 -->
+            <div class="timeline-entry">
+              <div class="timeline-marker-avatar" style="--marker-color: var(--fahas);">
+                <img src="/images/%D9%81%D8%A7%D8%AD%D8%B5.jpg" onerror="this.src='/images/svg/fahas.svg'">
+              </div>
+              <div class="timeline-entry-content">
+                <div class="timeline-entry-heading">
+                  <strong>مزامنة Odoo 19.0+e:</strong> تأكيد الاتصال الآمن مع قاعدة بيانات المرحلة والتحقق من 14 سجلاً.
+                </div>
+                <div class="timeline-entry-meta">
+                  <span>اليوم 10:14 ص • وكيل: فاحص</span>
+                  <span class="timeline-seal-badge">SEAL: 4c3d2e1f</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Event 3 -->
+            <div class="timeline-entry">
+              <div class="timeline-marker-avatar" style="--marker-color: var(--hares);">
+                <img src="/images/%D8%AD%D8%A7%D8%B1%D8%B3.jpg" onerror="this.src='/images/svg/hares.svg'">
+              </div>
+              <div class="timeline-entry-content">
+                <div class="timeline-entry-heading">
+                  <strong>حوكمة الأمان:</strong> ترقية بروتوكول حماية PII وتفعيل الاعتماد المشروط لأي عمليات كتابة.
+                </div>
+                <div class="timeline-entry-meta">
+                  <span>اليوم 10:10 ص • وكيل: حارس</span>
+                  <span class="timeline-crypto-seal">SEAL: e98a12bc</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- TELEMETRY METRIC CARDS -->
+        <div class="telemetry-row">
+          <div class="telemetry-box">
+            <div class="telemetry-label">موظفو Odoo المتزامنون</div>
+            <div class="telemetry-metric">14 موظف</div>
+            <div class="telemetry-status-text">● قاعدة البيانات متطابقة 100%</div>
+          </div>
+          <div class="telemetry-box">
+            <div class="telemetry-label">محرك الذكاء الاصطناعي</div>
+            <div class="telemetry-metric">Qwen 3.5 9B</div>
+            <div class="telemetry-status-text">● استجابة محلية سريعة</div>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- APPROVAL CONFIRMATION MODAL -->
+  <div class="modal-overlay" id="approvalModal">
+    <div class="modal-card">
+      <div class="modal-badge-ring">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+      </div>
+      <h3>اعتماد ونقل التصميم الجديد لقمرة القيادة</h3>
+      <p>
+        سيتم استبدال صف الكروت الثمانية الضخمة في <code>dashboard.html</code> بهذا الشريط المؤسسي المدمج (Executive Dock)، مع حذف صندوق «0 خطوات» المعلق وتثبيت قمرة القيادة الرسمية. هل تود المتابعة الآن؟
+      </p>
+      <div class="modal-buttons">
+        <button class="btn-modal-primary" onclick="executeApplyDesign()">
+          نعم، اعتمد وطبّق فوراً ←
+        </button>
+        <button class="btn-modal-dismiss" onclick="closeApprovalModal()">
+          مراجعة المزيد
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT CONTROLLERS -->
+  <script>
+    let hitlTimerInterval = null;
+
+    function switchScenario(scene, btn) {
+      document.querySelectorAll('.btn-sim-trigger').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+
+      const tiles = document.querySelectorAll('.agent-tile');
+      const badge = document.getElementById('dockStatusBadge');
+      const badgeText = document.getElementById('dockStatusText');
+      const approvalCard = document.getElementById('aiApprovalCard');
+      const chatBox = document.getElementById('chatFeedBox');
+      const timelineBox = document.getElementById('timelineTrackList');
+      const routeTarget = document.getElementById('route-step-target');
+
+      clearInterval(hitlTimerInterval);
+
+      if (scene === 'standby') {
+        tiles.forEach(t => {
+          t.classList.remove('is-dimmed');
+          if (t.id === 'tile_seraj') t.classList.add('is-active');
+          else t.classList.remove('is-active');
+        });
+        badge.style.borderColor = 'rgba(16, 185, 129, 0.25)';
+        badge.style.color = 'var(--emerald)';
+        badgeText.textContent = '8 وكلاء في حالة جاهزية كاملة';
+        approvalCard.classList.remove('is-active');
+        routeTarget.textContent = 'الوكيل المختص';
+        routeTarget.classList.remove('active');
+
+        chatBox.innerHTML = `
+          <div class="chat-bubble assistant">
+            مرحباً بك! أنا <strong>«سراج»</strong> المنسق العام لمنظومة الوكلاء الثمانية.
+            <br>
+            يمكنك توجيه أي استفسار حول <strong>لوائح نظام العمل السعودي</strong>، الاستعلام الآمن عن <strong>عقود وموظفي Odoo 19.0+e</strong>، أو سحب وإفلات كشف Excel هنا ليقوم فريق الوكلاء بفحصه وتدقيقه فورياً.
+          </div>
+        `;
+      }
+      else if (scene === 'law') {
+        tiles.forEach(t => {
+          if (t.id === 'tile_seraj' || t.id === 'tile_modaqeq') {
+            t.classList.add('is-active');
+            t.classList.remove('is-dimmed');
+          } else {
+            t.classList.remove('is-active');
+            t.classList.add('is-dimmed');
+          }
+        });
+        badge.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+        badge.style.color = '#c4b5fd';
+        badgeText.textContent = 'مسار نشط: سراج ➔ مدقق (تدقيق المادة 77)';
+        approvalCard.classList.remove('is-active');
+        routeTarget.textContent = 'مدقق (99% ثقة)';
+        routeTarget.classList.add('active');
+
+        chatBox.innerHTML = `
+          <div class="chat-bubble user">
+            يا سراج، ما هي ضوابط التعويض المالي عند إنهاء العقد لسبب غير مشروع بموجب المادة 77 من نظام العمل السعودي؟
+          </div>
+          <div class="chat-bubble assistant">
+            <div class="reasoning-drawer">
+              <div class="reasoning-trigger" onclick="toggleReasoning(this)">
+                <span>▼ تفكير سراج: استدعاء الوكيل «مدقق» لفحص نصوص اللائحة</span>
+              </div>
+              <div class="reasoning-body">
+                -> query: labor_law_ksa.match(article=77)<br>
+                -> modaqeq_agent returned: compensation rules for indefinite and fixed-term contracts.<br>
+                -> synthesizing legal opinion for HR operator.
+              </div>
+            </div>
+
+            <div class="tool-call-badge">
+              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <span>مدقق: تم التحقق من المادة 77 • نظام العمل السعودي 1446هـ</span>
+            </div>
+
+            أفاد الوكيل <strong>«مدقق»</strong> بالضوابط القانونية المعتمدة طبقاً لنص <strong>المادة 77</strong>:<br>
+            إذا أُنهي العقد لسبب غير مشروع، يستحق الطرف المتضرر تعويضاً على النحو التالي (ما لم يتضمن العقد تعويضاً محدداً ينص عليه صراحة):
+            <br><br>
+            1. <strong>أجر خمسة عشر يوماً</strong> عن كل سنة من سنوات خدمة العامل إذا كان العقد <strong>غير محدد المدة</strong>.<br>
+            2. <strong>أجر المدة الباقية من العقد</strong> إذا كان العقد <strong>محدد المدة</strong>.<br>
+            3. وفي جميع الأحوال، يجب ألا يقل التعويض المشار إليه في الفقرتين السابقتين عن <strong>أجر العامل لمدة شهرين</strong>.
+          </div>
+        `;
+
+        timelineBox.innerHTML = `
+          <div class="timeline-entry">
+            <div class="timeline-marker-avatar" style="--marker-color: var(--modaqeq);">
+              <img src="/images/%D9%85%D8%AF%D9%82%D9%82.jpg" onerror="this.src='/images/svg/modaqeq.svg'">
+            </div>
+            <div class="timeline-entry-content">
+              <div class="timeline-entry-heading">
+                <strong>استشارة نظام العمل:</strong> استرجع «مدقق» نصوص المادة 77 بطلب من «سراج» وقدم الصياغة القانونية.
+              </div>
+              <div class="timeline-entry-meta">
+                <span>الآن • وكيل: مدقق</span>
+                <span class="timeline-seal-badge">SEAL: 91a4c82e</span>
+              </div>
+            </div>
+          </div>
+        ` + timelineBox.innerHTML;
+      }
+      else if (scene === 'hitl') {
+        tiles.forEach(t => {
+          t.classList.add('is-active');
+          t.classList.remove('is-dimmed');
+        });
+        badge.style.borderColor = 'rgba(245, 158, 11, 0.45)';
+        badge.style.color = 'var(--amber)';
+        badgeText.textContent = 'بانتظار توقيعك البشري: تدقيق ملف رواتب عبر حارس';
+        approvalCard.classList.add('is-active');
+        routeTarget.textContent = 'حارس ➔ توقيع المشغّل';
+        routeTarget.classList.add('active');
+
+        startCountdown();
+
+        chatBox.innerHTML = `
+          <div class="chat-bubble user">
+            تم إرفاق ملف كشف تعديل الرواتب: <code>hr_batch_modifications_october.xlsx</code>
+          </div>
+          <div class="chat-bubble assistant">
+            <div class="tool-call-badge" style="background: rgba(6, 182, 212, 0.15); border-color: rgba(6, 182, 212, 0.35); color: #67e8f9;">
+              <span>فاحص: قراءة 14 سجلاً ومطابقتها مع Odoo Stage بنجاح</span>
+            </div>
+            <br>
+            اكتمل فحص الملف دلالياً ونظامياً عبر <strong>«فاحص»</strong> و<strong>«مدقق»</strong> و<strong>«موفق»</strong>.
+            <br><br>
+            ⚠️ <strong>إشعار حوكمة الأمان:</strong> رصد الوكيل <strong>«حارس»</strong> وجود تعديلات مالية تتطلب <strong>توقيعك البشري الصريح</strong> قبل السماح لوكيل «كاتب» بقيد التعديلات في قاعدة بيانات Odoo.
+            <br>
+            يرجى مراجعة الجدول في <strong>بوابة الاعتماد البشري (HITL)</strong> على اليسار والضغط على «اعتماد» أو «رفض».
+          </div>
+        `;
+
+        timelineBox.innerHTML = `
+          <div class="timeline-entry">
+            <div class="timeline-marker-avatar" style="--marker-color: var(--hares);">
+              <img src="/images/%D8%AD%D8%A7%D8%B1%D8%B3.jpg" onerror="this.src='/images/svg/hares.svg'">
+            </div>
+            <div class="timeline-entry-content">
+              <div class="timeline-entry-heading">
+                <strong>حظر تلقائي للكتابة (HITL):</strong> علّق «حارس» أمر القيد وأصدر تصريح موافقة بانتظار المشغّل.
+              </div>
+              <div class="timeline-entry-meta">
+                <span>الآن • وكيل: حارس</span>
+                <span class="timeline-seal-badge">SEAL: 77a1bc8f</span>
+              </div>
+            </div>
+          </div>
+        ` + timelineBox.innerHTML;
+      }
+    }
+
+    function startCountdown() {
+      let seconds = 299;
+      const el = document.getElementById('approvalCountdownText');
+      hitlTimerInterval = setInterval(() => {
+        if (seconds <= 0) {
+          clearInterval(hitlTimerInterval);
+          el.textContent = 'منتهي الصلاحية';
+          return;
+        }
+        seconds--;
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        el.textContent = `${m}:${s}`;
+      }, 1000);
+    }
+
+    function toggleReasoning(header) {
+      const content = header.nextElementSibling;
+      if (content.style.display === 'none') {
+        content.style.display = 'block';
+        header.querySelector('span').textContent = '▼ تفكير سراج: استدعاء الوكيل «مدقق» لفحص نصوص اللائحة';
+      } else {
+        content.style.display = 'none';
+        header.querySelector('span').textContent = '◀ تفكير سراج (انقر للتوسيع)';
+      }
+    }
+
+    function handleAgentTileClick(agentKey) {
+      const names = {
+        seraj: 'سراج',
+        fahas: 'فاحص',
+        modaqeq: 'مدقق',
+        mowafaq: 'موفق',
+        musleh: 'مصلح',
+        hares: 'حارس',
+        katib: 'كاتب',
+        sijil: 'سجل'
+      };
+      const input = document.getElementById('chatInputArea');
+      input.value = `يا ${names[agentKey]}، `;
+      input.focus();
+    }
+
+    function fillPrompt(text) {
+      const input = document.getElementById('chatInputArea');
+      input.value = text;
+      input.focus();
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('chatInputArea');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const box = document.getElementById('chatFeedBox');
+      box.innerHTML += `<div class="chat-bubble user">${text}</div>`;
+      input.value = '';
+      box.scrollTop = box.scrollHeight;
+
+      setTimeout(() => {
+        box.innerHTML += `
+          <div class="chat-bubble assistant">
+            استلم <strong>«سراج»</strong> طلبك: <em>"${text}"</em><br>
+            يقوم الآن بالتنسيق مع الوكلاء المعنيين عبر مسارات LangGraph المحكومة...
+          </div>
+        `;
+        box.scrollTop = box.scrollHeight;
+      }, 400);
+    }
+
+    function simulateFileUpload() {
+      const box = document.getElementById('chatFeedBox');
+      box.innerHTML += `
+        <div class="chat-bubble user">
+          📎 تم إرفاق: <strong>employees_batch_demo.xlsx</strong> (14 سجلاً)
+        </div>
+      `;
+      box.scrollTop = box.scrollHeight;
+
+      setTimeout(() => {
+        switchScenario('hitl', document.getElementById('btn-scene-hitl'));
+      }, 500);
+    }
+
+    function handleHitlDecision(approved) {
+      const approvalCard = document.getElementById('aiApprovalCard');
+      const box = document.getElementById('chatFeedBox');
+      const timelineBox = document.getElementById('timelineTrackList');
+      clearInterval(hitlTimerInterval);
+      approvalCard.classList.remove('is-active');
+
+      if (approved) {
+        box.innerHTML += `
+          <div class="chat-bubble assistant" style="border-right-color: var(--emerald);">
+            ✅ <strong>تم الاعتماد البشري بنجاح:</strong><br>
+            سمح «حارس» لوكيل «كاتب» بقيد التعديلات في Odoo 19.0+e. قام «سجل» بتوثيق العملية وختمها بشهادة رقمية لا تراجعية.
+          </div>
+        `;
+        timelineBox.innerHTML = `
+          <div class="timeline-entry">
+            <div class="timeline-marker-avatar" style="--marker-color: var(--katib);">
+              <img src="/images/%D9%83%D8%A7%D8%AA%D8%A8.jpg" onerror="this.src='/images/svg/katib.svg'">
+            </div>
+            <div class="timeline-entry-content">
+              <div class="timeline-entry-heading">
+                <strong>تنفيذ القيد في Odoo:</strong> كتب «كاتب» السجلين المعتمدين في نموذج hr.contract.
+              </div>
+              <div class="timeline-entry-meta">
+                <span>الآن • وكيل: كاتب</span>
+                <span class="timeline-seal-badge">SEAL: 66e2fa90</span>
+              </div>
+            </div>
+          </div>
+        ` + timelineBox.innerHTML;
+      } else {
+        box.innerHTML += `
+          <div class="chat-bubble assistant" style="border-right-color: var(--rose);">
+            ❌ <strong>تم رفض العملية:</strong> ألغى «حارس» الإجراء، وتم عزل السجلات ومنع الكتابة في Odoo.
+          </div>
+        `;
+      }
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function openApprovalModal() {
+      document.getElementById('approvalModal').classList.add('is-visible');
+    }
+
+    function closeApprovalModal() {
+      document.getElementById('approvalModal').classList.remove('is-visible');
+    }
+
+    function executeApplyDesign() {
+      closeApprovalModal();
+      alert('تم اعتماد التصميم بنجاح! يمكنك الآن إرسال أمر التطبيق لأقوم بتحديث dashboard.html فوراً.');
+    }
+  </script>
+</body>
+</html>

@@ -20,6 +20,7 @@ Unified Multi-Agent Cockpit Acceptance Tests (15 Scenarios)
 15. حماية النطاق والتحقق من الصلاحيات وتوثيق الوصول (404 للعمليات غير الموجودة).
 """
 
+import os
 import json
 import unittest
 from pathlib import Path
@@ -149,10 +150,11 @@ class TestUnifiedAgentCockpitAcceptance(unittest.TestCase):
         }
 
         # إرسال إلغاء عبر نقطة الاعتماد الموحدة
+        token = os.environ.get("WRITE_API_TOKEN", "unit-test-write-token")
         res = self.client.post("/api/agents/cancel", json={
             "chat_id": chat_id,
             "operation_id": op_id
-        })
+        }, headers={"X-API-Key": token})
         self.assertEqual(res.status_code, 200)
         data = res.json()
         self.assertIsNone(data["pending_action"])

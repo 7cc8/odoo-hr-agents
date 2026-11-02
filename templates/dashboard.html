@@ -85,17 +85,20 @@
       padding: 0;
     }
 
-    
+
     /* Font smoothing & Tabular numerals (make-interfaces-feel-better #8 & #9) */
-    
+
     /* Ensure zero horizontal overflow on small viewports */
-    html, body {
+    html,
+    body {
       max-width: 100vw;
       overflow-x: hidden;
       box-sizing: border-box;
     }
 
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       box-sizing: border-box;
     }
 
@@ -105,7 +108,14 @@
       text-rendering: optimizeLegibility;
     }
 
-    .mono, .badge, .metric-value, .metric-box-val, .data-table td, .table-cell-num, .agent-metrics, [data-numeric] {
+    .mono,
+    .badge,
+    .metric-value,
+    .metric-box-val,
+    .data-table td,
+    .table-cell-num,
+    .agent-metrics,
+    [data-numeric] {
       font-variant-numeric: tabular-nums;
     }
 
@@ -189,10 +199,13 @@
     }
 
     @keyframes typing-pulse {
-      0%, 100% {
+
+      0%,
+      100% {
         transform: translateY(0);
         opacity: 0.35;
       }
+
       50% {
         transform: translateY(-4px);
         opacity: 1;
@@ -395,7 +408,8 @@
       flex-wrap: nowrap;
     }
 
-    .scope-pill, .stream-status-pill {
+    .scope-pill,
+    .stream-status-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
@@ -679,6 +693,11 @@
       grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
       gap: 24px;
       align-items: start;
+      transition: grid-template-columns 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .cockpit-grid.is-chat-expanded {
+      grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr);
     }
 
     .agents-ribbon-card {
@@ -739,7 +758,11 @@
     .chat-box {
       display: flex;
       flex-direction: column;
-      height: 720px;
+      height: 680px;
+      max-height: calc(100vh - 260px);
+      min-height: 540px;
+      border-radius: 16px;
+      transition: height 0.25s ease;
     }
 
     .chat-messages {
@@ -887,9 +910,7 @@
       gap: 10px;
     }
 
-    .editorial-table-topbar 
-
-    .editorial-table-topbar .topbar-title {
+    .editorial-table-topbar .editorial-table-topbar .topbar-title {
       font-size: 13px;
       font-weight: 600;
       color: var(--color-snow, #fafafa);
@@ -1292,11 +1313,152 @@
       gap: 20px;
     }
 
-    /* AGENT CHARACTERS STRIP (8 AGENTS HORIZONTAL RIBBON) */
+    /* ==========================================================================
+       SCENARIO SIMULATOR STRIP (Live Demonstration Controls)
+       ========================================================================== */
+    .sim-strip {
+      background: var(--color-ash);
+      border: 1px solid var(--color-charcoal);
+      border-radius: 12px;
+      padding: 9px 18px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .sim-strip-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--color-silver-mist);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sim-buttons-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-sim-trigger {
+      background: var(--color-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--color-silver-mist);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--font-arabic);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out;
+    }
+
+    .btn-sim-trigger:hover {
+      background: var(--color-card-elevated);
+      color: var(--color-snow);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-sim-trigger:active {
+      transform: scale(0.96);
+    }
+
+    .btn-sim-trigger.is-active {
+      background: rgba(14, 165, 233, 0.12);
+      border-color: var(--agent-seraj);
+      color: #38bdf8;
+      box-shadow: 0 0 12px rgba(14, 165, 233, 0.2);
+    }
+
+    /* ==========================================================================
+       21ST.DEV EXECUTIVE 8-AGENT COMMAND DOCK & ROUTING PIPELINE
+       ========================================================================== */
+    .status-badge-21st {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(62, 207, 142, 0.1);
+      border: 1px solid rgba(62, 207, 142, 0.25);
+      color: var(--color-phosphor-green);
+      transition: border-color 150ms ease-out, color 150ms ease-out;
+    }
+
+    .status-indicator-ping {
+      position: relative;
+      display: flex;
+      width: 6.5px;
+      height: 6.5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status-indicator-ping::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      background: inherit;
+      animation: ping-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+      opacity: 0.75;
+    }
+
+    @keyframes ping-pulse {
+      75%, 100% {
+        transform: scale(2.4);
+        opacity: 0;
+      }
+    }
+
+    /* 21st.dev Multi-Agent Routing Pipeline Strip */
+    .routing-pipeline-strip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--color-smoke);
+    }
+
+    .routing-step-tag {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--color-charcoal);
+      border-radius: 6px;
+      padding: 2px 7px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--color-silver-mist);
+      font-size: 10.5px;
+      transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+    }
+
+    .routing-step-tag.active {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: var(--agent-seraj);
+      color: var(--agent-seraj);
+      font-weight: 600;
+    }
+
+    .routing-arrow {
+      color: var(--color-smoke);
+      font-size: 9.5px;
+    }
+
+    /* AGENT CHARACTERS STRIP (8 AGENTS UNIFIED DOCK — ZERO WRAPPING ON DESKTOP) */
     .agents-strip {
       display: grid;
       grid-template-columns: repeat(8, minmax(0, 1fr));
-      gap: 12px;
+      gap: 10px;
       width: 100%;
     }
 
@@ -1312,9 +1474,11 @@
         overflow-x: auto;
         scrollbar-width: none;
         padding-bottom: 6px;
+        gap: 8px;
       }
+
       .agent-character-card {
-        min-width: 115px;
+        min-width: 135px;
         flex-shrink: 0;
       }
     }
@@ -1322,36 +1486,50 @@
     .agent-character-card {
       background: var(--color-ash);
       border: 1px solid var(--color-charcoal);
-      border-radius: 12px;
-      padding: 10px;
+      border-radius: 10px;
+      padding: 7px 9px;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      text-align: center;
+      gap: 8px;
+      text-align: right;
       position: relative;
       cursor: pointer;
+      user-select: none;
+      min-height: 52px;
       transform-origin: center bottom;
       transform: translateY(var(--shift, 0px)) scale(var(--scale-active, 1));
-      transition: transform var(--avatar-dur) var(--avatar-ease-in), border-color 0.2s ease, background 0.2s ease;
+      transition: transform 150ms ease-out, border-color 150ms ease-out, background-color 150ms ease-out, box-shadow 150ms ease-out;
       will-change: transform;
     }
 
     .agent-character-card:hover {
-      border-color: var(--color-graphite);
+      background: var(--color-card-elevated);
+      border-color: var(--color-slate);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .agent-character-card:active {
+      transform: scale(0.96);
     }
 
     .agent-character-card.is-active {
       border-color: var(--agent-color, var(--color-phosphor-green));
       box-shadow: 0 0 0 1px var(--agent-color, var(--color-phosphor-green)), 0 4px 20px rgba(0, 0, 0, 0.4);
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
-      transform: translateY(-4px) scale(1.02);
+    }
+
+    .agent-character-card.is-dimmed {
+      opacity: 0.35;
+      filter: grayscale(60%);
+      transform: scale(0.98);
     }
 
     .agent-character-card.is-active::after {
       content: "";
       position: absolute;
-      inset: -4px;
-      border-radius: 16px;
+      inset: -3px;
+      border-radius: 12px;
       border: 1.5px solid var(--agent-color, var(--color-phosphor-green));
       opacity: 0.8;
       animation: agentic-pulse-ring 2s infinite cubic-bezier(0.24, 0, 0.38, 1);
@@ -1364,11 +1542,13 @@
         opacity: 0.9;
         transform: scale(0.99);
       }
+
       60% {
-        box-shadow: 0 0 0 10px rgba(62, 207, 142, 0);
+        box-shadow: 0 0 0 8px rgba(62, 207, 142, 0);
         opacity: 0.15;
         transform: scale(1.02);
       }
+
       100% {
         box-shadow: 0 0 0 0 rgba(62, 207, 142, 0);
         opacity: 0;
@@ -1381,10 +1561,12 @@
         transform: scale(0.98);
         opacity: 0.8;
       }
+
       50% {
         transform: scale(1.02);
         opacity: 0.2;
       }
+
       100% {
         transform: scale(0.98);
         opacity: 0.8;
@@ -1451,10 +1633,21 @@
       opacity: 0.8;
     }
 
-    .pillar-prompt { --pillar-accent: var(--agent-seraj); }
-    .pillar-context { --pillar-accent: var(--color-phosphor-green); }
-    .pillar-loop { --pillar-accent: var(--color-amber); }
-    .pillar-harness { --pillar-accent: var(--agent-hares); }
+    .pillar-prompt {
+      --pillar-accent: var(--agent-seraj);
+    }
+
+    .pillar-context {
+      --pillar-accent: var(--color-phosphor-green);
+    }
+
+    .pillar-loop {
+      --pillar-accent: var(--color-amber);
+    }
+
+    .pillar-harness {
+      --pillar-accent: var(--agent-hares);
+    }
 
     .pillar-card-head {
       display: flex;
@@ -1726,15 +1919,17 @@
     }
 
     .agent-avatar-wrap {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      background: #141414;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-obsidian);
       border: 1.5px solid var(--agent-color, var(--color-charcoal));
+      outline: 1px solid rgba(255, 255, 255, 0.12);
+      outline-offset: -1px;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 8px;
+      margin-bottom: 0;
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
@@ -1745,62 +1940,461 @@
       height: 100%;
       object-fit: cover;
       display: block;
+      border-radius: 50%;
       user-select: none;
       pointer-events: none;
       transition: transform 0.25s ease;
     }
 
     .agent-character-card:hover .agent-avatar-img {
-      transform: scale(1.06);
+      transform: scale(1.08);
     }
 
     .agent-avatar-wrap svg {
-      width: 22px;
-      height: 22px;
+      width: 16px;
+      height: 16px;
       stroke: var(--agent-color, var(--color-snow));
       stroke-width: 2;
       fill: none;
     }
 
-    .agent-name {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--color-snow);
-      line-height: 1.2;
+    .agent-tile-info {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 1px;
     }
 
-    .agent-role-short {
-      font-size: 12px;
-      color: var(--color-smoke);
-      margin-top: 3px;
-      min-height: 34px;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .agent-status-bubble {
-      margin-top: 6px;
-      padding: 2px 8px;
-      border-radius: var(--radius-pill);
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-      background: #1a1a1a;
-      border: 1px solid var(--color-charcoal);
-      color: var(--color-silver-mist);
-      display: inline-flex;
+    .agent-tile-header {
+      display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 4px;
     }
 
-    .agent-character-card.is-active .agent-status-bubble {
-      background: rgba(62, 207, 142, 0.12);
-      border-color: var(--agent-color, var(--color-phosphor-green));
-      color: var(--agent-color, var(--color-phosphor-green));
+    .agent-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-snow);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .agent-role-short {
+      font-size: 10px;
+      color: var(--color-smoke);
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-height: auto;
+      margin-top: 0;
+      display: block;
+    }
+
+    .agent-status-bubble {
+      display: none !important;
+    }
+
+    /* Agent Tile Status Dot & Popover (21st.dev matching) */
+    .agent-tile-status-dot {
+      width: 6.5px;
+      height: 6.5px;
+      border-radius: 50%;
+      background: var(--color-phosphor-green);
+      flex-shrink: 0;
+      transition: background-color 150ms ease-out, box-shadow 150ms ease-out;
+    }
+
+    .agent-character-card.is-active .agent-tile-status-dot {
+      background: var(--agent-color, var(--color-phosphor-green));
+      box-shadow: 0 0 8px var(--agent-color, var(--color-phosphor-green));
+      animation: ping-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    .agent-character-card .agent-popover {
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #171d22;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 11px;
+      color: var(--color-silver-mist);
+      white-space: nowrap;
+      box-shadow: 0 12px 32px -4px rgba(0, 0, 0, 0.6);
+      z-index: 60;
+      display: none;
+      pointer-events: none;
+      line-height: 1.4;
+    }
+
+    .agent-character-card:hover .agent-popover {
+      display: block;
+    }
+
+    /* 21st.dev Suggestion Chips */
+    .suggestion-chips-bar {
+      padding: 10px 18px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      overflow-x: auto;
+    }
+
+    .suggestion-label {
+      font-size: 11.5px;
+      color: var(--color-smoke);
+      white-space: nowrap;
       font-weight: 600;
+    }
+
+    .chip-btn {
+      background: var(--color-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-pill);
+      padding: 5px 12px;
+      font-size: 11.5px;
+      color: var(--color-silver-mist);
+      font-family: var(--font-arabic);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out, transform 150ms ease-out;
+    }
+
+    .chip-btn:hover {
+      background: var(--color-card-elevated);
+      color: var(--color-snow);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .chip-btn:active {
+      transform: scale(0.96);
+    }
+
+    .chat-status-pill {
+      background: rgba(14, 165, 233, 0.1);
+      border: 1px solid rgba(14, 165, 233, 0.3);
+      color: #38bdf8;
+      font-size: 11px;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    /* 21ST.DEV AI TOOL APPROVAL CARD */
+    .ai-approval-card {
+      background: linear-gradient(180deg, rgba(245, 158, 11, 0.12) 0%, rgba(20, 26, 31, 0.98) 100%);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 0 24px rgba(245, 158, 11, 0.22);
+      position: relative;
+      margin-bottom: 16px;
+    }
+
+    .approval-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .approval-card-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--color-amber);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .approval-countdown-badge {
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: var(--color-amber);
+      font-size: 11.5px;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .approval-diff-table-container {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      font-size: 12px;
+    }
+
+    .approval-diff-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: right;
+    }
+
+    .approval-diff-table th {
+      color: var(--color-smoke);
+      font-weight: 600;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      font-size: 11.5px;
+    }
+
+    .approval-diff-table td {
+      padding: 6px 0;
+      color: var(--color-silver-mist);
+      font-size: 12px;
+    }
+
+    .approval-diff-table td strong {
+      color: var(--color-phosphor-green);
+    }
+
+    .approval-actions-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-approval-confirm {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      font-weight: 700;
+      font-family: var(--font-arabic);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      padding: 8px 16px;
+      font-size: 12px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+      transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+    }
+
+    .btn-approval-confirm:active {
+      transform: scale(0.96);
+    }
+
+    .btn-approval-deny {
+      background: transparent;
+      border: 1px solid var(--color-charcoal);
+      color: var(--color-silver-mist);
+      font-size: 12px;
+      font-family: var(--font-arabic);
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: background-color 150ms ease-out, color 150ms ease-out;
+    }
+
+    .btn-approval-deny:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--color-snow);
+    }
+
+    .btn-approval-deny:active {
+      transform: scale(0.96);
+    }
+
+    /* 21ST.DEV CONNECTED ACTIVITY TIMELINE */
+    .activity-timeline-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-charcoal);
+      border-radius: 14px;
+      padding: 16px 18px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      margin-bottom: 16px;
+    }
+
+    .timeline-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      margin-bottom: 14px;
+    }
+
+    .timeline-title-text {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--color-snow);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timeline-track-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+    }
+
+    .timeline-track-list::before {
+      content: '';
+      position: absolute;
+      top: 10px;
+      bottom: 10px;
+      right: 15px;
+      width: 2px;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .timeline-entry {
+      display: flex;
+      gap: 12px;
+      position: relative;
+      font-size: 12.5px;
+    }
+
+    .timeline-marker-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-ash);
+      border: 2px solid var(--marker-color, var(--agent-seraj));
+      outline: 1px solid rgba(255, 255, 255, 0.12);
+      outline-offset: -1px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      z-index: 2;
+      overflow: hidden;
+    }
+
+    .timeline-marker-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .timeline-entry-content {
+      flex: 1;
+      padding-top: 3px;
+    }
+
+    .timeline-entry-heading {
+      color: var(--color-snow);
+      line-height: 1.5;
+    }
+
+    .timeline-entry-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 3px;
+      font-size: 11px;
+      color: var(--color-smoke);
+    }
+
+    .timeline-seal-badge {
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      color: #38bdf8;
+      background: rgba(14, 165, 233, 0.08);
+      border: 1px solid rgba(14, 165, 233, 0.2);
+      padding: 1px 7px;
+      border-radius: 4px;
+    }
+
+    /* TELEMETRY METRIC CARDS */
+    .telemetry-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .telemetry-box {
+      background: var(--color-card);
+      border: 1px solid var(--color-charcoal);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .telemetry-label {
+      font-size: 11px;
+      color: var(--color-smoke);
+      margin-bottom: 4px;
+    }
+
+    .telemetry-metric {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--color-snow);
+      font-family: var(--font-mono);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .telemetry-status-text {
+      font-size: 10.5px;
+      color: var(--color-phosphor-green);
+      margin-top: 2px;
+    }
+
+    /* Collapsible Reasoning & Tool Call Badges (21st.dev) */
+    .reasoning-drawer {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin: 8px 0;
+      font-size: 12px;
+      color: var(--color-silver-mist);
+    }
+
+    .reasoning-trigger {
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #38bdf8;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .reasoning-body {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--color-smoke);
+      line-height: 1.5;
+    }
+
+    .tool-call-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(139, 92, 246, 0.12);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: #c4b5fd;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      margin: 4px 0 8px 0;
     }
 
     /* Dynamic Stepper */
@@ -1931,11 +2525,14 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       margin-right: 14px;
-      padding-right: 22px;
-      border-right: 2px solid var(--color-charcoal);
+      padding-right: 20px;
+      padding-left: 6px;
+      border-right: 2px solid rgba(255, 255, 255, 0.08);
       margin-top: 8px;
+      max-height: 480px;
+      overflow-y: auto;
     }
 
     .timeline-empty {
@@ -1943,31 +2540,33 @@
       text-align: center;
       color: var(--color-smoke);
       font-size: 13px;
-      border: 1px dashed var(--color-charcoal);
+      border: 1px dashed rgba(255, 255, 255, 0.1);
       border-radius: 12px;
-      background: rgba(255, 255, 255, 0.01);
+      background: rgba(255, 255, 255, 0.015);
       margin-right: -10px;
     }
 
     .timeline-event {
       position: relative;
-      background: var(--color-ash);
-      border: 1px solid var(--color-charcoal);
+      background: #14181a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
-      padding: 14px 16px;
+      padding: 12px 16px;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      animation: timeline-fade-in 0.25s ease-out;
+      transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+      animation: timeline-fade-in 0.2s ease-out;
       cursor: pointer;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
     }
 
     @keyframes timeline-fade-in {
       from {
         opacity: 0;
-        transform: translateY(6px);
+        transform: translateY(4px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -1978,52 +2577,51 @@
     .timeline-event::before {
       content: "";
       position: absolute;
-      right: -29px;
+      right: -26px;
       top: 18px;
-      width: 12px;
-      height: 12px;
+      width: 10px;
+      height: 10px;
       border-radius: 50%;
       background: var(--node-color, var(--color-phosphor-green));
-      border: 2px solid #121212;
-      box-shadow: 0 0 10px var(--node-color, var(--color-phosphor-green));
+      border: 2px solid #0f1214;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
       z-index: 2;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 150ms ease;
     }
 
     .timeline-event:hover {
-      border-color: var(--color-slate);
-      background: #202020;
-      transform: translateX(-2px);
+      border-color: rgba(255, 255, 255, 0.16);
+      background: #181d20;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
     }
 
     .timeline-event:hover::before {
-      transform: scale(1.25);
-      box-shadow: 0 0 14px var(--node-color, var(--color-phosphor-green));
+      transform: scale(1.18);
     }
 
     .timeline-event.success,
     .timeline-event.completed {
-      border-color: rgba(62, 207, 142, 0.25);
-      --node-color: var(--color-phosphor-green);
+      border-color: rgba(52, 211, 153, 0.22);
+      --node-color: #34d399;
     }
 
     .timeline-event.in_progress,
     .timeline-event.running {
-      border-color: rgba(56, 189, 248, 0.35);
+      border-color: rgba(56, 189, 248, 0.25);
       --node-color: #38bdf8;
     }
 
     .timeline-event.waiting_approval,
     .timeline-event.waiting_clarification,
     .timeline-event.warning {
-      border-color: rgba(255, 202, 22, 0.35);
-      --node-color: var(--color-amber);
+      border-color: rgba(251, 191, 36, 0.25);
+      --node-color: #fbbf24;
     }
 
     .timeline-event.failed,
     .timeline-event.error {
-      border-color: rgba(255, 90, 95, 0.35);
-      --node-color: var(--color-coral);
+      border-color: rgba(248, 113, 113, 0.25);
+      --node-color: #f87171;
     }
 
     .timeline-header {
@@ -2038,28 +2636,44 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
-    .timeline-agent-badge {
+    .timeline-agent-chip {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 3px 8px;
-      border-radius: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--color-charcoal);
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
     }
 
-    .timeline-action-tag {
-      font-size: 11.5px;
-      color: var(--color-silver-mist);
-      font-weight: 500;
-      background: rgba(0, 0, 0, 0.3);
+    .timeline-agent-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .timeline-action-code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #94a3b8;
+      background: rgba(255, 255, 255, 0.03);
       padding: 2px 7px;
       border-radius: 4px;
-      font-family: var(--font-mono);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      direction: ltr;
+    }
+
+    .timeline-route-chip {
+      font-size: 11px;
+      color: var(--color-silver-mist);
+      background: rgba(255, 255, 255, 0.03);
+      padding: 2px 7px;
+      border-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
     }
 
     .timeline-header-left {
@@ -2068,54 +2682,155 @@
       gap: 8px;
     }
 
-    .timeline-status-icon {
+    .timeline-seq {
+      font-family: var(--font-mono);
       font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 4px;
+      color: #64748b;
     }
 
-    .timeline-timestamp {
+    .timeline-time-mono {
       font-family: var(--font-mono);
-      font-size: 12px;
-      color: var(--color-smoke);
       font-variant-numeric: tabular-nums;
+      font-size: 11.5px;
+      color: #94a3b8;
       direction: ltr;
     }
 
+    .timeline-status-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+
+    .timeline-status-dot {
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .timeline-status-chip.badge-success {
+      color: #34d399;
+      background: rgba(52, 211, 153, 0.08);
+      border: 1px solid rgba(52, 211, 153, 0.22);
+    }
+
+    .timeline-status-chip.badge-neutral {
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.22);
+    }
+
+    .timeline-status-chip.badge-warning {
+      color: #fbbf24;
+      background: rgba(251, 191, 36, 0.08);
+      border: 1px solid rgba(251, 191, 36, 0.22);
+    }
+
+    .timeline-status-chip.badge-error {
+      color: #f87171;
+      background: rgba(248, 113, 113, 0.08);
+      border: 1px solid rgba(248, 113, 113, 0.22);
+    }
+
     .timeline-desc {
-      font-size: 13.5px;
-      color: var(--color-snow);
-      line-height: 1.5;
+      font-size: 13px;
+      color: #f1f5f9;
+      line-height: 1.55;
       font-weight: 500;
     }
 
     .timeline-reasoning-box {
       margin-top: 2px;
       padding: 10px 14px;
-      background: rgba(0, 0, 0, 0.32);
-      border-right: 3px solid var(--node-color, var(--color-slate));
-      border-radius: 4px 8px 8px 4px;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 2px solid var(--node-color, #94a3b8);
+      border-radius: 8px;
       font-size: 12.5px;
-      line-height: 1.55;
-      color: var(--color-silver-mist);
+      line-height: 1.6;
+      color: #cbd5e1;
     }
 
     .timeline-reasoning-label {
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 700;
-      color: var(--color-smoke);
       margin-bottom: 4px;
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
+    }
+
+    .timeline-reasoning-text {
+      font-size: 12.5px;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    .timeline-decision-row {
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .timeline-decision-label {
+      font-weight: 700;
+    }
+
+    .timeline-decision-val {
+      color: #f1f5f9;
     }
 
     /* Fallback and legacy selectors */
-    .timeline-event .agent { font-weight: 700; }
-    .timeline-event .timestamp { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-    .timeline-event .action { color: var(--color-silver-mist); }
-    .timeline-event .status-icon { font-size: 11px; }
+    .timeline-agent-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .timeline-action-tag {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .timeline-status-icon {
+      font-size: 11px;
+    }
+
+    .timeline-timestamp {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-size: 11.5px;
+    }
+
+    .timeline-event .agent {
+      font-weight: 700;
+    }
+
+    .timeline-event .timestamp {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timeline-event .action {
+      color: #94a3b8;
+    }
+
+    .timeline-event .status-icon {
+      font-size: 11px;
+    }
 
     /* ==========================================================================
        COLLAPSIBLE DETAILS DRAWER (Modal / Slide-in Sheet)
@@ -2461,23 +3176,23 @@
 
     @media (max-width: 900px) {
       .agents-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: var(--space-4);
-      margin-top: var(--space-4);
-    }
-
-    @media (max-width: 1200px) {
-      .agents-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: var(--space-4);
+        margin-top: var(--space-4);
       }
-    }
 
-    @media (max-width: 768px) {
-      .agents-grid {
-        grid-template-columns: 1fr !important;
+      @media (max-width: 1200px) {
+        .agents-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
       }
-    }
+
+      @media (max-width: 768px) {
+        .agents-grid {
+          grid-template-columns: 1fr !important;
+        }
+      }
     }
 
     .agent-full-card {
@@ -2647,10 +3362,63 @@
       min-height: 44px;
     }
 
+    /* ==========================================================================
+       CHAT HEADER CONTROLS & ACTIONS
+       ========================================================================== */
+    .chat-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-chat-header {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 32px;
+      padding: 0 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--color-silver-mist, #a8b0b0);
+      font-family: var(--font-arabic, 'IBM Plex Sans Arabic', sans-serif);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
+    }
+
+    .btn-chat-header:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      color: var(--color-snow, #fafafa);
+      transform: translateY(-1px);
+    }
+
+    .btn-chat-header:active {
+      transform: scale(0.96);
+    }
+
+    .btn-chat-header.btn-chat-icon-only {
+      width: 32px;
+      padding: 0;
+    }
+
+    .btn-chat-header.is-active {
+      background: rgba(62, 207, 142, 0.15);
+      border-color: var(--color-phosphor-green);
+      color: var(--color-phosphor-green);
+    }
+
+    /* ==========================================================================
+       CHAT INPUT AREA & FLOATING ISLAND COMPOSER
+       ========================================================================== */
     .chat-input-area {
-      padding: 18px;
-      background: #1a1d1e;
-      border-top: 1px solid #343738;
+      padding: 14px 18px 16px;
+      background: #171a1b;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
     }
 
     .chat-suggestions {
@@ -2671,117 +3439,305 @@
       flex-shrink: 0;
       border-radius: 8px;
       font-size: 12px;
+      cursor: pointer;
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease;
     }
 
+    .suggestion-chip:hover {
+      transform: translateY(-1px);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .suggestion-chip:active {
+      transform: scale(0.97);
+    }
+
+    /* Floating Island Composer Container (Concentric R=16px) */
+    .composer-island,
     .chat-form {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      align-items: flex-end;
-      gap: 12px;
-      border: 1px solid #414647;
-      padding: 10px 14px;
-      border-radius: 14px;
-      background: #222627;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 12px 14px 10px 14px;
+      border-radius: 16px;
+      background: #202425;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
+      transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
     }
 
+    .composer-island:hover,
+    .chat-form:hover {
+      border-color: rgba(255, 255, 255, 0.22);
+    }
+
+    .composer-island:focus-within,
     .chat-form:focus-within {
-      border-color: var(--color-phosphor-green, #3ecf8e);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35); border-color: rgba(62, 207, 142, 0.6);
+      border-color: rgba(255, 255, 255, 0.18);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      outline: none !important;
     }
 
+    .composer-island.is-drag-over {
+      border-color: var(--agent-seraj, #0ea5e9) !important;
+      background: rgba(14, 165, 233, 0.08) !important;
+      outline: 2px dashed var(--agent-seraj, #0ea5e9);
+      outline-offset: -2px;
+    }
+
+    /* Drag & Drop Visual Overlay */
+    .composer-drag-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      background: rgba(18, 22, 23, 0.94);
+      backdrop-filter: blur(4px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      z-index: 10;
+      color: var(--agent-seraj, #38bdf8);
+      font-size: 13.5px;
+      font-weight: 600;
+      pointer-events: none;
+      border: 2px dashed rgba(56, 189, 248, 0.6);
+    }
+
+    .composer-island.is-drag-over .composer-drag-overlay {
+      display: flex;
+    }
+
+    .composer-drag-overlay svg {
+      width: 32px;
+      height: 32px;
+      animation: composerFloatBounce 1.2s infinite alternate ease-in-out;
+    }
+
+    @keyframes composerFloatBounce {
+      0% {
+        transform: translateY(0);
+      }
+
+      100% {
+        transform: translateY(-6px);
+      }
+    }
+
+    /* Composer Textarea Box & Field (Inner R=8px) */
+    .composer-textarea-box,
     .chat-textarea-box {
-      min-width: 0;
       width: 100%;
+      min-width: 0;
+      display: flex;
       background: transparent;
       border: 0;
-      border-radius: 0;
       padding: 0;
-      display: flex;
-      align-items: center;
     }
 
+    .composer-textarea,
     .chat-textarea {
       width: 100%;
       min-width: 0;
-      min-height: 42px;
-      max-height: 140px;
-      padding: 6px 4px;
-      font-size: 14px;
+      min-height: 48px;
+      max-height: 180px;
+      padding: 4px 6px;
+      font-size: 14.5px;
       line-height: 1.6;
       font-family: var(--font-arabic, 'IBM Plex Sans Arabic', sans-serif);
       color: var(--color-snow, #fafafa);
       background: transparent;
       border: 0;
-      border-radius: 0;
+      border-radius: 8px;
       outline: none;
       resize: none;
       direction: rtl;
       text-align: right;
     }
 
-    .chat-textarea::placeholder {
-      color: var(--color-silver-mist, #a8b0b0);
-      opacity: 0.8;
+    .composer-textarea:focus,
+    .composer-textarea:focus-visible,
+    .chat-textarea:focus,
+    .chat-textarea:focus-visible,
+    #chatInput:focus,
+    #chatInput:focus-visible {
+      outline: none !important;
+      box-shadow: none !important;
+      border: none !important;
     }
 
+    .composer-textarea::placeholder,
+    .chat-textarea::placeholder {
+      color: var(--color-silver-mist, #a8b0b0);
+      opacity: 0.75;
+      font-size: 13.5px;
+    }
+
+    /* Composer Bottom Accessory Toolbar */
+    .composer-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      gap: 12px;
+    }
+
+    .composer-tools-left,
+    .composer-tools-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Composer Accessory Tool Buttons (Inner R=9px, H=34px) */
+    .composer-tool-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      height: 34px;
+      padding: 0 12px;
+      border-radius: 9px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      color: var(--color-silver-mist, #94a3b8);
+      font-family: var(--font-arabic, 'IBM Plex Sans Arabic', sans-serif);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+    }
+
+    .composer-tool-btn:hover {
+      background: rgba(14, 165, 233, 0.08);
+      border-color: rgba(56, 189, 248, 0.3);
+      color: #f1f5f9;
+      transform: translateY(-1px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .composer-tool-btn:active {
+      transform: scale(0.96);
+    }
+
+    .composer-tool-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke-width: 2;
+      flex-shrink: 0;
+    }
+
+    .composer-hint {
+      font-size: 11.5px;
+      color: rgba(148, 163, 184, 0.65);
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    /* Tactile Send Button Harmonized with Seraj Sky-Cyan Palette (Inner R=10px, H=36px, Scale-on-press) */
+    .btn-composer-send,
     #chatSendBtn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      height: 40px !important;
+      height: 36px !important;
       padding: 0 18px !important;
       border-radius: 10px;
       font-family: var(--font-arabic, 'IBM Plex Sans Arabic', sans-serif);
       font-size: 13.5px;
-      font-weight: 700;
-      background: var(--color-phosphor-green);
-      color: #121212;
-      border: none;
+      font-weight: 600;
+      background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+      color: #ffffff;
+      border: 1px solid rgba(56, 189, 248, 0.4);
       cursor: pointer;
       flex-shrink: 0;
       white-space: nowrap;
-      transition: all 0.15s ease-out;
+      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: background 150ms ease, border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
     }
 
+    .btn-composer-send:hover:not(:disabled),
     #chatSendBtn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);
+      border-color: rgba(56, 189, 248, 0.6);
       transform: translateY(-1px);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 4px 14px rgba(14, 165, 233, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
     }
 
+    .btn-composer-send:active:not(:disabled),
     #chatSendBtn:active:not(:disabled) {
-      transform: translateY(0);
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      transform: scale(0.96);
+      box-shadow: 0 1px 4px rgba(14, 165, 233, 0.2);
     }
 
+    .btn-composer-send:disabled,
     #chatSendBtn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
       transform: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       box-shadow: none;
-      filter: grayscale(30%);
+      filter: none;
     }
 
+    .btn-composer-send svg,
     #chatSendBtn svg {
-      width: 15px;
-      height: 15px;
+      width: 14px;
+      height: 14px;
       flex-shrink: 0;
-      transition: transform 0.15s ease;
+      transition: transform 150ms ease;
     }
 
+    .btn-composer-send:hover:not(:disabled) svg,
     #chatSendBtn:hover:not(:disabled) svg {
-      transform: rotate(180deg) scale(1.08);
+      transform: scale(1.1);
     }
 
     .composer-footer {
       display: flex;
+      align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin: 10px 4px 0;
-      color: #a8b0b0;
-      font-size: 12px;
+      margin-top: 10px;
+      padding: 0 4px;
+      color: var(--color-silver-mist, #a8b0b0);
+      font-size: 11.5px;
+    }
+
+    .composer-footer-text {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.85;
+    }
+
+    /* Prompt Cheatsheet Cards */
+    .quick-prompt-card {
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 13px;
+      color: var(--color-snow);
+      cursor: pointer;
+      transition: background-color 150ms ease, border-color 150ms ease, transform 150ms ease;
+    }
+
+    .quick-prompt-card:hover {
+      background: rgba(62, 207, 142, 0.08);
+      border-color: rgba(62, 207, 142, 0.3);
+      transform: translateX(-3px);
+    }
+
+    .quick-prompt-card strong {
+      color: var(--color-phosphor-green);
+      margin-left: 6px;
     }
 
     .drawer-sheet,
@@ -3088,15 +4044,38 @@
         display: none;
       }
 
+      .composer-island,
       .chat-form {
-        grid-template-columns: minmax(0, 1fr) auto;
-        padding: 8px 10px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        gap: 6px;
+      }
+
+      .composer-toolbar {
+        flex-wrap: wrap;
         gap: 8px;
       }
 
+      .composer-tools-left {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .composer-tools-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      .composer-hint {
+        display: none;
+      }
+
+      .btn-composer-send,
       #chatSendBtn {
         padding: 0 14px;
         height: 38px !important;
+        width: 100%;
+        justify-content: center;
       }
 
       .connection-form {
@@ -3425,13 +4404,16 @@
       font-family: var(--font-mono);
       margin-top: 4px;
     }
-  
+
     /* ==========================================================================
        RESPONSIVE BREAKPOINTS & ELASTIC LAYOUT
        impeccable, make-interfaces-feel-better, design-taste-frontend
        ========================================================================== */
     @media (min-width: 1536px) {
-      .main-wrapper, .top-nav, #odooDisconnectedBanner {
+
+      .main-wrapper,
+      .top-nav,
+      #odooDisconnectedBanner {
         max-width: 1520px;
         margin-left: auto;
         margin-right: auto;
@@ -3442,15 +4424,18 @@
       .top-nav {
         padding: var(--space-3) var(--space-4);
       }
+
       .nav-tabs {
         order: 3;
         width: 100%;
         overflow-x: auto;
         padding-bottom: 4px;
       }
+
       .nav-controls {
         order: 2;
       }
+
       .cockpit-grid {
         grid-template-columns: 1fr !important;
       }
@@ -3460,9 +4445,11 @@
       .metrics-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
       }
+
       .upload-center-grid {
         grid-template-columns: 1fr !important;
       }
+
       .chat-suggestions {
         display: flex;
         gap: 8px;
@@ -3472,21 +4459,29 @@
         padding-bottom: 4px;
         margin-bottom: 12px;
       }
+
       .chat-suggestions::-webkit-scrollbar {
         display: none;
       }
-      .data-table th, .data-table td {
+
+      .data-table th,
+      .data-table td {
         padding: 8px 10px;
         font-size: 12px;
       }
     }
 
     @media (pointer: coarse) {
-      .btn, .nav-tab-btn, select, input[type="text"], input[type="url"], input[type="password"] {
+
+      .btn,
+      .nav-tab-btn,
+      select,
+      input[type="text"],
+      input[type="url"],
+      input[type="password"] {
         min-height: 44px !important;
       }
     }
-
   </style>
 </head>
 
@@ -3507,7 +4502,8 @@
           <span class="nav-brand-pulse"></span>
         </div>
         <div>
-          <h1 class="nav-brand-title" style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; font-weight: 700;">
+          <h1 class="nav-brand-title"
+            style="display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; font-weight: 700;">
             <span>سراج • مركز عمليات منظومة الوكلاء</span>
             <span class="badge badge-neutral" style="font-size: 12px; font-weight: 600;">v2.4</span>
           </h1>
@@ -3541,7 +4537,8 @@
             <span id="aiEngineStatusText">AI: جاري الفحص…</span>
           </div>
 
-          <div id="odooConnectionBadge" class="stream-status-pill is-disconnected" title="حالة الاتصال بقاعدة بيانات Odoo">
+          <div id="odooConnectionBadge" class="stream-status-pill is-disconnected"
+            title="حالة الاتصال بقاعدة بيانات Odoo">
             <span class="stream-dot" id="odooStatusDot" style="background: var(--color-coral);"></span>
             <span id="odooStatusText">Odoo: جاري الفحص…</span>
           </div>
@@ -3615,7 +4612,10 @@
   <div id="odooDisconnectedBanner"
     style="display: none; align-items: center; justify-content: space-between; background: rgba(239, 68, 68, 0.14); border: 1px solid var(--color-coral); border-radius: 12px; padding: 16px 24px; margin: 20px auto 0 auto; max-width: 1400px; color: var(--color-snow); font-size: 13.5px;">
     <div style="display: flex; align-items: center; gap: 16px;">
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-coral)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-coral)" stroke-width="2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+      </svg>
       <div>
         <div style="font-weight: 800; color: #ff6b6b; font-size: 15px; display: flex; align-items: center; gap: 10px;">
           <span>المنظومة في وضع الأمان المقيد</span>
@@ -3650,126 +4650,48 @@
     <!-- ==================== VIEW 1: المحادثة والتشغيل ==================== -->
     <section id="view-cockpit" class="view-section is-visible">
 
-      <!-- ==================== 4 CORE AGENTIC ENGINEERING PILLARS (COMPACT ENTERPRISE MODE) ==================== -->
-      <div class="agentic-pillars-container" style="margin-bottom: 14px; padding: 10px 14px;">
-        <div class="pillars-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-phosphor-green); box-shadow: 0 0 10px var(--color-phosphor-green);"></div>
-            <span style="font-size: 13.5px; font-weight: 700; color: var(--color-snow);">الركائز الهندسية الأربع لنظام الوكلاء المستقل</span>
-            <span class="badge badge-neutral" style="font-size: 11px; font-family: var(--font-mono);">No-Framework • Vanilla</span>
-            
-            <!-- Quick Clickable Pillar Micro-Badges -->
-            <div class="pillar-quick-tags" style="display: flex; gap: 6px; margin-right: 6px;">
-              <button type="button" class="pillar-micro-btn" onclick="openPillarDetails('prompt')" title="معاينة موجهات وهوية الوكلاء الـ 8">01 الأوامر</button>
-              <button type="button" class="pillar-micro-btn" onclick="openPillarDetails('context')" title="معاينة سياق نظام العمل والـ RAG">02 السياق</button>
-              <button type="button" class="pillar-micro-btn" onclick="openPillarDetails('loop')" title="معاينة كابح الحلقات والتصحيح الذاتي">03 الحلقة</button>
-              <button type="button" class="pillar-micro-btn" onclick="openPillarDetails('harness')" title="معاينة حواجز التحكم وبوابة HITL">04 التحكم</button>
-            </div>
-          </div>
-
-          <div class="pillars-telemetry-strip" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-            <!-- Loop Counter -->
-            <div class="telemetry-pill" title="عداد حلقات التصحيح والتنفيذ الذاتي للعملية الحالية">
-              <span class="pill-dot" style="background: var(--color-amber);"></span>
-              <span style="color: var(--color-silver-mist); font-size: 12px;">الحلقة (Loop):</span>
-              <span id="cockpitLoopCounter" class="mono" style="font-weight: 700; color: var(--color-snow); font-size: 12px;">0 / 5</span>
-            </div>
-            <!-- Context Window Tokens -->
-            <div class="telemetry-pill" title="استهلاك نافذة سياق المحادثة والذاكرة العاملة">
-              <span class="pill-dot" style="background: var(--color-phosphor-green);"></span>
-              <span style="color: var(--color-silver-mist); font-size: 12px;">السياق:</span>
-              <span id="cockpitContextTokens" class="mono" style="font-weight: 700; color: var(--color-phosphor-green); font-size: 12px;">1,420 / 8,192 Tokens</span>
-            </div>
-            <!-- Toggle Accordion Button -->
-            <button type="button" id="togglePillarsBtn" class="btn btn-sm btn-secondary" onclick="togglePillarsExpansion()" style="font-size: 11.5px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 4px;">
-              <span id="togglePillarsText">توسيع البطاقات ▾</span>
-            </button>
-          </div>
-        </div>
-
-        <div id="pillarsGridContainer" class="pillars-grid" style="display: none; margin-top: 12px; animation: fadeIn 0.25s ease;">
-          <!-- Pillar 1: Prompt Engineering -->
-          <div class="pillar-card pillar-prompt" onclick="openPillarDetails('prompt')" role="button" tabindex="0">
-            <div class="pillar-card-head">
-              <span class="pillar-idx mono">01</span>
-              <span class="pillar-tag">System Prompts</span>
-            </div>
-            <div class="pillar-title">Prompt Engineering</div>
-            <div class="pillar-subtitle">هندسة الأوامر وتوجيه الوكلاء الـ 8 بصلاحيات ومسؤوليات مستقلة</div>
-            <div class="pillar-footer">
-              <span class="pillar-stat">8 أدوار متخصصة</span>
-              <span class="pillar-action">معاينة الأوامر ←</span>
-            </div>
-          </div>
-
-          <!-- Pillar 2: Context Engineering -->
-          <div class="pillar-card pillar-context" onclick="openPillarDetails('context')" role="button" tabindex="0">
-            <div class="pillar-card-head">
-              <span class="pillar-idx mono">02</span>
-              <span class="pillar-tag">RAG & Labor Law</span>
-            </div>
-            <div class="pillar-title">Context Engineering</div>
-            <div class="pillar-subtitle">هندسة السياق وحقن نظام العمل السعودي وقواعد Odoo ديناميكياً</div>
-            <div class="pillar-footer">
-              <div class="pillar-progress-wrap" title="نسبة استهلاك الذاكرة">
-                <div id="pillarContextBar" class="pillar-progress-bar" style="width: 17%;"></div>
-              </div>
-              <span class="pillar-action">قاعدة المعرفة ←</span>
-            </div>
-          </div>
-
-          <!-- Pillar 3: Loop Engineering -->
-          <div class="pillar-card pillar-loop" onclick="openPillarDetails('loop')" role="button" tabindex="0">
-            <div class="pillar-card-head">
-              <span class="pillar-idx mono">03</span>
-              <span class="pillar-tag">ReAct & Loop Brake</span>
-            </div>
-            <div class="pillar-title">Loop Engineering</div>
-            <div class="pillar-subtitle">حلقات الإدراك والتخطيط والتصحيح الذاتي مع كابح الأمان (5 دورات)</div>
-            <div class="pillar-footer">
-              <span class="pillar-stat" id="pillarLoopStatus">سقف 5 محاولات</span>
-              <span class="pillar-action">مخطط الحلقة ←</span>
-            </div>
-          </div>
-
-          <!-- Pillar 4: Harness Engineering -->
-          <div class="pillar-card pillar-harness" onclick="openPillarDetails('harness')" role="button" tabindex="0">
-            <div class="pillar-card-head">
-              <span class="pillar-idx mono">04</span>
-              <span class="pillar-tag">HITL Gate & Sijil</span>
-            </div>
-            <div class="pillar-title">Harness Engineering</div>
-            <div class="pillar-subtitle">بيئة التحكم وبوابة الاعتماد البشري (صلاحية 5 د) وسجل التدقيق اللاتراجعي</div>
-            <div class="pillar-footer">
-              <span class="pillar-stat">5 د TTL • توثيق SHA-256</span>
-              <span class="pillar-action">حوكمة الأمان ←</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- AGENT CHARACTERS STRIP (ELEVATED 8-AGENT COMMAND RIBBON) -->
+      <!-- AGENT CHARACTERS STRIP (21ST.DEV EXECUTIVE 8-AGENT COMMAND DOCK) -->
       <div class="panel-card agents-ribbon-card">
         <div class="agents-ribbon-header">
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 14px; font-weight: 700; color: var(--color-snow);">منظومة الوكلاء المتخصصة (8 وكلاء ذكاء اصطناعي)</span>
-            <span class="badge badge-success" style="font-size: 12px;">متصل وجاهز للتشغيل</span>
+          <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="var(--agent-seraj)" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 14 14"></polyline>
+              </svg>
+              <span style="font-size: 13.5px; font-weight: 700; color: var(--color-snow);">منظومة الوكلاء الثمانية:</span>
+            </div>
+            <!-- 21st.dev Pulse Badge -->
+            <span class="status-badge-21st" id="dockGlobalStatusBadge">
+              <span class="status-indicator-ping"></span>
+              <span id="dockGlobalStatusText">8 وكلاء في حالة جاهزية كاملة</span>
+            </span>
           </div>
-          <span style="font-size: 12.5px; color: var(--color-silver-mist);">انقر على أي وكيل لتوجيه أمر مباشر له في المحادثة</span>
+
+          <!-- 21st.dev Multi-Agent Routing Pipeline Strip -->
+          <div class="routing-pipeline-strip" id="dockRoutingPipeline">
+            <span style="font-size: 11px; font-weight: 600; color: var(--color-smoke);">مسار التوجيه:</span>
+            <span class="routing-step-tag active" id="route-step-user">المشغّل</span>
+            <span class="routing-arrow">➔</span>
+            <span class="routing-step-tag active" id="route-step-seraj">سراج (المنسق)</span>
+            <span class="routing-arrow">➔</span>
+            <span class="routing-step-tag" id="route-step-target">الوكيل المختص</span>
+          </div>
         </div>
         <div class="agents-strip" id="agentsStrip">
           <!-- Dynamic Agent Cards via renderAgentsStrip -->
         </div>
 
-        <!-- Real-Time Cognitive Thought Stream Strip -->
-        <div id="agentThoughtStreamStrip" class="agent-thought-strip" style="display: none;">
+        <!-- Real-Time Cognitive Thought Stream Strip (Cleanly encapsulated in header) -->
+        <div id="agentThoughtStreamStrip" class="agent-thought-strip" style="display: none !important;">
           <div class="thought-stream-header">
             <div class="thought-agent-badge">
               <span class="stream-pulse-dot"></span>
               <span id="thoughtAgentName" style="color: var(--color-phosphor-green);">سراج</span>
               <span class="thought-status-tag" id="thoughtAgentAction">يفكر ويحلل...</span>
             </div>
-            <span class="thought-timestamp mono" id="thoughtTimestamp" style="font-size: 11px; color: var(--color-smoke);">الآن</span>
+            <span class="thought-timestamp mono" id="thoughtTimestamp"
+              style="font-size: 11px; color: var(--color-smoke);">الآن</span>
           </div>
           <div class="thought-stream-body" id="thoughtStreamText">
             جاري استلام وتحليل سياق الطلب ومطابقته مع قواعد نظام العمل وبيانات Odoo...
@@ -3777,97 +4699,67 @@
         </div>
       </div>
 
-      <!-- ==================== PROMINENT HUMAN-IN-THE-LOOP (HITL) APPROVAL GATE ==================== -->
-      <div id="hitlApprovalGateBanner" class="panel-card hitl-gate-card" style="display: none;">
-        <div class="hitl-gate-header">
-          <div style="display: flex; align-items: flex-start; gap: 14px;">
-            <div class="hitl-icon-pulse">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="22" height="22" stroke-width="2">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                <path d="M12 8v4"></path>
-                <path d="M12 16h.01"></path>
-              </svg>
-            </div>
-            <div>
-              <div style="display: flex; align-items: center; gap: 8px;">
-                <span class="hitl-gate-title">بوابة الاعتماد البشري المحكوم (Human-in-the-Loop Gate)</span>
-                <span class="badge badge-warning" style="font-size: 11px;">مطلوب توقيع المشغّل</span>
-              </div>
-              <div class="hitl-gate-desc">
-                اكتمل التدقيق الاستباقي بواسطة «فاحص» و«مدقق». تقتضي سياسة الأمان موافقة المشغّل البشري قبل سماح «حارس» لـ «كاتب» بتعديل قاعدة بيانات Odoo.
-              </div>
-            </div>
-          </div>
-          <!-- TTL Countdown Timer (5-minute TTL Security Gate) -->
-          <div class="hitl-ttl-box">
-            <span style="font-size: 11px; color: var(--color-silver-mist);">انتهاء صلاحية الإذن:</span>
-            <span id="hitlTtlCountdown" class="mono hitl-timer">05:00</span>
-          </div>
-        </div>
-
-        <div class="hitl-summary-grid">
-          <div class="hitl-stat-box">
-            <div class="hitl-stat-label">السجلات المقبولة (جاهزة للإدخال)</div>
-            <div class="hitl-stat-val mono" style="color: var(--color-phosphor-green);" id="hitlAcceptedCount">0</div>
-          </div>
-          <div class="hitl-stat-box">
-            <div class="hitl-stat-label">السجلات المخالفة (تحتاج معالجة)</div>
-            <div class="hitl-stat-val mono" style="color: var(--color-amber);" id="hitlRejectedCount">0</div>
-          </div>
-          <div class="hitl-stat-box">
-            <div class="hitl-stat-label">المعرف المرجعي الموثق لدى سجل</div>
-            <div class="hitl-stat-val mono" style="font-size: 12px; color: var(--color-silver-mist);" id="hitlOpIdRef">—</div>
-          </div>
-        </div>
-
-        <div class="hitl-actions-row">
-          <button type="button" class="btn btn-success" onclick="executeHitlApproval()" style="padding: 10px 18px; font-weight: 700;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-            <span>اعتماد وتنفيذ السجلات في Odoo</span>
-          </button>
-          <button type="button" class="btn btn-warning" onclick="executeHitlAutoFix()" style="padding: 10px 18px; background: var(--color-amber); color: var(--color-obsidian); font-weight: 700;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
-            <span>تشغيل المعالجة الذاتية («مصلح»)</span>
-          </button>
-          <button type="button" class="btn btn-danger" onclick="executeHitlCancel()" style="padding: 10px 18px; background: var(--color-coral); font-weight: 700;">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-            <span>إلغاء العملية والرفض</span>
-          </button>
-        </div>
-      </div>
-
       <div class="cockpit-grid">
 
         <!-- RIGHT: غرفة محادثة سراج -->
-        <div class="panel-card chat-box">
+        <div id="mainChatBox" class="panel-card chat-box">
           <div class="panel-header">
             <div class="panel-title-group">
-              <div class="msg-avatar" style="border-color: var(--agent-seraj); background: rgba(56, 189, 248, 0.1);">
-                <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                  </polygon>
-                </svg>
+              <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: #14181a; margin-top: 0; width: 36px; height: 36px; border-radius: 50%;">
+                <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
               </div>
               <div>
-                <div class="panel-title">المحادثة مع «سراج» — المنسق العام</div>
-                <div style="font-size: 12px; color: var(--color-silver-mist);">تنسيق المهام • التحاور • شرح النتائج
-                  والاعتمادات</div>
+                <div class="panel-title" style="font-size: 14.5px; font-weight: 700;">المحادثة التنفيذية مع «سراج» <span style="font-size: 11px; color: var(--color-smoke); font-weight: normal;">(المنسق العام)</span></div>
+                <div style="font-size: 11.5px; color: var(--color-silver-mist);">تشغيل محلي محكوم عبر Ollama Qwen 3.5 9B • حوكمة Odoo Stage</div>
               </div>
             </div>
-            <div id="serajStateBadge" class="badge badge-neutral">جاهز</div>
+            <div class="chat-header-actions">
+              <div id="serajStateBadge" class="chat-status-pill">
+                <span class="status-indicator-ping" style="width: 5px; height: 5px;"></span>
+                <span>جاهز للأوامر</span>
+              </div>
+              <button type="button" class="btn-chat-header" onclick="startNewChatSession()"
+                title="بدء محادثة جديدة وتصفير الجلسة" aria-label="جلسة جديدة">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  style="width: 14px; height: 14px;">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>جلسة جديدة</span>
+              </button>
+              <button type="button" id="btnToggleChatWidth" class="btn-chat-header btn-chat-icon-only"
+                onclick="toggleChatFocusWidth()" title="توسيع مساحة المحادثة" aria-label="توسيع مساحة المحادثة">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  style="width: 14px; height: 14px;">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- 21st.dev Suggestion Chips -->
+          <div class="suggestion-chips-bar">
+            <span class="suggestion-label">اقتراحات سريعة:</span>
+            <button type="button" class="chip-btn" onclick="fillPrompt('ما هي ضوابط إنهاء العقد لسبب غير مشروع بموجب المادة 77 من نظام العمل السعودي؟')">
+              📜 تعويض المادة 77
+            </button>
+            <button type="button" class="chip-btn" onclick="fillPrompt('استعلم عن عدد الموظفين النشطين في Odoo وقسم الموارد البشرية')">
+              👥 استعلام موظفي Odoo
+            </button>
+            <button type="button" class="chip-btn" onclick="fillPrompt('فحص وتدقيق كشف الرواتب الشهري الجديد للتأكد من مطابقة الأجور')">
+              📊 فحص كشف الرواتب
+            </button>
           </div>
 
           <!-- Messages Container -->
           <div id="chatMessages" class="chat-messages">
             <!-- Welcome Message -->
             <div class="msg-bubble msg-assistant">
-              <div class="msg-avatar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                  </polygon>
-                </svg>
+              <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: #14181a;">
+                <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
               </div>
               <div class="msg-content-wrapper">
                 <div class="msg-meta">
@@ -3875,8 +4767,8 @@
                 </div>
                 <div class="msg-card">
                   مرحباً بك! أنا «سراج» المنسق والمحاور العام لمنظومة وكلاء Odoo HR.<br>
-                  يمكنك سؤالي عن نظام العمل السعودي، الاستعلام عن الموظفين، طلب تعديل البيانات أو أرشفتها، أو رفع ملفات
-                  إكسل.<br>
+                  يمكنك سؤالي عن نظام العمل السعودي، الاستعلام عن الموظفين، طلب تعديل البيانات أو أرشفتها، أو إرفاق
+                  ملفات إكسل للفحص المباشر.<br>
                   تخضع كل عملية للتدقيق الصارم ولا يتم التنفيذ إلا عبر مسار محكوم وموثق لدى «سجل».
                 </div>
               </div>
@@ -3884,12 +4776,8 @@
             <!-- Typing Indicator (hidden by default) -->
             <div id="typingIndicator" class="typing-indicator msg-bubble msg-assistant" role="status"
               aria-label="سراج يكتب الرد" aria-live="polite">
-              <div class="msg-avatar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)">
-                  <polygon
-                    points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                  </polygon>
-                </svg>
+              <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: #14181a;">
+                <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
               </div>
               <div class="typing-dots">
                 <div class="typing-dot"></div>
@@ -3899,38 +4787,80 @@
             </div>
           </div>
 
-          <!-- Chat Input Area -->
+          <!-- Chat Input Area with Floating Island Composer -->
           <div class="chat-input-area">
-            <div class="chat-suggestions">
-              <div class="suggestion-chip" onclick="sendQuickPrompt('كم ساعات العمل الرسمية في رمضان للمسلمين؟')">ساعات رمضان (المادة 98)</div>
-              <div class="suggestion-chip" onclick="sendQuickPrompt('استعلم عن الموظفة سارة في Odoo')">استعلام عن موظف</div>
-              <div class="suggestion-chip" onclick="sendQuickPrompt('عدل مسمى سارة إلى مديرة توظيف')">تعديل مسمى وظيفي</div>
-              <div class="suggestion-chip" onclick="sendQuickPrompt('أرشفة الموظف فهد')">طلب أرشفة موظف</div>
-              <div class="suggestion-chip" onclick="sendQuickPrompt('فحص الوثائق والإقامات المنتهية')">رصد الوثائق المنتهية</div>
-              <div class="suggestion-chip" onclick="switchView('view-upload')" style="border-color: rgba(62, 207, 142, 0.4); color: var(--color-phosphor-green);">مركز استيراد الملفات</div>
-            </div>
+            <!-- Floating Island Composer Form -->
+            <form id="chatForm" class="composer-island" onsubmit="handleChatSubmit(event)"
+              ondragover="handleChatDragOver(event)" ondragleave="handleChatDragLeave(event)"
+              ondrop="handleChatDrop(event)">
+              <!-- Hidden Excel Input for direct inspection -->
+              <input type="file" id="chatExcelFileInput" accept=".xlsx,.xls" style="display: none;"
+                onchange="handleChatExcelSelected(this)" />
 
-            <form id="chatForm" class="chat-form" onsubmit="handleChatSubmit(event)">
-              <div class="chat-textarea-box">
-                <textarea id="chatInput" class="chat-textarea" aria-label="رسالتك إلى سراج"
-                  placeholder="اكتب طلبك أو استفسارك إلى سراج…" rows="2" onkeydown="handleTextareaKeyDown(event)"
-                  oninput="autoResizeTextarea(this)"></textarea>
+              <!-- Textarea box -->
+              <div class="composer-textarea-box">
+                <textarea id="chatInput" class="composer-textarea" aria-label="رسالتك إلى سراج"
+                  placeholder="اكتب طلبك أو استفسارك إلى سراج، أو اسحب وأفلت ملف Excel هنا…" rows="2"
+                  onkeydown="handleTextareaKeyDown(event)" oninput="autoResizeTextarea(this)"></textarea>
               </div>
 
-              <button type="submit" id="chatSendBtn" aria-label="أرسل الرسالة" class="btn btn-primary">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                  style="width: 16px; height: 16px; transform: rotate(180deg);">
-                  <line x1="22" y1="2" x2="11" y2="13"></line>
-                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              <!-- Drag Overlay -->
+              <div class="composer-drag-overlay">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
                 </svg>
-                <span>إرسال</span>
-              </button>
+                <span>أفلت ملف Excel (.xlsx, .xls) هنا للفحص والتدقيق المحكوم (Dry-Run)</span>
+              </div>
+
+              <!-- Bottom Accessory Toolbar -->
+              <div class="composer-toolbar">
+                <div class="composer-tools-left">
+                  <!-- Attachment tool button -->
+                  <button type="button" class="composer-tool-btn" onclick="triggerChatExcelUpload()"
+                    title="إرفاق ملف Excel وفحصه فوراً بواسطة سراج وفاحص">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path
+                        d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48">
+                      </path>
+                    </svg>
+                    <span>إرفاق Excel</span>
+                  </button>
+
+                  <!-- Agent Command Guide modal toggle -->
+                  <button type="button" class="composer-tool-btn" onclick="toggleQuickPromptsModal(true)"
+                    title="عرض دليل وأمثلة لأوامر المنظومة">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="4 17 10 11 4 5"></polyline>
+                      <line x1="12" y1="19" x2="20" y2="19"></line>
+                    </svg>
+                    <span>أمثلة الأوامر</span>
+                  </button>
+                </div>
+
+                <div class="composer-tools-right">
+                  <span class="composer-hint">Shift+Enter لسطر جديد</span>
+                  <!-- Send button with tactile scale-on-press and optical alignment -->
+                  <button type="submit" id="chatSendBtn" aria-label="أرسل الرسالة" class="btn-composer-send">
+                    <span>إرسال</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <line x1="22" y1="2" x2="11" y2="13"></line>
+                      <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </form>
+
             <div class="composer-footer">
-              <span>Enter للإرسال · Shift+Enter لسطر جديد</span>
-              <span>لرفع ملفات Excel وفحصها: <a href="javascript:void(0)" onclick="switchView('view-upload')"
-                  style="color: var(--color-phosphor-green); text-decoration: underline; font-weight: 600;">انتقل لمركز
-                  الاستيراد</a></span>
+              <span class="composer-footer-text">
+                <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj, #0ea5e9)" stroke-width="2"
+                  style="width: 13px; height: 13px; display: inline-block; vertical-align: -2px; margin-left: 4px;">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                منظومة محكومة: كل كتابة أو تعديل تخضع للتحقق والاعتماد البشري (HITL) قبل النشر في Odoo.
+              </span>
             </div>
           </div>
         </div>
@@ -3954,22 +4884,88 @@
             </div>
           </div>
 
+          <!-- ==================== 21ST.DEV HITL APPROVAL GATE WITH PARAMETER DIFF TABLE ==================== -->
+          <div id="hitlApprovalGateBanner" class="ai-approval-card panel-card" style="display: none;">
+            <div class="approval-card-top">
+              <div class="approval-card-title">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  <path d="M12 8v4"></path>
+                  <path d="M12 16h.01"></path>
+                </svg>
+                <span>بوابة الاعتماد البشري المحكوم (HITL Gate)</span>
+              </div>
+              <div class="approval-countdown-badge">
+                <span class="status-indicator-ping" style="width: 5px; height: 5px; background: var(--color-amber);"></span>
+                <span id="hitlTtlCountdown" class="mono hitl-timer" style="font-size: 11.5px;">05:00</span>
+              </div>
+            </div>
 
+            <div style="font-size: 12px; color: var(--color-silver-mist); line-height: 1.5; margin-bottom: 10px;">
+              اكتمل تدقيق وفحص البيانات. تقتضي سياسة الأمان توقيعك البشري الصريح قبل سماح «حارس» لـ «كاتب» بتعديل قاعدة Odoo:
+            </div>
+
+            <!-- Parameter Diff Review Table -->
+            <div class="approval-diff-table-container">
+              <table class="approval-diff-table">
+                <thead>
+                  <tr>
+                    <th>الموظف</th>
+                    <th>الحقل المعدل</th>
+                    <th>القيمة السابقة</th>
+                    <th>القيمة الجديدة</th>
+                  </tr>
+                </thead>
+                <tbody id="hitlDiffTableBody">
+                  <tr>
+                    <td>محمد القحطاني</td>
+                    <td>بدل السكن الشهري</td>
+                    <td>1,500 ر.س</td>
+                    <td><strong>2,000 ر.س (+500)</strong></td>
+                  </tr>
+                  <tr>
+                    <td>سارة الشمري</td>
+                    <td>المسمى الوظيفي</td>
+                    <td>أخصائي أول</td>
+                    <td><strong>مدير شؤون الموظفين</strong></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="approval-actions-row">
+              <button type="button" class="btn-approval-confirm" onclick="executeHitlApproval()">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>اعتماد التعديلات وقيدها في Odoo ←</span>
+              </button>
+              <button type="button" class="btn-approval-deny" onclick="executeHitlCancel()">
+                رفض الإجراء
+              </button>
+            </div>
+          </div>
 
           <!-- DYNAMIC REAL PROCESS STEPPER: MACRO PIPELINE MILESTONES -->
-          <div class="panel-card" id="processStepperCard">
-            <div class="panel-header" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+          <div class="panel-card" id="processStepperCard" style="display: none;">
+            <div class="panel-header"
+              style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
               <div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--color-phosphor-green)" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="var(--color-phosphor-green)"
+                    stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
                   <div class="panel-title" style="margin: 0;">خط سير العملية المباشر</div>
-                  <span class="badge badge-neutral" style="font-size: 10.5px; border-color: rgba(62, 207, 142, 0.3); color: var(--color-phosphor-green); background: rgba(62, 207, 142, 0.08);">المراحل التشغيلية</span>
+                  <span class="badge badge-neutral"
+                    style="font-size: 10.5px; border-color: rgba(62, 207, 142, 0.3); color: var(--color-phosphor-green); background: rgba(62, 207, 142, 0.08);">المراحل
+                    التشغيلية</span>
                 </div>
                 <div id="stepperSubtitle" style="font-size: 11.5px; color: var(--color-silver-mist); margin-top: 3px;">
                   المسار التكيفي لمنظومة الوكلاء المعتمدين: سراج ➔ فاحص ➔ مدقق ➔ موفق ➔ مصلح ➔ حارس ➔ كاتب ➔ سجل
                 </div>
               </div>
-              <span id="processStepCount" class="mono" style="font-size: 12px; color: var(--color-silver-mist); background: rgba(255, 255, 255, 0.04); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--color-charcoal);">0 خطوات</span>
+              <span id="processStepCount" class="mono"
+                style="font-size: 12px; color: var(--color-silver-mist); background: rgba(255, 255, 255, 0.04); padding: 3px 8px; border-radius: 6px; border: 1px solid var(--color-charcoal);">0
+                خطوات</span>
             </div>
 
             <div id="processStepper" class="stepper-container">
@@ -4010,7 +5006,7 @@
           </div>
 
           <!-- ==================== CONDITIONAL ACTION BUTTONS ==================== -->
-          <div id="conditionalActions" class="panel-card" style="display: none; margin-top: 16px;">
+          <div id="conditionalActions" class="panel-card" style="display: none;">
             <div class="panel-header" style="margin-bottom: 12px;">
               <div class="panel-title">خيارات معالجة السجلات واعتمادها</div>
               <span style="font-size: 12px; color: var(--color-smoke);">حدد الإجراء المطلوب للصفوف السليمة</span>
@@ -4035,34 +5031,43 @@
           </div>
 
           <!-- ==================== AUTO-EXECUTE MESSAGE ==================== -->
-          <div id="autoExecuteMessage" class="panel-card" style="display: none; margin-top: 16px;">
+          <div id="autoExecuteMessage" class="panel-card" style="display: none;">
             <div class="alert alert-success"
               style="padding: 16px; border-radius: var(--radius-inputs); background: rgba(34, 197, 94, 0.1); border: 1px solid var(--color-phosphor-green);">
-              <div class="alert-title" style="margin: 0 0 6px 0; font-weight: 700; color: var(--color-phosphor-green); font-size: 15px;">تم التحقق بنجاح — جاري تنفيذ السجلات المقبولة في Odoo...
+              <div class="alert-title"
+                style="margin: 0 0 6px 0; font-weight: 700; color: var(--color-phosphor-green); font-size: 15px;">تم
+                التحقق بنجاح — جاري تنفيذ السجلات المقبولة في Odoo...
               </div>
-              <p style="margin: 0; font-size: 13px; color: var(--color-snow);">كافة السجلات مطابقة لسياسات نظام العمل وقواعد Odoo.
+              <p style="margin: 0; font-size: 13px; color: var(--color-snow);">كافة السجلات مطابقة لسياسات نظام العمل
+                وقواعد Odoo.
                 إجمالي السجلات المعتمدة: <span id="totalAcceptedRows" class="mono">0</span></p>
             </div>
           </div>
 
           <!-- ==================== AGENT TIMELINE SECTION: FORENSIC AUDIT & COGNITIVE TRACE ==================== -->
-          <div id="agentTimeline" class="panel-card" style="margin-top: 16px;">
+          <div id="agentTimeline" class="panel-card">
             <div class="panel-header"
               style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
               <div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                  </svg>
                   <div class="panel-title" style="margin: 0;">سجل التتبع الزمني للوكلاء</div>
-                  <span class="badge badge-neutral" style="font-size: 10.5px; border-color: rgba(56, 189, 248, 0.3); color: #38bdf8; background: rgba(56, 189, 248, 0.08);">الأثر الرقابي والاستدلالي</span>
+                  <span style="font-size: 11px; color: #94a3b8; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); padding: 2px 7px; border-radius: 4px; font-weight: 500;">الأثر الرقابي والاستدلالي</span>
                 </div>
                 <div style="font-size: 11.5px; color: var(--color-silver-mist); margin-top: 3px;">
-                  السجل الجنائي الدقيق بالثواني مع كشف التعليل المنطقي (Reasoning) وقرارات الوكلاء
+                  التتبع الزمني الدقيق بالثواني لعمليات الوكلاء والاستدلال المنطقي المرتبط بكل خطوة
                 </div>
               </div>
               <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                <span id="timelineCountBadge" class="mono" style="font-size: 11.5px; color: var(--color-silver-mist);">0 أحداث مسجلة</span>
+                <span id="timelineCountBadge" class="mono" style="font-size: 11.5px; color: var(--color-silver-mist); font-variant-numeric: tabular-nums;">0 أحداث مسجلة</span>
                 <span id="timelineStatusBadge" class="badge badge-neutral" style="font-size: 12px;">في الانتظار</span>
-                <button type="button" id="btnToggleTimeline" onclick="toggleTimelineAccordion()" class="btn btn-sm btn-outline" style="font-size: 11px; padding: 3px 8px; border-color: var(--color-charcoal); color: var(--color-silver-mist); cursor: pointer;" title="طي أو توسيع سجل التتبع الزمني">
+                <button type="button" id="btnToggleTimeline" onclick="toggleTimelineAccordion()"
+                  class="btn btn-sm btn-outline"
+                  style="font-size: 11px; padding: 3px 8px; border-color: var(--color-charcoal); color: var(--color-silver-mist); cursor: pointer;"
+                  title="طي أو توسيع سجل التتبع الزمني">
                   <span id="toggleTimelineText">طي السجل ▴</span>
                 </button>
               </div>
@@ -4074,6 +5079,22 @@
             </div>
           </div>
 
+          <!-- TELEMETRY METRIC CARDS (21st.dev matching) -->
+          <div class="telemetry-row">
+            <div class="telemetry-box">
+              <div class="telemetry-label">سجلات الموظفين المزامنة</div>
+              <div class="telemetry-metric">
+                <span id="telemetrySyncedEmployees">14</span>
+                <span style="font-size: 11px; font-weight: normal; color: var(--color-smoke);">موظفاً</span>
+              </div>
+              <div class="telemetry-status-text">قاعدة Odoo 19.0e متصلة</div>
+            </div>
+            <div class="telemetry-box">
+              <div class="telemetry-label">نموذج الذكاء الاصطناعي</div>
+              <div class="telemetry-metric">Qwen 3.5 9B</div>
+              <div class="telemetry-status-text">محلي محكوم • 0ms زمن انتظار الشبكة</div>
+            </div>
+          </div>
 
         </div>
       </div>
@@ -4152,7 +5173,13 @@
           <!-- Selected File Card (hidden by default) -->
           <div id="dedicatedFileCard" class="file-selected-card" style="display: none;">
             <div style="display: flex; align-items: center; gap: 12px;">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)"
+                stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
               <div>
                 <div id="dedicatedFileName" style="font-weight: 600; font-size: 14px; color: var(--color-snow);">—</div>
                 <div id="dedicatedFileSize" style="font-size: 12px; color: var(--color-silver-mist); margin-top: 2px;">—
@@ -4190,7 +5217,11 @@
           <!-- Empty State -->
           <div id="dedicatedResultsEmpty"
             style="padding: 40px 20px; text-align: center; color: var(--color-silver-mist);">
-            <div style="margin-bottom: 12px; opacity: 0.4;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
+            <div style="margin-bottom: 12px; opacity: 0.4;"><svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg></div>
             <div style="font-weight: 600; font-size: 15px; color: var(--color-snow); margin-bottom: 6px;">
               في انتظار رفع ملف لبدء الفحص
             </div>
@@ -4235,12 +5266,17 @@
 
             <!-- Approval & Execution Area -->
             <div style="border-top: 1px solid var(--color-charcoal); padding-top: 16px; margin-top: 16px;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
+              <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                 <div style="font-size: 13px; font-weight: 600; color: var(--color-snow);">
                   القرار التشغيلي (لا كتابة في Odoo دون اعتماد صريح):
                 </div>
-                <div style="font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); color: #38bdf8; display: inline-flex; align-items: center; gap: 5px;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <div
+                  style="font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 6px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); color: #38bdf8; display: inline-flex; align-items: center; gap: 5px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                  </svg>
                   <span>صلاحية الاعتماد: 5 دقائق</span>
                 </div>
               </div>
@@ -4364,11 +5400,14 @@
                   <div
                     style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
                     <div>
-                      <div class="alert-title" style="margin: 0 0 8px 0; font-weight: 700; color: var(--color-phosphor-green); font-size: 15px;">Template
+                      <div class="alert-title"
+                        style="margin: 0 0 8px 0; font-weight: 700; color: var(--color-phosphor-green); font-size: 15px;">
+                        Template
                         Generated
                         Successfully / تم توليد القالب بنجاح</div>
                       <p style="margin: 4px 0; font-size: 13px; color: var(--color-snow);">عدد الصفحات:
-                        <span id="sheetCount" class="mono">3</span></p>
+                        <span id="sheetCount" class="mono">3</span>
+                      </p>
                       <p style="margin: 4px 0; font-size: 13px; color: var(--color-silver-mist);">توقيت التوليد:
                         <span id="generatedAt" class="mono">—</span>
                       </p>
@@ -4425,13 +5464,14 @@
           </table>
         </div>
       </div>
-    
+
       <!-- ==================== COMPANIES CENSUS EDITORIAL DIAGRAM (diagram-design) ==================== -->
       <div id="censusDiagramCard" class="panel-card" style="margin-top: var(--space-6);">
-        <div class="panel-header" style="margin-bottom: var(--space-4); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+        <div class="panel-header"
+          style="margin-bottom: var(--space-4); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
           <div>
             <div class="panel-title" style="display: flex; align-items: center; gap: var(--space-2);">
-              
+
               <span>المخطط الهيكلي وتعداد المنشآت النشطة</span>
             </div>
             <div style="font-size: 13px; color: var(--color-silver-mist); margin-top: 4px;">
@@ -4441,9 +5481,11 @@
           <span class="badge badge-success" style="font-size: 12px; padding: 4px 10px;">5 منشآت مسجلة</span>
         </div>
 
-        <div style="background: rgba(18, 22, 28, 0.9); border: 1px solid var(--color-charcoal); border-radius: var(--radius-lg); padding: 18px; overflow-x: auto;">
+        <div
+          style="background: rgba(18, 22, 28, 0.9); border: 1px solid var(--color-charcoal); border-radius: var(--radius-lg); padding: 18px; overflow-x: auto;">
           <!-- Table Header -->
-          <div style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; padding: 10px 16px; background: rgba(255, 255, 255, 0.02); border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--color-silver-mist); border-bottom: 1px solid var(--color-charcoal); min-width: 640px;">
+          <div
+            style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; padding: 10px 16px; background: rgba(255, 255, 255, 0.02); border-radius: 6px; font-size: 12px; font-weight: 700; color: var(--color-silver-mist); border-bottom: 1px solid var(--color-charcoal); min-width: 640px;">
             <div style="text-align: center;"># / المعرف</div>
             <div>اسم المنشأة / الفرع</div>
             <div>المقياس البصري للقوة العاملة</div>
@@ -4453,31 +5495,40 @@
           <!-- Rows List -->
           <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px; min-width: 640px;">
             <!-- Row 1: edu-training1555 (Active Focal Row) -->
-            <div style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; align-items: center; padding: 12px 16px; background: rgba(62, 207, 142, 0.05); border: 1px solid rgba(62, 207, 142, 0.3); border-radius: 8px;">
+            <div
+              style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; align-items: center; padding: 12px 16px; background: rgba(62, 207, 142, 0.05); border: 1px solid rgba(62, 207, 142, 0.3); border-radius: 8px;">
               <div style="text-align: center;">
-                <span class="mono" style="background: rgba(62, 207, 142, 0.15); color: var(--color-phosphor-green); padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700;">#1</span>
+                <span class="mono"
+                  style="background: rgba(62, 207, 142, 0.15); color: var(--color-phosphor-green); padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 700;">#1</span>
               </div>
               <div>
                 <div style="font-weight: 700; color: #ffffff; font-size: 13.5px;">edu-training1555</div>
-                <div style="font-size: 12px; color: var(--color-phosphor-green); margin-top: 2px;">المنشأة الرئيسية النشطة • قاعدة البيانات الأساسية</div>
+                <div style="font-size: 12px; color: var(--color-phosphor-green); margin-top: 2px;">المنشأة الرئيسية
+                  النشطة • قاعدة البيانات الأساسية</div>
               </div>
               <div>
-                <div style="width: 100%; height: 10px; background: rgba(255, 255, 255, 0.06); border-radius: 5px; overflow: hidden;">
-                  <div style="width: 100%; height: 100%; background: var(--color-phosphor-green); border-radius: 5px;"></div>
+                <div
+                  style="width: 100%; height: 10px; background: rgba(255, 255, 255, 0.06); border-radius: 5px; overflow: hidden;">
+                  <div style="width: 100%; height: 100%; background: var(--color-phosphor-green); border-radius: 5px;">
+                  </div>
                 </div>
               </div>
               <div style="text-align: center;">
-                <span class="badge badge-success" style="font-size: 12px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px;">
-                  <span style="width: 6px; height: 6px; border-radius: 50%; background: var(--color-phosphor-green);"></span>
+                <span class="badge badge-success"
+                  style="font-size: 12px; padding: 4px 10px; display: inline-flex; align-items: center; gap: 6px;">
+                  <span
+                    style="width: 6px; height: 6px; border-radius: 50%; background: var(--color-phosphor-green);"></span>
                   <span style="font-weight: 700;">1 موظف</span>
                 </span>
               </div>
             </div>
 
             <!-- Row 2: القهوة السرايا -->
-            <div style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; align-items: center; padding: 10px 16px; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;">
+            <div
+              style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; align-items: center; padding: 10px 16px; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;">
               <div style="text-align: center;">
-                <span class="mono" style="background: rgba(255, 255, 255, 0.05); color: var(--color-silver-mist); padding: 3px 8px; border-radius: 4px; font-size: 12px;">#2</span>
+                <span class="mono"
+                  style="background: rgba(255, 255, 255, 0.05); color: var(--color-silver-mist); padding: 3px 8px; border-radius: 4px; font-size: 12px;">#2</span>
               </div>
               <div>
                 <div style="font-weight: 600; color: var(--color-snow); font-size: 13px;">القهوة السرايا</div>
@@ -4492,9 +5543,11 @@
             </div>
 
             <!-- Row 3: فرع حراء -->
-            <div style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; align-items: center; padding: 10px 16px; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;">
+            <div
+              style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; align-items: center; padding: 10px 16px; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;">
               <div style="text-align: center;">
-                <span class="mono" style="background: rgba(255, 255, 255, 0.05); color: var(--color-silver-mist); padding: 3px 8px; border-radius: 4px; font-size: 12px;">#3</span>
+                <span class="mono"
+                  style="background: rgba(255, 255, 255, 0.05); color: var(--color-silver-mist); padding: 3px 8px; border-radius: 4px; font-size: 12px;">#3</span>
               </div>
               <div>
                 <div style="font-weight: 600; color: var(--color-snow); font-size: 13px;">فرع حراء</div>
@@ -4509,9 +5562,11 @@
             </div>
 
             <!-- Row 4: فرع الروضة -->
-            <div style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; align-items: center; padding: 10px 16px; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;">
+            <div
+              style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; align-items: center; padding: 10px 16px; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;">
               <div style="text-align: center;">
-                <span class="mono" style="background: rgba(255, 255, 255, 0.05); color: var(--color-silver-mist); padding: 3px 8px; border-radius: 4px; font-size: 12px;">#4</span>
+                <span class="mono"
+                  style="background: rgba(255, 255, 255, 0.05); color: var(--color-silver-mist); padding: 3px 8px; border-radius: 4px; font-size: 12px;">#4</span>
               </div>
               <div>
                 <div style="font-weight: 600; color: var(--color-snow); font-size: 13px;">فرع الروضة</div>
@@ -4526,9 +5581,11 @@
             </div>
 
             <!-- Row 5: فرع الرياض -->
-            <div style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; align-items: center; padding: 10px 16px; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;">
+            <div
+              style="display: grid; grid-template-columns: 70px 2fr 1.5fr 110px; gap: 16px; align-items: center; padding: 10px 16px; background: rgba(255, 255, 255, 0.015); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px;">
               <div style="text-align: center;">
-                <span class="mono" style="background: rgba(255, 255, 255, 0.05); color: var(--color-silver-mist); padding: 3px 8px; border-radius: 4px; font-size: 12px;">#5</span>
+                <span class="mono"
+                  style="background: rgba(255, 255, 255, 0.05); color: var(--color-silver-mist); padding: 3px 8px; border-radius: 4px; font-size: 12px;">#5</span>
               </div>
               <div>
                 <div style="font-weight: 600; color: var(--color-snow); font-size: 13px;">فرع الرياض</div>
@@ -4544,10 +5601,12 @@
           </div>
 
           <!-- Diagram Footer Legend -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--color-charcoal); font-size: 12px; color: var(--color-silver-mist); flex-wrap: wrap; gap: 10px;">
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--color-charcoal); font-size: 12px; color: var(--color-silver-mist); flex-wrap: wrap; gap: 10px;">
             <div style="display: flex; align-items: center; gap: 16px;">
               <div style="display: flex; align-items: center; gap: 6px;">
-                <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-phosphor-green);"></span>
+                <span
+                  style="width: 8px; height: 8px; border-radius: 50%; background: var(--color-phosphor-green);"></span>
                 <span>منشأة نشطة وبها موظفون</span>
               </div>
               <div style="display: flex; align-items: center; gap: 6px;">
@@ -4714,7 +5773,10 @@
         <div id="settingsLockdownAlertBox"
           style="display: none; background: rgba(239, 68, 68, 0.15); border: 1.5px solid var(--color-coral); border-radius: 10px; padding: 18px 20px; margin-bottom: 20px;">
           <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-coral)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-coral)" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
             <span style="font-weight: 800; color: #ff6b6b; font-size: 15px;">المنظومة في وضع الأمان المقيد</span>
           </div>
           <p style="margin: 0; color: var(--color-silver-mist); font-size: 13px; line-height: 1.6;">
@@ -4751,11 +5813,18 @@
 
           <div>
             <div class="settings-section-title">رمز مصادقة المشغّل وجلسة العمليات (X-API-Key)</div>
-            <p class="settings-help">الرمز الأمني المعتمد للمشغّل (المُعرّف في ملف البيئة .env تحت WRITE_API_TOKEN) للوصول إلى السجلات المحمية في «سجل»، وحفظ إعدادات الربط ومحركات الذكاء الاصطناعي، واعتماد عمليات Odoo الحساسة.</p>
-            <div style="display: flex; gap: 10px; max-width: 620px; align-items: center; margin-top: 10px; flex-wrap: wrap;">
-              <input id="settingsOperatorTokenInput" type="password" dir="ltr" class="form-input" style="flex: 1; min-width: 240px; font-family: var(--font-mono); font-size: 13px; padding: 9px 12px; background: #161616; border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow);" placeholder="ألصق رمز X-API-Key هنا" autocomplete="off">
-              <button type="button" class="btn btn-primary btn-sm" onclick="saveOperatorTokenFromSettings()">حفظ وتفعيل</button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="clearOperatorTokenFromSettings()">مسح</button>
+            <p class="settings-help">الرمز الأمني المعتمد للمشغّل (المُعرّف في ملف البيئة .env تحت WRITE_API_TOKEN)
+              للوصول إلى السجلات المحمية في «سجل»، وحفظ إعدادات الربط ومحركات الذكاء الاصطناعي، واعتماد عمليات Odoo
+              الحساسة.</p>
+            <div
+              style="display: flex; gap: 10px; max-width: 620px; align-items: center; margin-top: 10px; flex-wrap: wrap;">
+              <input id="settingsOperatorTokenInput" type="password" dir="ltr" class="form-input"
+                style="flex: 1; min-width: 240px; font-family: var(--font-mono); font-size: 13px; padding: 9px 12px; background: #161616; border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow);"
+                placeholder="ألصق رمز X-API-Key هنا" autocomplete="off">
+              <button type="button" class="btn btn-primary btn-sm" onclick="saveOperatorTokenFromSettings()">حفظ
+                وتفعيل</button>
+              <button type="button" class="btn btn-secondary btn-sm"
+                onclick="clearOperatorTokenFromSettings()">مسح</button>
             </div>
             <div id="settingsOperatorTokenStatus" class="settings-help" style="margin-top: 6px;"></div>
           </div>
@@ -4777,7 +5846,8 @@
                 <button id="saveConnectionBtn" class="btn btn-primary" type="submit">تحقق واحفظ الاتصال</button>
                 <button class="btn btn-secondary" type="button" onclick="loadSystemStatus(true)">تحديث الشركات</button>
                 <button class="btn btn-secondary" type="button" onclick="clearAndResetConnection()"
-                  style="background: rgba(239, 68, 68, 0.12); color: #ff6b6b; border: 1px solid rgba(239, 68, 68, 0.35); font-weight: 600;">مسح البيانات القديمة</button>
+                  style="background: rgba(239, 68, 68, 0.12); color: #ff6b6b; border: 1px solid rgba(239, 68, 68, 0.35); font-weight: 600;">مسح
+                  البيانات القديمة</button>
               </div>
               <div id="settingsConnectionMessage" role="status" class="settings-help"></div>
               <div id="settingsSelectedCompany" class="settings-help"></div>
@@ -4792,7 +5862,7 @@
           style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-charcoal); padding-bottom: 14px; margin-bottom: 20px;">
           <div>
             <div class="panel-title" style="display: flex; align-items: center; gap: 8px;">
-              
+
               <span>إعدادات محرك الذكاء الاصطناعي والمشغلات</span>
             </div>
             <div style="font-size: 13px; color: var(--color-smoke); margin-top: 4px;">
@@ -4871,8 +5941,9 @@
             style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616; display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                
-                <span style="font-size: 14.5px; font-weight: 700; color: var(--color-snow);">إعدادات المشغل السحابي ومفتاح الربط</span>
+
+                <span style="font-size: 14.5px; font-weight: 700; color: var(--color-snow);">إعدادات المشغل السحابي
+                  ومفتاح الربط</span>
               </div>
               <div id="cloudStatusBadge" class="badge" style="background: rgba(255,255,255,0.06); font-size: 12px;">
                 غير مهيأ
@@ -4891,7 +5962,8 @@
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
                 <div>
                   <label
-                    style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اختر مزود الخدمة:</label>
+                    style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اختر
+                    مزود الخدمة:</label>
                   <select id="cloudPresetSelector" onchange="handleCloudPresetChange(this.value)"
                     style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-arabic);">
                     <option value="openrouter">OpenRouter (موصى به - نماذج مجانية ومتعددة)</option>
@@ -4904,7 +5976,8 @@
 
                 <div>
                   <label
-                    style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اسم النموذج المعتمد:</label>
+                    style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اسم
+                    النموذج المعتمد:</label>
                   <input id="cloudModelInput" type="text" dir="ltr" placeholder="مثال: openrouter/auto أو gpt-4o-mini"
                     style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
                 </div>
@@ -4912,7 +5985,8 @@
 
               <div>
                 <label
-                  style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">الرابط الأساسي للمشغل:</label>
+                  style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">الرابط
+                  الأساسي للمشغل:</label>
                 <input id="cloudBaseUrlInput" type="url" dir="ltr" placeholder="https://openrouter.ai/api/v1"
                   style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
               </div>
@@ -4936,7 +6010,11 @@
                     style="width: 100%; padding: 9px 40px 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
                   <button type="button" onclick="toggleApiKeyVisibility()"
                     style="position: absolute; left: 10px; background: none; border: none; cursor: pointer; color: var(--color-smoke); font-size: 16px;"
-                    title="إظهار/إخفاء المفتاح"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    title="إظهار/إخفاء المفتاح"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
                   </button>
                 </div>
                 <div style="font-size: 12.5px; color: var(--color-smoke); margin-top: 4px;">
@@ -4959,7 +6037,7 @@
             style="border: 1px solid var(--color-charcoal); border-radius: 12px; padding: 18px; background: #161616; display: none;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
               <div style="display: flex; align-items: center; gap: 8px;">
-                
+
                 <span style="font-size: 14.5px; font-weight: 700; color: var(--color-snow);">إعدادات المحرك المحلي
                   (Local Ollama / LM Studio)</span>
               </div>
@@ -4989,7 +6067,7 @@
                   <label
                     style="font-size: 12.5px; color: var(--color-silver-mist); display: block; margin-bottom: 6px;">اسم
                     النموذج المحلي:</label>
-                  <input id="localModelInput" type="text" dir="ltr" placeholder="qwen3.5:9b أو qwen2.5:7b"
+                  <input id="localModelInput" type="text" dir="ltr" placeholder="qwen3.5:9b"
                     style="width: 100%; padding: 9px 12px; background: var(--color-obsidian); border: 1px solid var(--color-charcoal); border-radius: 8px; color: var(--color-snow); font-family: var(--font-mono); font-size: 13px;">
                 </div>
               </div>
@@ -5037,7 +6115,11 @@
             style="font-size: 12px; color: var(--color-silver-mist); font-family: var(--font-mono); margin-top: 2px;">
             توثيق الحدث وأدلة التدقيق</div>
         </div>
-        <button class="drawer-close-btn" aria-label="أغلق التفاصيل" onclick="closeDetailsDrawer()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+        <button class="drawer-close-btn" aria-label="أغلق التفاصيل" onclick="closeDetailsDrawer()"><svg width="14"
+            height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg></button>
       </div>
 
       <div id="drawerBody" style="display: flex; flex-direction: column; gap: 14px; font-size: 13px;">
@@ -5071,7 +6153,7 @@
       } catch (_) { }
     }
 
-    
+
     function syncSettingsTokenInput() {
       const input = document.getElementById("settingsOperatorTokenInput");
       const status = document.getElementById("settingsOperatorTokenStatus");
@@ -5178,14 +6260,14 @@
     let sijilTotal = 0;
 
     const AGENTS_META = {
-      seraj: { name_ar: "سراج", color: "var(--agent-seraj)", role: "المنسق والمحاور ومتابع المهام", icon: "sparkles", img: "/images/svg/seraj.svg" },
-      fahas: { name_ar: "فاحص", color: "var(--agent-fahas)", role: "القراءة والتحقق من بيانات Odoo", icon: "search", img: "/images/svg/fahas.svg" },
-      modaqeq: { name_ar: "مدقق", color: "var(--agent-modaqeq)", role: "التحقق من البيانات والقواعد", icon: "shield-check", img: "/images/svg/modaqeq.svg" },
-      mowafaq: { name_ar: "موفق", color: "var(--agent-mowafaq)", role: "المطابقة عند الحاجة", icon: "git-merge", img: "/images/svg/mowafaq.svg" },
-      hares: { name_ar: "حارس", color: "var(--agent-hares)", role: "الصلاحيات والسياسات والاعتماد", icon: "lock", img: "/images/svg/hares.svg" },
-      musleh: { name_ar: "مصلح", color: "var(--agent-musleh)", role: "التشخيص والمعالجة ضمن الحدود", icon: "wrench", img: "/images/svg/musleh.svg" },
-      katib: { name_ar: "كاتب", color: "var(--agent-katib)", role: "تنفيذ العملية المعتمدة في Odoo", icon: "pencil", img: "/images/svg/katib.svg" },
-      sijil: { name_ar: "سجل", color: "var(--agent-sijil)", role: "توثيق الأحداث والنتائج وإصدار PDF", icon: "book-open", img: "/images/svg/sijil.svg" }
+      seraj: { name_ar: "سراج", color: "var(--agent-seraj)", role: "المنسق العام", popover: "سراج: المنسق العام ومحاور المشغّل • انقر لإدراج أمره في الشات", icon: "sparkles", img: "/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" },
+      fahas: { name_ar: "فاحص", color: "var(--agent-fahas)", role: "استعلام Odoo", popover: "فاحص: قراءة واستعلام بيانات Odoo 19.0e الحية بأمان تام", icon: "search", img: "/images/svg/fahas.svg" },
+      modaqeq: { name_ar: "مدقق", color: "var(--agent-modaqeq)", role: "نظام العمل", popover: "مدقق: مطابقة مواد ولوائح نظام العمل السعودي (40 مادة مفهرسة)", icon: "shield-check", img: "/images/svg/modaqeq.svg" },
+      mowafaq: { name_ar: "موفق", color: "var(--agent-mowafaq)", role: "المطابقة الدلالية", popover: "موفق: مطابقة المسميات والأقسام بين ملفات Excel وسجلات Odoo", icon: "git-merge", img: "/images/svg/mowafaq.svg" },
+      musleh: { name_ar: "مصلح", color: "var(--agent-musleh)", role: "التشخيص الذاتي", popover: "مصلح: كشف الأخطاء وإصلاح الشذوذ واقتراح الحلول التصحيحية", icon: "wrench", img: "/images/svg/musleh.svg" },
+      hares: { name_ar: "حارس", color: "var(--agent-hares)", role: "حوكمة الأمان PII", popover: "حارس: حجب البيانات الحساسة وتفعيل بوابة موافقة المشغّل البشري", icon: "lock", img: "/images/svg/hares.svg" },
+      katib: { name_ar: "كاتب", color: "var(--agent-katib)", role: "قيد Odoo", popover: "كاتب: تنفيذ عمليات الإنشاء والتعديل في Odoo بعد اعتماد حارس", icon: "pencil", img: "/images/svg/katib.svg" },
+      sijil: { name_ar: "سجل", color: "var(--agent-sijil)", role: "الختم الرقمي", popover: "سجل: التوثيق الرقابي والختم اللاتراجعي بتشفير SHA-256", icon: "book-open", img: "/images/svg/sijil.svg" }
     };
 
     const STATUS_MAP_AR = {
@@ -5393,7 +6475,7 @@
           const url = new URL(window.location.href);
           url.searchParams.set("view", viewSlug);
           window.history.replaceState({ view: viewSlug }, "", url.toString());
-        } catch (_) {}
+        } catch (_) { }
       }
     }
 
@@ -5556,9 +6638,11 @@
 
         if (data.companies && data.companies.length > 0) {
           const selector = document.getElementById("templateCompanySelector");
-          const options = '<option value="">الشركة الافتراضية</option>' +
-            data.companies.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
-          selector.innerHTML = options;
+          if (selector) {
+            const options = '<option value="">الشركة الافتراضية</option>' +
+              data.companies.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join("");
+            selector.innerHTML = options;
+          }
         }
       } catch (err) {
         console.warn("Failed to populate template company selector:", err);
@@ -6175,8 +7259,8 @@
                 </div>`;
             }
 
-            const adviceText = target === 'local' 
-              ? 'تأكد من تشغيل تطبيق Ollama محلياً أو اضغط على زر «تشغيل خادم Ollama» أعلاه.' 
+            const adviceText = target === 'local'
+              ? 'تأكد من تشغيل تطبيق Ollama محلياً أو اضغط على زر «تشغيل خادم Ollama» أعلاه.'
               : 'تأكد من صحة الرابط ومفتاح API واتصالك بالإنترنت.';
 
             resultBox.innerHTML = `<strong>فشل الاتصال:</strong> ${escapeHtml(data.message || 'تعذر الوصول إلى الخادم.')}<br>
@@ -6329,6 +7413,10 @@
       document.querySelectorAll("[id^='agentStatusBubble_']").forEach(b => {
         b.textContent = "جاهز";
       });
+      document.querySelectorAll("[id^='agentStatusDot_']").forEach(d => {
+        d.style.background = "var(--color-phosphor-green)";
+        d.style.boxShadow = "none";
+      });
     }
 
     function renderAgentsStrip() {
@@ -6350,9 +7438,15 @@
               ${getAgentSvg(meta.icon)}
             </div>
           </div>
-          <div class="agent-name">${meta.name_ar} ${meta.is_helper ? '<span style="font-size: 11px; color: var(--color-silver-mist); font-weight: normal;">(أداة)</span>' : ''}</div>
-          <div class="agent-role-short">${meta.role}</div>
-          <div class="agent-status-bubble" id="agentStatusBubble_${key}">جاهز</div>
+          <div class="agent-tile-info">
+            <div class="agent-tile-header">
+              <span class="agent-name">${meta.name_ar}</span>
+              <span class="agent-tile-status-dot" id="agentStatusDot_${key}"></span>
+              <span class="agent-status-bubble" id="agentStatusBubble_${key}" style="display:none;">جاهز</span>
+            </div>
+            <div class="agent-role-short">${meta.role}</div>
+          </div>
+          <div class="agent-popover">${escapeHtml(meta.popover || meta.name_ar + ': ' + meta.role)}</div>
         `;
         container.appendChild(card);
       });
@@ -6507,6 +7601,210 @@
       const input = document.getElementById("chatInput");
       input.value = promptText;
       handleChatSubmit(new Event("submit"));
+    }
+
+    function fillPrompt(promptText) {
+      const input = document.getElementById("chatInput");
+      if (input) {
+        input.value = promptText;
+        autoResizeTextarea(input);
+        input.focus();
+      }
+    }
+
+    function toggleReasoning(el) {
+      const drawer = el.closest(".reasoning-drawer");
+      if (!drawer) return;
+      const body = drawer.querySelector(".reasoning-body");
+      if (!body) return;
+      const isHidden = body.style.display === "none";
+      body.style.display = isHidden ? "block" : "none";
+      const icon = el.querySelector("span");
+      if (icon) {
+        icon.textContent = isHidden ? "▼ تفكير سراج: استدعاء الوكيل «مدقق» لفحص نصوص اللائحة" : "▶ تفكير سراج (انقر للتوسيع)";
+      }
+    }
+
+    function switchScenario(scene, btn) {
+      if (btn) {
+        document.querySelectorAll(".btn-sim-trigger").forEach(b => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+      }
+
+      const badge = document.getElementById("dockGlobalStatusBadge");
+      const badgeText = document.getElementById("dockGlobalStatusText");
+      const approvalCard = document.getElementById("hitlApprovalGateBanner");
+      const routeTarget = document.getElementById("route-step-target");
+      const chatBox = document.getElementById("chatMessages");
+      const timelineBox = document.getElementById("timelineContainer");
+
+      if (scene === "standby") {
+        resetAllAgentsToIdle();
+        if (badge) {
+          badge.style.borderColor = "rgba(62, 207, 142, 0.25)";
+          badge.style.color = "var(--color-phosphor-green)";
+        }
+        if (badgeText) badgeText.textContent = "8 وكلاء في حالة جاهزية كاملة";
+        if (approvalCard) approvalCard.style.display = "none";
+        if (routeTarget) {
+          routeTarget.textContent = "الوكيل المختص";
+          routeTarget.classList.remove("active");
+        }
+        if (typeof renderAgentTimeline === "function") {
+          renderAgentTimeline([], "idle");
+        }
+      } else if (scene === "law") {
+        resetAllAgentsToIdle();
+        const modaqeqCard = document.getElementById("agentCard_modaqeq");
+        if (modaqeqCard) modaqeqCard.classList.add("is-active");
+        const modaqeqDot = document.getElementById("agentStatusDot_modaqeq");
+        if (modaqeqDot) {
+          modaqeqDot.style.background = "var(--agent-modaqeq)";
+          modaqeqDot.style.boxShadow = "0 0 8px var(--agent-modaqeq)";
+        }
+        if (badge) {
+          badge.style.borderColor = "rgba(139, 92, 246, 0.45)";
+          badge.style.color = "#c4b5fd";
+        }
+        if (badgeText) badgeText.textContent = "مدقق: تم استرجاع ومطابقة المادة 77 بنجاح";
+        if (approvalCard) approvalCard.style.display = "none";
+        if (routeTarget) {
+          routeTarget.textContent = "مدقق (نظام العمل)";
+          routeTarget.classList.add("active");
+        }
+
+        if (chatBox) {
+          chatBox.innerHTML = `
+            <div class="msg-bubble msg-user">
+              <div class="msg-avatar"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+              <div class="msg-content-wrapper">
+                <div class="msg-meta"><span>المشغّل</span> • <span class="mono">الآن</span></div>
+                <div class="msg-card">ما هي ضوابط إنهاء العقد لسبب غير مشروع بموجب المادة 77 من نظام العمل السعودي؟</div>
+              </div>
+            </div>
+            <div class="msg-bubble msg-assistant">
+              <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: #14181a;">
+                <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
+              </div>
+              <div class="msg-content-wrapper">
+                <div class="msg-meta"><span>سراج</span> • <span class="mono">الآن</span></div>
+                <div class="msg-card">
+                  <div class="reasoning-drawer">
+                    <div class="reasoning-trigger" onclick="toggleReasoning(this)">
+                      <span>▼ تفكير سراج: استدعاء الوكيل «مدقق» لفحص نصوص اللائحة</span>
+                    </div>
+                    <div class="reasoning-body">
+                      -&gt; query: labor_law_ksa.match(article=77)<br>
+                      -&gt; modaqeq_agent returned: compensation rules for indefinite and fixed-term contracts.<br>
+                      -&gt; synthesizing legal opinion for HR operator.
+                    </div>
+                  </div>
+
+                  <div class="tool-call-badge">
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span>مدقق: تم التحقق من المادة 77 • نظام العمل السعودي 1446هـ</span>
+                  </div>
+                  <br>
+                  أفاد الوكيل <strong>«مدقق»</strong> بالضوابط القانونية المعتمدة طبقاً لنص <strong>المادة 77</strong>:<br>
+                  إذا أُنهي العقد لسبب غير مشروع، يستحق الطرف المتضرر تعويضاً على النحو التالي (ما لم يتضمن العقد تعويضاً محدداً ينص عليه صراحة):
+                  <br><br>
+                  1. <strong>أجر خمسة عشر يوماً</strong> عن كل سنة من سنوات خدمة العامل إذا كان العقد <strong>غير محدد المدة</strong>.<br>
+                  2. <strong>أجر المدة الباقية من العقد</strong> إذا كان العقد <strong>محدد المدة</strong>.<br>
+                  3. وفي جميع الأحوال، يجب ألا يقل التعويض المشار إليه في الفقرتين السابقتين عن <strong>أجر العامل لمدة شهرين</strong>.
+                </div>
+              </div>
+            </div>
+          `;
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        if (timelineBox) {
+          timelineBox.innerHTML = `
+            <div class="timeline-track-list">
+              <div class="timeline-entry">
+                <div class="timeline-marker-avatar" style="--marker-color: var(--agent-modaqeq);">
+                  <img src="/images/%D9%85%D8%AF%D9%82%D9%82.jpg" onerror="this.src='/images/svg/modaqeq.svg'">
+                </div>
+                <div class="timeline-entry-content">
+                  <div class="timeline-entry-heading">
+                    <strong>استشارة نظام العمل:</strong> استرجع «مدقق» نصوص المادة 77 بطلب من «سراج» وقدم الصياغة القانونية.
+                  </div>
+                  <div class="timeline-entry-meta">
+                    <span>الآن • وكيل: مدقق</span>
+                    <span class="timeline-seal-badge">SEAL: 91a4c82e</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      } else if (scene === "hitl") {
+        document.querySelectorAll(".agent-character-card").forEach(t => t.classList.add("is-active"));
+        if (badge) {
+          badge.style.borderColor = "rgba(245, 158, 11, 0.45)";
+          badge.style.color = "var(--color-amber)";
+        }
+        if (badgeText) badgeText.textContent = "بانتظار توقيعك البشري: تدقيق ملف رواتب عبر حارس";
+        if (approvalCard) approvalCard.style.display = "block";
+        if (routeTarget) {
+          routeTarget.textContent = "حارس ➔ توقيع المشغّل";
+          routeTarget.classList.add("active");
+        }
+        startHitlCountdown(299);
+
+        if (chatBox) {
+          chatBox.innerHTML = `
+            <div class="msg-bubble msg-user">
+              <div class="msg-avatar"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg></div>
+              <div class="msg-content-wrapper">
+                <div class="msg-meta"><span>المشغّل</span> • <span class="mono">الآن</span></div>
+                <div class="msg-card">تم إرفاق ملف كشف تعديل الرواتب: <code>hr_batch_modifications_october.xlsx</code></div>
+              </div>
+            </div>
+            <div class="msg-bubble msg-assistant">
+              <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: #14181a;">
+                <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
+              </div>
+              <div class="msg-content-wrapper">
+                <div class="msg-meta"><span>سراج</span> • <span class="mono">الآن</span></div>
+                <div class="msg-card">
+                  <div class="tool-call-badge" style="background: rgba(6, 182, 212, 0.15); border-color: rgba(6, 182, 212, 0.35); color: #67e8f9;">
+                    <span>فاحص: قراءة 14 سجلاً ومطابقتها مع Odoo Stage بنجاح</span>
+                  </div>
+                  <br>
+                  اكتمل فحص الملف دلالياً ونظامياً عبر <strong>«فاحص»</strong> و<strong>«مدقق»</strong> و<strong>«موفق»</strong>.
+                  <br><br>
+                  ⚠️ <strong>إشعار حوكمة الأمان:</strong> رصد الوكيل <strong>«حارس»</strong> وجود تعديلات مالية تتطلب <strong>توقيعك البشري الصريح</strong> قبل السماح لوكيل «كاتب» بقيد التعديلات في قاعدة بيانات Odoo.
+                  <br>
+                  يرجى مراجعة الجدول في <strong>بوابة الاعتماد البشري (HITL)</strong> على اليسار والضغط على «اعتماد» أو «رفض».
+                </div>
+              </div>
+            </div>
+          `;
+          chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        if (timelineBox) {
+          timelineBox.innerHTML = `
+            <div class="timeline-track-list">
+              <div class="timeline-entry">
+                <div class="timeline-marker-avatar" style="--marker-color: var(--agent-hares);">
+                  <img src="/images/%D8%AD%D8%A7%D8%B1%D8%B3.jpg" onerror="this.src='/images/svg/hares.svg'">
+                </div>
+                <div class="timeline-entry-content">
+                  <div class="timeline-entry-heading">
+                    <strong>حظر تلقائي للكتابة (HITL):</strong> علّق «حارس» أمر القيد وأصدر تصريح موافقة بانتظار المشغّل.
+                  </div>
+                  <div class="timeline-entry-meta">
+                    <span>الآن • وكيل: حارس</span>
+                    <span class="timeline-seal-badge">SEAL: 77a1bc8f</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }
+      }
     }
 
     async function handleChatSubmit(e) {
@@ -6804,8 +8102,8 @@
       }
 
       msg.innerHTML = `
-        <div class="msg-avatar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: #14181a;">
+          <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
         </div>
         <div class="msg-content-wrapper">
           <div class="msg-meta" style="display: flex; align-items: center; flex-wrap: wrap; gap: 4px;">
@@ -6842,22 +8140,173 @@
 
     function setSerajBusy(text) {
       chatRequestInFlight = true;
-      document.getElementById("chatSendBtn").disabled = true;
+      const sendBtn = document.getElementById("chatSendBtn");
+      if (sendBtn) sendBtn.disabled = true;
       const cfBusy = document.getElementById("chatFileInput"); if (cfBusy) cfBusy.disabled = true;
+      const cfExcel = document.getElementById("chatExcelFileInput"); if (cfExcel) cfExcel.disabled = true;
       const bubble = document.getElementById("agentStatusBubble_seraj");
       if (bubble) bubble.textContent = text || "يعمل الآن…";
       const card = document.getElementById("agentCard_seraj");
       if (card) card.classList.add("is-active");
+      const serajBadge = document.getElementById("serajStateBadge");
+      if (serajBadge) {
+        serajBadge.textContent = "سراج يعالج…";
+        serajBadge.className = "badge badge-warning";
+      }
     }
 
     function setSerajIdle() {
       chatRequestInFlight = false;
-      document.getElementById("chatSendBtn").disabled = false;
+      const sendBtn = document.getElementById("chatSendBtn");
+      if (sendBtn) sendBtn.disabled = false;
       const cfIdle = document.getElementById("chatFileInput"); if (cfIdle) cfIdle.disabled = false;
+      const cfExcel = document.getElementById("chatExcelFileInput"); if (cfExcel) cfExcel.disabled = false;
       const bubble = document.getElementById("agentStatusBubble_seraj");
       if (bubble) bubble.textContent = "جاهز";
       const card = document.getElementById("agentCard_seraj");
       if (card) card.classList.remove("is-active");
+      const serajBadge = document.getElementById("serajStateBadge");
+      if (serajBadge) {
+        serajBadge.textContent = "جاهز";
+        serajBadge.className = "badge badge-neutral";
+      }
+    }
+
+    // =========================================================================
+    // FLOATING ISLAND COMPOSER & CHAT ENHANCEMENTS
+    // =========================================================================
+    function triggerChatExcelUpload() {
+      const fileInput = document.getElementById("chatExcelFileInput");
+      if (fileInput) fileInput.click();
+    }
+
+    function handleChatExcelSelected(input) {
+      if (input.files && input.files.length > 0) {
+        handleFileUpload(input);
+        input.value = "";
+      }
+    }
+
+    function handleChatDragOver(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const composer = document.getElementById("chatForm");
+      if (composer) composer.classList.add("is-drag-over");
+    }
+
+    function handleChatDragLeave(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const composer = document.getElementById("chatForm");
+      if (composer) composer.classList.remove("is-drag-over");
+    }
+
+    function handleChatDrop(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      const composer = document.getElementById("chatForm");
+      if (composer) composer.classList.remove("is-drag-over");
+
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        const file = e.dataTransfer.files[0];
+        const name = file.name.toLowerCase();
+        if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+          const dummyInput = { files: [file] };
+          handleFileUpload(dummyInput);
+        } else {
+          appendSerajMessage("تنبيه: يدعم مركز المعالجة ملفات Excel (.xlsx, .xls) فقط للفحص والتدقيق المحكوم.");
+        }
+      }
+    }
+
+    function startNewChatSession() {
+      if (chatRequestInFlight) return;
+      currentOperationId = null;
+      currentChatId = `web_${crypto.randomUUID()}`;
+      currentOperationStatus = null;
+      lastEventSequence = 0;
+
+      const chatMessages = document.getElementById("chatMessages");
+      if (chatMessages) {
+        chatMessages.innerHTML = `
+          <div class="msg-bubble msg-assistant">
+            <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: #14181a;">
+              <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
+            </div>
+            <div class="msg-content-wrapper">
+              <div class="msg-meta">
+                <span>سراج</span> • <span class="mono">جلسة جديدة</span>
+              </div>
+              <div class="msg-card">
+                مرحباً بك في جلسة عمل جديدة! أنا «سراج» المنسق والمحاور لمنظومة وكلاء Odoo HR.<br>
+                يمكنك كتابة استفسارك أو أمر العمل، أو إرفاق ملف Excel عبر زر «إرفاق Excel» لبدء فحص جاف محكوم فوراً.
+              </div>
+            </div>
+          </div>
+          <div id="typingIndicator" class="typing-indicator msg-bubble msg-assistant" role="status" aria-label="سراج يكتب الرد" aria-live="polite">
+            <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: #14181a;">
+              <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
+            </div>
+            <div class="typing-dots">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          </div>
+        `;
+      }
+
+      const activeBadge = document.getElementById("activeOpIdBadge");
+      if (activeBadge) activeBadge.textContent = "—";
+      const activeStatus = document.getElementById("activeOpStatusBadge");
+      if (activeStatus) {
+        activeStatus.textContent = "جاهز";
+        activeStatus.className = "badge badge-neutral";
+      }
+      const serajBadge = document.getElementById("serajStateBadge");
+      if (serajBadge) {
+        serajBadge.textContent = "جاهز";
+        serajBadge.className = "badge badge-neutral";
+      }
+
+      resetAllAgentsToIdle();
+      const input = document.getElementById("chatInput");
+      if (input) {
+        input.value = "";
+        autoResizeTextarea(input);
+        input.focus();
+      }
+    }
+
+    function toggleChatFocusWidth() {
+      const cockpitGrid = document.querySelector(".cockpit-grid");
+      const btn = document.getElementById("btnToggleChatWidth");
+      if (!cockpitGrid) return;
+      const isExpanded = cockpitGrid.classList.toggle("is-chat-expanded");
+      if (btn) {
+        btn.classList.toggle("is-active", isExpanded);
+        btn.setAttribute("title", isExpanded ? "استعادة العرض الافتراضي" : "توسيع مساحة المحادثة");
+        btn.setAttribute("aria-label", isExpanded ? "استعادة العرض الافتراضي" : "توسيع مساحة المحادثة");
+      }
+    }
+
+    function toggleQuickPromptsModal(show) {
+      const overlay = document.getElementById("quickPromptsModalOverlay");
+      if (!overlay) return;
+      if (show === undefined) {
+        show = overlay.style.display === "none";
+      }
+      overlay.style.display = show ? "flex" : "none";
+    }
+
+    function insertQuickPromptText(text) {
+      toggleQuickPromptsModal(false);
+      const input = document.getElementById("chatInput");
+      if (input) {
+        input.value = text;
+        autoResizeTextarea(input);
+        input.focus();
+      }
     }
 
     function showTypingIndicator() {
@@ -7056,30 +8505,43 @@
       const tokenBar = document.getElementById("pillarContextBar");
       if (tokenBar) tokenBar.style.width = `${Math.min(100, Math.round((estimatedTokens / 8192) * 100))}%`;
 
-      // Update Agent Cognitive Thought Stream
+      // Update Agent Cognitive Status in 21st.dev Dock Header
       const thoughtStrip = document.getElementById("agentThoughtStreamStrip");
       if (thoughtStrip) {
-        if (evtList.length > 0 && op && op.status !== "completed" && op.status !== "failed" && op.status !== "cancelled") {
-          const latest = evtList[evtList.length - 1];
-          const agentKey = latest.agent || activeAgent || "seraj";
-          const meta = AGENTS_META[agentKey] || { name_ar: agentKey, color: "var(--color-phosphor-green)" };
-          const nameEl = document.getElementById("thoughtAgentName");
-          const actEl = document.getElementById("thoughtAgentAction");
-          const textEl = document.getElementById("thoughtStreamText");
-          const timeEl = document.getElementById("thoughtTimestamp");
-          if (nameEl) {
-            nameEl.textContent = meta.name_ar;
-            nameEl.style.color = meta.color;
-          }
-          if (actEl) actEl.textContent = latest.action || latest.status_label || "يعالج...";
-          if (textEl) textEl.textContent = latest.reasoning || latest.description_ar || "جاري تدقيق العملية ومطابقتها مع سياسات العمل...";
-          if (timeEl) timeEl.textContent = latest.timestamp ? latest.timestamp.substring(11, 19) : "الآن";
-          thoughtStrip.style.display = "flex";
-        } else {
-          thoughtStrip.style.display = "none";
-          if (op && (op.status === "completed" || op.status === "failed" || op.status === "cancelled")) {
-            hideHitlGate();
-          }
+        thoughtStrip.style.display = "none"; // Cleanly hidden to prevent unstyled text spill
+      }
+      const dockStatusText = document.getElementById("dockGlobalStatusText") || document.getElementById("dockStatusText");
+      const routeTarget = document.getElementById("route-step-target");
+      if (evtList.length > 0 && op && op.status !== "completed" && op.status !== "failed" && op.status !== "cancelled") {
+        const latest = evtList[evtList.length - 1];
+        const agentKey = latest.agent || activeAgent || "seraj";
+        const meta = AGENTS_META[agentKey] || { name_ar: agentKey, color: "var(--color-phosphor-green)" };
+        if (dockStatusText) {
+          dockStatusText.textContent = `${meta.name_ar}: ${latest.action || latest.status_label || "يعالج الطلب..."}`;
+        }
+        if (routeTarget) {
+          routeTarget.textContent = meta.name_ar;
+          routeTarget.classList.add("active");
+        }
+        // Highlight active agent card and status dot
+        document.querySelectorAll(".agent-character-card").forEach(c => c.classList.remove("is-active"));
+        const activeCard = document.getElementById(`agentCard_${agentKey}`);
+        if (activeCard) activeCard.classList.add("is-active");
+        const activeDot = document.getElementById(`agentStatusDot_${agentKey}`);
+        if (activeDot) {
+          activeDot.style.background = meta.color;
+          activeDot.style.boxShadow = `0 0 8px ${meta.color}`;
+        }
+      } else {
+        if (dockStatusText) {
+          dockStatusText.textContent = op && op.status === "completed" ? "اكتملت العملية بنجاح" : "متصل وجاهز للتشغيل";
+        }
+        if (routeTarget) {
+          routeTarget.textContent = "الوكيل المختص";
+          routeTarget.classList.remove("active");
+        }
+        if (op && (op.status === "completed" || op.status === "failed" || op.status === "cancelled")) {
+          hideHitlGate();
         }
       }
     }
@@ -7313,6 +8775,29 @@
         if (card) card.classList.add("is-active");
       }
 
+      // Update 21st.dev Routing Pipeline Strip & Global Dock Status
+      const targetStep = document.getElementById("route-step-target");
+      const globalText = document.getElementById("dockGlobalStatusText");
+      if (targetStep) {
+        if (op.active_agent && op.active_agent !== "seraj" && op.status !== "completed" && op.status !== "failed") {
+          const meta = AGENTS_META[op.active_agent];
+          targetStep.textContent = meta ? meta.name_ar : op.active_agent;
+          targetStep.classList.add("active");
+        } else {
+          targetStep.textContent = "الوكيل المختص";
+          targetStep.classList.remove("active");
+        }
+      }
+      if (globalText) {
+        if (op.status === "in_progress" || op.status === "running") {
+          globalText.textContent = "جاري تنفيذ مهمة تشغيلية...";
+        } else if (op.status === "waiting_approval") {
+          globalText.textContent = "بانتظار توقيع المشغّل...";
+        } else {
+          globalText.textContent = "متصل وجاهز للتشغيل";
+        }
+      }
+
       updateCockpitTelemetry(op.events || [], op.active_agent, op);
     }
 
@@ -7320,6 +8805,7 @@
       const stepper = document.getElementById("processStepper");
       const countEl = document.getElementById("processStepCount");
       const subtitleEl = document.getElementById("stepperSubtitle");
+      const stepperCard = document.getElementById("processStepperCard");
       if (!stepper) return;
 
       const evtList = Array.isArray(events) ? events : [];
@@ -7328,6 +8814,7 @@
       const activeAgent = op.active_agent || window.currentActiveAgent || "seraj";
 
       if (evtList.length === 0 && (!op || !op.operation_id)) {
+        if (stepperCard) stepperCard.style.display = "none";
         stepper.innerHTML = `
           <div style="padding: 24px; text-align: center; color: var(--color-smoke); font-size: 13px;">
             لا توجد عملية نشطة حالياً. اكتب طلباً في المحادثة لبدء تتبع سير العملية.
@@ -7341,6 +8828,8 @@
         }
         return;
       }
+
+      if (stepperCard) stepperCard.style.display = "block";
 
       // 1. Contextual Routing & Category Determination
       const isBatch = (op.operation_type === 'excel_import' || op.operation_type === 'file_upload' || op.operation_type === 'batch_import' || op.operation_type === 'recruitment') || evtList.some(e => e.event_type === 'batch_import' || e.agent === 'mowafaq' || e.agent === 'musleh');
@@ -7504,8 +8993,8 @@
             num: 6,
             id: "m_action_seal",
             agent: "sijil",
-            name: "06. التوثيق الجنائي والختم اللاتراجعي",
-            desc: "توثيق البصمة الجنائية المشفرة في الدفتر اللاتراجعي وإصدار السند",
+            name: "06. التوثيق والختم الرقمي اللاتراجعي",
+            desc: "توثيق البصمة الرقمية المشفرة في الدفتر اللاتراجعي وإصدار السند",
             state: isCompleted ? "completed" : "future",
             stateLabel: isCompleted ? "مختوم وموثق" : "في الانتظار",
             summary: isCompleted ? "تم توثيق البصمة المشفرة في سجل لحماية المعاملة من التلاعب" : "جاهز للختم فور اكتمال القيد",
@@ -7597,10 +9086,10 @@
             num: 8,
             id: "m_all_sijil",
             agent: "sijil",
-            name: "08. التوثيق الجنائي والختم اللاتراجعي",
-            desc: "توثيق البصمة الجنائية المشفرة (SHA-256) وسند الاعتماد غير القابل للتراجع في دفتر التدقيق",
+            name: "08. التوثيق والختم الرقمي اللاتراجعي",
+            desc: "توثيق البصمة الرقمية المشفرة (SHA-256) وسند الاعتماد غير القابل للتراجع في دفتر التدقيق",
             state: isCompleted ? "completed" : "future",
-            stateLabel: isCompleted ? "مختوم وموثق جنائياً" : "في الانتظار",
+            stateLabel: isCompleted ? "مختوم وموثق رقمياً" : "في الانتظار",
             summary: isCompleted ? "تم توثيق البصمة المشفرة في دفتر التدقيق اللاتراجعي بنجاح" : "جاهز لإصدار البصمة المشفرة فور انتهاء التنفيذ",
             badgeColor: "var(--agent-sijil)"
           }
@@ -7622,10 +9111,10 @@
         node.className = `step-node is-${m.state}`;
         node.style.cursor = "default";
 
-        const stateColor = m.state === "completed" ? "var(--color-phosphor-green)" : 
-                           m.state === "active" ? "#38bdf8" : 
-                           m.state === "waiting" ? "var(--color-amber)" : 
-                           m.state === "failed" ? "var(--color-coral)" : "var(--color-smoke)";
+        const stateColor = m.state === "completed" ? "var(--color-phosphor-green)" :
+          m.state === "active" ? "#38bdf8" :
+            m.state === "waiting" ? "var(--color-amber)" :
+              m.state === "failed" ? "var(--color-coral)" : "var(--color-smoke)";
 
         node.innerHTML = `
           <div class="step-icon-box" style="border-color: ${m.state === 'completed' || m.state === 'active' ? meta.color : 'var(--color-charcoal)'}; color: ${stateColor};">
@@ -7677,7 +9166,7 @@
         }
       }
 
-      title.textContent = `الأثر الجنائي للحدث: «${evt.description_ar || actionText}»`;
+      title.textContent = `سجل تتبع وأثر الحدث: «${evt.description_ar || actionText}»`;
       body.innerHTML = `
         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 200px; background: #141414; padding: 14px; border-radius: 12px; border: 1px solid var(--color-charcoal);">
@@ -7707,7 +9196,7 @@
         </div>
 
         <div style="background: #141414; padding: 14px; border-radius: 12px; border: 1px solid var(--color-charcoal); margin-top: 10px;">
-          <div style="font-size: 12px; color: var(--color-smoke); margin-bottom: 6px;">البيانات الفنية والتحقق الجنائي (Metadata)</div>
+          <div style="font-size: 12px; color: var(--color-smoke); margin-bottom: 6px;">البيانات الفنية وأدلة التحقق (Metadata)</div>
           <pre style="margin: 0; font-size: 12px; color: var(--color-snow); max-height: 180px; overflow-y: auto; font-family: var(--font-mono);">${escapeHtml(JSON.stringify(evt.metadata || {}, null, 2))}</pre>
         </div>
       `;
@@ -8519,20 +10008,22 @@
     function resolveAgentMeta(agentName) {
       if (!agentName) return { name_ar: "سراج", color: "var(--agent-seraj)" };
       const raw = String(agentName).toLowerCase().trim();
+      if (raw === "fahes" || raw === "fahas") return AGENTS_META.fahas || { name_ar: "فاحص", color: "var(--agent-fahas)" };
+      if (raw === "kateb" || raw === "katib") return AGENTS_META.katib || { name_ar: "كاتب", color: "var(--agent-katib)" };
       if (AGENTS_META[raw]) return AGENTS_META[raw];
       for (const [k, v] of Object.entries(AGENTS_META)) {
-        if (raw.includes(k) || raw.includes(v.name_ar)) {
+        if (raw.includes(k) || (v.name_ar && raw.includes(v.name_ar))) {
           return v;
         }
       }
-      if (raw.includes("سراج")) return AGENTS_META.seraj;
-      if (raw.includes("فاحص")) return AGENTS_META.fahas;
-      if (raw.includes("مدقق")) return AGENTS_META.modaqeq;
-      if (raw.includes("موفق")) return AGENTS_META.mowafaq;
-      if (raw.includes("حارس")) return AGENTS_META.hares;
-      if (raw.includes("مصلح")) return AGENTS_META.musleh;
-      if (raw.includes("كاتب")) return AGENTS_META.katib;
-      if (raw.includes("سجل")) return AGENTS_META.sijil;
+      if (raw.includes("سراج") || raw.includes("seraj")) return AGENTS_META.seraj;
+      if (raw.includes("فاحص") || raw.includes("fahes") || raw.includes("fahas")) return AGENTS_META.fahas;
+      if (raw.includes("مدقق") || raw.includes("modaqeq")) return AGENTS_META.modaqeq;
+      if (raw.includes("موفق") || raw.includes("mowafaq")) return AGENTS_META.mowafaq;
+      if (raw.includes("حارس") || raw.includes("hares")) return AGENTS_META.hares;
+      if (raw.includes("مصلح") || raw.includes("musleh")) return AGENTS_META.musleh;
+      if (raw.includes("كاتب") || raw.includes("katib") || raw.includes("kateb")) return AGENTS_META.katib;
+      if (raw.includes("سجل") || raw.includes("sijil")) return AGENTS_META.sijil;
       return { name_ar: agentName, color: "var(--color-phosphor-green)" };
     }
 
@@ -8583,10 +10074,10 @@
         if (action.includes("start") || desc.includes("يبدأ")) {
           return "استلام تفويض التنفيذ من حارس، وفتح جلسة اتصال آمنة وموثقة مع Odoo API لبدء تسجيل البيانات بدقة.";
         }
-        return "إتمام قيد السجلات في Odoo بنجاح وتوليد المعرفات النظامية، ونقل ملف المعاملة لوكيل «سجل» لإتمام الختم الجنائي.";
+        return "إتمام قيد السجلات في Odoo بنجاح وتوليد المعرفات النظامية، ونقل ملف المعاملة لوكيل «سجل» لإتمام التوثيق والختم الرقمي.";
       }
       if (agent === "sijil") {
-        return "توثيق البصمة الجنائية المشفرة (SHA-256) وسند الاعتماد غير القابل للتراجع في دفتر التدقيق لحماية المعاملة من التلاعب.";
+        return "توثيق البصمة الرقمية المشفرة (SHA-256) وسند الاعتماد غير القابل للتراجع في دفتر التدقيق لحماية المعاملة من التلاعب.";
       }
       return "معالجة الخطوة التشغيلية وفق مسار الحوكمة المعتمد والتأكد من سلامة المعاملة وتكامل بياناتها.";
     }
@@ -8621,13 +10112,56 @@
 
       if (evtList.length === 0) {
         container.innerHTML = `
-          <div class="timeline-empty">
-            في انتظار بدء مهام الوكلاء لعرض التتبع اللحظي الشامل...
+          <div class="timeline-track-list">
+            <div class="timeline-entry">
+              <div class="timeline-marker-avatar" style="--marker-color: var(--agent-seraj);">
+                <img src="/images/%D8%B3%D8%B1%D8%A7%D8%AC.jpg" onerror="this.src='/images/svg/seraj.svg'">
+              </div>
+              <div class="timeline-entry-content">
+                <div class="timeline-entry-heading">
+                  <strong>جاهزية المنظومة:</strong> تفعيل قمرة القيادة والتحقق من سلامة خطوط التوجيه بين الوكلاء.
+                </div>
+                <div class="timeline-entry-meta">
+                  <span>الآن • وكيل: سراج</span>
+                  <span class="timeline-seal-badge">SEAL: 7f8a9b1c</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-entry">
+              <div class="timeline-marker-avatar" style="--marker-color: var(--agent-fahas);">
+                <img src="/images/%D9%81%D8%A7%D8%AD%D8%B5.jpg" onerror="this.src='/images/svg/fahas.svg'">
+              </div>
+              <div class="timeline-entry-content">
+                <div class="timeline-entry-heading">
+                  <strong>مزامنة Odoo 19.0+e:</strong> تأكيد الاتصال الآمن مع قاعدة بيانات المرحلة والتحقق من السجلات.
+                </div>
+                <div class="timeline-entry-meta">
+                  <span>اليوم • وكيل: فاحص</span>
+                  <span class="timeline-seal-badge">SEAL: 4c3d2e1f</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-entry">
+              <div class="timeline-marker-avatar" style="--marker-color: var(--agent-hares);">
+                <img src="/images/%D8%AD%D8%A7%D8%B1%D8%B3.jpg" onerror="this.src='/images/svg/hares.svg'">
+              </div>
+              <div class="timeline-entry-content">
+                <div class="timeline-entry-heading">
+                  <strong>حوكمة الأمان:</strong> ترقية بروتوكول حماية PII وتفعيل الاعتماد المشروط لأي عمليات كتابة.
+                </div>
+                <div class="timeline-entry-meta">
+                  <span>اليوم • وكيل: حارس</span>
+                  <span class="timeline-seal-badge">SEAL: e98a12bc</span>
+                </div>
+              </div>
+            </div>
           </div>
         `;
         if (badge) {
-          badge.textContent = "في الانتظار";
-          badge.className = "badge badge-neutral";
+          badge.textContent = "جاهز ومتصل";
+          badge.className = "badge badge-success";
         }
         return;
       }
@@ -8660,7 +10194,7 @@
 
         div.className = `timeline-event ${statusCls}`;
         div.style.setProperty("--node-color", agentColor);
-        div.title = "انقر لعرض السجل الجنائي الكامل للحدث";
+        div.title = "انقر لعرض تفاصيل التتبع والأثر الرقابي للحدث";
         div.onclick = () => {
           if (typeof openEventDetails === "function") {
             openEventDetails(evt);
@@ -8699,50 +10233,50 @@
 
         const fromMeta = evt.from_agent ? resolveAgentMeta(evt.from_agent) : null;
         const toMeta = evt.to_agent ? resolveAgentMeta(evt.to_agent) : null;
-        const routingHtml = (fromMeta && toMeta && evt.from_agent !== evt.to_agent) 
-          ? `<span class="timeline-route-tag" style="font-size: 11px; color: var(--color-silver-mist); background: rgba(255,255,255,0.04); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06);">مسار: ${escapeHtml(fromMeta.name_ar)} ➔ ${escapeHtml(toMeta.name_ar)}</span>`
+        const routingHtml = (fromMeta && toMeta && evt.from_agent !== evt.to_agent)
+          ? `<span class="timeline-route-chip">مسار: ${escapeHtml(fromMeta.name_ar)} ➔ ${escapeHtml(toMeta.name_ar)}</span>`
           : "";
 
         div.innerHTML = `
           <div class="timeline-header">
-            <div class="timeline-header-right" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span class="agent timeline-agent-badge" style="border-color: ${agentColor}; color: ${agentColor};">
-                <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:${agentColor};"></span>
-                ${escapeHtml(meta.name_ar || evt.agent || "وكيل")}
+            <div class="timeline-header-right">
+              <span class="agent timeline-agent-chip">
+                <span class="timeline-agent-dot" style="background: ${agentColor};"></span>
+                <span class="timeline-agent-name" style="color: ${agentColor};">${escapeHtml(meta.name_ar || evt.agent || "وكيل")}</span>
               </span>
-              <span class="action timeline-action-tag" style="font-family: var(--font-mono); font-size: 11.5px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); padding: 2px 7px; border-radius: 4px;">
-                [إجراء: ${escapeHtml(actionText)}]
-              </span>
+              <span class="action timeline-action-code">${escapeHtml(actionText)}</span>
               ${routingHtml}
             </div>
-            <div class="timeline-header-left" style="display: flex; align-items: center; gap: 8px;">
-              <span class="status-icon timeline-status-icon badge ${statusBadgeClass}">${statusLabel}</span>
-              <span class="timestamp timeline-timestamp" style="font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 12.5px; font-weight: 600; color: var(--color-snow); background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--color-charcoal); direction: ltr;" title="التوقيت الزمني الدقيق بالثواني">
-                ⏱ ${exactTimeStr}
+            <div class="timeline-header-left">
+              <span class="mono timeline-seq">#${evt.sequence || idx + 1}</span>
+              <span class="timestamp timeline-time-mono" title="التوقيت الزمني الدقيق">${exactTimeStr}</span>
+              <span class="status-icon timeline-status-chip ${statusBadgeClass}">
+                <span class="timeline-status-dot"></span>
+                <span>${statusLabel}</span>
               </span>
-              <span class="mono" style="font-size: 10.5px; color: var(--color-smoke);">#${evt.sequence || idx + 1}</span>
             </div>
           </div>
 
-          <div class="timeline-desc" style="font-size: 13.5px; color: var(--color-snow); font-weight: 500; margin-top: 2px;">
+          <div class="timeline-desc">
             ${escapeHtml(descText)}
           </div>
 
-          <div class="timeline-reasoning-box" style="border-right-color: ${agentColor}; background: rgba(0, 0, 0, 0.38); margin-top: 6px; padding: 10px 14px; border-radius: 4px 8px 8px 4px; border-right: 3px solid ${agentColor};">
-            <div class="timeline-reasoning-label" style="display: flex; justify-content: space-between; align-items: center; color: ${agentColor}; font-weight: 700; font-size: 11.5px; margin-bottom: 4px;">
-              <span style="display: flex; align-items: center; gap: 6px;">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 3 2 5.5 5 7v3a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-3c3-1.5 5-4 5-7a8 8 0 0 0-8-8z"></path><line x1="9" y1="21" x2="15" y2="21"></line></svg>
-                التعليل المنطقي واستدلال الوكيل (Reasoning):
-              </span>
-              <span class="badge badge-neutral" style="font-size: 10px; opacity: 0.85;">تحليل معرفي</span>
+          <div class="timeline-reasoning-box" style="border-right-color: ${agentColor};">
+            <div class="timeline-reasoning-label" style="color: ${agentColor};">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span>الاستدلال المنطقي للوكيل:</span>
             </div>
-            <div style="font-size: 12.5px; color: #e2e8f0; line-height: 1.55;">
+            <div class="timeline-reasoning-text">
               ${escapeHtml(reasoningText)}
             </div>
             ${decisionText ? `
-              <div style="margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(255,255,255,0.08); font-size: 12px; color: var(--color-silver-mist); display: flex; align-items: center; gap: 6px;">
-                <span style="font-weight: 700; color: ${agentColor};">القرار المعتمد:</span>
-                <span style="color: var(--color-snow);">${escapeHtml(decisionText)}</span>
+              <div class="timeline-decision-row">
+                <span class="timeline-decision-label" style="color: ${agentColor};">القرار المعتمد:</span>
+                <span class="timeline-decision-val">${escapeHtml(decisionText)}</span>
               </div>
             ` : ""}
           </div>
@@ -9472,8 +11006,7 @@
   <div id="opDetailModalOverlay" class="op-modal-overlay" style="display: none;"
     onclick="if(event.target===this)closeOpDetailModal()">
     <div class="op-modal" role="dialog" aria-modal="true" aria-label="تفاصيل التوثيق">
-      <button class="op-modal-close"
-        onclick="closeOpDetailModal()" title="إغلاق">×</button>
+      <button class="op-modal-close" onclick="closeOpDetailModal()" title="إغلاق">×</button>
       <div class="op-modal-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-sijil)"
           style="width:18px;height:18px;vertical-align:middle;margin-left:8px;">
@@ -9484,6 +11017,81 @@
       </div>
       <div id="opDetailModalBody">
         <div style="text-align:center;padding:30px;color:var(--color-smoke);">جاري التحميل…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== QUICK PROMPTS CHEATSHEET MODAL ==================== -->
+  <div id="quickPromptsModalOverlay" class="op-modal-overlay" style="display: none;"
+    onclick="if(event.target===this)toggleQuickPromptsModal(false)">
+    <div class="op-modal" role="dialog" aria-modal="true" aria-label="أمثلة وقوالب أوامر سراج"
+      onclick="event.stopPropagation()" style="max-width: 680px;">
+      <button class="op-modal-close" onclick="toggleQuickPromptsModal(false)" title="إغلاق">×</button>
+      <div class="op-modal-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--agent-seraj, #0ea5e9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          style="width: 20px; height: 20px; vertical-align: middle; margin-left: 8px;">
+          <polyline points="4 17 10 11 4 5"></polyline>
+          <line x1="12" y1="19" x2="20" y2="19"></line>
+        </svg>
+        دليل وقوالب أوامر سراج — Odoo HR Cockpit
+      </div>
+      <div class="op-modal-body"
+        style="display: flex; flex-direction: column; gap: 14px; max-height: 70vh; overflow-y: auto; padding: 18px;">
+        <p style="margin: 0; font-size: 13px; color: var(--color-silver-mist); line-height: 1.6;">
+          انقر فوق أي من الأوامر النموذجية أدناه لإدراجها مباشرة في صندوق المحادثة مع «سراج»:
+        </p>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div
+            style="font-size: 12px; font-weight: 700; color: var(--color-phosphor-green); text-transform: uppercase;">⚖️
+            نظام العمل السعودي واللوائح (مسار باحث)</div>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 6px;">
+            <div class="quick-prompt-card" onclick="insertQuickPromptText('كم ساعات العمل الرسمية في رمضان للمسلمين؟')">
+              <strong>ساعات رمضان:</strong> «كم ساعات العمل الرسمية في رمضان للمسلمين؟»
+            </div>
+            <div class="quick-prompt-card"
+              onclick="insertQuickPromptText('ما هي شروط وإجراءات إنهاء العقد في فترة التجربة حسب المادة 53 من نظام العمل؟')">
+              <strong>فترة التجربة (المادة 53):</strong> «ما هي شروط وإجراءات إنهاء العقد في فترة التجربة حسب المادة
+              53؟»
+            </div>
+            <div class="quick-prompt-card"
+              onclick="insertQuickPromptText('احسب مكافأة نهاية الخدمة لعقد غير محدد المدة بعد 4 سنوات من الخدمة')">
+              <strong>مكافأة نهاية الخدمة (المادة 84):</strong> «احسب مكافأة نهاية الخدمة لعقد غير محدد المدة بعد 4
+              سنوات»
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+          <div style="font-size: 12px; font-weight: 700; color: #38bdf8; text-transform: uppercase;">🔍 استعلامات Odoo
+            وقواعد البيانات (مسار سراج / قارئ)</div>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 6px;">
+            <div class="quick-prompt-card" onclick="insertQuickPromptText('استعلم عن الموظفة سارة في Odoo')">
+              <strong>استعلام موظف:</strong> «استعلم عن الموظفة سارة في Odoo»
+            </div>
+            <div class="quick-prompt-card"
+              onclick="insertQuickPromptText('فحص الوثائق والإقامات المنتهية لجميع الموظفين')">
+              <strong>الإقامات المنتهية:</strong> «فحص الوثائق والإقامات المنتهية لجميع الموظفين»
+            </div>
+            <div class="quick-prompt-card"
+              onclick="insertQuickPromptText('كم عدد الموظفين النشطين في قسم الموارد البشرية؟')">
+              <strong>إحصاء القسم:</strong> «كم عدد الموظفين النشطين في قسم الموارد البشرية؟»
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+          <div style="font-size: 12px; font-weight: 700; color: #fbbf24; text-transform: uppercase;">✍️ إجراءات كتابة
+            وتعديل محكومة (تتطلب بوابة HITL)</div>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 6px;">
+            <div class="quick-prompt-card" onclick="insertQuickPromptText('عدل مسمى سارة إلى مديرة توظيف')">
+              <strong>تعديل مسمى:</strong> «عدل مسمى سارة إلى مديرة توظيف»
+            </div>
+            <div class="quick-prompt-card" onclick="insertQuickPromptText('أرشفة الموظف فهد بن عبد العزيز')">
+              <strong>أرشفة موظف:</strong> «أرشفة الموظف فهد بن عبد العزيز»
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

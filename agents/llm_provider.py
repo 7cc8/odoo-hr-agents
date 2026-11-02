@@ -344,7 +344,7 @@ class LLMProvider:
                            "**الطريقة الأسهل (مجاني):**\n" \
                            "```bash\n" \
                            "# تحميل Ollama من https://ollama.ai\n" \
-                           "ollama pull qwen2.5:7b\n" \
+                           "ollama pull qwen3.5:9b\n" \
                            "ollama serve\n" \
                            "```\n" \
                            "ثم في ملف `.env`: `LLM_PROVIDER=ollama`\n\n" \

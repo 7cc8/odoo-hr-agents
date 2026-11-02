@@ -129,7 +129,7 @@ class BaseAgent(ABC):
     ):
         self.name = name
         self.role = role
-        self.llm_model = llm_model or os.environ.get("LLM_MODEL", "qwen2.5:7b")
+        self.llm_model = llm_model or os.environ.get("LLM_MODEL", "qwen3.5:9b")
         self.tools = tools or []
         self.memory = AgentMemory()
         self.current_goal: Optional[AgentGoal] = None
