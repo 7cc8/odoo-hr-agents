@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design Preview — Odoo HR Command Center | One Motif × Impeccable</title>
+  
+  <!-- DESIGN-TASTE-FRONTEND: Libre Franklin + Source Serif 4 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==========================================================================
+       DESIGN-TASTE-FRONTEND v2 × IMPECCABLE CRAFT FLOOR
+       Direction: ONE MOTIF — The Octagon (represents 8 agents)
+       Type: Libre Franklin / Source Serif 4
+       Color: Bottle ink, yellow
+       ========================================================================== */
+    
+    :root {
+      /* Color System: Bottle ink, yellow */
+      --bg: #f7f7f7;
+      --surface: #ebebeb;
+      --ink: #0d2a1c;
+      --muted: #5f6b64;
+      --accent: #f6e016;
+      --accent-ink: #0d2a1c;
+      --field-1: #f6e016;
+      --field-1-ink: #0d2a1c;
+      
+      /* Type Scale */
+      --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
+      --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
+      --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+      --step-head: clamp(2rem, 1.3rem + 3.2vw, 4rem);
+      --step-display: clamp(6rem, 10vw, 10rem);
+      
+      /* Typography */
+      --font-display: 'Libre Franklin', sans-serif;
+      --font-body: 'Source Serif 4', serif;
+      
+      /* Agent Colors (8 signatures) */
+      --agent-seraj: #38bdf8;
+      --agent-fahas: #06b6d4;
+      --agent-modaqeq: #3b76c4;
+      --agent-mowafaq: #ec4899;
+      --agent-hares: #dc3838;
+      --agent-musleh: #d97706;
+      --agent-katib: #19b275;
+      --agent-sijil: #6852d6;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: var(--font-body);
+      font-size: var(--step-body);
+      line-height: 1.55;
+      color: var(--ink);
+      background: var(--bg);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+    
+    /* Accessibility: Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+    
+    /* Selection theming (craft-floor: browser surfaces) */
+    ::selection {
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+    
+    /* Focus rings */
+    :focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+    
+    /* ==========================================================================
+       THE OCTAGON MOTIF — Core Geometry
+       ========================================================================== */
+    
+    .octagon-clip {
+      clip-path: polygon(
+        30% 0%, 70% 0%,
+        100% 30%, 100% 70%,
+        70% 100%, 30% 100%,
+        0% 70%, 0% 30%
+      );
+    }
+    
+    .octagon-clip-button {
+      clip-path: polygon(
+        15% 0%, 85% 0%,
+        100% 15%, 100% 85%,
+        85% 100%, 15% 100%,
+        0% 85%, 0% 15%
+      );
+    }
+    
+    /* ==========================================================================
+       HERO: TABBED FOLDER STACK
+       ========================================================================== */
+    
+    .hero-folders {
+      min-height: 100vh;
+      background: var(--ink);
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+    }
+    
+    /* Top navigation bar */
+    .hero-nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 64px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 40px;
+      z-index: 100;
+    }
+    
+    .wordmark {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--bg);
+      letter-spacing: -0.01em;
+    }
+    
+    .hero-link {
+      font-size: 15px;
+      color: var(--bg);
+      text-decoration: none;
+      opacity: 0.8;
+      transition: opacity 0.2s ease;
+    }
+    
+    .hero-link:hover {
+      opacity: 1;
+    }
+    
+    /* Headline */
+    .hero-headline {
+      font-family: var(--font-display);
+      font-size: var(--step-display);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      line-height: 0.92;
+      text-transform: uppercase;
+      color: var(--bg);
+      text-align: center;
+      max-width: 70%;
+      margin: 110px auto 0;
+      position: relative;
+      z-index: 10;
+    }
+    
+    /* Supporting sentence */
+    .hero-support {
+      font-family: var(--font-body);
+      font-size: 20px;
+      line-height: 1.5;
+      color: rgba(247, 247, 247, 0.85);
+      text-align: center;
+      max-width: 46ch;
+      margin: 24px auto 0;
+      position: relative;
+      z-index: 10;
+    }
+    
+    /* Folder Stack */
+    .folder-stack {
+      position: absolute;
+      top: 51%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 86%;
+      max-width: 1400px;
+      height: 60vh;
+    }
+    
+    .folder {
+      position: absolute;
+      width: 100%;
+      background: var(--surface);
+      border-radius: 8px 8px 0 0;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+    
+    .folder:hover {
+      transform: translateY(calc(var(--offset) - 8px)) !important;
+    }
+    
+    .folder-5 { 
+      --offset: 0px;
+      transform: translateY(var(--offset)); 
+      z-index: 1; 
+      height: 80px;
+      background: #c4c4c4;
+    }
+    
+    .folder-4 { 
+      --offset: 64px;
+      transform: translateY(var(--offset)); 
+      z-index: 2; 
+      height: 80px;
+      background: #d0d0d0;
+    }
+    
+    .folder-3 { 
+      --offset: 128px;
+      transform: translateY(var(--offset)); 
+      z-index: 3; 
+      height: 80px;
+      background: #dcdcdc;
+    }
+    
+    .folder-2 { 
+      --offset: 192px;
+      transform: translateY(var(--offset)); 
+      z-index: 4; 
+      height: 80px;
+      background: #e8e8e8;
+    }
+    
+    .folder-1 { 
+      --offset: 256px;
+      transform: translateY(var(--offset)); 
+      z-index: 5; 
+      height: calc(100% - 256px);
+      background: var(--accent);
+    }
+    
+    /* Folder Tabs (trapezoid shape) */
+    .folder-tab {
+      position: absolute;
+      top: -40px;
+      height: 40px;
+      padding: 0 24px;
+      background: inherit;
+      clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 100%, 0 100%);
+      display: flex;
+      align-items: center;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    
+    /* Stagger tab positions */
+    .folder-5 .folder-tab { left: 10%; }
+    .folder-4 .folder-tab { left: 35%; }
+    .folder-3 .folder-tab { left: 60%; }
+    .folder-2 .folder-tab { left: 25%; }
+    .folder-1 .folder-tab { left: 50%; transform: translateX(-50%); }
+    
+    /* CTA Button (octagon corners) */
+    .btn-cta {
+      position: absolute;
+      top: 32px;
+      left: 32px;
+      padding: 16px 32px;
+      background: var(--ink);
+      color: var(--bg);
+      font-size: 17px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+      clip-path: polygon(
+        12px 0, calc(100% - 12px) 0,
+        100% 12px, 100% calc(100% - 12px),
+        calc(100% - 12px) 100%, 12px 100%,
+        0 calc(100% - 12px), 0 12px
+      );
+    }
+    
+    .btn-cta:hover {
+      transform: translateY(-2px);
+    }
+    
+    .btn-cta:active {
+      transform: scale(0.96);
+    }
+    
+    /* ==========================================================================
+       SECTION 1: CLOSE-UPS ON A BOARD (8 Agent Tiles)
+       ========================================================================== */
+    
+    .features-board {
+      padding: 80px 10px;
+      background: var(--bg);
+    }
+    
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 8px;
+      max-width: 1600px;
+      margin: 0 auto;
+      grid-auto-rows: 104px;
+    }
+    
+    .tile {
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      padding: 20px;
+    }
+    
+    /* Tile Sizes */
+    .tile-6x2 { grid-column: span 6; grid-row: span 2; }
+    .tile-3x4 { grid-column: span 3; grid-row: span 4; }
+    .tile-6x4 { grid-column: span 6; grid-row: span 4; }
+    .tile-3x2 { grid-column: span 3; grid-row: span 2; }
+    
+    /* Heading Tile */
+    .tile-heading {
+      background: var(--ink);
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px;
+    }
+    
+    .tile-heading h2 {
+      font-family: var(--font-display);
+      font-size: clamp(36px, 4vw, 60px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      color: var(--bg);
+      text-transform: uppercase;
+    }
+    
+    /* Agent Tiles */
+    .tile-agent {
+      position: relative;
+    }
+    
+    .agent-icon-enlarged {
+      position: absolute;
+      top: -20%;
+      left: -10%;
+      font-size: 350%;
+      opacity: 0.3;
+      transform: rotate(-8deg);
+    }
+    
+    .agent-avatar-octagon {
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--bg);
+      background: currentColor;
+      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    }
+    
+    .tile-caption {
+      position: relative;
+      z-index: 2;
+    }
+    
+    .tile-caption h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 4px;
+    }
+    
+    .tile-caption p {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    
+    /* Agent Colors */
+    .tile-seraj { background: rgba(56, 189, 248, 0.12); }
+    .tile-seraj .agent-avatar-octagon { background: var(--agent-seraj); }
+    
+    .tile-fahas { background: rgba(6, 182, 212, 0.12); }
+    .tile-fahas .agent-avatar-octagon { background: var(--agent-fahas); }
+    
+    .tile-modaqeq { background: rgba(59, 118, 196, 0.12); }
+    .tile-modaqeq .agent-avatar-octagon { background: var(--agent-modaqeq); }
+    
+    .tile-mowafaq { background: rgba(236, 72, 153, 0.12); }
+    .tile-mowafaq .agent-avatar-octagon { background: var(--agent-mowafaq); }
+    
+    .tile-musleh { background: rgba(217, 119, 6, 0.12); }
+    .tile-musleh .agent-avatar-octagon { background: var(--agent-musleh); }
+    
+    .tile-hares { background: rgba(220, 56, 56, 0.12); }
+    .tile-hares .agent-avatar-octagon { background: var(--agent-hares); }
+    
+    .tile-katib { background: rgba(25, 178, 117, 0.12); }
+    .tile-katib .agent-avatar-octagon { background: var(--agent-katib); }
+    
+    .tile-sijil { background: rgba(104, 82, 214, 0.12); }
+    .tile-sijil .agent-avatar-octagon { background: var(--agent-sijil); }
+    
+    /* ==========================================================================
+       SECTION 2: ONE CONTROL, BLOWN UP (HITL Gate)
+       ========================================================================== */
+    
+    .showcase-control {
+      height: 92vh;
+      background: var(--accent);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 60px;
+    }
+    
+    .showcase-content {
+      position: relative;
+      z-index: 2;
+      max-width: 500px;
+    }
+    
+    .showcase-heading {
+      font-family: var(--font-display);
+      font-size: clamp(28px, 2.6vw, 40px);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+      color: var(--accent-ink);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    
+    .showcase-text {
+      font-size: 17px;
+      line-height: 1.5;
+      color: var(--accent-ink);
+      opacity: 0.85;
+    }
+    
+    /* Giant toggle control */
+    .control-enlarged {
+      position: absolute;
+      right: 10%;
+      bottom: -15%;
+      font-size: 1200%;
+      opacity: 0.85;
+    }
+    
+    .hitl-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .hitl-toggle input[type="checkbox"] {
+      width: 120px;
+      height: 60px;
+      appearance: none;
+      background: rgba(13, 42, 28, 0.2);
+      border-radius: 30px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    
+    .hitl-toggle input[type="checkbox"]::before {
+      content: '';
+      position: absolute;
+      width: 52px;
+      height: 52px;
+      background: var(--ink);
+      border-radius: 50%;
+      top: 4px;
+      left: 4px;
+      transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .hitl-toggle input[type="checkbox"]:checked {
+      background: var(--ink);
+    }
+    
+    .hitl-toggle input[type="checkbox"]:checked::before {
+      left: 64px;
+      background: var(--accent);
+    }
+    
+    .toggle-label {
+      font-size: 24px;
+      font-weight: 600;
+      color: var(--ink);
+    }
+    
+    /* ==========================================================================
+       SECTION 3: STEPPED FIGURE TILES (Statistics)
+       ========================================================================== */
+    
+    .stats-tiles {
+      padding: 100px 20px;
+      background: var(--bg);
+      position: relative;
+    }
+    
+    .stats-grid {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 8px;
+      position: relative;
+    }
+    
+    .stat-tile {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 28px;
+      position: relative;
+    }
+    
+    /* Tall tile (accent) */
+    .stat-tall {
+      grid-column: 1 / 7;
+      height: 70vh;
+      background: var(--accent);
+    }
+    
+    /* Mid tile */
+    .stat-mid {
+      grid-column: 7 / 10;
+      height: 44vh;
+      background: var(--ink);
+      margin-top: 14vh;
+    }
+    
+    /* Small tile */
+    .stat-small {
+      grid-column: 10 / 13;
+      height: 34vh;
+      background: var(--surface);
+      margin-top: 26vh;
+    }
+    
+    .stat-figure {
+      font-family: var(--font-display);
+      font-size: clamp(56px, 5.4vw, 92px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+    
+    .stat-tall .stat-figure { color: var(--accent-ink); }
+    .stat-mid .stat-figure { color: var(--bg); }
+    .stat-small .stat-figure { color: var(--ink); }
+    
+    .stat-caption {
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+    
+    .stat-tall .stat-caption { color: var(--accent-ink); opacity: 0.85; }
+    .stat-mid .stat-caption { color: var(--bg); opacity: 0.85; }
+    .stat-small .stat-caption { color: var(--ink); }
+    
+    .stats-heading {
+      position: absolute;
+      top: 100px;
+      left: 56%;
+      font-family: var(--font-display);
+      font-size: clamp(28px, 2.4vw, 36px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      text-transform: uppercase;
+      color: var(--ink);
+    }
+    
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    
+    .footer {
+      background: var(--ink);
+      padding: 60px 40px;
+      text-align: center;
+    }
+    
+    .footer-logo {
+      font-family: var(--font-display);
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--bg);
+      margin-bottom: 24px;
+    }
+    
+    .footer-text {
+      font-size: 15px;
+      color: rgba(247, 247, 247, 0.7);
+      max-width: 600px;
+      margin: 0 auto 32px;
+      line-height: 1.6;
+    }
+    
+    .footer-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 16px;
+      background: rgba(246, 224, 22, 0.15);
+      border: 1px solid rgba(246, 224, 22, 0.3);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    
+    .octagon-mini {
+      width: 12px;
+      height: 12px;
+      background: var(--accent);
+      clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+    }
+    
+    /* ==========================================================================
+       RESPONSIVE
+       ========================================================================== */
+    
+    @media (max-width: 1024px) {
+      .hero-headline {
+        font-size: clamp(56px, 12vw, 96px);
+        max-width: 90%;
+        margin-top: 80px;
+      }
+      
+      .folder-stack {
+        width: 92%;
+        top: 48vh;
+      }
+      
+      .folder-5, .folder-4, .folder-3, .folder-2 {
+        height: 70px;
+      }
+      
+      .folder-tab {
+        font-size: 16px;
+        height: 36px;
+        top: -36px;
+      }
+      
+      .board-grid {
+        grid-template-columns: repeat(6, 1fr);
+      }
+      
+      .tile-6x2 { grid-column: span 6; }
+      .tile-3x4 { grid-column: span 3; }
+      
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      
+      .stat-tall, .stat-mid, .stat-small {
+        grid-column: 1 / -1;
+        margin-top: 0;
+        height: auto;
+        min-height: 300px;
+      }
+      
+      .stats-heading {
+        position: static;
+        margin-bottom: 32px;
+      }
+    }
+    
+    @media (max-width: 640px) {
+      .hero-headline {
+        font-size: 17vw;
+        line-height: 1;
+      }
+      
+      .hero-support {
+        font-size: 16px;
+        max-width: 90%;
+      }
+      
+      .folder-stack {
+        width: 100%;
+        top: 48vh;
+      }
+      
+      .folder-5, .folder-4, .folder-3, .folder-2 {
+        height: 60px;
+      }
+      
+      .folder {
+        --offset: calc(var(--original-offset) * 0.8);
+      }
+      
+      .folder-tab {
+        font-size: 14px;
+        height: 32px;
+        top: -32px;
+        padding: 0 16px;
+      }
+      
+      .btn-cta {
+        width: calc(100% - 32px);
+        left: 16px;
+        text-align: center;
+      }
+      
+      .board-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+        grid-auto-rows: 28vw;
+      }
+      
+      .tile-6x2 { 
+        grid-column: span 2; 
+        grid-row: span 2; 
+      }
+      
+      .tile-3x4 { 
+        grid-column: span 1; 
+        grid-row: span 2; 
+      }
+      
+      .tile-heading h2 {
+        font-size: 9vw;
+      }
+      
+      .showcase-control {
+        padding: 40px 24px;
+        height: 86vh;
+      }
+      
+      .control-enlarged {
+        font-size: 800%;
+        right: auto;
+        left: -30%;
+        bottom: -20%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       HERO: TABBED FOLDER STACK
+       ========================================================================== -->
+  <section class="hero-folders">
+    <nav class="hero-nav">
+      <div class="wordmark">Odoo HR Command Center</div>
+      <a href="#" class="hero-link">الدليل التفاعلي ←</a>
+    </nav>
+    
+    <h1 class="hero-headline">
+      منظومة الوكلاء<br>الثمانية
+    </h1>
+    
+    <p class="hero-support">
+      إدارة ذكية للموارد البشرية بالتوافق الكامل مع نظام العمل السعودي
+    </p>
+    
+    <div class="folder-stack">
+      <div class="folder folder-5">
+        <div class="folder-tab">الإحصائيات</div>
+      </div>
+      <div class="folder folder-4">
+        <div class="folder-tab">حالات الوكلاء</div>
+      </div>
+      <div class="folder folder-3">
+        <div class="folder-tab">المزايا</div>
+      </div>
+      <div class="folder folder-2">
+        <div class="folder-tab">الوكلاء</div>
+      </div>
+      <div class="folder folder-1">
+        <div class="folder-tab">المحادثة والتشغيل</div>
+        <button class="btn-cta">ابدأ الآن ←</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 1: CLOSE-UPS ON A BOARD (8 Agent Tiles)
+       ========================================================================== -->
+  <section class="features-board">
+    <div class="board-grid">
+      <!-- Heading -->
+      <div class="tile tile-6x2 tile-heading">
+        <h2>الوكلاء الثمانية<br>في خدمتك</h2>
+      </div>
+      
+      <!-- Agent 1: Seraj -->
+      <div class="tile tile-3x4 tile-agent tile-seraj">
+        <div class="agent-icon-enlarged">
+          <div class="agent-avatar-octagon">س</div>
+        </div>
+        <div class="tile-caption">
+          <h3>سراج</h3>
+          <p>المنسق العام والمحاور الرئيسي للمنظومة</p>
+        </div>
+      </div>
+      
+      <!-- Agent 2: Fahas -->
+      <div class="tile tile-3x2 tile-agent tile-fahas">
+        <div class="tile-caption">
+          <h3>فاحص</h3>
+          <p>التحقق والمطابقة مع قاعدة Odoo</p>
+        </div>
+      </div>
+      
+      <!-- Agent 3: Modaqeq -->
+      <div class="tile tile-6x4 tile-agent tile-modaqeq">
+        <div class="agent-icon-enlarged">
+          <div class="agent-avatar-octagon">م</div>
+        </div>
+        <div class="tile-caption">
+          <h3>مدقق</h3>
+          <p>التدقيق القانوني وفق نظام العمل السعودي</p>
+        </div>
+      </div>
+      
+      <!-- Agent 4: Mowafaq -->
+      <div class="tile tile-3x2 tile-agent tile-mowafaq">
+        <div class="tile-caption">
+          <h3>موفق</h3>
+          <p>الموائمة بين المتطلبات والقيود</p>
+        </div>
+      </div>
+      
+      <!-- Agent 5: Musleh -->
+      <div class="tile tile-3x4 tile-agent tile-musleh">
+        <div class="agent-icon-enlarged">
+          <div class="agent-avatar-octagon">م</div>
+        </div>
+        <div class="tile-caption">
+          <h3>مصلح</h3>
+          <p>الإصلاح التلقائي للأخطاء</p>
+        </div>
+      </div>
+      
+      <!-- Agent 6: Hares -->
+      <div class="tile tile-3x4 tile-agent tile-hares">
+        <div class="agent-icon-enlarged">
+          <div class="agent-avatar-octagon">ح</div>
+        </div>
+        <div class="tile-caption">
+          <h3>حارس</h3>
+          <p>حوكمة الأمان والاعتماد البشري</p>
+        </div>
+      </div>
+      
+      <!-- Agent 7: Katib -->
+      <div class="tile tile-3x2 tile-agent tile-katib">
+        <div class="tile-caption">
+          <h3>كاتب</h3>
+          <p>التنفيذ والقيد في Odoo</p>
+        </div>
+      </div>
+      
+      <!-- Agent 8: Sijil -->
+      <div class="tile tile-3x2 tile-agent tile-sijil">
+        <div class="tile-caption">
+          <h3>سجل</h3>
+          <p>الأرشفة والتوثيق الكامل</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 2: ONE CONTROL, BLOWN UP (HITL Gate)
+       ========================================================================== -->
+  <section class="showcase-control">
+    <div class="showcase-content">
+      <h2 class="showcase-heading">بوابة الاعتماد البشري المحكوم</h2>
+      <p class="showcase-text">
+        كل عملية كتابة أو تعديل تخضع للتحقق والموافقة البشرية الصريحة قبل التنفيذ في قاعدة Odoo
+      </p>
+    </div>
+    
+    <div class="control-enlarged">
+      <div class="hitl-toggle">
+        <input type="checkbox" id="hitl-demo" checked>
+        <label for="hitl-demo" class="toggle-label">HITL</label>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       SECTION 3: STEPPED FIGURE TILES (Statistics)
+       ========================================================================== -->
+  <section class="stats-tiles">
+    <h2 class="stats-heading">الأداء المباشر</h2>
+    <div class="stats-grid">
+      <div class="stat-tile stat-tall octagon-clip">
+        <div class="stat-figure">14</div>
+        <div class="stat-caption">موظف متزامن<br>مع قاعدة Odoo</div>
+      </div>
+      
+      <div class="stat-tile stat-mid octagon-clip">
+        <div class="stat-figure">8</div>
+        <div class="stat-caption">وكلاء ذكيين<br>في حالة جاهزية</div>
+      </div>
+      
+      <div class="stat-tile stat-small octagon-clip">
+        <div class="stat-figure">100%</div>
+        <div class="stat-caption">توافق قانوني<br>مع نظام العمل</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==========================================================================
+       FOOTER
+       ========================================================================== -->
+  <footer class="footer">
+    <div class="footer-logo">Odoo HR Command Center</div>
+    <p class="footer-text">
+      منظومة متكاملة للإدارة الذكية للموارد البشرية بالتوافق الكامل مع نظام العمل السعودي، 
+      مدعومة بثمانية وكلاء ذكيين متخصصين يعملون بتناغم تام.
+    </p>
+    <div class="footer-badge">
+      <div class="octagon-mini"></div>
+      <span>Design: One Motif × Impeccable Craft Floor</span>
+    </div>
+  </footer>
+
+</body>
+</html>

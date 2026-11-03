@@ -5089,6 +5089,17 @@ def get_agents_proposals_html() -> str:
     return "<h1>ملف مقترحات التصميم غير متوفر</h1>"
 
 
+@app.get("/odoo-hr-hq", response_class=HTMLResponse)
+@app.get("/hq", response_class=HTMLResponse)
+@app.get("/nadr-hq", response_class=HTMLResponse)
+def get_odoo_hr_hq_html() -> str:
+    """Returns the complete Odoo HR HQ with live walking agents, 13 scenarios, and Bento dashboard."""
+    hq_file = Path(__file__).parent / "odoo_hr_hq" / "index.html"
+    if hq_file.exists():
+        return hq_file.read_text(encoding="utf-8")
+    return "<h1>ملف مقر شركة سراج الذكي (odoo_hr_hq/index.html) غير متوفر</h1>"
+
+
 
 @app.get("/api/reports/dry-run/{folder_name}")
 def get_dry_run_report_detail_endpoint(folder_name: str, request: Request) -> Dict[str, Any]:
