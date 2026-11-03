@@ -4,39 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
-      مركز عمليات منظومة وكلاء Odoo HR | التصميم المحسّن - Design Preview
+      مركز عمليات منظومة وكلاء Odoo HR | بوابة أتمتة إدخال الموظفين في Odoo
     </title>
-    <!-- 
-      IMPECCABLE × DESIGN-TASTE-FRONTEND × UI-UX-PRO-MAX POLISH
-      =========================================================
-      Applied UX/UI improvements:
-      • Enhanced typography: +0.5-1px sizes, 1.6 line-height, -0.01em letter-spacing
-      • Improved spacing: 26px grid gaps, 22px panel padding, 18px message gaps
-      • Better colors: enhanced contrast (silver-mist #b8b8b8, smoke #a5a5a5)
-      • Stronger borders: 1.5px→1.5px with 0.08 opacity
-      • Larger touch targets: avatars 44px, buttons 44px min-height
-      • Smooth animations: 0.22s cubic-bezier(0.16, 1, 0.3, 1) transitions
-      • Enhanced hover states: -4px lift, 1.02 scale, glow effects
-      • Improved focus: 3px outlines with 6px shadow rings
-      • GSAP ScrollTrigger: parallax, entrance animations, smooth interactions
-      • Status indicators: 7px dots with animated glow
-      • Accessibility: enhanced keyboard navigation, reduced motion support
-    -->
-    DESIGN-TASTE-FRONTEND: Libre Franklin + Source Serif 4 -->
+    <!-- DESIGN-TASTE-FRONTEND: Libre Franklin + Source Serif 4 -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@700&family=Source+Serif+4:ital,wght@0,400;0,600;1,400;1,600&display=swap"
-      rel="stylesheet"
-    />
+    
     <!-- Fallback: IBM Plex Arabic + JetBrains Mono -->
     <link
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <!-- GSAP ScrollTrigger -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
     <style>
       /* ==========================================================================
        SUPABASE MIDNIGHT DESIGN SYSTEM (.claude/skills/DESIGN-2.md)
@@ -52,8 +30,8 @@
         --color-slate: #393939;
         --color-graphite: #4d4d4d;
         --color-snow: #fafafa;
-        --color-silver-mist: #b8b8b8;
-        --color-smoke: #a5a5a5;
+        --color-silver-mist: #b4b4b4;
+        --color-smoke: #9e9e9e;
 
         /* Primary Brand Accents */
         --color-phosphor-green: #3ecf8e;
@@ -78,14 +56,13 @@
         --agent-katib: #19b275;
         --agent-sijil: #6852d6;
 
-        /* transitions-dev tokens */
-        --t-duration-instant: 100ms;
-        --t-duration-fast: 220ms;
-        --t-duration-base: 300ms;
-        --t-duration-slow: 420ms;
-        --t-ease-in: cubic-bezier(0.22, 1, 0.36, 1);
-        --t-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-        --t-ease-bounce: cubic-bezier(0.34, 1.6, 0.64, 1);
+        /* transitions-dev tokens (Specialized Agent Ribbon) */
+        --avatar-lift: -3.5px;
+        --avatar-dur: 260ms;
+        --avatar-scale: 1.025;
+        --avatar-falloff: 0.45;
+        --avatar-ease-in: cubic-bezier(0.22, 1, 0.36, 1);
+        --avatar-ease-out: cubic-bezier(0.34, 1.6, 0.64, 1);
 
         /* Spacing Scale (8px Grid) */
         --space-1: 4px;
@@ -100,8 +77,6 @@
         /* Radii */
         --radius-cards: 14px;
         --radius-inputs: 8px;
-        --radius-md: 10px;
-        --radius-lg: 12px;
         --radius-pill: 9999px;
 
         /* Fonts */
@@ -441,22 +416,14 @@
       .stream-status-pill {
         display: inline-flex;
         align-items: center;
-        gap: 7px;
-        padding: 7px 14px;
+        gap: 6px;
+        padding: 4px 10px;
         border-radius: var(--radius-pill);
         font-size: 12.5px;
         font-family: var(--font-arabic), sans-serif;
-        background: rgba(62, 207, 142, 0.12);
-        border: 1px solid rgba(62, 207, 142, 0.35);
+        background: rgba(62, 207, 142, 0.1);
+        border: 1px solid rgba(62, 207, 142, 0.3);
         color: var(--color-phosphor-green);
-        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .scope-pill:hover,
-      .stream-status-pill:hover {
-        background: rgba(62, 207, 142, 0.16);
-        border-color: rgba(62, 207, 142, 0.45);
-        box-shadow: 0 0 12px rgba(62, 207, 142, 0.2);
       }
 
       .scope-pill select {
@@ -602,37 +569,34 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        padding: 11px 18px;
+        padding: 6px 14px;
         border-radius: var(--radius-pill);
         border: none;
         background: transparent;
         color: var(--color-silver-mist);
-        font-size: 13.5px;
+        font-size: 13px;
         font-family: var(--font-arabic);
         font-weight: 500;
-        letter-spacing: -0.01em;
         cursor: pointer;
-        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.15s ease;
         white-space: nowrap;
       }
 
       .nav-tab-btn:hover {
         color: var(--color-snow);
-        background: rgba(255, 255, 255, 0.07);
-        transform: translateY(-1px);
+        background: rgba(255, 255, 255, 0.04);
       }
 
       .nav-tab-btn.is-active {
-        background: rgba(62, 207, 142, 0.14);
+        background: var(--color-card-elevated);
         color: var(--color-phosphor-green);
-        border: 1px solid rgba(62, 207, 142, 0.4);
-        font-weight: 700;
-        box-shadow: 0 0 16px rgba(62, 207, 142, 0.15);
+        border: 1px solid var(--color-slate);
+        font-weight: 600;
       }
 
       .nav-tab-btn svg {
-        width: 15px;
-        height: 15px;
+        width: 14px;
+        height: 14px;
         stroke-width: 2;
       }
 
@@ -699,24 +663,10 @@
       }
 
       .stream-dot {
-        width: 7px;
-        height: 7px;
+        width: 6px;
+        height: 6px;
         border-radius: var(--radius-pill);
         background: var(--color-phosphor-green);
-        box-shadow: 0 0 8px var(--color-phosphor-green);
-        animation: dotGlow 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-      }
-
-      @keyframes dotGlow {
-        0%,
-        100% {
-          opacity: 1;
-          box-shadow: 0 0 8px var(--color-phosphor-green);
-        }
-        50% {
-          opacity: 0.6;
-          box-shadow: 0 0 12px var(--color-phosphor-green);
-        }
       }
 
       .stream-status-pill.is-disconnected .stream-dot {
@@ -746,7 +696,7 @@
       .cockpit-grid {
         display: grid;
         grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-        gap: 26px;
+        gap: 24px;
         align-items: start;
         transition: grid-template-columns 0.28s cubic-bezier(0.16, 1, 0.3, 1);
       }
@@ -760,12 +710,12 @@
       }
 
       .agents-ribbon-card {
-        margin-bottom: 26px;
+        margin-bottom: 24px;
         background: var(--color-card);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--color-charcoal);
         border-radius: var(--radius-cards);
-        padding: 18px 22px;
-        box-shadow: 0 3px 14px rgba(0, 0, 0, 0.28);
+        padding: 16px 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
       }
 
       .agents-ribbon-header {
@@ -786,11 +736,10 @@
       /* Common Card Surface */
       .panel-card {
         background: var(--color-card);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+        border: 1px solid var(--color-charcoal);
         border-radius: var(--radius-cards);
-        padding: 22px;
+        padding: 20px;
         position: relative;
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
       }
 
       .panel-header {
@@ -829,30 +778,18 @@
         flex: 1;
         overflow-y: auto;
         overscroll-behavior: contain;
-        padding: 12px 6px 18px 6px;
+        padding: 10px 4px 16px 4px;
         display: flex;
         flex-direction: column;
-        gap: 18px;
+        gap: 16px;
         scroll-behavior: smooth;
       }
 
       .msg-bubble {
         display: flex;
-        gap: 14px;
+        gap: 12px;
         max-width: 90%;
-        line-height: 1.6;
-        animation: messageSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      @keyframes messageSlideIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
+        line-height: 1.55;
       }
 
       .msg-bubble.msg-user {
@@ -867,21 +804,20 @@
       }
 
       .msg-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 11px;
+        width: 34px;
+        height: 34px;
+        border-radius: 9px;
         background: var(--color-ash);
         border: 1px solid var(--color-charcoal);
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
-        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       .msg-avatar svg {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
         stroke-width: 1.8;
       }
 
@@ -918,10 +854,9 @@
       }
 
       .msg-card {
-        padding: 14px 18px;
-        border-radius: 14px;
-        font-size: 14px;
-        line-height: 1.6;
+        padding: 12px 16px;
+        border-radius: 12px;
+        font-size: 13.5px;
         word-break: break-word;
       }
 
@@ -1242,13 +1177,12 @@
         align-items: center;
         justify-content: center;
         gap: var(--space-2);
-        padding: 9px 18px;
-        min-height: 44px;
+        padding: 8px 16px;
+        min-height: 40px;
         border-radius: var(--radius-md);
-        font-size: 13.5px;
+        font-size: 13px;
         font-family: var(--font-arabic);
         font-weight: 600;
-        letter-spacing: -0.01em;
         cursor: pointer;
         text-decoration: none;
         border: 1px solid var(--color-charcoal);
@@ -1257,25 +1191,25 @@
         box-shadow: none;
         transition-property:
           transform, opacity, background-color, border-color, box-shadow;
-        transition-duration: 0.22s;
-        transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+        transition-duration: var(--t-duration-fast);
+        transition-timing-function: var(--t-ease-out);
         user-select: none;
         text-wrap: balance;
       }
 
       .btn:hover:not(:disabled) {
         border-color: rgba(255, 255, 255, 0.2);
-        background: rgba(255, 255, 255, 0.08);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        background: rgba(255, 255, 255, 0.06);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-surface);
       }
 
       .btn:active:not(:disabled) {
-        transform: scale(0.97);
+        transform: scale(0.96);
       }
 
       .btn:focus-visible {
-        outline: 3px solid var(--color-phosphor-green);
+        outline: 2px solid var(--color-phosphor-green);
         outline-offset: 2px;
       }
 
@@ -1368,38 +1302,17 @@
         color: var(--color-silver-mist);
         background: var(--color-ash);
         border: 1px solid var(--color-charcoal);
-        padding: 6px 14px;
+        padding: 4px 12px;
         border-radius: var(--radius-pill);
         cursor: pointer;
         white-space: nowrap;
-        transition: all 0.22s var(--t-ease-out);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .suggestion-chip::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(62, 207, 142, 0.1) 0%, transparent 100%);
-        opacity: 0;
-        transition: opacity 0.22s var(--t-ease-out);
+        transition: all 0.15s ease;
       }
 
       .suggestion-chip:hover {
         color: var(--color-snow);
         border-color: var(--color-slate);
         background: #252525;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      }
-
-      .suggestion-chip:hover::before {
-        opacity: 1;
-      }
-
-      .suggestion-chip:active {
-        transform: translateY(0) scale(0.97);
       }
 
       /* ==========================================================================
@@ -1593,37 +1506,36 @@
 
       .agent-character-card {
         background: var(--color-ash);
-        border: 1.5px solid var(--color-charcoal);
-        border-radius: 12px;
-        padding: 10px 12px;
+        border: 1px solid var(--color-charcoal);
+        border-radius: 10px;
+        padding: 7px 9px;
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 12px;
+        gap: 8px;
         text-align: right;
         position: relative;
         cursor: pointer;
         user-select: none;
-        min-height: 62px;
+        min-height: 52px;
         transform-origin: center bottom;
         transform: translateY(var(--shift, 0px)) scale(var(--scale-active, 1));
         transition:
-          transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-          border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-          background-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
-          box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+          transform 150ms ease-out,
+          border-color 150ms ease-out,
+          background-color 150ms ease-out,
+          box-shadow 150ms ease-out;
         will-change: transform;
       }
 
       .agent-character-card:hover {
         background: var(--color-card-elevated);
         border-color: var(--color-slate);
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       }
 
       .agent-character-card:active {
-        transform: scale(0.97);
+        transform: scale(0.96);
       }
 
       .agent-character-card.is-active {
@@ -2048,8 +1960,8 @@
       }
 
       .agent-avatar-wrap {
-        width: 44px;
-        height: 44px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
         background: var(--color-obsidian);
         border: 1.5px solid var(--agent-color, var(--color-charcoal));
@@ -2062,7 +1974,6 @@
         position: relative;
         overflow: hidden;
         flex-shrink: 0;
-        transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       .agent-avatar-img {
@@ -2105,25 +2016,24 @@
       }
 
       .agent-name {
-        font-size: 13.5px;
+        font-size: 12px;
         font-weight: 700;
         color: var(--color-snow);
-        line-height: 1.3;
-        letter-spacing: -0.01em;
+        line-height: 1.2;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
       }
 
       .agent-role-short {
-        font-size: 11.5px;
-        color: #a5a5a5;
-        line-height: 1.4;
+        font-size: 10px;
+        color: var(--color-smoke);
+        line-height: 1.2;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
         min-height: auto;
-        margin-top: 2px;
+        margin-top: 0;
         display: block;
       }
 
@@ -2133,38 +2043,20 @@
 
       /* Agent Tile Status Dot & Popover (21st.dev matching) */
       .agent-tile-status-dot {
-        width: 7px;
-        height: 7px;
+        width: 6.5px;
+        height: 6.5px;
         border-radius: 50%;
         background: var(--color-phosphor-green);
         flex-shrink: 0;
-        box-shadow: 0 0 10px var(--color-phosphor-green);
         transition:
-          background-color 0.22s var(--t-ease-out),
-          box-shadow 0.22s var(--t-ease-out),
-          transform 0.22s var(--t-ease-out);
-      }
-
-      .agent-character-card:hover .agent-tile-status-dot {
-        transform: scale(1.2);
-        box-shadow: 0 0 14px var(--color-phosphor-green);
+          background-color 150ms ease-out,
+          box-shadow 150ms ease-out;
       }
 
       .agent-character-card.is-active .agent-tile-status-dot {
         background: var(--agent-color, var(--color-phosphor-green));
-        box-shadow: 0 0 12px var(--agent-color, var(--color-phosphor-green));
-        animation: statusPulse 2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-      }
-
-      @keyframes statusPulse {
-        0%, 100% {
-          transform: scale(1);
-          opacity: 1;
-        }
-        50% {
-          transform: scale(1.3);
-          opacity: 0.7;
-        }
+        box-shadow: 0 0 8px var(--agent-color, var(--color-phosphor-green));
+        animation: ping-pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
       }
 
       .agent-character-card .agent-popover {
@@ -4200,11 +4092,8 @@
       select:focus-visible,
       input:focus-visible,
       textarea:focus-visible {
-        outline: 3px solid var(--color-phosphor-green);
+        outline: 2px solid #82b79c;
         outline-offset: 3px;
-        box-shadow: 0 0 0 6px rgba(62, 207, 142, 0.15);
-        transition: outline 0.22s var(--t-ease-out), box-shadow 0.22s var(--t-ease-out);
-      }
       }
 
       button:disabled {
@@ -4784,7 +4673,69 @@
         }
       }
     </style>
-  </head>
+  <style id="unslop-pass">
+/* ===== unslop pass: tokens (also defines the previously undefined ones) ===== */
+:root{
+--color-obsidian:#121212;--color-ash:#181818;--color-card:#1c1c1c;--color-card-elevated:#242424;
+--color-charcoal:#2a2a2a;--color-slate:#363636;--color-graphite:#484848;
+--color-snow:#f2f2f2;--color-silver-mist:#b8b8b8;--color-smoke:#9a9a9a;
+--color-phosphor-green:#4fc08d;--color-amber:#e0b13a;--color-coral:#e86a6a;
+--radius-md:8px;--radius-lg:12px;--radius-cards:12px;
+--t-duration-fast:120ms;--t-ease-out:cubic-bezier(.2,0,0,1);--shadow-surface:none;
+}
+[hidden]{display:none!important}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes modal-pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ===== color: no hue gradients, no glows ===== */
+.btn-composer-send,#chatSendBtn,.btn-approval-confirm{background:var(--color-phosphor-green);color:#10231a;border-color:transparent;box-shadow:none}
+.btn-composer-send:hover:not(:disabled),#chatSendBtn:hover:not(:disabled){background:#62cd9c;transform:none;box-shadow:none}
+.ai-approval-card,.hitl-gate-card{background:var(--color-card);border:1px solid rgba(224,177,58,.45);box-shadow:none}
+.operation-summary-card{background:var(--color-card)}
+.agent-character-card,.agent-character-card.is-active{background:var(--color-ash);box-shadow:none;transform:none!important}
+.agent-character-card.is-active{background:var(--color-card-elevated)}
+.nav-brand-pulse,.stream-pulse-dot,.agent-tile-status-dot,.agent-character-card.is-active .agent-tile-status-dot,.btn-sim-trigger.is-active,.stream-dot{box-shadow:none!important}
+.nav-tab-btn[data-view="view-settings"].lockdown-highlight{animation:none;box-shadow:none;transform:none}
+.nav-tab-btn.is-active{background:var(--color-card-elevated);border-color:var(--color-slate);color:var(--color-phosphor-green)}
+.nav-tabs{background:transparent;border:0;padding:0;border-radius:0;gap:4px}
+.nav-tab-btn{border-radius:8px;padding:8px 14px}
+
+/* ===== motion: only live things move ===== */
+.agent-character-card.is-active::after,.status-indicator-ping::before,.agent-character-card.is-active .agent-tile-status-dot,.stream-pulse-dot,.composer-drag-overlay svg{animation:none!important}
+.agent-character-card.is-active::after{display:none}
+.btn:hover:not(:disabled),.pillar-card:hover,.agent-full-card:hover,.suggestion-chip:hover,.chip-btn:hover,.composer-tool-btn:hover,.btn-chat-header:hover,.quick-prompt-card:hover,.dropzone-box:hover .dropzone-icon,.agent-character-card:hover .agent-avatar-img{transform:none}
+.step-node,.agent-full-card,.audit-filter-btn,.conditional-btn,.dropzone-box,.audit-kpi-card,.pillar-card,.llm-mode-card{transition-property:color,background-color,border-color,opacity;transition-duration:120ms;transition-timing-function:var(--t-ease-out)}
+
+/* ===== type: weights 400-600, no tracked caps, no tiny text ===== */
+.nav-brand-title,.panel-title,.agent-name,.pillar-title,.hitl-gate-title,.approval-card-title,.operations-eyebrow,.step-desc,.metric-value,.audit-kpi-val,.telemetry-metric,.timeline-title-text,.op-modal-title,.settings-section-title{font-weight:600!important;letter-spacing:0!important}
+[style*="font-weight: 700"],[style*="font-weight: 800"]{font-weight:600!important}
+[style*="text-transform: uppercase"]{text-transform:none!important}
+.agent-role-short,.routing-step-tag,.routing-arrow,.pillar-tag,.telemetry-label,.telemetry-status-text,.timeline-seal-badge,.timeline-action-code,.status-badge-21st,.chat-status-pill,.hitl-stat-label{font-size:12px}
+
+/* ===== one neutral ramp for inline hex surfaces ===== */
+[style*="background: #141414"],[style*="background: #161616"],[style*="background: #14181a"],[style*="background: #171a1b"],[style*="background: #121212"]{background:var(--color-ash)!important}
+[style*="background: #181818"],[style*="background: #1a1a1a"]{background:var(--color-card)!important}
+.audit-kpi-card,.chat-action-card,.action-card-grid,.hitl-stat-box{background:var(--color-ash)}
+.chat-input-area,.composer-island,.chat-form{background:var(--color-card)}
+
+/* ===== button classes the JS uses but the CSS never defined ===== */
+.btn-secondary,.btn-outline{background:var(--color-ash);border:1px solid var(--color-charcoal);color:var(--color-snow)}
+.btn-ghost{background:transparent;border:1px solid transparent;color:var(--color-silver-mist)}
+.btn-success{background:var(--color-phosphor-green);color:#10231a;border-color:transparent}
+.btn-warning{background:var(--color-amber);color:#1a1405;border-color:transparent}
+
+/* ===== moment: the approval diff, old value quiet, new value clear ===== */
+.approval-diff-table td:nth-child(3){color:var(--color-smoke);text-decoration:line-through;text-decoration-color:rgba(255,255,255,.25)}
+.approval-diff-table td:nth-child(4),.approval-diff-table td:nth-child(4) strong{color:var(--color-snow);font-weight:600}
+.approval-diff-table td{font-variant-numeric:tabular-nums;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.approval-diff-table tr:last-child td{border-bottom:0}
+
+/* ===== signature: the seal chip is plain mono, neutral ===== */
+.timeline-seal-badge{color:var(--color-silver-mist);background:transparent;border:1px solid var(--color-charcoal);border-radius:4px}
+
+</style>
+</head>
 
   <body>
     <!-- ==================== FIXED TOP NAVIGATION (2-TIER ENTERPRISE APP SHELL) ==================== -->
@@ -4814,11 +4765,6 @@
               "
             >
               <span>سراج • مركز عمليات منظومة الوكلاء</span>
-              <span
-                class="badge badge-neutral"
-                style="font-size: 12px; font-weight: 600"
-                >v2.4</span
-              >
             </h1>
             <div class="nav-brand-subtitle">
               منظومة حوكمة وكلاء الموارد البشرية Odoo HR
@@ -5360,7 +5306,7 @@
                   )
                 "
               >
-                📜 تعويض المادة 77
+                تعويض المادة 77
               </button>
               <button
                 type="button"
@@ -5371,7 +5317,7 @@
                   )
                 "
               >
-                👥 استعلام موظفي Odoo
+                استعلام موظفي Odoo
               </button>
               <button
                 type="button"
@@ -5382,7 +5328,7 @@
                   )
                 "
               >
-                📊 فحص كشف الرواتب
+                فحص كشف الرواتب
               </button>
             </div>
 
@@ -5415,7 +5361,7 @@
                     <span>سراج</span> • <span class="mono">الآن</span>
                   </div>
                   <div class="msg-card">
-                    مرحباً بك! أنا «سراج» المنسق والمحاور العام لمنظومة وكلاء
+                    أنا «سراج» المنسق والمحاور العام لمنظومة وكلاء
                     Odoo HR.<br />
                     يمكنك سؤالي عن نظام العمل السعودي، الاستعلام عن الموظفين،
                     طلب تعديل البيانات أو أرشفتها، أو إرفاق ملفات إكسل للفحص
@@ -5703,20 +5649,7 @@
                       <th>القيمة الجديدة</th>
                     </tr>
                   </thead>
-                  <tbody id="hitlDiffTableBody">
-                    <tr>
-                      <td>محمد القحطاني</td>
-                      <td>بدل السكن الشهري</td>
-                      <td>1,500 ر.س</td>
-                      <td><strong>2,000 ر.س (+500)</strong></td>
-                    </tr>
-                    <tr>
-                      <td>سارة الشمري</td>
-                      <td>المسمى الوظيفي</td>
-                      <td>أخصائي أول</td>
-                      <td><strong>مدير شؤون الموظفين</strong></td>
-                    </tr>
-                  </tbody>
+                  <tbody id="hitlDiffTableBody"><tr><td colspan="4" style="color:var(--color-smoke)">لا توجد تعديلات معلقة</td></tr></tbody>
                 </table>
               </div>
 
@@ -6089,7 +6022,7 @@
               <div class="telemetry-box">
                 <div class="telemetry-label">سجلات الموظفين المزامنة</div>
                 <div class="telemetry-metric">
-                  <span id="telemetrySyncedEmployees">14</span>
+                  <span id="telemetrySyncedEmployees">—</span>
                   <span
                     style="
                       font-size: 11px;
@@ -6099,7 +6032,7 @@
                     >موظفاً</span
                   >
                 </div>
-                <div class="telemetry-status-text">قاعدة Odoo 19.0e متصلة</div>
+                <div class="telemetry-status-text" id="telemetryOdooText">—</div>
               </div>
               <div class="telemetry-box">
                 <div class="telemetry-label">نموذج الذكاء الاصطناعي</div>
@@ -6675,7 +6608,7 @@
                         "
                       >
                         <option value="">اختر المنشأة...</option>
-                        <option value="1">Company 1 - المنشأة الرئيسية</option>
+                        
                       </select>
                       <div
                         style="
@@ -6979,7 +6912,7 @@
 
         <!-- ==================== COMPANIES CENSUS EDITORIAL DIAGRAM (diagram-design) ==================== -->
         <div
-          id="censusDiagramCard"
+          id="censusDiagramCard" hidden
           class="panel-card"
           style="margin-top: var(--space-6)"
         >
@@ -9183,8 +9116,8 @@
 
         // Disable / enable Cockpit inputs
         const chatInput = document.getElementById("chatInput");
-        const sendChatBtn = document.getElementById("sendChatBtn");
-        const excelFileInput = document.getElementById("excelFile");
+        const sendChatBtn = document.getElementById("chatSendBtn");
+        const excelFileInput = document.getElementById("chatExcelFileInput");
         if (chatInput) {
           chatInput.disabled = lock;
           if (lock) {
@@ -9438,7 +9371,7 @@
       // =========================================================================
       async function generateTemplate() {
         const companySelector = document.getElementById(
-          "templateCompanySelector",
+          "companySelect",
         );
         const statusEl = document.getElementById("templateGenerationStatus");
         const downloadSection = document.getElementById(
@@ -9495,7 +9428,7 @@
           const data = await res.json();
 
           if (data.companies && data.companies.length > 0) {
-            const selector = document.getElementById("templateCompanySelector");
+            const selector = document.getElementById("companySelect");
             if (selector) {
               const options =
                 '<option value="">الشركة الافتراضية</option>' +
@@ -9762,7 +9695,7 @@
           currentChatId = `web_${crypto.randomUUID()}`;
           await loadSystemStatus();
           message.innerHTML =
-            '<span style="color: var(--color-phosphor-green); font-weight: bold; font-size: 14px;">تم حفظ الاتصال والتحقق منه بنجاح! تم إلغاء قفل كافة أقسام المنظومة.</span>';
+            '<span style="color: var(--color-phosphor-green); font-weight: bold; font-size: 14px;">تم حفظ الاتصال والتحقق منه بنجاح تم إلغاء قفل كافة أقسام المنظومة.</span>';
         } catch (err) {
           message.innerHTML = `<div style="background: rgba(239, 68, 68, 0.15); border: 1px solid var(--color-coral); border-radius: 8px; padding: 12px; margin-top: 10px; color: #ff8585; font-size: 13px; line-height: 1.6;">
           <div style="font-weight: 700; display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
@@ -10060,20 +9993,20 @@
           const localBadge = document.getElementById("localStatusBadge");
           if (localBadge) {
             if (health.local && health.local.available) {
-              localBadge.innerHTML = `<span style="color: var(--color-phosphor-green);">● متصل (${health.local.latency_ms || 0}ms)</span>`;
+              localBadge.innerHTML = `<span style="color: var(--color-phosphor-green);">متصل (${health.local.latency_ms || 0}ms)</span>`;
             } else {
-              localBadge.innerHTML = `<span style="color: var(--color-smoke);">○ غير متصل</span>`;
+              localBadge.innerHTML = `<span style="color: var(--color-smoke);">غير متصل</span>`;
             }
           }
 
           const cloudBadge = document.getElementById("cloudStatusBadge");
           if (cloudBadge) {
             if (health.cloud && health.cloud.available) {
-              cloudBadge.innerHTML = `<span style="color: var(--color-phosphor-green);">● متصل (${health.cloud.latency_ms || 0}ms)</span>`;
+              cloudBadge.innerHTML = `<span style="color: var(--color-phosphor-green);">متصل (${health.cloud.latency_ms || 0}ms)</span>`;
             } else if (cloud.has_api_key || cloud.has_key) {
-              cloudBadge.innerHTML = `<span style="color: var(--color-amber);">● مهيأ (بانتظار طلب)</span>`;
+              cloudBadge.innerHTML = `<span style="color: var(--color-amber);">مهيأ (بانتظار طلب)</span>`;
             } else {
-              cloudBadge.innerHTML = `<span style="color: var(--color-smoke);">○ غير مهيأ (بدون مفتاح)</span>`;
+              cloudBadge.innerHTML = `<span style="color: var(--color-smoke);">غير مهيأ (بدون مفتاح)</span>`;
             }
           }
 
@@ -10130,7 +10063,7 @@
 
         if (btn) {
           btn.disabled = true;
-          btn.textContent = "⏳ جاري الفحص...";
+          btn.textContent = "جاري الفحص...";
         }
 
         if (resultBox) {
@@ -10185,7 +10118,7 @@
               resultBox.style.background = "rgba(62, 207, 142, 0.12)";
               resultBox.style.border = "1px solid var(--color-phosphor-green)";
               resultBox.style.color = "var(--color-snow)";
-              resultBox.innerHTML = `<strong>نجح الاتصال بنجاح!</strong><br>
+              resultBox.innerHTML = `<strong>نجح الاتصال بنجاح</strong><br>
               المشغل: <span class="mono">${escapeHtml(data.provider || target)}</span> · 
               زمن الاستجابة: <span class="mono">${data.latency_ms || 0}ms</span> · 
               النموذج: <span class="mono">${escapeHtml(data.model || payload.model || (data.models && data.models[0]) || "افتراضي")}</span><br>
@@ -10244,7 +10177,7 @@
 
         if (btn) {
           btn.disabled = true;
-          btn.textContent = "⏳ جاري تشغيل خادم Ollama...";
+          btn.textContent = "جاري تشغيل خادم Ollama...";
         }
 
         if (resultBox) {
@@ -10253,7 +10186,7 @@
           resultBox.style.border = "1px solid var(--color-charcoal)";
           resultBox.style.color = "var(--color-silver-mist)";
           resultBox.innerHTML =
-            "⏳ جاري إطلاق خادم Ollama المحلي في الخلفية وربطه بالنماذج المرفقة...";
+            "جاري إطلاق خادم Ollama المحلي في الخلفية وربطه بالنماذج المرفقة...";
         }
 
         try {
@@ -10303,7 +10236,7 @@
 
         if (saveBtn) {
           saveBtn.disabled = true;
-          saveBtn.textContent = "⏳ جاري الحفظ والتطبيق...";
+          saveBtn.textContent = "جاري الحفظ والتطبيق...";
         }
         if (statusMsg) {
           statusMsg.innerHTML =
@@ -10360,7 +10293,7 @@
 
           if (statusMsg) {
             statusMsg.innerHTML =
-              '<span style="color: var(--color-phosphor-green); font-weight: bold; font-size: 13.5px;">تم حفظ وتطبيق إعدادات الذكاء الاصطناعي بنجاح!</span>';
+              '<span style="color: var(--color-phosphor-green); font-weight: bold; font-size: 13.5px;">تم حفظ وتطبيق إعدادات الذكاء الاصطناعي بنجاح</span>';
           }
 
           // Clear password field to avoid keeping plaintext in DOM
@@ -10778,7 +10711,7 @@
                   <br>
                   اكتمل فحص الملف دلالياً ونظامياً عبر <strong>«فاحص»</strong> و<strong>«مدقق»</strong> و<strong>«موفق»</strong>.
                   <br><br>
-                  ⚠️ <strong>إشعار حوكمة الأمان:</strong> رصد الوكيل <strong>«حارس»</strong> وجود تعديلات مالية تتطلب <strong>توقيعك البشري الصريح</strong> قبل السماح لوكيل «كاتب» بقيد التعديلات في قاعدة بيانات Odoo.
+                  <strong>إشعار حوكمة الأمان:</strong> رصد الوكيل <strong>«حارس»</strong> وجود تعديلات مالية تتطلب <strong>توقيعك البشري الصريح</strong> قبل السماح لوكيل «كاتب» بقيد التعديلات في قاعدة بيانات Odoo.
                   <br>
                   يرجى مراجعة الجدول في <strong>بوابة الاعتماد البشري (HITL)</strong> على اليسار والضغط على «اعتماد» أو «رفض».
                 </div>
@@ -11349,7 +11282,7 @@
                 <span>سراج</span> • <span class="mono">جلسة جديدة</span>
               </div>
               <div class="msg-card">
-                مرحباً بك في جلسة عمل جديدة! أنا «سراج» المنسق والمحاور لمنظومة وكلاء Odoo HR.<br>
+                جلسة جديدة. أنا «سراج» المنسق والمحاور لمنظومة وكلاء Odoo HR.<br>
                 يمكنك كتابة استفسارك أو أمر العمل، أو إرفاق ملف Excel عبر زر «إرفاق Excel» لبدء فحص جاف محكوم فوراً.
               </div>
             </div>
@@ -12661,7 +12594,7 @@
           </div>
           <div style="flex: 1; min-width: 200px; background: #141414; padding: 14px; border-radius: 12px; border: 1px solid var(--color-charcoal);">
             <div style="font-size: 12px; color: var(--color-smoke); margin-bottom: 4px;">نوع الإجراء والتوقيت</div>
-            <div class="mono" style="font-size: 13px; color: var(--color-silver-mist);">[إجراء: ${escapeHtml(actionText)}] | ⏱ ${timeStr}</div>
+            <div class="mono" style="font-size: 13px; color: var(--color-silver-mist);">[إجراء: ${escapeHtml(actionText)}] | ${timeStr}</div>
           </div>
         </div>
 
@@ -13622,7 +13555,7 @@
         formData.append("user_choice", choice);
 
         try {
-          const response = await fetch("/api/approve-conditional", {
+          const response = await apiFetch("/api/approve-conditional", {
             method: "POST",
             body: formData,
           });
@@ -14051,7 +13984,7 @@
             if (statusDiv) statusDiv.textContent = "جاري توليد القالب...";
 
             try {
-              const response = await fetch("/api/template/generate", {
+              const response = await apiFetch("/api/template/generate", {
                 method: "POST",
                 body: formData,
               });
@@ -14075,7 +14008,7 @@
                   "inline-block";
               }
               if (resultDiv) resultDiv.style.display = "block";
-              if (statusDiv) statusDiv.textContent = "تم التوليد بنجاح!";
+              if (statusDiv) statusDiv.textContent = "تم التوليد بنجاح";
             } catch (err) {
               if (statusDiv) statusDiv.textContent = "خطأ: " + err.message;
               alert("خطأ أثناء توليد القالب: " + err.message);
@@ -14563,7 +14496,7 @@
             navigator.clipboard
               .writeText(JSON.stringify(data, null, 2))
               .then(() => {
-                alert("تم نسخ بيانات JSON إلى الحافظة بنجاح!");
+                alert("تم نسخ بيانات JSON إلى الحافظة بنجاح");
               });
           });
         }
@@ -14715,7 +14648,7 @@
               err.message.includes("expired"));
           if (statusEl) {
             if (isExpired) {
-              statusEl.innerHTML = `<span style="color: #38bdf8; font-weight: 600;">⏱ تنبيه أمني: انتهت مهلة الـ 5 دقائق للاعتماد. انقر على الزر مجدداً للتنفيذ المباشر.</span>`;
+              statusEl.innerHTML = `<span style="color: #38bdf8; font-weight: 600;">تنبيه أمني: انتهت مهلة الـ 5 دقائق للاعتماد. انقر على الزر مجدداً للتنفيذ المباشر.</span>`;
             } else {
               statusEl.innerHTML = `<span style="color: var(--color-coral); font-weight: 600;">✕ تعذر إتمام الاعتماد: ${escapeHtml(err.message)}</span>`;
             }
@@ -14941,7 +14874,7 @@
                 text-transform: uppercase;
               "
             >
-              ⚖️ نظام العمل السعودي واللوائح (مسار باحث)
+              نظام العمل السعودي واللوائح (مسار باحث)
             </div>
             <div style="display: grid; grid-template-columns: 1fr; gap: 6px">
               <div
@@ -14996,7 +14929,7 @@
                 text-transform: uppercase;
               "
             >
-              🔍 استعلامات Odoo وقواعد البيانات (مسار سراج / قارئ)
+              استعلامات Odoo وقواعد البيانات (مسار سراج / قارئ)
             </div>
             <div style="display: grid; grid-template-columns: 1fr; gap: 6px">
               <div
@@ -15048,7 +14981,7 @@
                 text-transform: uppercase;
               "
             >
-              ✍️ إجراءات كتابة وتعديل محكومة (تتطلب بوابة HITL)
+              إجراءات كتابة وتعديل محكومة (تتطلب بوابة HITL)
             </div>
             <div style="display: grid; grid-template-columns: 1fr; gap: 6px">
               <div
@@ -15070,148 +15003,40 @@
         </div>
       </div>
     </div>
-  </body>
+  <script id="unslop-patch">
+/* ===== unslop patch: behavior fixes (appended after the main script) ===== */
+(function(){
+  // 1. Empty timeline: no invented SEAL hashes
+  var _rt = window.renderAgentTimeline;
+  window.renderAgentTimeline = function(ev, st){
+    if (Array.isArray(ev) && ev.length) return _rt(ev, st);
+    var c = document.getElementById('timelineContainer');
+    if (c) c.innerHTML = '<div class="timeline-empty">لا توجد أحداث بعد. ستظهر خطوات الوكلاء هنا فور بدء عملية</div>';
+    var n = document.getElementById('timelineCountBadge'); if (n) n.textContent = '0 أحداث مسجلة';
+    var b = document.getElementById('timelineStatusBadge'); if (b){ b.textContent = 'في الانتظار'; b.className = 'badge badge-neutral'; }
+  };
+  // 2. Telemetry text follows the real Odoo status
+  var _ls = window.loadSystemStatus;
+  window.loadSystemStatus = async function(f){
+    await _ls(f);
+    var t = document.getElementById('odooStatusText'), el = document.getElementById('telemetryOdooText');
+    if (el && t) el.textContent = t.textContent;
+  };
+  // 3. PDF export without the API key in the URL
+  async function openPdf(url){
+    var w = window.open('', '_blank');
+    try {
+      var r = await apiFetch(url);
+      if (!r.ok) { var d = await r.json().catch(function(){return {};}); throw new Error(d.detail || r.status); }
+      var blob = await r.blob();
+      var href = URL.createObjectURL(blob);
+      if (w) w.location = href; else window.open(href, '_blank');
+    } catch (e) { if (w) w.close(); alert('تعذر تصدير التقرير: ' + e.message); }
+  }
+  window.exportFullSijilPdf = function(){ openPdf('/api/sijil/report/pdf'); };
+  window.exportSingleOpPdf = function(id){ if (id) openPdf('/api/sijil/operation/' + encodeURIComponent(id) + '/pdf'); };
+})();
 
-  <!-- GSAP ScrollTrigger Animations & Polish -->
-  <script>
-    // Register GSAP ScrollTrigger
-    gsap.registerPlugin(ScrollTrigger);
-
-    // Entrance animations for agent cards with stagger
-    gsap.utils.toArray(".agent-character-card").forEach((card, i) => {
-      gsap.from(card, {
-        opacity: 0,
-        y: 20,
-        duration: 0.5,
-        delay: i * 0.08,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: card,
-          start: "top 95%",
-          once: true,
-        },
-      });
-    });
-
-    // Message entrance animations
-    document.addEventListener("DOMContentLoaded", () => {
-      const messages = document.querySelectorAll(".msg-bubble");
-      messages.forEach((msg, i) => {
-        gsap.from(msg, {
-          opacity: 0,
-          y: 15,
-          duration: 0.4,
-          delay: i * 0.1,
-          ease: "power2.out",
-        });
-      });
-
-      // Panel entrance animations
-      gsap.from(".cockpit-grid", {
-        opacity: 0,
-        y: 30,
-        duration: 0.6,
-        delay: 0.3,
-        ease: "power3.out",
-      });
-
-      // Top navigation fade in
-      gsap.from(".top-nav", {
-        opacity: 0,
-        y: -20,
-        duration: 0.5,
-        ease: "power2.out",
-      });
-
-      // Smooth hover effects on agent avatars
-      const agentCards = document.querySelectorAll(".agent-character-card");
-      agentCards.forEach((card) => {
-        const avatar = card.querySelector(".agent-avatar-wrap");
-
-        card.addEventListener("mouseenter", () => {
-          gsap.to(avatar, {
-            scale: 1.1,
-            rotation: 3,
-            duration: 0.3,
-            ease: "back.out(1.7)",
-          });
-        });
-
-        card.addEventListener("mouseleave", () => {
-          gsap.to(avatar, {
-            scale: 1,
-            rotation: 0,
-            duration: 0.3,
-            ease: "power2.out",
-          });
-        });
-      });
-
-      // Parallax effect on scroll for panels
-      gsap.utils.toArray(".panel-card").forEach((panel, i) => {
-        gsap.to(panel, {
-          y: -10 * (i + 1),
-          scrollTrigger: {
-            trigger: panel,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: 0.5,
-          },
-        });
-      });
-
-      // Smooth status dot pulse
-      const statusDots = document.querySelectorAll(".agent-tile-status-dot");
-      statusDots.forEach((dot) => {
-        gsap.to(dot, {
-          scale: 1.3,
-          opacity: 0.7,
-          duration: 1.5,
-          repeat: -1,
-          yoyo: true,
-          ease: "sine.inOut",
-        });
-      });
-
-      // Button hover lift animations
-      const buttons = document.querySelectorAll(".btn");
-      buttons.forEach((btn) => {
-        btn.addEventListener("mouseenter", () => {
-          gsap.to(btn, {
-            y: -3,
-            boxShadow: "0 8px 20px rgba(0, 0, 0, 0.35)",
-            duration: 0.22,
-            ease: "power2.out",
-          });
-        });
-
-        btn.addEventListener("mouseleave", () => {
-          gsap.to(btn, {
-            y: 0,
-            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
-            duration: 0.22,
-            ease: "power2.out",
-          });
-        });
-      });
-
-      // Active tab indicator smooth transition
-      const navTabs = document.querySelectorAll(".nav-tab-btn");
-      navTabs.forEach((tab) => {
-        tab.addEventListener("click", () => {
-          gsap.from(tab, {
-            scale: 0.95,
-            duration: 0.2,
-            ease: "back.out(3)",
-          });
-        });
-      });
-    });
-
-    // Performance optimization: Reduce motion for users who prefer it
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      gsap.globalTimeline.timeScale(0.01);
-      ScrollTrigger.config({ syncInterval: Infinity });
-    }
-  </script>
+</script>
+</body>
 </html>
