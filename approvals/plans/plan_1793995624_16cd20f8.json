@@ -1,0 +1,22 @@
+{
+  "plan_id": "plan_1793995624_16cd20f8",
+  "plan_type": "create",
+  "target_model": "hr.employee",
+  "target_records": [],
+  "operation_details": {
+    "action": "create",
+    "name": "اضف موظف",
+    "values": {
+      "name": "اضف موظف",
+      "job_title": "",
+      "work_email": ""
+    }
+  },
+  "created_by": "read_only_op_1793937123_f38356",
+  "approved_by": null,
+  "created_at": "2026-11-06T20:07:04.233742",
+  "expires_at": "2026-11-06T20:12:04.233742",
+  "is_consumed": false,
+  "consumed_at": null,
+  "status": "pending"
+}

@@ -1,0 +1,22 @@
+{
+  "plan_id": "plan_1794000984_f01f41bb",
+  "plan_type": "create",
+  "target_model": "hr.employee",
+  "target_records": [],
+  "operation_details": {
+    "action": "create",
+    "name": "موظف جديد",
+    "values": {
+      "name": "",
+      "job_title": "",
+      "work_email": ""
+    }
+  },
+  "created_by": "test_exact_user_flow_1",
+  "approved_by": null,
+  "created_at": "2026-11-06T21:36:24.092861",
+  "expires_at": "2026-11-06T21:41:24.092861",
+  "is_consumed": false,
+  "consumed_at": null,
+  "status": "pending"
+}

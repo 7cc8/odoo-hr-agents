@@ -497,6 +497,7 @@ class AgentEventsService:
                 op["plan_id"] = plan_id
             if plan:
                 op["plan"] = plan
+                op["pending_action"] = plan
             if clarification:
                 op["clarification"] = clarification
             if final_result:
@@ -537,6 +538,13 @@ class AgentEventsService:
                 self.operations[operation_id]["status"] = status
                 self.operations[operation_id]["status_label"] = STATUS_LABELS_AR.get(status, status)
                 self.operations[operation_id]["updated_at"] = datetime.now(timezone.utc).isoformat()
+            else:
+                self.operations[operation_id] = {
+                    "operation_id": operation_id,
+                    "status": status,
+                    "status_label": STATUS_LABELS_AR.get(status, status),
+                    "updated_at": datetime.now(timezone.utc).isoformat(),
+                }
 
     def get_operation(self, operation_id: str) -> Optional[Dict[str, Any]]:
         """استرجاع بيانات العملية وكافة أحداثها وخط سيرها."""
@@ -545,6 +553,34 @@ class AgentEventsService:
             if op:
                 res = dict(op)
                 res["events"] = list(self.operation_events.get(operation_id, []))
+                if not res.get("pending_action"):
+                    if res.get("plan"):
+                        res["pending_action"] = res["plan"]
+                    elif res.get("plan_id"):
+                        try:
+                            from approval_plan_schema import ApprovalPlan
+                            p = ApprovalPlan.load(res["plan_id"])
+                            if p:
+                                d = p.operation_details or {}
+                                res["pending_action"] = {
+                                    "type": p.plan_type,
+                                    "action_type": p.plan_type,
+                                    "action": d.get("action", p.plan_type),
+                                    "plan_id": p.plan_id,
+                                    "model": p.target_model,
+                                    "name": d.get("name") or d.get("employee_name") or "موظف",
+                                    "employee_name": d.get("employee_name") or d.get("name") or "موظف",
+                                    "record_name": d.get("name") or d.get("employee_name") or "موظف",
+                                    "employee_id": d.get("employee_id"),
+                                    "record_id": d.get("record_id") or d.get("employee_id"),
+                                    "field": d.get("field"),
+                                    "field_label": d.get("field_label"),
+                                    "old_value": d.get("old_value"),
+                                    "new_value": d.get("new_value"),
+                                    "values": d.get("values", {}),
+                                }
+                        except Exception:
+                            pass
                 return res
             
             # P3: البحث في القرص عند عدم وجود العملية في الذاكرة
@@ -608,12 +644,12 @@ class AgentEventsService:
             events = self.operation_events.get(operation_id, [])
             return [e for e in events if e.get("sequence", 0) > after_seq]
 
-    def get_recent_operations(self, limit: int = 20) -> List[Dict[str, Any]]:
-        """استرجاع قائمة العمليات الأخيرة مرتبة من الأحدث للأقدم."""
+    def get_recent_operations(self, limit: int = 20, offset: int = 0) -> List[Dict[str, Any]]:
+        """استرجاع قائمة العمليات الأخيرة مرتبة من الأحدث للأقدم مع دعم الإزاحة (Pagination)."""
         with self._lock:
             ops = list(self.operations.values())
             ops.sort(key=lambda x: str(x.get("updated_at", "")), reverse=True)
-            return ops[:limit]
+            return ops[offset : offset + limit]
 
     def get_agents_overview(self) -> List[Dict[str, Any]]:
         """استرجاع بطاقات وهوية كافة الوكلاء الـ 8 وحالاتهم الحالية."""

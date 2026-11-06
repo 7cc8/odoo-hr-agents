@@ -160,7 +160,7 @@ class ApprovalPlan:
         """حفظ الخطة في ملف"""
         PLANS_DIR.mkdir(parents=True, exist_ok=True)
         plan_path = PLANS_DIR / f"{self.plan_id}.json"
-        plan_path.write_text(json.dumps(self.to_dict(), ensure_ascii=False, indent=2))
+        plan_path.write_text(json.dumps(self.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
         return plan_path
     
     @staticmethod

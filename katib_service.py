@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional
 
 from approval_plan_schema import ApprovalPlan, ApprovalPlanError, validate_plan_for_execution
 from environment_policy import ALLOWED_TEST_DBS, ALLOWED_DEV_DBS
-from odoo_write_gateway import OdooWriteGateway, WriteGatewayError, EnvironmentGuardError
+from odoo_write_gateway import OdooWriteGateway, WriteGatewayError, EnvironmentGuardError, SAFE_WRITE_FIELDS
 from odoo_delete_gateway import (
     OdooDeleteGateway,
     DeleteGatewayError,
@@ -333,17 +333,32 @@ class KatibAgent:
             }
 
         elif action_type == "create":
-            values = action.get("values") or {
-                "name": action.get("name"),
-                "work_email": action.get("work_email"),
-                "company_id": action.get("company_id"),
-            }
-            new_id = self.create_employee(values)
+            raw_vals = action.get("values") or {}
+            if not raw_vals:
+                raw_vals = {
+                    "name": action.get("name"),
+                    "work_email": action.get("work_email"),
+                    "company_id": action.get("company_id"),
+                }
+            # Clean and filter values: discard dummy/empty fields and only retain safe write fields
+            clean_vals = {}
+            for k, v in raw_vals.items():
+                if str(k).startswith("custom_field_"):
+                    continue
+                if v is None or v == "":
+                    continue
+                if k in SAFE_WRITE_FIELDS:
+                    clean_vals[k] = v
+
+            if "name" not in clean_vals or not clean_vals["name"]:
+                clean_vals["name"] = action.get("name") or action.get("record_name") or action.get("employee_name") or "موظف جديد"
+
+            new_id = self.create_employee(clean_vals)
             return {
                 "ok": True,
                 "action": "create",
                 "employee_id": new_id,
-                "values": values,
+                "values": clean_vals,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 

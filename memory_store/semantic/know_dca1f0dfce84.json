@@ -1,0 +1,27 @@
+{
+  "knowledge_id": "know_dca1f0dfce84",
+  "category": "ui_ux",
+  "concept": "Unified Agent Cockpit Pure Clean",
+  "description": "اعتماد واجهة قمرة القيادة الموحدة المطهرة وفق ميثاق Hallmark The Floor و21st.dev بدون ركائز أربع أو شريط محاكاة زائد مع ضبط ارتفاع الشات لـ 680 بكسل",
+  "related_concepts": [
+    "hallmark",
+    "21st.dev",
+    "jakubkrehel"
+  ],
+  "examples": [
+    "8-agent dock",
+    "chat-box height 680px",
+    "suggestion chips"
+  ],
+  "confidence": 1.0,
+  "source": "manual",
+  "learned_at": "2026-11-02T06:34:04.473417",
+  "updated_at": "2026-11-02T06:34:04.473417",
+  "usage_count": 0,
+  "tags": [
+    "design",
+    "cockpit",
+    "ui_ux"
+  ],
+  "metadata": {}
+}

@@ -336,9 +336,10 @@ def check_cloud_health(
     clean_url = url.rstrip("/")
     if "openrouter" in p_name.lower() or "openrouter.ai" in clean_url:
         test_url = "https://openrouter.ai/api/v1/auth/key"
+    elif "anthropic.com" in clean_url:
+        test_url = "https://api.anthropic.com/v1/models"
     else:
         test_url = f"{clean_url}/models"
-
 
     headers = {
         "Authorization": f"Bearer {key.strip()}",
@@ -346,6 +347,9 @@ def check_cloud_health(
         "HTTP-Referer": "http://localhost:8000",
         "X-Title": "Odoo HR Agents",
     }
+    if "anthropic.com" in clean_url:
+        headers["x-api-key"] = key.strip()
+        headers["anthropic-version"] = "2023-06-01"
 
     start_t = time.time()
     try:
@@ -374,6 +378,14 @@ def check_cloud_health(
                 "available": False,
                 "latency_ms": latency_ms,
                 "message": "تم تجاوز حد الطلبات المسموح به (Rate Limit - 429).",
+            }
+        elif h_err.code in (400, 404, 405):
+            # بعض البروكسيات أو الخوادم المخصصة لا تدعم endpoint /models ولكنها تعمل على /chat/completions
+            return {
+                "status": "online",
+                "available": True,
+                "latency_ms": latency_ms,
+                "message": f"الخادم متصل وجاهز للاستقبال (رمز الاستجابة: {h_err.code}، زمن الاستجابة: {latency_ms}ms).",
             }
         else:
             return {

@@ -1,0 +1,27 @@
+{
+  "plan_id": "plan_1793997354_e631a47d",
+  "plan_type": "update",
+  "target_model": "hr.employee",
+  "target_records": [
+    42
+  ],
+  "operation_details": {
+    "action": "update",
+    "employee_id": 42,
+    "employee_name": "سارة أحمد",
+    "field": "job_title",
+    "field_label": "المسمى الوظيفي",
+    "old_value": "أخصائية توظيف",
+    "new_value": "مديرة توظيف",
+    "values": {
+      "job_title": "مديرة توظيف"
+    }
+  },
+  "created_by": "test_add_edit_chat_1",
+  "approved_by": "test_add_edit_chat_1",
+  "created_at": "2026-11-06T20:35:54.615435",
+  "expires_at": "2026-11-06T20:40:54.615435",
+  "is_consumed": false,
+  "consumed_at": null,
+  "status": "approved"
+}

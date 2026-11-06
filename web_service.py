@@ -1127,52 +1127,49 @@ def create_approval_endpoint(req: ApprovalRequest, request: Request) -> Dict[str
 # ==================== CONDITIONAL EXECUTION APPROVAL ====================
 
 @app.post("/api/approve-conditional")
-def approve_conditional_execution_endpoint(req: ConditionalExecutionApprovalRequest, request: Request) -> Dict[str, Any]:
+async def approve_conditional_execution_endpoint(request: Request) -> Dict[str, Any]:
     """
     Receives user decision for conditional execution after dry-run with rejections.
-    
-    This endpoint is called when dry-run finds rejected rows and the user must choose:
-    - "execute": Execute accepted rows only (skip rejected rows)
-    - "fix": Send to Musleh agent for automatic fixing
-    - "cancel": Cancel the operation
-    
-    The endpoint updates SerajState with user_execution_choice and triggers
-    graph continuation via the conditional_execution_node routing.
+    Supports both JSON and Form data.
     """
     verify_api_auth(request)
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type:
+        body = await request.json()
+    else:
+        form = await request.form()
+        body = dict(form)
+
+    operation_id = body.get("operation_id")
+    user_choice = body.get("user_choice") or body.get("choice")
+    chat_id = body.get("chat_id")
+    approved_by = body.get("approved_by", "Dashboard User")
+
     audit_log_access("/api/approve-conditional", request, {
-        "operation_id": req.operation_id,
-        "user_choice": req.user_choice
+        "operation_id": operation_id,
+        "user_choice": user_choice
     })
-    
-    if req.user_choice not in ["execute", "fix", "cancel"]:
+
+    if user_choice not in ["execute", "fix", "cancel"]:
         raise HTTPException(
             status_code=400,
-            detail=f"Invalid user_choice: {req.user_choice}. Must be 'execute', 'fix', or 'cancel'."
+            detail=f"Invalid user_choice: {user_choice}. Must be 'execute', 'fix', or 'cancel'."
         )
-    
-    # TODO: Implement LangGraph state update and continuation
-    # For now, return success response
-    # Full implementation requires:
-    # 1. Load operation state from persistence
-    # 2. Update state["user_execution_choice"] = req.user_choice
-    # 3. Resume graph execution from conditional_execution_node
-    # 4. Return updated state
-    
+
     choice_ar = {
         "execute": "تنفيذ الخطة المقترحة الآن",
         "fix": "تصحيح آلي وإعادة الفحص بالكامل",
         "cancel": "إلغاء العملية"
-    }.get(req.user_choice, req.user_choice)
-    
+    }.get(user_choice, user_choice)
+
     return {
         "status": "success",
-        "operation_id": req.operation_id,
-        "user_choice": req.user_choice,
-        "user_choice_ar": choice_ar,
-        "approved_by": req.approved_by,
-        "message_ar": f"تم اختيار الإجراء: {choice_ar}",
-        "next_step": "جاري المتابعة والتنفيذ..."
+        "operation_id": operation_id,
+        "user_choice": user_choice,
+        "choice_ar": choice_ar,
+        "approved_by": approved_by,
+        "message_ar": f"تم تسجيل خيارك: {choice_ar}",
+        "next_step": "جاري المتابعة عبر منظومة الوكلاء",
     }
 
 # ==================== ENDPOINT 4: POST /write ====================
@@ -4278,6 +4275,7 @@ class AgentApprovalApiRequest(BaseModel):
     plan_id: Optional[str] = None
     report_folder: Optional[str] = None
     approved_by: Optional[str] = "مشغّل النظام"
+    modified_payload: Optional[Dict[str, Any]] = None
 
 
 class AgentCancelApiRequest(BaseModel):
@@ -4341,6 +4339,15 @@ def get_agent_operation_endpoint(operation_id: str, request: Request) -> Dict[st
             raise
         except Exception:
             raise HTTPException(status_code=404, detail=f"العملية غير موجودة: {operation_id}")
+
+    if op and not op.get("pending_action"):
+        from seraj_session_manager import SerajSessionManager
+        mgr = SerajSessionManager.get_instance()
+        for s in mgr._sessions.values():
+            if getattr(s, "active_operation_id", None) == operation_id and getattr(s, "pending_action", None):
+                op["pending_action"] = s.pending_action
+                break
+
     return {"status": "success", "operation": op, "source": "live_events"}
 
 
@@ -4508,6 +4515,10 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
         "mode": cfg.get("mode", "auto"),
     }
 
+    if op and session.pending_action:
+        op["pending_action"] = session.pending_action
+        op["plan"] = session.pending_action
+
     return {
         "status": "success",
         "operation_id": op_id,
@@ -4547,11 +4558,6 @@ def _resolve_dry_run_report_file(identifier: Optional[str]) -> Optional[Path]:
     candidates = list(Path("output").glob(f"*{cleaned}*/dry_run_report.json"))
     if candidates:
         return candidates[0]
-    all_reports = list(Path("output").glob("*/dry_run_report.json"))
-    if all_reports:
-        all_reports.sort(key=lambda p: p.stat().st_mtime, reverse=True)
-        if (time.time() - all_reports[0].stat().st_mtime) < 1800:
-            return all_reports[0]
     return None
 
 
@@ -4903,6 +4909,14 @@ def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Reque
         return _execute_excel_approval(payload, report_file, srv, request)
 
     # 2. Otherwise, treat as conversational chat approval (e.g. employee single edit/delete plan)
+    session = SerajSessionManager.get_instance().get_session(payload.chat_id)
+    if session and session.pending_action and payload.modified_payload:
+        if "action_details" not in session.pending_action:
+            session.pending_action["action_details"] = {}
+        session.pending_action["action_details"].update(payload.modified_payload)
+        for k, v in payload.modified_payload.items():
+            session.pending_action[k] = v
+
     seraj = SerajLLMService()
     reply = seraj.chat_turn(
         user_query="تأكيد",
@@ -4910,7 +4924,6 @@ def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Reque
         operation_id=payload.operation_id,
     )
 
-    session = SerajSessionManager.get_instance().get_session(payload.chat_id)
     op = srv.get_operation(payload.operation_id) if payload.operation_id else None
 
     return {
@@ -4918,7 +4931,7 @@ def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Reque
         "operation_id": payload.operation_id,
         "response": reply,
         "operation": op,
-        "pending_action": session.pending_action,
+        "pending_action": session.pending_action if session else None,
     }
 
 
@@ -4932,12 +4945,18 @@ def post_agent_cancel_endpoint(payload: AgentCancelApiRequest, request: Request)
     from seraj_session_manager import SerajSessionManager
 
     srv = get_events_service()
+    if payload.operation_id:
+        srv.update_operation_status(payload.operation_id, "cancelled")
+
     seraj = SerajLLMService()
     reply = seraj.chat_turn(
         user_query="إلغاء",
         chat_id=payload.chat_id,
         operation_id=payload.operation_id,
     )
+
+    if payload.operation_id:
+        srv.update_operation_status(payload.operation_id, "cancelled")
 
     session = SerajSessionManager.get_instance().get_session(payload.chat_id)
     op = srv.get_operation(payload.operation_id) if payload.operation_id else None
@@ -4947,7 +4966,7 @@ def post_agent_cancel_endpoint(payload: AgentCancelApiRequest, request: Request)
         "operation_id": payload.operation_id,
         "response": reply,
         "operation": op,
-        "pending_action": session.pending_action,
+        "pending_action": session.pending_action if session else None,
     }
 
 

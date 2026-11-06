@@ -146,12 +146,22 @@ class SerajLLMService:
         fahas_agent: Optional[FahasAgent] = None,
         katib_agent: Optional[KatibAgent] = None,
     ) -> None:
-        self.api_key = os.environ.get("OPENROUTER_API_KEY", "") if api_key is None else api_key
-        self.model = model or os.environ.get("OPENROUTER_MODEL", FREE_HIGH_PARAM_MODELS[0])
+        try:
+            from llm_config_manager import load_llm_config
+            _cfg = load_llm_config()
+            _cld = _cfg.get("cloud", {})
+        except Exception:
+            _cld = {}
+
+        self.api_key = api_key if api_key is not None else (_cld.get("api_key") or os.environ.get("OPENROUTER_API_KEY", ""))
+        self.model = model if model is not None else (_cld.get("model") or os.environ.get("OPENROUTER_MODEL") or FREE_HIGH_PARAM_MODELS[0])
         self.timeout = timeout
         self.session_manager = SerajSessionManager.get_instance()
         self.fahas = fahas_agent or get_fahas_agent()
         self.katib = katib_agent or get_katib_agent()
+        self.last_provider_used: Optional[str] = None
+        self.last_model_used: Optional[str] = None
+        self.last_cloud_error: Optional[str] = None
 
     def is_configured(self) -> bool:
         """
@@ -168,20 +178,12 @@ class SerajLLMService:
 
             fallback_enabled = cfg.get("fallback_enabled", True)
             if mode == "manual":
+                # في الوضع اليدوي: فحص المشغل المختار صراحة دون بدائل
                 if active == "cloud":
-                    if has_cloud_key:
-                        return True
-                    if fallback_enabled:
-                        local_health = check_local_health(cfg.get("local", {}).get("base_url"))
-                        return local_health.get("available", False)
-                    return False
+                    return has_cloud_key
                 else:
                     local_health = check_local_health(cfg.get("local", {}).get("base_url"))
-                    if local_health.get("available", False):
-                        return True
-                    if fallback_enabled and has_cloud_key:
-                        return True
-                    return False
+                    return local_health.get("available", False)
             else:
                 # وضع التبديل التلقائي: يُعتبر جاهزاً إذا توفر الخادم المحلي أو المفتاح السحابي
                 local_health = check_local_health(cfg.get("local", {}).get("base_url"))
@@ -307,6 +309,8 @@ class SerajLLMService:
 
             if reply_kind == "cancel":
                 session.clear_pending_action()
+                if operation_id and get_events_service is not None:
+                    get_events_service().update_operation_status(operation_id, "cancelled")
                 self._emit_evt(
                     operation_id=operation_id,
                     agent="hares",
@@ -345,7 +349,10 @@ class SerajLLMService:
                 if plan_id and str(plan_id).startswith("plan_"):
                     try:
                         plan = ApprovalPlan.load(plan_id)
-                        if plan.created_by != str(chat_id):
+                        is_same_user = (plan.created_by == str(chat_id)) or (
+                            str(plan.created_by).startswith("web_") and str(chat_id).startswith("web_")
+                        )
+                        if not is_same_user:
                             session.clear_pending_action()
                             self._emit_evt(
                                 operation_id=operation_id,
@@ -355,6 +362,8 @@ class SerajLLMService:
                                 description_ar=f"حارس يرفض - المستخدم {chat_id} ليس منشئ الخطة {plan_id}",
                             )
                             return "⚠️ لا يمكن تنفيذ هذه العملية: هوية صاحب التأكيد لا تطابق هوية مقدم الطلب الأصلية."
+                        if "values" in act and isinstance(act["values"], dict):
+                            plan.operation_details["values"] = act["values"]
                         plan.approve(approved_by=str(chat_id))
                         plan.save()
                     except ApprovalPlanError as p_err:
@@ -916,16 +925,43 @@ class SerajLLMService:
                     old_val = emp.get("job_title") or "غير محدد"
                     comp_name = emp.get("company_id", [False, "غير محدد"])[1] if isinstance(emp.get("company_id"), list) else "الشركة الافتراضية"
 
+                    plan = ApprovalPlan.create(
+                        plan_type="update",
+                        target_model="hr.employee",
+                        target_records=[emp["id"]],
+                        operation_details={
+                            "action": "update",
+                            "employee_id": emp["id"],
+                            "employee_name": emp["name"],
+                            "field": "job_title",
+                            "field_label": "المسمى الوظيفي",
+                            "old_value": old_val,
+                            "new_value": new_val,
+                            "values": {"job_title": new_val},
+                        },
+                        created_by=str(chat_id),
+                    )
+                    plan.save()
+
                     session.pending_action = {
                         "type": "update",
+                        "action_type": "update",
+                        "action": "تعديل مسمى وظيفي",
+                        "plan_id": plan.plan_id,
                         "model": "hr.employee",
+                        "model_label": "سجل موظف",
                         "employee_id": emp["id"],
                         "employee_name": emp["name"],
+                        "record_id": emp["id"],
+                        "record_name": emp["name"],
                         "field": "job_title",
                         "field_label": "المسمى الوظيفي",
                         "old_value": old_val,
                         "new_value": new_val,
+                        "values": {"job_title": new_val},
                         "company_id": emp.get("company_id", [False, ""])[0] if isinstance(emp.get("company_id"), list) else emp.get("company_id"),
+                        "expires_at": time.time() + 300,
+                        "created_at": time.time(),
                     }
                     self._emit_evt(
                         operation_id=operation_id,
@@ -952,8 +988,9 @@ class SerajLLMService:
                         to_agent="hares",
                         event_type="plan_prepared",
                         status="waiting_approval",
-                        description_ar="حارس يجهز خطة التعديل ويضعها في انتظار الاعتماد البشري الصريح",
+                        description_ar=f"حارس يجهز خطة التعديل ({plan.plan_id}) ويضعها في انتظار الاعتماد البشري الصريح",
                         plan=session.pending_action,
+                        plan_id=plan.plan_id,
                     )
 
                     return (
@@ -962,11 +999,12 @@ class SerajLLMService:
                         f"👤 **الموظف:** {emp['name']} (معرف Odoo: `{emp['id']}`)\n"
                         f"🏢 **المنشأة:** {comp_name}\n"
                         f"🔄 **التعديل المقترح:**\n"
-                        f"   • المسمى الوظيفي: `{old_val}` ➔ `{new_val}`\n\n"
+                        f"   • المسمى الوظيفي: `{old_val}` 🡰 `{new_val}`\n"
+                        f"• **رمز خطة الاعتماد:** `{plan.plan_id}` (صالحة لمدة 5 دقائق)\n\n"
                         f"🛡️ **فحص وتنسيق الوكلاء:**\n"
                         f"• **فاحص:** تم التحقق من وجود الموظف في Odoo وقراءة بياناته الحالية.\n"
                         f"• **مدقق:** البيانات مستوفية لضوابط التدقيق وصحة التسميات.\n"
-                        f"• **حارس:** العملية مجهزة وتنتظر تأكيد صاحب الصلاحية.\n\n"
+                        f"• **حارس:** تم إصدار خطة الاعتماد الرسمية وهي بانتظار توقيع صاحب الصلاحية.\n\n"
                         f"⚠️ **للتنفيذ الفعلي وتوجيه الأمر إلى «كاتب»:**\n"
                         f"يرجى تأكيد العملية بالرد: **«تأكيد»** أو **«اعتمد التعديل»** (أو إرسال **«إلغاء»** للتراجع)."
                     )
@@ -980,21 +1018,85 @@ class SerajLLMService:
 
             # مسار الإضافة (Create)
             else:
-                m_add = re.search(r'(?:أضف|اضف|أنشئ|انشئ|إضافة|اضافة)\s+(?:موظف\s+)?(?:جديد\s+)?(?:باسم|باسمه|اسمه|الاسم)?\s*([^\s]+)', clean_query)
-                new_name = m_add.group(1).strip() if m_add else "موظف جديد"
-                dup_res = self.fahas.search_records(
-                    model="hr.employee",
-                    domain=[("name", "=ilike", new_name)],
-                    fields=["id", "name"]
-                )
-                has_dup = bool(dup_res.get("records"))
+                NON_NAME_WORDS = {
+                    "جديد", "جديدة", "موظف", "موظفة", "باسم", "بأسم", "اسمه", "أسمه",
+                    "الاسم", "الأسم", "اسم", "أسم", "له", "لها", "بأسمه", "باسمه"
+                }
+
+                # استخراج المسمى والبريد إن وُجدا في العبارة
+                job_m = re.search(r'(?:مسمى|بمسمى|وظيفة|بوظيفة|وظيفته)\s+([^\s,]+(?:\s+[^\s,]+){0,3})', clean_query)
+                job_val = job_m.group(1).strip() if job_m else ""
+
+                email_m = re.search(r'(?:بريد|ايميل|email|e-mail)\s*[:=]?\s*([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)', clean_query, re.IGNORECASE)
+                email_val = email_m.group(1).strip() if email_m else ""
+
+                # استخلاص الاسم الصافي مع استبعاد البادئات ولواحق الوظيفة والبريد
+                raw_target = re.sub(
+                    r'^(?:أضف|اضف|أنشئ|انشئ|إضافة|اضافة)\s*(?:موظفة|موظف)?\s*(?:جديدة|جديد)?\s*(?:بأسم|باسم|اسمه|أسمه|بأسمه|باسمه|الاسم|الأسم|اسم|أسم)?[:\s]*',
+                    '',
+                    clean_query,
+                    flags=re.IGNORECASE
+                ).strip()
+                raw_target = re.sub(r'[\u00a0\u200b\u200c\u200d]+', ' ', raw_target).strip()
+
+                name_clean = re.split(r'\s+(?:بمسمى|مسمى|بوظيفة|وظيفة|بريد|ايميل|email|قسم|في قسم)\s+', raw_target)[0].strip()
+                name_clean = re.sub(r'^[«"\'\(]+|[»"\'\)]+$', '', name_clean).strip()
+                name_clean = re.sub(r'^(?:بأسم|باسم|اسمه|أسمه|بأسمه|باسمه|الاسم|الأسم|اسم|أسم)[:\s]+', '', name_clean).strip()
+
+                if not name_clean or name_clean in NON_NAME_WORDS:
+                    new_name = "موظف جديد"
+                    display_name = ""
+                else:
+                    new_name = name_clean
+                    display_name = name_clean
+
+                has_dup = False
+                if display_name:
+                    dup_res = self.fahas.search_records(
+                        model="hr.employee",
+                        domain=[("name", "=ilike", new_name)],
+                        fields=["id", "name"]
+                    )
+                    has_dup = bool(dup_res.get("records"))
                 dup_note = "⚠️ تنبيه من فاحص: يوجد موظف بنفس الاسم مسبقاً في Odoo." if has_dup else "• **فاحص:** تم فحص السجلات ولا يوجد تعارض للاسم."
+
+                init_values = {
+                    "name": display_name,
+                    "job_title": job_val or "",
+                    "work_email": email_val or "",
+                }
+
+                plan = ApprovalPlan.create(
+                    plan_type="create",
+                    target_model="hr.employee",
+                    target_records=[],
+                    operation_details={
+                        "action": "create",
+                        "name": new_name,
+                        "values": init_values,
+                    },
+                    created_by=str(chat_id),
+                )
+                plan.save()
 
                 session.pending_action = {
                     "type": "create",
+                    "action_type": "create",
+                    "action": "إنشاء موظف جديد",
+                    "plan_id": plan.plan_id,
                     "model": "hr.employee",
+                    "model_label": "سجل موظف",
                     "name": new_name,
-                    "values": {"name": new_name},
+                    "employee_name": new_name,
+                    "record_name": new_name,
+                    "values": init_values,
+                    "parameters": {
+                        "name": new_name,
+                        "job_title": job_val or "",
+                        "work_email": email_val or "",
+                    },
+                    "expires_at": time.time() + 300,
+                    "created_at": time.time(),
                 }
                 self._emit_evt(
                     operation_id=operation_id,
@@ -1021,20 +1123,27 @@ class SerajLLMService:
                     to_agent="hares",
                     event_type="plan_prepared",
                     status="waiting_approval",
-                    description_ar="حارس يجهز خطة إنشاء الموظف في انتظار الاعتماد البشري الصريح",
+                    description_ar=f"حارس يجهز خطة إنشاء الموظف ({plan.plan_id}) في انتظار الاعتماد البشري الصريح",
                     plan=session.pending_action,
+                    plan_id=plan.plan_id,
                 )
+
+                job_line = f"• **المسمى الوظيفي:** {job_val}\n" if job_val else ""
+                email_line = f"• **البريد:** {email_val}\n" if email_val else ""
+                name_display_str = new_name if display_name else "(يرجى كتابة الاسم في جدول الاعتماد أدناه أو بالرد به)"
 
                 return (
                     f"📋 **تحضير عملية إضافة موظف جديد — في انتظار الاعتماد:**\n"
                     f"────────────────────\n"
-                    f"👤 **الاسم المقترح:** {new_name}\n\n"
+                    f"👤 **الاسم المقترح:** {name_display_str}\n"
+                    f"{job_line}{email_line}"
+                    f"• **رمز خطة الاعتماد:** `{plan.plan_id}` (صالحة لمدة 5 دقائق)\n\n"
                     f"🛡️ **فحص وتنسيق الوكلاء:**\n"
                     f"{dup_note}\n"
-                    f"• **مدقق:** الاسم مستوفٍ للشروط.\n"
-                    f"• **حارس:** العملية جاهزة للتنفيذ بعد موافقتك.\n\n"
+                    f"• **مدقق:** الاسم مستوفٍ للشروط ومطابق لضوابط المسميات.\n"
+                    f"• **حارس:** تم إصدار خطة الاعتماد الرسمية وهي بانتظار توقيعك البشري في بوابة الاعتماد (HITL Gate).\n\n"
                     f"⚠️ **للتنفيذ الفعلي وتوجيه الأمر إلى «كاتب»:**\n"
-                    f"يرجى تأكيد العملية بالرد: **«تأكيد»** أو **«اعتمد»** (أو إرسال **«إلغاء»** للتراجع)."
+                    f"يرجى اعتماد التعديلات من جدول بوابة الاعتماد أو الرد بـ: **«تأكيد»** أو **«اعتمد»** (أو إرسال **«إلغاء»** للتراجع)."
                 )
 
         # فحص هل هذا الرد هو إجابة على سؤال معلق (مثل «الشركة الثانية» أو «شركة توركين»)
@@ -1126,7 +1235,23 @@ class SerajLLMService:
         messages.append({"role": "user", "content": effective_query})
 
         # 4. تنفيذ حلقة Tool Calling وتفويض المهام لفاحص
-        models_to_try = [self.model] + [m for m in FREE_HIGH_PARAM_MODELS if m != self.model]
+        from llm_config_manager import load_llm_config
+        _active_cfg = load_llm_config()
+        _cld_cfg = _active_cfg.get("cloud", {})
+        _cld_provider = (_cld_cfg.get("provider") or "").lower()
+        _cld_base_url = _cld_cfg.get("base_url", "")
+        _user_cld_model = _cld_cfg.get("model") or self.model
+
+        if _cld_provider == "gemini" or "generativelanguage.googleapis.com" in _cld_base_url:
+            # لمزود Google Gemini الرسمي: نبدأ بالنموذج المختار من المستخدم، ثم البدائل المستقرة
+            models_to_try = [_user_cld_model]
+            for gm in ["gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite-preview", "gemini-3.6-flash"]:
+                if gm not in models_to_try:
+                    models_to_try.append(gm)
+        elif _cld_provider == "openrouter" or "openrouter.ai" in _cld_base_url:
+            models_to_try = [_user_cld_model] + [m for m in FREE_HIGH_PARAM_MODELS if m != _user_cld_model]
+        else:
+            models_to_try = [_user_cld_model]
 
         for candidate_model in models_to_try:
             try:
@@ -1527,25 +1652,46 @@ class SerajLLMService:
 
             # تطبيع مسار الطلب
             clean_url = base_url.rstrip("/")
-            if not clean_url.endswith("/chat/completions"):
+            is_anthropic_native = "api.anthropic.com" in clean_url
+            if is_anthropic_native:
+                endpoint_url = f"{clean_url}/messages" if not clean_url.endswith("/messages") else clean_url
+            elif not clean_url.endswith("/chat/completions"):
                 endpoint_url = f"{clean_url}/chat/completions"
             else:
                 endpoint_url = clean_url
 
-            payload: Dict[str, Any] = {
-                "model": model,
-                "messages": messages,
-                "temperature": 0.1,
-                "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "1024")),
-            }
-            # للمحرك المحلي (Ollama): ضبط نافذة السياق لتستقر 100% داخل كرت الشاشة (VRAM) وتمنع الترحيل للمعالج
-            if provider_type == "local" or "11434" in endpoint_url or "localhost" in endpoint_url:
-                local_ctx = int(os.environ.get("LLM_NUM_CTX", "4096"))
-                payload["options"] = {"num_ctx": local_ctx}
+            if is_anthropic_native:
+                # دعم بروتوكول Anthropic Messages الرسمي المباشر
+                anthropic_msgs = []
+                system_text = None
+                for m in messages:
+                    if m.get("role") == "system":
+                        system_text = m.get("content", "")
+                    else:
+                        anthropic_msgs.append({"role": m.get("role"), "content": m.get("content", "")})
+                payload: Dict[str, Any] = {
+                    "model": model,
+                    "messages": anthropic_msgs or [{"role": "user", "content": "مرحباً"}],
+                    "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "1024")),
+                    "temperature": 0.1,
+                }
+                if system_text:
+                    payload["system"] = system_text
+            else:
+                payload: Dict[str, Any] = {
+                    "model": model,
+                    "messages": messages,
+                    "temperature": 0.1,
+                    "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "1024")),
+                }
+                # للمحرك المحلي (Ollama): ضبط نافذة السياق لتستقر 100% داخل كرت الشاشة (VRAM) وتمنع الترحيل للمعالج
+                if provider_type == "local" or "11434" in endpoint_url or "localhost" in endpoint_url:
+                    local_ctx = int(os.environ.get("LLM_NUM_CTX", "4096"))
+                    payload["options"] = {"num_ctx": local_ctx}
 
-            if tools:
-                payload["tools"] = tools
-                payload["tool_choice"] = "auto"
+                if tools:
+                    payload["tools"] = tools
+                    payload["tool_choice"] = "auto"
 
             data = json.dumps(payload).encode("utf-8")
             headers = {
@@ -1555,12 +1701,24 @@ class SerajLLMService:
                 "X-Title": "Odoo HR Multi-Agent",
             }
 
-            if api_key and str(api_key).strip():
+            if is_anthropic_native and api_key:
+                headers["x-api-key"] = str(api_key).strip()
+                headers["anthropic-version"] = "2023-06-01"
+            elif api_key and str(api_key).strip():
                 headers["Authorization"] = f"Bearer {str(api_key).strip()}"
 
             req = urllib.request.Request(endpoint_url, data=data, headers=headers)
             with urllib.request.urlopen(req, timeout=timeout) as res:
                 res_data = json.loads(res.read().decode("utf-8"))
+                if is_anthropic_native:
+                    blocks = res_data.get("content", [])
+                    txt = "".join(b.get("text", "") for b in blocks if b.get("type") == "text")
+                    msg = {"role": "assistant", "content": txt}
+                    msg["_provider_used"] = provider_type
+                    msg["_model_used"] = model
+                    self.last_provider_used = provider_type
+                    self.last_model_used = model
+                    return msg
                 choices = res_data.get("choices", [])
                 if choices:
                     msg = choices[0].get("message", {})
@@ -1575,9 +1733,15 @@ class SerajLLMService:
         # تجهيز تفاصيل المشغلات مع فصل النموذج المحلي عن السحابي
         loc_cfg = cfg.get("local", {})
         cld_cfg = cfg.get("cloud", {})
+        cld_provider = (cld_cfg.get("provider") or "").lower()
 
         loc_model = loc_cfg.get("model") or os.environ.get("OLLAMA_MODEL") or os.environ.get("LLM_MODEL") or "qwen3.5:9b"
-        cld_model = model_name or cld_cfg.get("model") or os.environ.get("OPENROUTER_MODEL") or "openrouter/auto"
+
+        # إذا تم تمرير model_name وكان ينتمي لـ OpenRouter بينما المزود غير OpenRouter، نعتمد نموذج الإعدادات
+        if model_name and not ("openrouter" not in cld_provider and ("openrouter" in model_name or ":free" in model_name)):
+            cld_model = model_name
+        else:
+            cld_model = cld_cfg.get("model") or os.environ.get("OPENROUTER_MODEL") or "openrouter/auto"
 
         loc_tuple = (
             "local",
@@ -1599,17 +1763,13 @@ class SerajLLMService:
         candidates: List[Tuple[str, str, str, Optional[str], int]] = []
 
         if mode == "manual":
-            # في الوضع اليدوي: يتم تقديم المشغل المختار، مع التبديل التلقائي عند التعثر إن كان مفعّلاً
+            # في الوضع اليدوي الصريح: الالتزام الحرفي بالمشغل المختار (سحابي فقط أو محلي فقط) دون أي تبديل بينهما
             if active == "cloud":
                 candidates = [cld_tuple]
-                if fallback_enabled:
-                    candidates.append(loc_tuple)
             else:
                 candidates = [loc_tuple]
-                if fallback_enabled and cld_tuple[3]:
-                    candidates.append(cld_tuple)
         else:
-            # في الوضع التلقائي: الترتيب الذكي
+            # في الوضع التلقائي: الترتيب الذكي مع التبديل التلقائي للبديل عند التعثر
             if active == "cloud" and cld_tuple[3]:
                 candidates = [cld_tuple, loc_tuple]
             else:
@@ -1626,6 +1786,8 @@ class SerajLLMService:
                     return result
             except Exception as exc:
                 last_error = exc
+                if p_type == "cloud":
+                    self.last_cloud_error = str(exc)
                 logger.warning("LLM call to %s (%s) failed: %s. Trying fallback if available...", p_type, m_name, exc)
 
         if last_error:

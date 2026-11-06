@@ -1,0 +1,25 @@
+{
+  "knowledge_id": "know_044c99c0e572",
+  "category": "llm_models",
+  "concept": "Qwen 3.5 9B Local Standard",
+  "description": "النموذج المحلي المعتمد والمثبت في منظومة الوكلاء هو qwen3.5:9b بدلا من qwen2.5:7b",
+  "related_concepts": [
+    "ollama",
+    "seraj",
+    "governance"
+  ],
+  "examples": [
+    "ollama pull qwen3.5:9b"
+  ],
+  "confidence": 1.0,
+  "source": "manual",
+  "learned_at": "2026-11-02T06:34:04.472448",
+  "updated_at": "2026-11-02T06:34:04.472448",
+  "usage_count": 0,
+  "tags": [
+    "qwen",
+    "local_ai",
+    "standard"
+  ],
+  "metadata": {}
+}

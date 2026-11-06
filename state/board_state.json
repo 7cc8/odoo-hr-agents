@@ -1,0 +1,31 @@
+﻿{
+  "version": 12,
+  "last_updated": "10:30 ص",
+  "staff": {
+    "orchestrator": { "status": "يشتغل", "current_task": "مراجعة تصفية الموظف #104", "level": 3, "xp": 140 },
+    "payroll_eosb": { "status": "ينتظرك", "current_task": "حساب نهاية خدمة استقالة (5.4 سنوات)", "level": 2, "xp": 85 },
+    "attendance_leaves": { "status": "فاضي", "current_task": "لا شيء", "level": 2, "xp": 70 },
+    "contracts_audit": { "status": "فاضي", "current_task": "لا شيء", "level": 1, "xp": 30 }
+  },
+  "needs_approval": [
+    {
+      "approval_id": "REQ-009",
+      "agent": "payroll_eosb",
+      "action_type": "CONFIRM_EOSB_SETTLEMENT",
+      "odoo_record": "hr.employee(104)",
+      "summary": "اعتماد مكافأة نهاية خدمة (استقالة - المادة 85) بمبلغ 18,450.00 ريال بعد حسم 4 أيام غياب بدون أجر.",
+      "status": "PENDING_OWNER"
+    }
+  ],
+  "recent_reports": [
+    {
+      "time": "10:28 ص",
+      "agent": "payroll_eosb",
+      "done": "حساب مستحقات نهاية الخدمة للموظف #104 (خدمة صافية 5.38 سنة، استحقاق الثلثين)",
+      "records": "hr.employee(104), hr.contract(88)",
+      "needs_owner": "الموافقة على الطلب REQ-009 بمبلغ 18,450.00 ريال",
+      "blocked": "لا شيء",
+      "next": "فاضي"
+    }
+  ]
+}

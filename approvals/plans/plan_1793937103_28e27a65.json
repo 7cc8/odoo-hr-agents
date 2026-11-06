@@ -1,0 +1,22 @@
+{
+  "plan_id": "plan_1793937103_28e27a65",
+  "plan_type": "create",
+  "target_model": "hr.employee",
+  "target_records": [],
+  "operation_details": {
+    "action": "create",
+    "name": "ناصر الزهراني",
+    "values": {
+      "name": "ناصر بن محمد الزهراني",
+      "job_title": "كبير مهندسي المنظومات",
+      "work_email": "naser.senior@company.sa"
+    }
+  },
+  "created_by": "web_test_edit3",
+  "approved_by": "web_test_edit3",
+  "created_at": "2026-11-06T03:51:43.728537",
+  "expires_at": "2026-11-06T03:56:43.728537",
+  "is_consumed": true,
+  "consumed_at": "2026-11-06T03:51:45.842568",
+  "status": "consumed"
+}

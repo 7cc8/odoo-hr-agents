@@ -152,7 +152,11 @@ def run_agent(
             run.status, run.answer = STATUS_ANSWERED, content
             return run
 
-        convo.append({"role": "assistant", "content": content, "tool_calls": tool_calls})
+        assistant_turn = {"role": "assistant", "content": content, "tool_calls": tool_calls}
+        for k in ("extra_content", "thought_signature", "reasoning_content"):
+            if k in reply:
+                assistant_turn[k] = reply[k]
+        convo.append(assistant_turn)
 
         for tc in tool_calls:
             call_id = tc.get("id") or "call_1"

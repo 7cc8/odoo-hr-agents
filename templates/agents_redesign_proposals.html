@@ -1283,7 +1283,7 @@
           1. حالة الاستعداد الهادئة (Standby)
         </button>
         <button class="btn-sim-trigger" id="btn-scene-law" onclick="switchScenario('law', this)">
-          2. استشارة نظام العمل (سراج ➔ مدقق)
+          2. استشارة نظام العمل (سراج 🡰 مدقق)
         </button>
         <button class="btn-sim-trigger" id="btn-scene-hitl" onclick="switchScenario('hitl', this)">
           3. تدقيق ملف رواتب Odoo (تفعيل بوابة حارس HITL)
@@ -1313,9 +1313,9 @@
         <div class="routing-pipeline-strip" id="routingPipelineStrip">
           <span style="font-weight: 600;">مسار التوجيه:</span>
           <span class="routing-step-tag active" id="route-step-user">المشغّل</span>
-          <span class="routing-arrow">➔</span>
+          <span class="routing-arrow">🡰</span>
           <span class="routing-step-tag active" id="route-step-seraj">سراج (المنسق)</span>
-          <span class="routing-arrow">➔</span>
+          <span class="routing-arrow">🡰</span>
           <span class="routing-step-tag" id="route-step-target">الوكيل المختص</span>
         </div>
       </div>
@@ -1739,7 +1739,7 @@
         });
         badge.style.borderColor = 'rgba(139, 92, 246, 0.4)';
         badge.style.color = '#c4b5fd';
-        badgeText.textContent = 'مسار نشط: سراج ➔ مدقق (تدقيق المادة 77)';
+        badgeText.textContent = 'مسار نشط: سراج 🡰 مدقق (تدقيق المادة 77)';
         approvalCard.classList.remove('is-active');
         routeTarget.textContent = 'مدقق (99% ثقة)';
         routeTarget.classList.add('active');
@@ -1800,7 +1800,7 @@
         badge.style.color = 'var(--amber)';
         badgeText.textContent = 'بانتظار توقيعك البشري: تدقيق ملف رواتب عبر حارس';
         approvalCard.classList.add('is-active');
-        routeTarget.textContent = 'حارس ➔ توقيع المشغّل';
+        routeTarget.textContent = 'حارس 🡰 توقيع المشغّل';
         routeTarget.classList.add('active');
 
         startCountdown();

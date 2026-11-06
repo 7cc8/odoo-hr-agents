@@ -1,0 +1,2112 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مقر شركة سراج (MetroCity Edition) | سيناريوهات تعاون وكلاء Odoo HR الحية</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #070d17;
+      --bg-panel: #0e1826;
+      --bg-card: #132033;
+      --bg-card-inner: #0b1422;
+      --border: #21324a;
+      --border-gold: #8c6f2d;
+      --text-main: #f1f5f9;
+      --text-sub: #8fa3bf;
+      --gold: #dfb045;
+      --green-pill-bg: #12382b;
+      --green-pill-text: #34d399;
+      --green-bar: #2dd4bf;
+      --purple-dot: #c084fc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif; }
+    body { background: var(--bg-page); color: var(--text-main); min-height: 100vh; padding: 14px; -webkit-font-smoothing: antialiased; }
+
+    /* Top Control & Scenario Bar */
+    .top-bar {
+      max-width: 1500px; margin: 0 auto 12px; display: flex; justify-content: space-between;
+      align-items: center; background: var(--bg-panel); border: 1px solid var(--border);
+      padding: 12px 18px; border-radius: 16px; flex-wrap: wrap; gap: 10px;
+    }
+    .top-title { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.08rem; }
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .action-btn {
+      background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border);
+      padding: 8px 13px; border-radius: 10px; font-weight: 700; font-size: 0.83rem; cursor: pointer;
+      transition: all 0.15s; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .action-btn:hover { border-color: var(--gold); transform: translateY(-1px); }
+    .action-btn.active { background: var(--gold); color: #090f1a; border-color: var(--gold); }
+    .action-btn.green { background: #12382b; color: #34d399; border-color: #10b981; }
+    .action-btn.purple { background: rgba(168, 85, 247, 0.2); color: #e9d5ff; border-color: #a855f7; }
+
+    /* Scenario Quick-Selector Strip */
+    .scenario-strip {
+      max-width: 1500px; margin: 0 auto 12px; background: #0b1422; border: 1px solid var(--border);
+      border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; gap: 8px; overflow-x: auto;
+    }
+    .sc-chip {
+      background: var(--bg-card); color: #cbd5e1; border: 1px solid #263a56;
+      padding: 6px 12px; border-radius: 99px; font-size: 0.8rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap; transition: all 0.15s;
+    }
+    .sc-chip:hover, .sc-chip.running { background: var(--gold); color: #090f1a; border-color: var(--gold); }
+
+    /* Main Container */
+    .hq-container { max-width: 1500px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+    /* Live Dialogue Banner */
+    .live-banner {
+      background: rgba(19, 32, 51, 0.95); border: 1px solid var(--border-gold);
+      border-radius: 14px; padding: 12px 18px; display: flex; justify-content: space-between;
+      align-items: center; font-size: 0.92rem; color: #fde68a; flex-wrap: wrap; gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+
+    /* 1. PIXEL MAP FRAME */
+    .map-frame {
+      background: #0b1320; border: 2px solid var(--border); border-radius: 20px;
+      overflow: hidden; position: relative; box-shadow: 0 20px 50px rgba(0,0,0,0.65);
+    }
+    #hqCanvas {
+      width: 100%; height: auto; display: block; cursor: pointer;
+      image-rendering: pixelated; image-rendering: crisp-edges;
+    }
+    .map-overlay-bar {
+      position: absolute; bottom: 12px; left: 16px;
+      display: inline-flex; align-items: center; gap: 10px; pointer-events: none; direction: ltr;
+    }
+    .ov-btn {
+      pointer-events: auto; background: rgba(14, 24, 38, 0.95); color: #e2e8f0;
+      border: 1px solid #2b4263; padding: 8px 15px; border-radius: 12px;
+      font-weight: 700; font-size: 0.86rem; cursor: pointer; display: flex; align-items: center; gap: 7px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.55);
+    }
+    .ov-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .ov-dots {
+      pointer-events: auto; background: rgba(11, 19, 32, 0.9); border: 1px solid #223552;
+      padding: 8px 14px; border-radius: 12px; display: flex; align-items: center; gap: 9px;
+      overflow-x: auto; max-width: 320px;
+    }
+    .t-dot {
+      width: 11px; height: 11px; border-radius: 50%; border: 2px solid #22c55e;
+      background: transparent; cursor: pointer; flex-shrink: 0; transition: all 0.2s;
+    }
+    .t-dot.active, .t-dot:hover { background: #22c55e; transform: scale(1.3); box-shadow: 0 0 8px #22c55e; }
+
+    /* 2. BENTO GRID */
+    .bento-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: start;
+    }
+    @media (max-width: 1180px) { .bento-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 760px) { .bento-grid { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: 20px; padding: 20px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .panel-header { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .panel-title { font-size: 1.25rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 10px; }
+    .panel-stats { font-size: 0.88rem; color: var(--text-sub); }
+
+    .item-card {
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 14px; transition: transform 0.15s, border-color 0.15s;
+    }
+    .item-card.clickable { cursor: pointer; }
+    .item-card.clickable:hover { transform: translateY(-2px); border-color: var(--gold); }
+    .item-card.gold-outline { border: 1.5px solid var(--border-gold); }
+
+    .bot-avatar {
+      width: 42px; height: 42px; border-radius: 50%; background: #1a2b42;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      border: 1px solid #2b4263; overflow: hidden;
+    }
+    .bot-avatar.sm { width: 30px; height: 30px; }
+
+    .lv-pill {
+      background: var(--gold); color: #0b111e; font-weight: 800;
+      font-size: 0.76rem; padding: 2px 8px; border-radius: 6px; display: inline-block;
+    }
+    .work-pill {
+      background: var(--green-pill-bg); color: var(--green-pill-text);
+      font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 99px;
+      display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+    }
+    .work-pill.wait { background: rgba(223, 176, 69, 0.18); color: var(--gold); }
+    .work-pill.walk { background: rgba(192, 132, 252, 0.22); color: #f0abfc; }
+    .work-pill.learn { background: rgba(56, 189, 248, 0.16); color: #38bdf8; }
+
+    .count-circle {
+      background: var(--gold); color: #090f1a; font-size: 0.86rem; font-weight: 900;
+      width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .open-btn {
+      background: var(--gold); color: #090f1a; border: none; border-radius: 10px;
+      padding: 7px 16px; font-weight: 800; font-size: 0.86rem; cursor: pointer; margin-top: 10px;
+    }
+
+    .todo-row {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 13px; display: flex; align-items: center; gap: 12px; cursor: pointer;
+    }
+    .todo-box {
+      width: 24px; height: 24px; border-radius: 7px; border: 2px solid var(--border-gold);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-weight: 900; color: #090f1a;
+    }
+    .todo-row.checked .todo-box { background: var(--gold); border-color: var(--gold); }
+    .todo-row.checked .todo-text { text-decoration: line-through; color: var(--text-sub); }
+
+    .kanban-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .k-col { background: var(--bg-card-inner); border: 1px solid var(--border); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+    .k-head { display: flex; justify-content: space-between; color: var(--text-sub); font-weight: 700; font-size: 0.82rem; }
+    .prog-row { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .prog-track { flex: 1; height: 6px; background: #1e2f47; border-radius: 99px; overflow: hidden; }
+    .prog-fill { height: 100%; background: var(--green-bar); }
+    .after-pill { margin-top: 8px; border: 1px dashed #3b5375; border-radius: 8px; padding: 5px 8px; color: var(--text-sub); font-size: 0.76rem; }
+
+    .tl-list { position: relative; display: flex; flex-direction: column; gap: 12px; max-height: 380px; overflow-y: auto; padding-right: 6px; }
+    .tl-item { display: grid; grid-template-columns: 16px 66px 32px 62px 1fr; align-items: start; gap: 8px; font-size: 0.86rem; background: rgba(11,20,34,0.6); padding: 8px; border-radius: 10px; }
+    .tl-dot { width: 11px; height: 11px; border-radius: 50%; margin-top: 5px; }
+    .tl-dot.call { background: var(--purple-dot); box-shadow: 0 0 8px rgba(192,132,252,0.6); }
+    .tl-dot.report { background: #34d399; box-shadow: 0 0 8px rgba(52,211,153,0.5); }
+    .tl-type { color: var(--gold); font-size: 0.74rem; font-weight: 800; margin-top: 3px; }
+
+    /* Modal */
+    .modal-bg {
+      position: fixed; inset: 0; background: rgba(4, 8, 15, 0.82);
+      display: none; align-items: center; justify-content: center; z-index: 100; padding: 18px;
+    }
+    .modal-bg.open { display: flex; }
+    .modal-win {
+      background: #0e1826; border: 1px solid #2b4263; border-radius: 22px;
+      max-width: 540px; width: 100%; padding: 24px; max-height: 90vh; overflow-y: auto;
+    }
+    .xp-gold-track { height: 12px; background: #1b2a40; border-radius: 99px; overflow: hidden; margin: 12px 0; }
+    .xp-gold-fill { height: 100%; background: linear-gradient(90deg, #b88628, #f3c65f); }
+
+    /* Complete Handbook Section */
+    .handbook-section {
+      background: var(--bg-panel); border: 2px solid var(--border-gold);
+      border-radius: 20px; padding: 24px; direction: rtl; text-align: right; margin-top: 10px;
+    }
+    .hb-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .hb-tab {
+      background: var(--bg-card); color: var(--text-sub); border: 1px solid var(--border);
+      padding: 8px 15px; border-radius: 10px; font-weight: 700; font-size: 0.86rem; cursor: pointer;
+    }
+    .hb-tab.active { background: var(--gold); color: #090f1a; border-color: var(--gold); }
+    .code-box {
+      background: #070c14; border: 1px solid #263852; border-radius: 14px;
+      padding: 18px; font-family: "JetBrains Mono", Consolas, monospace; font-size: 0.88rem;
+      line-height: 1.7; color: #e2e8f0; white-space: pre-wrap; position: relative; overflow-x: auto;
+    }
+    .copy-btn {
+      position: sticky; top: 10px; float: left; background: var(--gold); color: #090f1a;
+      border: none; padding: 6px 14px; border-radius: 8px; font-weight: 800; cursor: pointer;
+    }
+    .comp-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 0.92rem; }
+    .comp-table th, .comp-table td { border: 1px solid var(--border); padding: 12px; text-align: right; }
+    .comp-table th { background: #162438; color: var(--gold); }
+  </style>
+</head>
+<body>
+
+  <!-- Top Controls -->
+  <header class="top-bar">
+    <div class="top-title">
+      <span>👑</span>
+      <span>مقر شركة سراج (Odoo HR HQ) — 12 سيناريو تعاون وحوارات حية</span>
+    </div>
+    <div class="btn-group">
+      <button class="action-btn green" onclick="triggerNextCollaboration()">🚶‍♂️ تشغيل السيناريو التالي</button>
+      <button class="action-btn purple" onclick="startFullPipelineRelay()">⚡ تشغيل السلسلة الكاملة (8 وكلاء بالتتابع)</button>
+      <button class="action-btn" onclick="triggerStandupGathering()">🤝 اجتماع الصباح (Standup)</button>
+      <button class="action-btn" onclick="returnAllToDesks()">🪑 عودة للمكاتب</button>
+      <button class="action-btn active" id="btnModeOdoo" onclick="setMode('odoo')">🇸🇦 وكلاء سراج (Odoo HR)</button>
+      <button class="action-btn" id="btnModeVideo" onclick="setMode('video')">🎬 وضع الفيديو (Jasleen)</button>
+      <button class="action-btn" onclick="document.getElementById('handbookSec').scrollIntoView({behavior:'smooth'})">📂 ملفات team/ والدليل المعماري</button>
+    </div>
+  </header>
+
+  <!-- Interactive Scenario Strip: Click any HR scenario to watch the agents walk & execute it -->
+  <nav class="scenario-strip" id="scenarioStrip"></nav>
+
+  <div class="hq-container">
+    <!-- Live Dialogue & Stage Banner -->
+    <div class="live-banner">
+      <div>🎙️ <b>الحوار الحي الآن:</b> <span id="liveCollabText">اضغط على أي سيناريو في الشريط العلوي لمشاهدة الوكيل يقوم من كرسيه ويذهب لمكتب زميله ويتحاور معه في 3 مراحل!</span></div>
+      <div id="dialogueStepBadge" style="background:#162438;padding:4px 12px;border-radius:99px;font-size:0.8rem;color:#34d399;font-weight:700">جاهز للتشغيل التلقائي</div>
+    </div>
+
+    <!-- 1. TOP 2D PIXEL CAMPUS MAP -->
+    <section class="map-frame">
+      <canvas id="hqCanvas" width="1520" height="1370"></canvas>
+      <div class="map-overlay-bar">
+        <button class="ov-btn" onclick="document.getElementById('bentoGrid').scrollIntoView({behavior:'smooth'})"><span>[ ]</span> Overview</button>
+        <button class="ov-btn" onclick="startFullPipelineRelay()"><span>↺</span> Replay Full Pipeline</button>
+        <button class="ov-btn" onclick="triggerNextCollaboration()"><span>🤝</span> Next HR Dialogue</button>
+        <div class="ov-dots" id="mapDots"></div>
+      </div>
+    </section>
+
+    <!-- 2. FULL BENTO DASHBOARD -->
+    <section class="bento-grid" id="bentoGrid">
+      <div class="panel">
+        <div class="panel-header">
+          <h2 class="panel-title">الفريق (Team)</h2>
+          <span class="panel-stats" id="teamStatsText"></span>
+        </div>
+        <div id="teamListContainer" style="display:flex;flex-direction:column;gap:11px"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title">ينتظرك (Needs you) <span class="count-circle" id="needsBadge">3</span></h2>
+          </div>
+          <div id="needsContainer" style="display:flex;flex-direction:column;gap:12px"></div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">دورك اليوم (Your part today)</h2>
+          <div id="todoContainer" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+
+        <div class="panel" id="weeklyContainer"></div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <div class="panel">
+          <div class="kanban-cols" id="kanbanContainer"></div>
+        </div>
+
+        <div class="panel">
+          <h4 style="color:var(--gold);font-size:0.92rem">سجل التعاون والحوارات الحية (LIVE CALL & REPORT)</h4>
+          <div class="tl-list" id="timelineContainer"></div>
+        </div>
+
+        <div class="panel">
+          <h2 class="panel-title">اجتماع الصباح (Standup)</h2>
+          <div id="standupContainer" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+      </div>
+    </section>
+    <!-- 3. COMPLETE HANDBOOK, FILES, COMPARISON & 5-STAGE GUIDE -->
+    <section class="handbook-section" id="handbookSec">
+      <h2 style="font-size:1.45rem;color:var(--gold)">📂 الدليل المعماري الكامل وملفات مستودع (odoo-hr-agents / AI Company HQ)</h2>
+      <p style="color:var(--text-sub);margin-top:6px">جميع ملفات `team/` و `board_state.json` والفرق بين الرابطين والأفكار الـ 4 وخطة الـ 5 مراحل جاهزة للنسخ والاستخدام المباشر:</p>
+
+      <div class="hb-tabs" id="hbTabsBar">
+        <button class="hb-tab active" onclick="showHandbookTab('diff', this)">1. الفرق بين الرابطين والأفكار الـ 4</button>
+        <button class="hb-tab" onclick="showHandbookTab('steps', this)">2. الخطوات الـ 5 بالترتيب (Master Prompt)</button>
+        <button class="hb-tab" onclick="showHandbookTab('readme', this)">3. الدستور (team/README.md)</button>
+        <button class="hb-tab" onclick="showHandbookTab('approvals', this)">4. الصلاحيات (team/approvals.md)</button>
+        <button class="hb-tab" onclick="showHandbookTab('jds', this)">5. بطاقات الوظائف (team/jd/*.md)</button>
+        <button class="hb-tab" onclick="showHandbookTab('checklists', this)">6. قائمة «خلص» (team/checklists.md)</button>
+        <button class="hb-tab" onclick="showHandbookTab('statejson', this)">7. اللوحة الحية (state/board_state.json)</button>
+      </div>
+
+      <div id="hbContentBox"></div>
+    </section>
+  </div>
+
+  <!-- Agent Profile Modal -->
+  <div class="modal-bg" id="profileModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-win" id="profileModalBody"></div>
+  </div>
+
+<script>
+
+// ============================================================================
+// 1. METROCITY ENGINE & ARCHITECTURAL ASSETS
+// ============================================================================
+const METRO_SPRITES_B64 = {"char_0": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABgCAYAAADFNvbQAAAACXBIWXMAAAsTAAALEwEAmpwYAAAGbmlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHhtcDpDcmVhdGVEYXRlPSIyMDI2LTAyLTE2VDExOjM0OjQxWiIgeG1wOk1vZGlmeURhdGU9IjIwMjYtMDItMTZUMTM6MTg6MzVaIiB4bXA6TWV0YWRhdGFEYXRlPSIyMDI2LTAyLTE2VDEzOjE4OjM1WiIgZGM6Zm9ybWF0PSJpbWFnZS9wbmciIHBob3Rvc2hvcDpDb2xvck1vZGU9IjMiIHBob3Rvc2hvcDpJQ0NQcm9maWxlPSJzUkdCIElFQzYxOTY2LTIuMSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDowZjE1NzQ1Ny1jZWZlLWJkNDMtOGRjNC0wODM5NmM0MjI5MTQiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MGYxNTc0NTctY2VmZS1iZDQzLThkYzQtMDgzOTZjNDIyOTE0IiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6MGYxNTc0NTctY2VmZS1iZDQzLThkYzQtMDgzOTZjNDIyOTE0Ij4gPHBob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHJkZjpCYWc+IDxyZGY6bGk+YWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjI5YWFmNzNjLTViOGMtOWE0MC1hYjk2LWNhZWQ3YjU4MmZmYTwvcmRmOmxpPiA8cmRmOmxpPmFkb2JlOmRvY2lkOnBob3Rvc2hvcDo1ZTRlNTM3Ni0yMjg0LWM3NDEtOTNmMC05ODQ0ZDZiY2U2OGI8L3JkZjpsaT4gPHJkZjpsaT54bXAuZGlkOjIwYjUxYTRhLWIwYjktNDc0Mi1iZTQ2LTQyN2Y4NGFkYmQ0MjwvcmRmOmxpPiA8cmRmOmxpPnhtcC5kaWQ6ZDUyN2YxZjUtOWE1MC0wMTQ3LTkxNzAtN2VjOGY3N2I5YzJmPC9yZGY6bGk+IDwvcmRmOkJhZz4gPC9waG90b3Nob3A6RG9jdW1lbnRBbmNlc3RvcnM+IDx4bXBNTTpIaXN0b3J5PiA8cmRmOlNlcT4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImNyZWF0ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6MGYxNTc0NTctY2VmZS1iZDQzLThkYzQtMDgzOTZjNDIyOTE0IiBzdEV2dDp3aGVuPSIyMDI2LTAyLTE2VDExOjM0OjQxWiIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pu5QeR4AAAisSURBVHja7V3LbuVEELVgBhSkkLloeCRDeGl4CAGLERkxSIxGbFDYRELKIvtZIQHb+YAREiuWsIsEK9gg+AFW/ANbYDXfwOKSMi6r3K6ufpXdbqct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", "char_1": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABgCAYAAADFNvbQAAAACXBIWXMAAAsTAAALEwEAmpwYAAALDWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyNi0wMi0xNlQxMTozNDo0MVoiIHhtcDpNb2RpZnlEYXRlPSIyMDI2LTAyLTE2VDIwOjA0OjA0WiIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyNi0wMi0xNlQyMDowNDowNFoiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIiBwaG90b3Nob3A6SUNDUHJvZmlsZT0ic1JHQiBJRUM2MTk2Ni0yLjEiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MzYxODRhNjktNmYzOC1hYTQyLThkMTUtMDRmMDhlNDllYjZiIiB4bXBNTTpEb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6OGZkYTg1NzktZDZjOC0xZTQ3LWE2YjAtYzFmYzExNWIzZDUzIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6N2EzMGIwYWEtZmE1NS1hYzRlLWFkODItNjEwNTRiMzllMWUzIj4gPHBob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHJkZjpCYWc+IDxyZGY6bGk+YWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjI5YWFmNzNjLTViOGMtOWE0MC1hYjk2LWNhZWQ3YjU4MmZmYTwvcmRmOmxpPiA8cmRmOmxpPmFkb2JlOmRvY2lkOnBob3Rvc2hvcDo1ZTRlNTM3Ni0yMjg0LWM3NDEtOTNmMC05ODQ0ZDZiY2U2OGI8L3JkZjpsaT4gPHJkZjpsaT54bXAuZGlkOjIwYjUxYTRhLWIwYjktNDc0Mi1iZTQ2LTQyN2Y4NGFkYmQ0MjwvcmRmOmxpPiA8cmRmOmxpPnhtcC5kaWQ6N2EzMGIwYWEtZmE1NS1hYzRlLWFkODItNjEwNTRiMzllMWUzPC9yZGY6bGk+IDxyZGY6bGk+eG1wLmRpZDpkNTI3ZjFmNS05YTUwLTAxNDctOTE3MC03ZWM4Zjc3YjljMmY8L3JkZjpsaT4gPC9yZGY6QmFnPiA8L3Bob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo3YTMwYjBhYS1mYTU1LWFjNGUtYWQ4Mi02MTA1NGIzOWUxZTMiIHN0RXZ0OndoZW49IjIwMjYtMDItMTZUMTE6MzQ6NDFaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmVkOWJmNTQ3LTYwZGItNTg0Ny05MTVhLTVmYzU3NmJhMDgyMSIgc3RFdnQ6d2hlbj0iMjAyNi0wMi0xNlQxMzo1NzoyN1oiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6YWNiOWJjNWEtMmQ2Ni01ZDRhLTlhZjMtYmM4YjRjMDE2NWE4IiBzdEV2dDp3aGVuPSIyMDI2LTAyLTE2VDIwOjA0OjA0WiIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjb252ZXJ0ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImZyb20gYXBwbGljYXRpb24vdm5kLmFkb2JlLnBob3Rvc2hvcCB0byBpbWFnZS9wbmciLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImRlcml2ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImNvbnZlcnRlZCBmcm9tIGFwcGxpY2F0aW9uL3ZuZC5hZG9iZS5waG90b3Nob3AgdG8gaW1hZ2UvcG5nIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDozNjE4NGE2OS02ZjM4LWFhNDItOGQxNS0wNGYwOGU0OWViNmIiIHN0RXZ0OndoZW49IjIwMjYtMDItMTZUMjA6MDQ6MDRaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOmFjYjliYzVhLTJkNjYtNWQ0YS05YWYzLWJjOGI0YzAxNjVhOCIgc3RSZWY6ZG9j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", "char_2": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABgCAYAAADFNvbQAAAACXBIWXMAAAsTAAALEwEAmpwYAAALDWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyNi0wMi0xNlQxMTozNDo0MVoiIHhtcDpNb2RpZnlEYXRlPSIyMDI2LTAyLTE2VDE0OjU5OjAzWiIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyNi0wMi0xNlQxNDo1OTowM1oiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIiBwaG90b3Nob3A6SUNDUHJvZmlsZT0ic1JHQiBJRUM2MTk2Ni0yLjEiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MmY1ZjlhYjAtN2QzNC02NTQ5LWI2OTgtYWE4N2JkOTk5NTY5IiB4bXBNTTpEb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6ZjlmMmJhYzUtODBiYy1lODQ2LTljYTItY2YxMDRmYzIzYTQ0IiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6N2EzMGIwYWEtZmE1NS1hYzRlLWFkODItNjEwNTRiMzllMWUzIj4gPHBob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHJkZjpCYWc+IDxyZGY6bGk+YWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjI5YWFmNzNjLTViOGMtOWE0MC1hYjk2LWNhZWQ3YjU4MmZmYTwvcmRmOmxpPiA8cmRmOmxpPmFkb2JlOmRvY2lkOnBob3Rvc2hvcDo1ZTRlNTM3Ni0yMjg0LWM3NDEtOTNmMC05ODQ0ZDZiY2U2OGI8L3JkZjpsaT4gPHJkZjpsaT54bXAuZGlkOjIwYjUxYTRhLWIwYjktNDc0Mi1iZTQ2LTQyN2Y4NGFkYmQ0MjwvcmRmOmxpPiA8cmRmOmxpPnhtcC5kaWQ6N2EzMGIwYWEtZmE1NS1hYzRlLWFkODItNjEwNTRiMzllMWUzPC9yZGY6bGk+IDxyZGY6bGk+eG1wLmRpZDpkNTI3ZjFmNS05YTUwLTAxNDctOTE3MC03ZWM4Zjc3YjljMmY8L3JkZjpsaT4gPC9yZGY6QmFnPiA8L3Bob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo3YTMwYjBhYS1mYTU1LWFjNGUtYWQ4Mi02MTA1NGIzOWUxZTMiIHN0RXZ0OndoZW49IjIwMjYtMDItMTZUMTE6MzQ6NDFaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmVkOWJmNTQ3LTYwZGItNTg0Ny05MTVhLTVmYzU3NmJhMDgyMSIgc3RFdnQ6d2hlbj0iMjAyNi0wMi0xNlQxMzo1NzoyN1oiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6ZjM3MjFmNDYtODJlMy1jNzQ4LTlmYjYtOWUyMTg5ODM2Y2VlIiBzdEV2dDp3aGVuPSIyMDI2LTAyLTE2VDE0OjU5OjAzWiIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjb252ZXJ0ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImZyb20gYXBwbGljYXRpb24vdm5kLmFkb2JlLnBob3Rvc2hvcCB0byBpbWFnZS9wbmciLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImRlcml2ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImNvbnZlcnRlZCBmcm9tIGFwcGxpY2F0aW9uL3ZuZC5hZG9iZS5waG90b3Nob3AgdG8gaW1hZ2UvcG5nIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDoyZjVmOWFiMC03ZDM0LTY1NDktYjY5OC1hYTg3YmQ5OTk1NjkiIHN0RXZ0OndoZW49IjIwMjYtMDItMTZUMTQ6NTk6MDNaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOmYzNzIxZjQ2LTgyZTMtYzc0OC05ZmI2LTllMjE4OTgzNmNlZSIgc3RSZWY6ZG9j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", "char_3": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABgCAYAAADFNvbQAAAACXBIWXMAAAsTAAALEwEAmpwYAAALDWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyNi0wMi0xNlQxMTozNDo0MVoiIHhtcDpNb2RpZnlEYXRlPSIyMDI2LTAyLTE2VDE0OjU4OjQ4WiIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyNi0wMi0xNlQxNDo1ODo0OFoiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIiBwaG90b3Nob3A6SUNDUHJvZmlsZT0ic1JHQiBJRUM2MTk2Ni0yLjEiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6YWVmMjk3YTItMTk5OS0xZTQ5LWJjMjMtZGZiMGI5NGNkOGQ4IiB4bXBNTTpEb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6ZmRhMjdhYWQtNzc0NC1iZDRjLWI1OTktN2QyNGFhZDI5MmQwIiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6N2EzMGIwYWEtZmE1NS1hYzRlLWFkODItNjEwNTRiMzllMWUzIj4gPHBob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHJkZjpCYWc+IDxyZGY6bGk+YWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjI5YWFmNzNjLTViOGMtOWE0MC1hYjk2LWNhZWQ3YjU4MmZmYTwvcmRmOmxpPiA8cmRmOmxpPmFkb2JlOmRvY2lkOnBob3Rvc2hvcDo1ZTRlNTM3Ni0yMjg0LWM3NDEtOTNmMC05ODQ0ZDZiY2U2OGI8L3JkZjpsaT4gPHJkZjpsaT54bXAuZGlkOjIwYjUxYTRhLWIwYjktNDc0Mi1iZTQ2LTQyN2Y4NGFkYmQ0MjwvcmRmOmxpPiA8cmRmOmxpPnhtcC5kaWQ6N2EzMGIwYWEtZmE1NS1hYzRlLWFkODItNjEwNTRiMzllMWUzPC9yZGY6bGk+IDxyZGY6bGk+eG1wLmRpZDpkNTI3ZjFmNS05YTUwLTAxNDctOTE3MC03ZWM4Zjc3YjljMmY8L3JkZjpsaT4gPC9yZGY6QmFnPiA8L3Bob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo3YTMwYjBhYS1mYTU1LWFjNGUtYWQ4Mi02MTA1NGIzOWUxZTMiIHN0RXZ0OndoZW49IjIwMjYtMDItMTZUMTE6MzQ6NDFaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmVkOWJmNTQ3LTYwZGItNTg0Ny05MTVhLTVmYzU3NmJhMDgyMSIgc3RFdnQ6d2hlbj0iMjAyNi0wMi0xNlQxMzo1NzoyN1oiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6Y2YyNGIwNTctZjBiMi02NTRmLWEyNmQtYTc1YjFiZTZkOWUwIiBzdEV2dDp3aGVuPSIyMDI2LTAyLTE2VDE0OjU4OjQ4WiIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjb252ZXJ0ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImZyb20gYXBwbGljYXRpb24vdm5kLmFkb2JlLnBob3Rvc2hvcCB0byBpbWFnZS9wbmciLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImRlcml2ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImNvbnZlcnRlZCBmcm9tIGFwcGxpY2F0aW9uL3ZuZC5hZG9iZS5waG90b3Nob3AgdG8gaW1hZ2UvcG5nIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDphZWYyOTdhMi0xOTk5LTFlNDktYmMyMy1kZmIwYjk0Y2Q4ZDgiIHN0RXZ0OndoZW49IjIwMjYtMDItMTZUMTQ6NTg6NDhaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOmNmMjRiMDU3LWYwYjItNjU0Zi1hMjZkLWE3NWIxYmU2ZDllMCIgc3RSZWY6ZG9j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", "char_4": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABgCAYAAADFNvbQAAAACXBIWXMAAAsTAAALEwEAmpwYAAALDWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyNi0wMi0xNlQxMTozNDo0MVoiIHhtcDpNb2RpZnlEYXRlPSIyMDI2LTAyLTE2VDE0OjU5OjIzWiIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyNi0wMi0xNlQxNDo1OToyM1oiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIiBwaG90b3Nob3A6SUNDUHJvZmlsZT0ic1JHQiBJRUM2MTk2Ni0yLjEiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MGVmMTI3OTgtOWY4Mi1hOTQ4LThmZDgtNTVhNWZkYTFjNjJiIiB4bXBNTTpEb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6MTBkNGNlNmYtZDM3Ni0yYTQwLWE2M2YtMDM0YmRiOTMxYTM2IiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6N2EzMGIwYWEtZmE1NS1hYzRlLWFkODItNjEwNTRiMzllMWUzIj4gPHBob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHJkZjpCYWc+IDxyZGY6bGk+YWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjI5YWFmNzNjLTViOGMtOWE0MC1hYjk2LWNhZWQ3YjU4MmZmYTwvcmRmOmxpPiA8cmRmOmxpPmFkb2JlOmRvY2lkOnBob3Rvc2hvcDo1ZTRlNTM3Ni0yMjg0LWM3NDEtOTNmMC05ODQ0ZDZiY2U2OGI8L3JkZjpsaT4gPHJkZjpsaT54bXAuZGlkOjIwYjUxYTRhLWIwYjktNDc0Mi1iZTQ2LTQyN2Y4NGFkYmQ0MjwvcmRmOmxpPiA8cmRmOmxpPnhtcC5kaWQ6N2EzMGIwYWEtZmE1NS1hYzRlLWFkODItNjEwNTRiMzllMWUzPC9yZGY6bGk+IDxyZGY6bGk+eG1wLmRpZDpkNTI3ZjFmNS05YTUwLTAxNDctOTE3MC03ZWM4Zjc3YjljMmY8L3JkZjpsaT4gPC9yZGY6QmFnPiA8L3Bob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo3YTMwYjBhYS1mYTU1LWFjNGUtYWQ4Mi02MTA1NGIzOWUxZTMiIHN0RXZ0OndoZW49IjIwMjYtMDItMTZUMTE6MzQ6NDFaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmVkOWJmNTQ3LTYwZGItNTg0Ny05MTVhLTVmYzU3NmJhMDgyMSIgc3RFdnQ6d2hlbj0iMjAyNi0wMi0xNlQxMzo1NzoyN1oiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6YjU5M2U3OWEtYjVjZS1kNTQ2LWI0YjQtMTIxMWQ2ZTU3MGY0IiBzdEV2dDp3aGVuPSIyMDI2LTAyLTE2VDE0OjU5OjIzWiIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjb252ZXJ0ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImZyb20gYXBwbGljYXRpb24vdm5kLmFkb2JlLnBob3Rvc2hvcCB0byBpbWFnZS9wbmciLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImRlcml2ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImNvbnZlcnRlZCBmcm9tIGFwcGxpY2F0aW9uL3ZuZC5hZG9iZS5waG90b3Nob3AgdG8gaW1hZ2UvcG5nIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDowZWYxMjc5OC05ZjgyLWE5NDgtOGZkOC01NWE1ZmRhMWM2MmIiIHN0RXZ0OndoZW49IjIwMjYtMDItMTZUMTQ6NTk6MjNaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOmI1OTNlNzlhLWI1Y2UtZDU0Ni1iNGI0LTEyMTFkNmU1NzBmNCIgc3RSZWY6ZG9j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", "char_5": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAHAAAABgCAYAAADFNvbQAAAACXBIWXMAAAsTAAALEwEAmpwYAAALDWlUWHRYTUw6Y29tLmFkb2JlLnhtcAAAAAAAPD94cGFja2V0IGJlZ2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgNS42LWMxNDUgNzkuMTYzNDk5LCAyMDE4LzA4LzEzLTE2OjQwOjIyICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRlc2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bob3Rvc2hvcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RFdnQ9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZUV2ZW50IyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyNi0wMi0xNlQxMTozNDo0MVoiIHhtcDpNb2RpZnlEYXRlPSIyMDI2LTAyLTE2VDE0OjU5OjM5WiIgeG1wOk1ldGFkYXRhRGF0ZT0iMjAyNi0wMi0xNlQxNDo1OTozOVoiIGRjOmZvcm1hdD0iaW1hZ2UvcG5nIiBwaG90b3Nob3A6Q29sb3JNb2RlPSIzIiBwaG90b3Nob3A6SUNDUHJvZmlsZT0ic1JHQiBJRUM2MTk2Ni0yLjEiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6ZDI1NDFlNGYtNmMyYi00MzQ5LTg2ZTAtN2Y1ZDFlZjI1Yzk3IiB4bXBNTTpEb2N1bWVudElEPSJhZG9iZTpkb2NpZDpwaG90b3Nob3A6NmQ2NzBiZjYtOTVlNy0zOTRkLTg3ZmMtNWEyOGYyMWE0Mjc1IiB4bXBNTTpPcmlnaW5hbERvY3VtZW50SUQ9InhtcC5kaWQ6N2EzMGIwYWEtZmE1NS1hYzRlLWFkODItNjEwNTRiMzllMWUzIj4gPHBob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHJkZjpCYWc+IDxyZGY6bGk+YWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjI5YWFmNzNjLTViOGMtOWE0MC1hYjk2LWNhZWQ3YjU4MmZmYTwvcmRmOmxpPiA8cmRmOmxpPmFkb2JlOmRvY2lkOnBob3Rvc2hvcDo1ZTRlNTM3Ni0yMjg0LWM3NDEtOTNmMC05ODQ0ZDZiY2U2OGI8L3JkZjpsaT4gPHJkZjpsaT54bXAuZGlkOjIwYjUxYTRhLWIwYjktNDc0Mi1iZTQ2LTQyN2Y4NGFkYmQ0MjwvcmRmOmxpPiA8cmRmOmxpPnhtcC5kaWQ6N2EzMGIwYWEtZmE1NS1hYzRlLWFkODItNjEwNTRiMzllMWUzPC9yZGY6bGk+IDxyZGY6bGk+eG1wLmRpZDpkNTI3ZjFmNS05YTUwLTAxNDctOTE3MC03ZWM4Zjc3YjljMmY8L3JkZjpsaT4gPC9yZGY6QmFnPiA8L3Bob3Rvc2hvcDpEb2N1bWVudEFuY2VzdG9ycz4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0iY3JlYXRlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo3YTMwYjBhYS1mYTU1LWFjNGUtYWQ4Mi02MTA1NGIzOWUxZTMiIHN0RXZ0OndoZW49IjIwMjYtMDItMTZUMTE6MzQ6NDFaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVkIiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOmVkOWJmNTQ3LTYwZGItNTg0Ny05MTVhLTVmYzU3NmJhMDgyMSIgc3RFdnQ6d2hlbj0iMjAyNi0wMi0xNlQxMzo1NzoyN1oiIHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCBDQyAyMDE5IChXaW5kb3dzKSIgc3RFdnQ6Y2hhbmdlZD0iLyIvPiA8cmRmOmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6Zjk4NTUzNDItOWVhYi0yODRlLWI5ZWQtNjAxMWUwMjY5OTRkIiBzdEV2dDp3aGVuPSIyMDI2LTAyLTE2VDE0OjU5OjM5WiIgc3RFdnQ6c29mdHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIENDIDIwMTkgKFdpbmRvd3MpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJjb252ZXJ0ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImZyb20gYXBwbGljYXRpb24vdm5kLmFkb2JlLnBob3Rvc2hvcCB0byBpbWFnZS9wbmciLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImRlcml2ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImNvbnZlcnRlZCBmcm9tIGFwcGxpY2F0aW9uL3ZuZC5hZG9iZS5waG90b3Nob3AgdG8gaW1hZ2UvcG5nIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDpkMjU0MWU0Zi02YzJiLTQzNDktODZlMC03ZjVkMWVmMjVjOTciIHN0RXZ0OndoZW49IjIwMjYtMDItMTZUMTQ6NTk6MzlaIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBQaG90b3Nob3AgQ0MgMjAxOSAoV2luZG93cykiIHN0RXZ0OmNoYW5nZWQ9Ii8iLz4gPC9yZGY6U2VxPiA8L3htcE1NOkhpc3Rvcnk+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOmY5ODU1MzQyLTllYWItMjg0ZS1iOWVkLTYwMTFlMDI2OTk0ZCIgc3RSZWY6ZG9j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", "characters_strip": "data:image/png;base64,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"};
+
+const METRO_FURNITURE_B64 = {"desk_front": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAgCAYAAABU1PscAAAA60lEQVR4AeySoQ7CMBCGb2gEagoxhQHJC6CWEB6BB+JlcBg0CWaoSRSCIHgALHBLrlm7VDRNurvmlvzpcunW//v/TkD4owBjF6gNaAORCegVigww+nNtIDrCyB/k08BhX38liYqzGqh3C1iuZqyFHsk8rhbA8/HGGWu5Hi0A1s495hTAE0yysTaQLGrPQdqAJ5hk44AGknkKOigvgHlVBtGPsdn1OGgAN3CWG5oFcD7dQYL6EAagaT8gSQRhAI7tpXiVU6i2m074/p+tOQi9OL6KAQANpK2mAWnGyW9+ANdbAygi5LKiJ5Tr5wcAAP//d8Pt0gAAAAZJREFUAwBei70+4NoqwAAAAABJRU5ErkJggg==", "desk_side": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAABACAYAAAATffeWAAAAy0lEQVR4AeyUIQ7CQBBFp6sRqCpEFQYugWpCOAIH4jI4EkKCIwFRVCUKQRAcANvmT7IVdTNbseI3ecm26f+dzvzdIIkXDUTYgyx6cNjXXQo6xnq3lNV6bgIabCM1+Lx/WJuIGjUwKUcv0yCLJI6mYr7lGDlGhIY5YA6YA3SAOUAXeB5MlYNFVaKhJqJmmAIeWIhfU4PL6SUeYBKa9i8phGN7K77lTKrtxgQ00OovoBQv0xncn41YiBVrBY/rufAAEzXAwksGBt7So64HAAD///ZMKGUAAAAGSURBVAMAYGHGgcNO/gQAAAAASUVORK5CYII=", "pc_front": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAgCAYAAAAbifjMAAABlElEQVR4AeyVPy9DURjGXzcMRAwkHaRIxEAi5o4dTHwCiz+LGNhoKmoi0TQ+gUXYJGaToRJDGUXCIBIihiYMIgwk1d+bvNepGzfnMkk0/fV977nP8/T03HNvA3FeSyuFmg+ORcIAjNnRcfEBrYVoAAPzcwsyPNDvBVo8hGgATW86JUnAAxpwengsB+VKIvCEATSwuVMUH9AaOgM7oPbNDkprS4dQu0Y6xbAxNC6RgOr2vaRmuoXankmp1qoefPmIBLQNNTdIXi7e5blS1VBqw8n6QSTg4exRbrYu5fXtKaw2Rq17Gt7BxOR0zUYWp/Lig+nxBumetOzu70kpv5wIPHjDn8AA5IobEgcasFlogLsDx7IZicPVEhKwo+J2Ya6wqjuU6oIHr86ApO/g7uQc1YUx0ICkC2h6DTg6KTf9hoD72he+EUxPr4tYWl8THhJxlQXDgBkd0Osa3N5V9WESVzG7oOVYA86vrvVSxVXEwEy4hGjpNcBWNa5iBhbcdPQBH74QAKan1xnQ/JT/APn8b/y7i/gBAAD//wttHhgAAAAGSURBVAMA5c3JUL/n4oQAAAAASUVORK5CYII=", "pc_back": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAgCAYAAAAbifjMAAABEklEQVR4AeyVMYrCYBCFZz3EVssWy5bWYmGhYOdFLLRUFPUCHsNOsNVKMIKFWluKV1G+gScm/gaSWBp4mcnMe2+G/IGUrOD1MTB73zvojcbXLNDh+QYIO+2uZQEaTNyAJC/c4Lje2el8yQQ0DHUDEqH8/2dpEE8xZhCtl76FmsnIlnAe6zEDGkkCNSHUezKAzKQQ6CURNEiS0p6LG+iDmA6GaYNiPXHR+gazxdwJOlt/eHETRxo3gEsBQGBCCPTgADTADX5/vk2I9htLg3hEN8C1P55YvdqwUFxFe6/TU66I1jcgqTRrFopMqTdbBpQ/RjeggDgUQ+9CNfil7SH6KoL7Brjlwcfgnf+FPCeApvAp3AAAAP//GCQigAAAAAZJREFUAwBGwgxQXegwWQAAAABJRU5ErkJggg==", "pc_side": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAgCAYAAAAbifjMAAABeElEQVR4AeyTMUvDYBCGL7X9C4JU/Bm6CHbo5iq4OTvoaFGsm6LoqIODky4KrjoVjOBQXXVTQhGL4A9wqom8l7zhu4+kgi4OLby97+6+e3p3SSvyx88/BaxtthNfZZOWjrCyvCpUozkvABZBSgH+ZUJ8UClganLcZ+QduZBSAKoBgXB2hdEIKQQ8dO7kOuzmOj87cevNuRBgbmRO2LmSqNeTp5coi6QmB8zNNPTRpWH7ncSxBj4HqQUEXSKoABS39nZ1SZwNSSqpVuS936drrAIQ2V/fkKWFRSEZMWosCWSiXqdrrAJu78MAQma6OQtjFH8Nfu4AY4TdG1NIp1atDe8AxdjB69sHa4ZajMuOdQTe5kuDMXCJih6fdTf0WYw6A2AHBzvbASCnlxfiC0WuDIAd8AJ8X8zRGgA7QBKP032dW+0tfbWRc2UAR8eHbs6c8Xc2gczJAVgQfhXKcoKYL+ZoFYCtukLS9f0z8pQC6PzGjgAiox2IfAMAAP//rdbBLwAAAAZJREFUAwDu3sZBm65EkQAAAABJRU5ErkJggg==", "sofa_front": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAYAAAB3AH1ZAAAAh0lEQVR4AeyUIQ6AMAxFm50Ci8GgCI5bIFAYJDcCiUFxByQWhcbCGRCw36RX2EdsycvmXvPX1ok/Q1a/DLxaHMR5kQgDuDUBVMLCLecmx35RgJufACt68/ITaNKKMgGYOrj5CdhfsO6YwD8WETYSA/Sd9kA3j3gHxZxawNT2Kl+fuwwBZOb8AAAA//9sDfwHAAAABklEQVQDAL3DlXJ4rrt/AAAAAElFTkSuQmCC", "sofa_side": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAgCAYAAAAbifjMAAAAtElEQVR4AeyTIQ6DQBBFJ5yitqamqklVb1GBwiC5EUgMijsgsSg0Fs6AAP4kk5BhISysXJIfZpeZx+dnCejmxYD09Z+gK6wAg+/PgyDUthB2YDu07ncPwGccaf121BsHyOJIgGNQtAHIg7N3DyDyGfgM8L/4c7Ccg7KrqW16FmoEYyO3IYbPHzsRR6a7dufWgaab1jondoDNs9JQBsRFpveNa1MfA/Io4YFqHL57QoP0oRbNAAAA//8rD0WaAAAABklEQVQDAJtEc9QuHBQvAAAAAElFTkSuQmCC", "sofa_back": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAYAAAB3AH1ZAAAAdUlEQVR4AeyToQ2AMBBFL52CCTAowiRoDJKNQGJQ7IDEotC17QwVbf4lXaG/ok1eUvcurz0j5FPHAHs/RwaIbyAexk4YwM1/gtu+8n+OAtz8AvgITFqBVqCOAthHBtg+LbBeB+5FyU4d4Fw2lT/BTyWALDsTAAAA//9qu2umAAAABklEQVQDAPDMNXK0i8BLAAAAAElFTkSuQmCC", "coffee_machine": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAlElEQVR4AeyQMQqDQBBFf3KplMkBUqRIAqmSIkewFRFLPYqNN9BSxFIstPAmyrNaRNi1FRceOwzz3w571obz/f1HE6LOAoJxnMiEnpOAQV6D1/0hoAar4Hq5jc/3R0Pbq6xqeYE/Q+0kYChLU65VrBsUZX7qmnY1zFZWAUkkkISRTOg5CZAAARN6mwQElhwCaQd/MAEAAP//NeSf7gAAAAZJREFUAwAmtUQhKNI9KAAAAABJRU5ErkJggg==", "coffee_table": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAx0lEQVR4AeyWMQrCQBBFR0sPI4qItZWH0M7LeAwrO09hJYJKDuERbHVfYIfZpEx2k2JCHplMkj+fHxZ2KgMfbsATGE8Cp8PuV5K4+JIE9setlCAO55oYoPG+vyQnzLC0DNiHJWo34Al4Ap6AJ+AJeALjS2CxWUpOmnsMTeBRfbPuhOwui1nRiBqgcb58pATMiqiBa3Wb0FzPZwLUobfqA7TQBOqgWc+iVgPcDEHLAP8H+jaDJjR1EwNEYwkvP7vC91aTOvT0/AMAAP//n0WcFQAAAAZJREFUAwCXcnhQTQ2sRwAAAABJRU5ErkJggg==", "large_plant": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAwCAYAAABwrHhvAAAEuklEQVR4AezXPYuVVxQF4DNT5KMyNhESmcRgJCEfRYQUk5AUCYSkS7AIqYSUaVLY+AtsbSwFf4AIIiiCjSAiiiKjNn4rgzJaqFgoNuM8B9fl3Pu+jvcVxGaENXuftdfZe51zz9zB2fKW/60ZWLuBtRt46Q1s/ev75Q2ffjSGN/Eb22vA4A8+e6/8v3frCH/s/Kbgh5ign8Tk/o6BX3b8tGzYr7+vK5evPhvh9pUn5ettm6c2YbA+gb3gZiFGOgZSOHbkUdmy+Z0sR1FDzUPIW+ANoGN64egDVMXc5++Xb39bX0GDHDOgEZEC7N+zNGbi4fWn6HoTGtD7mAxzOhG3eG6x6qJnpO1biy9+jBnAEYvAbXsT3gUeDDFQ3iKcPvRguHXQ6jsGIiaywSncBF4ebuN3G4vcO2mv2b6A3j51MUhd7BhARii6BdDEaTS1ltOuBjomE6PV6+yB0zPWYwaWbt6ZObzrQj2ZjYSJxIaLOOas5T6O8PZ7D+r24xNpIXq1MQMIJi7uvyotOaUIlVz5YfBKqK9ZbqC1XARD7cGJOH3BDGvoGEASEIKT4EAjyAmcBm+IiPc2rOnsdf36gL5AG/QaUCQEV2qzpnhwYrw8oDHcYEPxDNLpA7hJjBnwOxxEaCM4nSF4ZpjIWs1aDQymUbcXl76i7xDAjwzkK9jvMRCADYQagabWBjix4dZ4pxfVcPT2Ay2TQAf4asBwn5dNgWsksoEQUhMNBjnQZTAe7MEbrhddC/wsEdKrFUEOck3ThNYmzXEtaDOEJmh5uX4g16feAMJmQ0HR2nWK6jiwSXRj4K+muhzU+kCjX/ZHUw1s+29D0cgwVw8E3oJorZZTiV63mq9i+xnHqdGqgaGGy3Njbb0a0ARyAq9YLtqssUbcBxriYfe/Zy1HoM3CUANBr/A0HumsH5oYlqLhOCIDafpA78QiXXLRQFALsmZEP3y9AQvDDA1wgcc3CZtbGGrNCBii5yTw+UNEXw1IMiwRl6Gu0QDAi2pyw0SQZ78hyduIpw1GBkIkGmCwh8h1eJxBTIQTcQbZNwlfaDR96DWggUHegreRzy4N1HBiONE+xvCJclomfOHRtegY0MQmIsOdHjTBBczhDcLZkxyPA6D1qyyfNNExQPQqaMica6c12FAmAzzQiiAHh7SGXgOaKXrBGsohueE0BuMZSc0AyIlpfUnRBW4rJjoGPCQNiT1AzeSQ3HCvOTp7mE2dFqyBudYETh06BpBpmE0a4H1H1EFLj8ufP3y5jAO523BawEH2G5gbwesjQq8BBSackNhQwO/4Z77M//xVhaE01n9/MVeioYMYl0PM2ac/7qUGFImC+Y/XFcPx+/adKCDXTA7qTDBtmJPTyEGu5uOTw6oGCCZx8vilEfX01O0CIdSYYIoRH4GBcvB2HCh6cbAB171l03p7x4BTQ86tvBGDnFQMrNVbTG1g8f675e7N+3WvQdu3/1ha4BRpFhbuSKfC1AbOXD4/c+PWveKaDemDGs21x4/qf7umcTC1Ac1yMkP60Grk02CQgTTc9MmHpQ+pD4mvZWDIgFdpBxnw2foYDh463+mLU6PpFFchBhnQxwAwsAUOaIZgsIE0N6xF+KHxOQAAAP//JYgMkgAAAAZJREFUAwB14BOdrDBFCwAAAABJRU5ErkJggg==", "plant_pot": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAgCAYAAAAbifjMAAACdElEQVR4AXzUMWgUQRQG4EkaIaQQxBQSiQGby0EEQYQEDBbaCKIIFpaSQgR7C0sLexuL1GKrYmUhEQyIIBq4pFFUcqgkFoo22pz5Jvf2Zu9Wj/w7897/v3/evlkynhp+rbl2DxqokVSjAdX08uFUmpxYPt0DXIl/GhBNLkxlE0ZL56dT5/5L6RrGa1E/2NzojH3f+J32z+1L5+4cz3j7bifNHJntKwZLo8GA3ts9ufk6dVe2EuO9zOCZDbQYCOrVyrMxRRFHMZ1ZxJoNiLRqcEHKDUMRjbz119p2qgxWH3XTsaMHk2EREFsDYoeIQ6OrbGDDjYlhmT4hiK1OxNtb4/WygWSYIEy/NFFMA3iH0YsrA4EkEJUmL249RyeFjGlyYvdRM9iN8x+B70CBdfH2qcRE3u1kUf/RaIAjdJpOwmRiYqIXcFuQDWwCpg1MSuigfeVk0s31B5cy5ZBsoFUngYE5edhEsSrd+DLViLOBdzM43wHEPRMosCoI0IN8NrCR4OyOrTqR15VCXdGAfKAykEB6L+I4WR505bVAHKgZRNKJcbIcQ53pCtyEPIwYuA3fvJkoJApDezNyE9FJzeDiYqtH5DSrQiuc/TaZ/yfYl6gMFC8stdPlqQP5k/2z1U3l797dp+nqhVYyYPMxL3xlIIC11U4qi72KPOCYTG9+FWaMGOhifv5QJhkF5HCZKB6Vwfr65/Tl406mCK/dOJNKyCFpaO2hMnj/88fYh0/bSZtETcDR0CqGykAQzkRNKDX2UDOQgNmZqdQE3DAaDYZF/4trBt7Nazx8/GakRg5HU5I1AwQBKCghBzQlRgyCJC4R+eH1LwAAAP//bMS8wAAAAAZJREFUAwA2xatQ0t6sbgAAAABJRU5ErkJggg==", "plant_pot_2": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAgCAYAAAAbifjMAAAB1ElEQVR4AbyTzUpCURSFz5XIICIiEyr60UbRIKqBUETQGzho1nv0WBHNgyaBg6iEZqXVQEGLEJF+COx8x7sP5/6ZEBqus89ee+21971mSv3zbwQGh5vdfksOeQM9vbA1q5SOSVsMcQM9lemNSkcRM8v52HeRyhULXZC0YiKvB1BLVU9LHpekCdT6wb6DtaNVNbCJP52Xaw2YMrUzN7AJ74WegAGEYLHzIVcT0/NjPXM9XZopRAzcLfgGEEnknpueIKjSzZuJAYPv2rshMTEXfVRbn/rsfeCz+cle4p/GgG/CneLXEoPVXtx5xgBl+7qpxhdmlGwBx3RZmdxF5qFtUmtgsoQDU8xZ3073tdbg9aXixW3h60yQZnToIa0BSRisjzjMu3nAANe/GqijE5OAQXFv3fzieF4EiImAO9hfSpNaWAOadw82FAKEouA/8Kv+I6lCg1YIayCERGmSCI850UXEgAlxQjhqbjN3a1Au11T9qQln1jw53lYupBkNWiPUhzV4bLe86nNDXV3eGyOEYVBDg1b3mo81IBNnRHFwNdxBwAAC5FayKg7Uwog1CIv65QEDno3HODu/jfTAUUPjFgMGFBAAGlzAATQuIgZSROxC+HD8BQAA//9XgAc+AAAABklEQVQDAN2c+kF53TOPAAAAAElFTkSuQmCC", "bookshelf": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAQCAYAAAB3AH1ZAAABOUlEQVR4AeyTPUsDQRCGhxMsLCQWCsKBdhYqKBIQxM6PSlGxzE+wCoIIWhkhgtj5D8TKTpuArSL+BDuxEBsbO0Ny4RmYY7PckkuTpEjgybwzu+/ssHcXSZ9/wwGGNzA4N7AUx8n7a00x7cY8H4u7n16WZ2nrpzfw+fWTUJgsTAiYdiM6D1l+t2baztQBrPH+1oEAuR+p5cH3kQNeIqCNtgFWLtcFWCyWbwlprkmOP993frosgLU6tyiANqLi9IxevxVCsVraTjoR8obqvCNRfaSRrp/tXAlQOD5cJaTMLxSkE2z2fRulGwHWsmh7BJXHEwE2Xj+8EbrG9z3flQVCjXSA35eKXBytyd53U0Hv/t+nNfJQA7fOPt83+jcmwFp9c1wAzZl4dQBEPDslvYQzQQeoPX1IP2CAFgAAAP//BjI2pQAAAAZJREFUAwAsSOXbEAerZQAAAABJRU5ErkJggg==", "whiteboard": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABBUlEQVR4AeyVS6oCQQxFo8sTdAMOxB8IrkR0oIIg+MOBG1BwQ9LrUO4gTao71WkaqhSpB4fwklRyCKht+vJfEkgXSBf4nQt0et13TPjrx7nAarGkGPByREfglWUUAyxmHAEkN9s1hQQ7JCUBFG+nA4UAs4uoAmiaT2YkQa4OeFOnj3u8ArvjniT8oCpiOd4gVvXJmleAmzBMwnkt8nJEra7lTAEMk2hDZA69+B/SiBamgDXAV2cRX53zwQR4gRW9AnxCRGANalr3CvAJEUHTBdY7VaA/nlIINJmSwOV8pZAUJRwB/AYMRwMKCXZIiVzgeX+0YsISuQAnYsckkC7w/xewPlUfAAAA///aSCZRAAAABklEQVQDADHaxlCIIGVwAAAAAElFTkSuQmCC", "chair_front": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAArElEQVR4AcySvQ3CQAyFLZahgAbBAlQwAh1iBSro6BiDORgCpYGCERBDgD7Qs+6i/DhSikR6cuR7/s6+u5El3/qw/ESUlJgDKBxP5hYRXkEcUFzvyrXG1OsAqp6Pm0WEV8oASnaJ/QOYr0nl7ryD2Wr6u4HNfmtN4pbwCuQAJbrGAQE4uMgbwINXo/Y7AuSItDsx6+C8O5GzV/FeVIlFefhHGeB4+QNYqFPZ8wUAAP//3nrZVgAAAAZJREFUAwBKHaV7QpIDDAAAAABJRU5ErkJggg==", "chair_side": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAtElEQVR4AayQwQ2CQBBFJzTjQS9GG/CkbdiF3rhZhnVYhOGiB0ogFAG8SYYsu0vCBAiPmd0/83fYQobn9rh0MKTut6Bxtz8JkHsddAJvU1i/vQG/MUd4suXJBNzFHBhbo8XEwISlcb1B9flJ/f/qgeSaOD7jBGbi6NXS0YDV8XoguJgY0MkkOdByJAa5IvYwzd2RGiAsAaMYNXjdSwHEpmrPIeyhAXmMGjzfpUAs2hoNbB3GHgAA//8uUXZdAAAABklEQVQDADB2ac1H3+nOAAAAAElFTkSuQmCC", "wood_chair": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAgCAYAAAAbifjMAAAA3ElEQVR4AeyUIRKCUBBAF09gMhlMFo3cgeIRPIhH8CBWm4VstDFaTAaTyWRVnuP+4X+Q2T+aGJh5s+yy/wH7GQby49ELRPoZBDNYL7Onheq354bIwmwxFQv0qsQJKFwvN7FAr+IJTse7WNDFRE8wmw+pyWqTJ5yQA+fVGrniCbQYE7smYAd4f91ncghr5Io3AyZuQRcTPQGFWLomGE9GYqE6JzeDQ/GQfHc2Qa9KnEALsbEmwN5GeIOagIZtsU+b4FpIoyBsasv/JygfOeHdy5h+uyPXPj3vPxZ9LwAAAP//ZQxdMAAAAAZJREFUAwD+RL9TNned3wAAAABJRU5ErkJggg==", "wood_table": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAABACAYAAABcIPRGAAABRUlEQVR4AeyTIQ7CQBBFFyQKhUKgMBAUnKGGI3AgLoPDoJG4ShQCxQGw0JmkpNmEZNid2TLJJ5mkXWZn//9vOwzOfzDQN0AQAIHMBHCFMgPM3g4C2RFmDvBPYL+rXp6LCVTbeVgsx66KNNPtYwP324OeXVWrmQ24Uh6JhYEokOKvIFA88uhAEIgCKf76A4Hi2kQHwoAoJsMmEDAMVzQaBEQxGTaBgGG4otEgIIrJsAkEDMMVjQYBUUyGTSBgGK5oNAiIYjJsAgHDcEWjbQiIjtZpggGdHNOngEB6djo7QUAnx/QpIJCenc5OENDJMX0KCKRnp7OTCUxnE51pBae0mtkAnUsLnoo0U7GB0/EaPBYbuNTP4LmGh/o8ICeb1Sh0i9aa/9b/UKSlq42eaa3RNuArRC9eCwb6JvchEH/IpYRJz/mm7w0AAP//1rliTgAAAAZJREFUAwBcd+QylMLCyQAAAABJRU5ErkJggg==", "painting_large": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAD1UlEQVR4AeyVb0wUZBzHP3cCyoEHBAkKyo6QBdYxYQmibhAnoIFlVlvAgtKSjYWGWaaMP6OdWlthWBbWghdyFeKSlBorsFjZdolEICceynFwhPw/jjv+nRf34pwGbbyBfHHP9t3v2ffF7/vZ98XzCPmfjx3A3oC9AXsD9gYenAaOpcZbFlO2L+i+BtY95s5iyBZunfcBWI3Sch0LKWvGvZoF8IRUhLyqDP+kCMRRa+n3caRbPMX+43tYIh7FItbTfeca0gOvEik/wjMbegh1rCcm3oMrY920jffQMNrBVVMvqmktbUtGaDFoaR7XYd19b7j1PgvAat5Qt+MoWEJaejpRkRGkBPZz+K00ZOssaKY78PJyJ8jfnyhJAC5jam4vW0lQ9HNscZoiOSaIvLBgNnpaKN3ewYjRSFahHPFyJ+vqWRLOcmYMbx8P4p9PRtc7xI4wbySrPVF8mMX62JnluafIzDuB851h1owU8ci2veQWyRm98BItJjOhq3wxOTvg7PcwkuxWAh2EbFIl4zhlZq4zJ4BQ30fttxVsDpNi9AxBKpWicYlgeNULmARG+oY0LJ0Yosn0OI4rfRC6ihgZgPg0GdrGi4z7eVFUUo55wki0aJTi6hBEIvFc+cwJ4CQSkZHoj+DvOoKDAzGE7sHN1Rfvh9xpOFtOWMj6mYUixIPtUFtA2YEMJG/XUPW1Er9gHYa/hnn/eAGWZR7EFuTxzpnPqTi4e/4AfpK1DLhtxsEvmt9bGvnjRjN1zUqqL9WwIiKSn3/7jMs3f0EtEDHgt4vlW5/k+q3L5J3cR1d4Ie0DalxUN2F6ku4+A6/vfZFd8k/mD9CmbmJYP8SXF89R+1Mt1RXVeHXV8GyoiN2yJOKCYgif1JIu24by+gCr3XxRln1HyUkFv1Z/j1DgiGdAIHUXFISHRrE1MRW9YOn8AVTaEVqvNdDb2cHE2CQ92n6kG1O5rXdF3a5kxaMxhIUn0FZ/ArNFgMWoIyFxAw4aFVcbh2hhGuc1X3D0lILD+XkYejUU5mTOH0DXpUWn7WGws51JsxlfiSev5HxEZv4ZUrM/5rWXd1JcWcfp86P8eOUW+4obOPTBD+hMzhgGZ4C7DeQUBzMx4cCfqk6qLrWSKz89P4D4xCASvDTslOjJTghkf6SIgzJfPs2IovSNLSiOxHEoZRNPh3qTIgvgWFYS3xQ8xdkZleUnce7ods6/t4NKuYyvCmJR5MdR8mYUJdnhWHf/m0JoM5RNRqxP8LvyRhZS1gxrli33LkBlU71gMTULwGYs9rzbwGIH2/LsAAvegK3q/5r/AAAA///79sR6AAAABklEQVQDAMnHQF8iaklHAAAAAElFTkSuQmCC", "clock": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAgCAYAAAAbifjMAAAA5UlEQVR4AeyUMQrCQBBFJwFrwcLCY1h6Bq0VFPQGVjYewEYbj2BhqWBlY++xYl5ghm9CbNJYbOBndv/8fQmbJbl1vBLALO3BX+/BaTwpVG0nvvEZfdF61DPXZpib+3XQF4CQL8ovd3Nl10fAyCgkADRY7IsIHY5nSiX3yZCtzPIWgHJcPZH6S4C0H4DboK9+jPUt3NRsALypdb/bGgKCtOfjALxfz2w6X1lRZN6LCgRhkCHLGAWACY3ZYmmEmKvwEBn1vwA0CCDCKjxERtUAeJOwyv16bQXUg23zBLD0Vy4PR+dz8AEAAP//zApCzwAAAAZJREFUAwAt815BdlvQ2AAAAABJRU5ErkJggg==", "chair_back": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAgUlEQVR4nGNkgAJxQ9H/EUXxDCv6FjLgAzA1L8+/ZgTxWbApMnTXwar5/M4rGGJMDBQCpgE3gBGZAwtIfAA5AFEMEDcU/Y8r8LAFJswQJgYKAQsy58u7r0MwFliQOR9ffRpgF7x6+JZ8k0DpYN6krv8gmhQ1KAkJxkZOaegGoKsBAG/bNmG3Rox3AAAAAElFTkSuQmCC"};
+
+const METRO_AVATARS = ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAACsUlEQVR4nO2cPUgcQRTHd1cjWmhCIoqgBG5JNCEIFhYqooUWYnF9xPoqizSpFAlqkyYBGw9LwdZGsbFQxI9OEEEF7zDkUAxJSCKEw+hd6veEGca/t7fC/9c952OXn4/H7M7s+Y8bXxc9cmeCuw8lFHgPUCAIBYJQIAgFglAgCAWCUCAIBYJQIAgFglAgCAWCUCBIpVdiwuDSi5JMoTbS6zEDQSgQhALjVgNDVfMmx944jc9mf4l4YSUn4tHhZtn/6w85wf5lpDWTGQhCgSAUWO4aGKqa19NeI+K1jYxxfKLlmbGmBVUVsn/iieWOVE20oWqma01kBoJQIAgFRl0DX1T/FXFXm6x5A32hcV2nOT37LeKgQt7SyKCskVPpQxFPpF55CDtH5/IPebfxzEAQCgShwLi/D7RRuLk2rgs1XW1Vxpqo2zW2+V1hBoJQIAgFPvQamHCsSbr/1n6upDXOBjMQhAJBKBCEAkEoEIQCQSgQhAJBKBCEAkEoMG7Pwlm1B3Lr7IpC76G4zu+6b2zbp3aFGQhCgSAUGPf3gYHa59V8mD0wtuvzgPq8oMa2D63fF97aF3aEGQhCgSAUGHUNLFzdGGvKqTrrsrlnPrO8+jFlbB96n4b6a3o77vc7EmYgCAWCUCCIj/52Vmj5Fk7XrMbRcWP/i4VpY7vr+JOzbyIe+7wkYn4nUmYoEIQCy/0snFE1pLu1TsRPm+U6sViUJdf3fej6er7r9TkRT88vG+8XhRkIQoEgFBj394E/c3JPpEG1J5NJ2d7ZbpxP97ddr9QwA0EoEIQCy/0sbEOvC9Nv+0Xc1PrcqYbpdeX58RcRpxbXRbx9/McrJcxAEAoEocC4rQPzj+SUuy/fiTi1+Mk4vqfe/D/d+l4wtuvr5bMzIq7+J7/NQ2EGglAgCAV6GP8BoMGdbHx5aKIAAAAASUVORK5CYII=", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAACGUlEQVR4nO2br0sEQRiGd8WszQObQdBDREH7YRIMVwyCGE2GE9QgiMmmBgWDXBTBYPQP2CKGE4TDIBgF5az+AWeeL8ww9+6v8DxtmJ3xePh4eXHZdLLRHCYwMmOjHwUE5gACRRAogkARBIogUASBIggUQaAIAkUQKIJAEQSKIFBkPCmZzkqx/368ek2TMmECRRAogsC6ZWAnkHG7m8ve/YmZpnf/8vw+cN9bqRnJBIogUASBIqn6XrhjMq+1MO2sZ+cazrr76M8oFZuJnx8DZ529f+eaiUygCAJFEFi3HpiZjLHrontg0RlrYQJFECiCwLJ7YKj3WerWAy1qL2QCRRAogsCqe2BmMiS0Tw8EBwSKILDqDGzl3gPjMszep/bAWJhAEQSKIFCEHijCBIogUASBIvTAd3pgpSBQBIFVvxPJm4Oj7agemDe8EykZBIogsO49MDM9a29Ly7jQ+ZuHe+n3xcIEiiBQBIFFZ2Co92WBDLGZ1dg58T5/ujEvnR/cnXkz0RL6ziTUC5lAEQSKILDsHhj7HUbDZNZw6GZqmqZRPc8Sus9maqgXxsIEiiBQBIFlZ2DonUYrMmPa7baznlpdjHreYjMv9juWWJhAEQSKILBuPTDE1+2xs37cX3fWv72+97x93t5nKfo7FiZQBIEiCKxbD7RcP/84695flvg4XFvy7l90n7z7L33374WgB1YMAkUQmGj8A94DvAcG6rtNAAAAAElFTkSuQmCC", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAACZUlEQVR4nO2cP2/TQBiHbRzSughC/y8pKxKwUCGWSkidOkZdulYVOyMfhL2qWPkGnVhgQQgmFiSmZmrd0gY1adO66fwe0lnXn+N4eJ7tlX229eTVT+fcJXFr+dkogjtz7+5DAYElgEARBIogUASBIggUQaAIAkUQKIJAEQSKIFAEgSIIFGlEYyYdZVGVDOKFSu9HB4ogUASBdcvANDDzZqanTd1s3jd10gh7xOOTrNKMpANFECiCwElnYOpk3vzcrKkH/YF3fP/iwpuBReNdHj966D+hl5WaiXSgCAJFECiCQBEEiiBQBIFVzwND531Jon1GRePz/MbUw+GV93z3ed1359B5IR0ogkARBE76XTi/vvZmlptRwdcvGF/2/UKhA0UQKILAuq2J5BVnUNX3c6EDRRAogsC6743pO2seRZz2/pk6aSRB46cadk1l3NCBIggUQWDdMrDvZN7G87Z0vf1f3aDzLwuOp1EalQkdKIJAEQTWfR6oEpqhRZnpfn+pQgeKIFAEgSIIFEGgCAJFEFj1PPC/vSM9u7fkZdvuPXH5+PmH9/j2+mqp4w/Pzk39s/vX1OyRnjAIFEHgpN+FB06G/M7smsaLJ0umHo3s3xXGcSzd373e+803pv7y58j7vCp0oAgCRRBY9+8DD515mEun0zH101ZecP6KdL+yoQNFECiCQJF43P8jvTBl54WvV1qmbi/OBmXYUuuBqbtH9t3228GZqbPLgt8Pi9CBIggUQWDdMnBjaNdlP7y1GbT2yf+Z7bzyz/P2vh94j3/dsnum3+3aDN5vant1XOhAEQSKIDDSuAUlpI5Ef1GXwgAAAABJRU5ErkJggg==", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAACcklEQVR4nO2bv2sUQRiGZ0VCIMWdkZyQQxDhUmynSbAIggSbROFQrC+9XTCNf4GNYmeV5q5KIQoWsRFJiKn0SLdFTiQgsTD444pAGrnU3xS7zr17e1s8T/dyNzvLw8fH7O5MVLkSDxwMzYXhhwICcwCBIggUQaAIAkUQKIJAEQSKIFAEgSIIFEGgCAJFEChy0Y2Y9sunrkjW1p8VOh8VKIJAEQSWrQe2A3tePDdncm1mxuRK9VLY/AX3SCpQBIEiCBSJ1O/Cba/nNe/dN7nXO0wdnxza3+8sLZn88+Qk6H78Huqzs7+fa0+kAkUQKIJAEQSKIFAEgSIILPpZOHTdV5maGvbe/mt8//Q0aN3o36//7By6LqQCRRAogsBxvw/s//2T2rP8HhV8/Yzxec8XChUogkARBJbtm0i/4B5U9Hw+VKAIAkUQWPa9MYn3zSML/5tFpVoNGl+v1VyRUIEiCBRBYNl6YOL1vInuW+l6/fkHLk8aDbsXR4UKFEGgCALLvg5UCe2hWT3Tf3+pQgWKIFAEgSIIFEGgCAJFEFj0OtDfO9L29sp8fbdpcly/bPLqizep199+8jD19+zxNifHv1L/zx7pMYNAEQSO+1l4zesh89cmTd7Y2jV5MLDHUqIokubPut7yrZsmdzkrVy4QKILAsr8P3M5Y1zWbTZNXFuKM//8Lmu/5pyM3SqhAEQSKIHDc54Wz8NeFj2/Y87wLjasmJz9+p14vnp02+Uvvu8mvDuw5ke7RmRslVKAIAkUQWLYeeHvxusmdTsfkRyt3U8cv123P9Pl4nN7TXr//YHKr1TJ57/M3lydUoAgCRRDoNM4BEYmIPpIkHVgAAAAASUVORK5CYII=", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAACl0lEQVR4nO2cMWgTURjH34l2USqxxSAKOR1M6aAuBSkoxUGoS5wVYzfBNbq1W7baxUEQJyO6uDioQydB6GBxyGZBJIFWaUlSDepghXP+vsB7vP7fXS7y/21f710Ofnz8+e7do9HR4nRiyL45sP9bCQUGgAJBKBCEAkEoEIQCQQ6ajImTLVG3opOZ3h8adiAIBYJQYN4zMFaZNXv+iFzQlNenSodF/an9y3rdtIebiexAEAoEocBRmwM1A5k2YrADQSgQhALzloGxmvs0ve+Jdc7zzcjJ8TH5h779+aHnRHYgCAWCUOCwMzB2vOuuNX+mOgdOFg6J+uxplYka9e6NZiI7EIQCQSgw6wx0ZV5PzXkuOrt7JiwyEzWh9xPZgSAUCEKBaWdg6Mz732AHglAgCAWO+jcRFP0unDXsQBAKBKFAEAoEoUAQCgShwLzPgVNq/y38/p8fruf7nsFmB4JQIAgFpp2Bvvt/Hc+M6/T/eJ190et1jX5n5jeRjKFAEApMOwP12ZaB83gKnUmuDFtduW9sXK0tQ+vThh0IQoEgFAgS+f7fGNcZ6Ee126K+u/LUut6VaSifv+6IeunhS1F3936LmnNgxlAgCAVmvR+oMyJ2ZKKmufND1MVbi6Lefla33q/Xa1z3a3hGeshQIAgFDvubSEtlSP3NB2vmJYkcO6Mogp7v+r35yxdF/fFvwYSEHQhCgSAUmPfvwtuOuaxSqYj6+Mw5r/Wu5y08eW3ShB0IQoEgFJj1fqAvs+VxUT++MSfqE+WSqHubXevvHTs1IepvG21R33nxTtRrG32TJuxAEAoEocC8zYGXZs6IutFoiPrm9WvW++9duWC9/sAx1z1/9VbU1WpV1O/Xv5iQsANBKBCEAg3GP9xjqty8fvsnAAAAAElFTkSuQmCC", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAABQCAYAAACOEfKtAAACpklEQVR4nO2cv0sbYRjH36vS4NSQ5QhtwGQyokXI0qHQsegSFx0rBXf1D3AQ/wD9A4Ti3KVDEToWKrgEBH/EKVmUcMsZSIkBlXN+nuF9Ob/3I7Xfz/bwXu6SDw9fnuO9i/fGn40MeTavnv9RQoEJQIEgFAhCgSAUCEKBIBQIQoEgFAhCgSAUCEKBIBQIQoEgkyZjorvrVM/vTb0zWcIOBKFAEAoctwyMHBlXKpWg81erVet6q9XKNCPZgSAUCEKBeWdgpDLPlXGDwUDUlUrFenyhUBB1r9ezHu+6fhheJ5qJ7EAQCgShwHGbA4vFYqwM7Pf7ic6Bw+HQuu77vqjb7TaUiexAEAoEocCsM1DPfY1GQ9TdbjfRzIw7B45GI5Ml7EAQCgShwLznwK7KPFemhWEo6k6nE+teFp0DXd8nLuxAEAoEocC8M7CoMi/uvW2tVrOucw584VAgCAXmnYF9lXmuOVCvcw78z6FAEAr81+dA1/k4B75wKBCEAtPOQL0HUq/XRR0EgXXfVaP3YcOTI1GXPixZr1culxOdA11zqWufmB0IQoEgFJj3HOg7njXR6MxzretM1PvQrmeiNfpe23Xv7oIdCEKBIBSYdQbquU9zdrAr6rdzMrMmZz8aGw+Xf6yZGPfzN+cyI+fXt02SsANBKBCEAtPOQH0vqN+z0Oz9PBb1/uqGqKNI/l2h53kGwXW+zS+rsfZE+Ix0xlAgCAVmPQe6MuKid2udyzTNZlPUE9PvYx2v0ddb3NgRNd8XHjMoEIQCQby0/0f66+c5Ua99WhD1wvKaqB8D+3smE758Nub0x6GoD3+fivrbr3OTJuxAEAoEocBxe194JXgQ9dbre1HvqYzSmbXUmLGe/6h1ZV3X1/urvs93P9mfzA4EoUAQCjQYT1CNxCJx0EsQAAAAAElFTkSuQmCC"];
+
+
+const metroCharImgs = {};
+for (let i = 0; i < 6; i++) {
+  const img = new Image();
+  img.src = METRO_SPRITES_B64['char_' + i];
+  metroCharImgs[i] = img;
+}
+
+const metroFurnImgs = {};
+for (const [k, v] of Object.entries(METRO_FURNITURE_B64)) {
+  const img = new Image();
+  img.src = v;
+  metroFurnImgs[k] = img;
+}
+
+function createMetroAvatarHTML(charIdx = 0) {
+  const src = METRO_AVATARS[charIdx % METRO_AVATARS.length];
+  return `<img src="${src}" alt="avatar" style="width:100%;height:100%;object-fit:cover;image-rendering:pixelated;border-radius:50%;display:block;box-shadow:0 0 8px rgba(223,176,69,0.35);border:1.5px solid #dfb045" />`;
+}
+
+function createRobotAvatarSVG(suitColor, antennaColor) {
+  return createMetroAvatarHTML(0);
+}
+
+// ----------------------------------------------------------------------------
+// ARCHITECTURAL FLOORING & SURFACE SYSTEMS (NO RIGID SQUARES!)
+// ----------------------------------------------------------------------------
+
+// 1. Rich Parquet Wood Flooring with Staggered Planks and Tone Variations
+function drawParquetFloor(x, y, w, h, baseTone = '#5c3314', seamColor = '#3a1f0a') {
+  ctx.save();
+  ctx.fillStyle = baseTone;
+  ctx.fillRect(x, y, w, h);
+
+  const plankH = 16;
+  const plankW = 44;
+  const shades = [
+    'rgba(255,255,255,0.05)',
+    'rgba(0,0,0,0.07)',
+    'rgba(255,255,255,0.02)',
+    'rgba(0,0,0,0.04)'
+  ];
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = seamColor;
+
+  for (let py = y; py < y + h; py += plankH) {
+    const rowH = Math.min(plankH, y + h - py);
+    const rowIdx = Math.floor((py - y) / plankH);
+    const offset = (rowIdx % 2) * (plankW / 2);
+
+    ctx.beginPath();
+    ctx.moveTo(x, py);
+    ctx.lineTo(x + w, py);
+    ctx.stroke();
+
+    for (let px = x - offset; px < x + w; px += plankW) {
+      if (px >= x && px < x + w) {
+        ctx.beginPath();
+        ctx.moveTo(px, py);
+        ctx.lineTo(px, py + rowH);
+        ctx.stroke();
+      }
+      const colIdx = Math.floor((px - x + offset) / plankW);
+      ctx.fillStyle = shades[(rowIdx * 3 + colIdx) % shades.length];
+      const startX = Math.max(x, px);
+      const endX = Math.min(x + w, px + plankW);
+      if (endX > startX) {
+        ctx.fillRect(startX + 1, py + 1, endX - startX - 2, rowH - 2);
+      }
+    }
+  }
+  ctx.restore();
+}
+
+// 2. High-Tech Slate Anti-Static Flooring (for Integration & Tech Rooms)
+function drawTechFloor(x, y, w, h) {
+  ctx.save();
+  ctx.fillStyle = '#111927';
+  ctx.fillRect(x, y, w, h);
+  const tileSize = 24;
+  ctx.strokeStyle = '#1e293b';
+  ctx.lineWidth = 1;
+  for (let py = y; py < y + h; py += tileSize) {
+    ctx.beginPath(); ctx.moveTo(x, py); ctx.lineTo(x + w, py); ctx.stroke();
+  }
+  for (let px = x; px < x + w; px += tileSize) {
+    ctx.beginPath(); ctx.moveTo(px, y); ctx.lineTo(px, y + h); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(14, 165, 233, 0.25)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(x + 12, y + 12, w - 24, h - 24);
+  ctx.restore();
+}
+
+// 3. Luxury Persian / Corporate Area Rug with Medallion and Fringes
+function drawAreaRug(x, y, w, h, baseColor, borderColor, fringe = true, pattern = 'persian') {
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 3;
+  rRect(x, y, w, h, 6, baseColor, borderColor, 3);
+  ctx.shadowColor = 'transparent';
+
+  rRect(x + 7, y + 7, w - 14, h - 14, 4, null, 'rgba(223, 176, 69, 0.7)', 1.5);
+
+  if (pattern === 'persian') {
+    const cx = x + w / 2, cy = y + h / 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 20);
+    ctx.lineTo(cx + 30, cy);
+    ctx.lineTo(cx, cy + 20);
+    ctx.lineTo(cx - 30, cy);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(223, 176, 69, 0.25)';
+    ctx.fill();
+    ctx.strokeStyle = '#dfb045';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    const corners = [
+      [x + 16, y + 16],
+      [x + w - 16, y + 16],
+      [x + 16, y + h - 16],
+      [x + w - 16, y + h - 16]
+    ];
+    corners.forEach(([kx, ky]) => {
+      ctx.beginPath();
+      ctx.arc(kx, ky, 5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(223, 176, 69, 0.5)';
+      ctx.fill();
+    });
+  } else if (pattern === 'corporate') {
+    // Modern geometric lines inside rug
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x + 14, y + 14, w - 28, h - 28);
+  }
+
+  if (fringe) {
+    ctx.fillStyle = '#dfb045';
+    for (let fx = x + 10; fx < x + w - 10; fx += 5) {
+      ctx.fillRect(fx, y - 3, 2, 4);
+      ctx.fillRect(fx, y + h - 1, 2, 4);
+    }
+  }
+  ctx.restore();
+}
+
+// 4. 3D Architectural Wall System with Open Architraves and Badges OPPOSITE the Door
+function drawArchRoomStructure(r) {
+  const x = r.x, y = r.y, w = r.w, h = r.h;
+  const wallThick = 14;
+  const doorWidth = 48;
+  const doorX = r.doorX;
+  const doorIsBottom = (r.doorY >= y + h - 12);
+  const doorIsTop = (r.doorY <= y + 12);
+
+  ctx.save();
+
+  // Interior baseboard skirting
+  ctx.strokeStyle = '#1e140a';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(x + 2, y + 2, w - 4, h - 4);
+
+  // Interior drop shadow beneath top wall
+  const shadowGrad = ctx.createLinearGradient(x, y, x, y + 18);
+  shadowGrad.addColorStop(0, 'rgba(0,0,0,0.5)');
+  shadowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = shadowGrad;
+  ctx.fillRect(x + 2, y + 2, w - 4, 18);
+
+  // Left wall
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(x - wallThick / 2, y - wallThick / 2, wallThick, h + wallThick);
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(x - wallThick / 2, y - wallThick / 2, wallThick / 2, h + wallThick);
+
+  // Right wall
+  ctx.fillStyle = '#1e293b';
+  ctx.fillRect(x + w - wallThick / 2, y - wallThick / 2, wallThick, h + wallThick);
+  ctx.fillStyle = '#334155';
+  ctx.fillRect(x + w - wallThick / 2, y - wallThick / 2, wallThick / 2, h + wallThick);
+
+  // Top wall with door or glass partition
+  if (doorIsTop) {
+    const leftW = (doorX - doorWidth / 2) - x;
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(x - wallThick / 2, y - wallThick / 2, leftW + wallThick / 2, wallThick);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(x - wallThick / 2, y - wallThick / 2, leftW + wallThick / 2, 4);
+
+    const rightX = doorX + doorWidth / 2;
+    const rightW = (x + w) - rightX;
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(rightX, y - wallThick / 2, rightW + wallThick / 2, wallThick);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(rightX, y - wallThick / 2, rightW + wallThick / 2, 4);
+
+    // Door Jambs & Brass Threshold
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(doorX - doorWidth / 2 - 4, y - wallThick / 2, 5, wallThick + 4);
+    ctx.fillRect(doorX + doorWidth / 2 - 1, y - wallThick / 2, 5, wallThick + 4);
+    ctx.fillStyle = '#dfb045';
+    ctx.fillRect(doorX - doorWidth / 2, y - 2, doorWidth, 6);
+  } else {
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(x - wallThick / 2, y - wallThick / 2, w + wallThick, wallThick);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(x - wallThick / 2, y - wallThick / 2, w + wallThick, 4);
+
+    // Glass Window Partition in top wall
+    const winX = x + 24, winW = w - 48, winY = y - 3, winH = 8;
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.28)';
+    ctx.fillRect(winX, winY, winW, winH);
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(winX, winY, winW, winH);
+    ctx.fillStyle = '#38bdf8';
+    for (let mx = winX + 36; mx < winX + winW; mx += 36) {
+      ctx.fillRect(mx, winY, 2, winH);
+    }
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(winX + 8, winY + winH - 2);
+    ctx.lineTo(winX + 22, winY + 2);
+    ctx.moveTo(winX + 48, winY + winH - 2);
+    ctx.lineTo(winX + 62, winY + 2);
+    ctx.stroke();
+  }
+
+  // Bottom wall with door or solid/glass
+  if (doorIsBottom) {
+    const leftW = (doorX - doorWidth / 2) - x;
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(x - wallThick / 2, y + h - wallThick / 2, leftW + wallThick / 2, wallThick);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(x - wallThick / 2, y + h - wallThick / 2, leftW + wallThick / 2, 4);
+
+    const rightX = doorX + doorWidth / 2;
+    const rightW = (x + w) - rightX;
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(rightX, y + h - wallThick / 2, rightW + wallThick / 2, wallThick);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(rightX, y + h - wallThick / 2, rightW + wallThick / 2, 4);
+
+    // Door Jambs & Brass Threshold
+    ctx.fillStyle = '#78350f';
+    ctx.fillRect(doorX - doorWidth / 2 - 4, y + h - wallThick / 2, 5, wallThick + 4);
+    ctx.fillRect(doorX + doorWidth / 2 - 1, y + h - wallThick / 2, 5, wallThick + 4);
+    ctx.fillStyle = '#dfb045';
+    ctx.fillRect(doorX - doorWidth / 2, y + h - 3, doorWidth, 6);
+  } else {
+    ctx.fillStyle = '#1e293b';
+    ctx.fillRect(x - wallThick / 2, y + h - wallThick / 2, w + wallThick, wallThick);
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(x - wallThick / 2, y + h - wallThick / 2, w + wallThick, 4);
+  }
+
+  // Architectural Arabic Office Nameplate Badge - OPPOSITE THE DOOR!
+  // If door is at TOP (doorIsTop), place badge at BOTTOM wall (y + h - 12)
+  // If door is at BOTTOM (doorIsBottom), place badge at TOP wall (y - 14)
+  const roomLabel = (currentMode === 'odoo' && r.titleAr) ? r.titleAr : r.title;
+  ctx.font = 'bold 13px "Cairo", Tahoma, sans-serif';
+  const badgeW = Math.max(136, ctx.measureText(roomLabel).width + 28);
+  const badgeH = 26;
+  const badgeX = x + (w - badgeW) / 2; // Centered along the wall
+  const badgeY = doorIsTop ? (y + h - 12) : (y - 14); // OPPOSITE THE DOOR!
+  rRect(badgeX, badgeY, badgeW, badgeH, 6, 'rgba(8, 15, 27, 0.98)', '#fbbf24', 2);
+  ctx.save();
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+  ctx.shadowBlur = 4;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 1;
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(roomLabel, badgeX + badgeW / 2, badgeY + badgeH / 2);
+  ctx.restore();
+
+  ctx.restore();
+}
+
+// 5. MetroCity Animated Character Renderer
+function drawMetroCharacter(a, x, y, isMoving, tick) {
+  const img = metroCharImgs[a.charIdx !== undefined ? a.charIdx : 0];
+  if (!img || !img.complete) return;
+
+  let row = 0; // Down
+  let frame = 1; // Idle down
+  let flip = false;
+
+  if (a.state === 'seated') {
+    row = 0;
+    frame = (tick % 50 < 25) ? 5 : 6; // Active typing & reading at desk!
+  } else if (isMoving) {
+    const dir = a.facingDir || 'down';
+    const walkF = Math.floor(tick / 6) % 4;
+    frame = (walkF === 0) ? 0 : ((walkF === 2) ? 2 : 1);
+    if (dir === 'up') {
+      row = 1;
+    } else if (dir === 'down') {
+      row = 0;
+    } else if (dir === 'right') {
+      row = 2;
+    } else if (dir === 'left') {
+      row = 2;
+      flip = true;
+    }
+  } else if (a.state === 'talking') {
+    // Seated on visitor chair facing RIGHT towards host desk & peer
+    row = 2; // Side profile facing right
+    frame = (Math.floor(tick / 15) % 2 === 0) ? 4 : 5; // Sitting and gesturing / talking!
+  } else if (a.state === 'in_meeting') {
+    row = 0;
+    frame = 5; // Sitting attentive in meeting
+  }
+
+  const fw = 16, fh = 32;
+  const dw = 32, dh = 64; // Scaled 2x for sharp pixel clarity
+  const dx = Math.round(x - dw / 2);
+  const dy = Math.round(y - dh + 10);
+
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  if (flip) {
+    ctx.translate(dx + dw, dy);
+    ctx.scale(-1, 1);
+    ctx.drawImage(img, frame * fw, row * fh, fw, fh, 0, 0, dw, dh);
+  } else {
+    ctx.drawImage(img, frame * fw, row * fh, fw, fh, dx, dy, dw, dh);
+  }
+  ctx.restore();
+}
+
+// 2. ROOMS & CORRIDOR DOORS FOR REALISTIC WAYPOINT PATHFINDING
+// ============================================================================
+const BRIDGE_X = 760;
+const ROOMS = [
+  { id: 'ceo', title: 'CEO SUITE', titleAr: 'جناح الإدارة العامة (سراج)', sec: null, x: 600, y: 36, w: 320, h: 205, floor: '#1d283a', doorX: 760, doorY: 241, corrY: 270 },
+  { id: 'writers', title: "WRITERS' ROOM", titleAr: 'مكتب فاحص وسجل (استعلام وتدقيق)', sec: null, x: 82, y: 305, w: 285, h: 215, floor: '#6e4726', doorX: 224, doorY: 520, corrY: 550 },
+  { id: 'studio', title: 'MONTAGE STUDIO', titleAr: 'مكتب مصلح (تشخيص وتنظيف Master Excel)', sec: 'STUDIO', x: 440, y: 305, w: 265, h: 215, floor: '#22283a', doorX: 572, doorY: 520, corrY: 550 },
+  { id: 'booth', title: 'RECORDING BOOTH', titleAr: 'كابينة منصت (تحليل الأوامر الصوتية Whisper)', sec: null, x: 795, y: 305, w: 285, h: 215, floor: '#1c2233', doorX: 937, doorY: 520, corrY: 550 },
+  { id: 'meeting', title: 'MEETING ROOM', titleAr: 'قاعة الاجتماعات الرئيسية (Boardroom)', sec: 'SHARED', x: 1155, y: 305, w: 285, h: 215, floor: '#734b28', doorX: 1297, doorY: 520, corrY: 550 },
+  { id: 'web', title: 'WEB ROOM', titleAr: 'بوابة موصل أودو (XML-RPC Integration)', sec: null, x: 82, y: 580, w: 285, h: 215, floor: '#1f2940', doorX: 224, doorY: 795, corrY: 825 },
+  { id: 'academy', title: 'ACADEMY', titleAr: 'مكتب مدقق (نظام العمل والمادة 85)', sec: 'WEB & ACADEMY', x: 440, y: 580, w: 265, h: 215, floor: '#6e4726', doorX: 572, doorY: 795, corrY: 825 },
+  { id: 'library', title: 'GITHUB LIBRARY', titleAr: 'مستودع المهارات والتوثيق (GitNexus)', sec: null, x: 795, y: 580, w: 285, h: 215, floor: '#3d2b24', doorX: 937, doorY: 795, corrY: 825 },
+  { id: 'advisor', title: "ADVISOR'S LIBRARY", titleAr: 'مختبر باحث الذاكرة والتعلم (Memory Lab)', sec: 'ADVISORS', x: 1155, y: 580, w: 285, h: 215, floor: '#613f22', doorX: 1297, doorY: 795, corrY: 825 },
+  { id: 'publisher', title: 'PUBLISHER HUB', titleAr: 'مكتب كاتب ومصدر الخطابات (Odoo Write)', sec: 'DISTRIBUTION', x: 82, y: 855, w: 285, h: 215, floor: '#6e4726', doorX: 224, doorY: 855, corrY: 825 },
+  { id: 'mailroom', title: 'MAILROOM', titleAr: 'مكتب مراسل تيليجرام (الإشعارات العاجلة)', sec: null, x: 440, y: 855, w: 265, h: 215, floor: '#734b28', doorX: 572, doorY: 855, corrY: 825 },
+  { id: 'ads', title: 'ADS ROOM', titleAr: 'مكتب حارس (بوابة الأمان والاعتماد)', sec: 'REVENUE', x: 795, y: 855, w: 285, h: 215, floor: '#734b28', doorX: 937, doorY: 855, corrY: 825 },
+  { id: 'growth', title: 'GROWTH ROOM', titleAr: 'مكتب موفّق (المطابقة الذكية والمنع)', sec: null, x: 1155, y: 855, w: 285, h: 215, floor: '#6e4726', doorX: 1297, doorY: 855, corrY: 825 },
+  { id: 'finance', title: 'FINANCE OFFICE', titleAr: 'مكتب محاسب المسيرات وتصفية الرواتب', sec: 'FINANCE', x: 1155, y: 1125, w: 265, h: 195, floor: '#5c3b20', doorX: 1285, doorY: 1125, corrY: 1100 }
+];
+
+function buildCorridorPath(fromRoomTitle, toRoomTitle, destX, destY) {
+  const r1 = ROOMS.find(r => r.title === fromRoomTitle) || ROOMS[0];
+  const r2 = ROOMS.find(r => r.title === toRoomTitle) || ROOMS[0];
+  if (r1.id === r2.id) return [{ x: destX, y: destY }];
+
+  const waypoints = [
+    { x: r1.doorX, y: r1.doorY },
+    { x: r1.doorX, y: r1.corrY }
+  ];
+  if (r1.corrY !== r2.corrY) {
+    waypoints.push({ x: BRIDGE_X, y: r1.corrY });
+    waypoints.push({ x: BRIDGE_X, y: r2.corrY });
+  }
+  waypoints.push({ x: r2.doorX, y: r2.corrY });
+  waypoints.push({ x: r2.doorX, y: r2.doorY });
+  waypoints.push({ x: destX, y: destY });
+  return waypoints;
+}
+
+// ============================================================================
+// 3. 12 CUSTOM ODOO HR COLLABORATION SCENARIOS & 3-STAGE DIALOGUES
+// ============================================================================
+let currentMode = 'odoo'; // Start directly in Odoo HR Arabic mode!
+let floatingPopups = [];
+
+const ODOO_HR_COLLABORATIONS = [
+  {
+    id: 'eosb_85',
+    label: '1. تصفية استقالة (مادة 85)',
+    from: 'fahas', to: 'mudaqqiq',
+    walkMsg: 'تسليم خدمة وغياب #104',
+    turns: [
+      { speaker: 'from', text: 'الموظف #104 استقال: خدمته 5.4 سنة + 4 أيام غياب' },
+      { speaker: 'to',   text: 'نخصم الـ 4 أيام ونطبق ثلثي المكافأة (المادة 85)' },
+      { speaker: 'from', text: 'ممتاز! الصافي 5.38 سنة — سأبلغ المحاسب ✓' }
+    ],
+    logType: 'CALL',
+    log: '<b>فاحص → مدقق:</b> سلم بيانات خدمة الموظف #104 وتم احتساب استحقاق الثلثين وفق المادة 85.'
+  },
+  {
+    id: 'eosb_calc',
+    label: '2. حساب شرائح نهاية الخدمة',
+    from: 'mudaqqiq', to: 'payroll_hr',
+    walkMsg: 'اعتماد معادلة التصفية #104',
+    turns: [
+      { speaker: 'from', text: 'اعتمدت المادة 85: أول 5 سنوات نصف راتب والباقي كامل' },
+      { speaker: 'to',   text: 'حسبت الصافي بالريال: 18,450.00 ريال بالضبط' },
+      { speaker: 'from', text: 'حساب مطابق 100% لنظام العمل السعودي ✓' }
+    ],
+    logType: 'REPORT',
+    log: '<b>مدقق → محاسب المسيرات:</b> اعتمد معادلة نهاية الخدمة بمبلغ 18,450.00 ريال بدون فروقات.'
+  },
+  {
+    id: 'excel_heal',
+    label: '3. إصلاح قالب Master Excel',
+    from: 'fahas', to: 'musleh',
+    walkMsg: 'ملف إكسل فيه 8 تواريخ معطوبة!',
+    turns: [
+      { speaker: 'from', text: 'رصدت 8 تواريخ هجرية مختلطة وآيبان ناقص في القالب!' },
+      { speaker: 'to',   text: 'شغّلت التنظيف الذكي؛ وحّدت الصيغة إلى YYYY-MM-DD' },
+      { speaker: 'from', text: 'رائع! اجتاز فحص الـ Dry-Run بنسبة 100% ✓' }
+    ],
+    logType: 'REPORT',
+    log: '<b>فاحص → مصلح:</b> عالج 8 سجلات مرفوضة في ملف Master Excel بنجاح في وضع المحاكاة.'
+  },
+  {
+    id: 'fuzzy_match',
+    label: '4. مطابقة الموظفين ومنع التكرار',
+    from: 'musleh', to: 'muwaffaq',
+    walkMsg: 'تسليم 15 سجلاً للمطابقة',
+    turns: [
+      { speaker: 'from', text: 'البيانات نظيفة الآن؛ هل الأسماء موجودة في Odoo؟' },
+      { speaker: 'to',   text: 'طابقت الأسماء والأقسام بالـ Fuzzy Match بثقة 96.4%' },
+      { speaker: 'from', text: 'تم منع تكرار موظفين اثنين وإحالة الباقي لكاتب ✓' }
+    ],
+    logType: 'CALL',
+    log: '<b>مصلح → موفّق:</b> طابق 15 موظفاً مع الأقسام والمسميات في Odoo ومنع تكرار سجلين.'
+  },
+  {
+    id: 'security_gate',
+    label: '5. بوابة حارس وقفل الكتابة',
+    from: 'hares', to: 'katib',
+    walkMsg: 'فحص رمز الموافقة قبل الكتابة',
+    turns: [
+      { speaker: 'from', text: 'توقف يا كاتب! كتابة الـ 12 عقداً تحتاج موافقة المالك' },
+      { speaker: 'to',   text: 'أوقفت الكتابة في Odoo وحوّلت الطلب لخانة ينتظرك' },
+      { speaker: 'from', text: 'بوابة الأمان مقفلة لحين صدور Write Token 🛡️' }
+    ],
+    logType: 'REPORT',
+    log: '<b>حارس → كاتب:</b> أوقف عملية الكتابة المباشرة في Odoo وأضاف بطاقة اعتماد في Needs you.'
+  },
+  {
+    id: 'article_80',
+    label: '6. فحص فصل بموجب المادة 80',
+    from: 'seraj', to: 'mudaqqiq',
+    walkMsg: 'مراجعة مسوغات المادة 80',
+    turns: [
+      { speaker: 'from', text: 'هل يصح فصل الموظف #209 دون مكافأة وفق المادة 80؟' },
+      { speaker: 'to',   text: 'لا! ملفه فيه إنذاران فقط ولم يُسجّل محضر تحقيق رسمي' },
+      { speaker: 'from', text: 'أنقذت الشركة من مخالفة! سأرفع تنبيهاً للمالك ✓' }
+    ],
+    logType: 'CALL',
+    log: '<b>سراج → مدقق:</b> أوقف قرار فصل غير مستوفٍ لشروط المادة 80 لعدم وجود محضر تحقيق.'
+  },
+  {
+    id: 'gosi_wps',
+    label: '7. تدقيق التأمينات GOSI وحماية الأجور',
+    from: 'mudaqqiq', to: 'payroll_hr',
+    walkMsg: 'مطابقة نسب التأمينات و WPS',
+    turns: [
+      { speaker: 'from', text: 'هل خصمت 9.75% للتأمينات مع مراعاة سقف الاشتراك؟' },
+      { speaker: 'to',   text: 'نعم، وطابقت صافي المسير مع ملف حماية الأجور WPS' },
+      { speaker: 'from', text: 'المسير جاهز ومطابق للوائح التأمينات 100% ✓' }
+    ],
+    logType: 'REPORT',
+    log: '<b>مدقق → محاسب المسيرات:</b> دقق استقطاعات GOSI وملف حماية الأجور WPS لشهر نوفمبر.'
+  },
+  {
+    id: 'audit_sijil',
+    label: '8. توثيق البصمة في سجل المراجعة',
+    from: 'katib', to: 'sijil',
+    walkMsg: 'تسليم أرقام سجلات Odoo المحدثة',
+    turns: [
+      { speaker: 'from', text: 'كتبت السجلات المعتمدة في Odoo عبر البوابة المعزولة' },
+      { speaker: 'to',   text: 'وثّقت معرفات السجلات ورمز الموافقة في سجل التدقيق' },
+      { speaker: 'from', text: 'تم إغلاق المهمة وتحديث نقاط الخبرة +15 XP ✓' }
+    ],
+    logType: 'REPORT',
+    log: '<b>كاتب → سجل:</b> وثّق عملية الكتابة المعتمدة في سجل المراجعة (Audit Trail).'
+  },
+  {
+    id: 'whisper_voice',
+    label: '9. أمر صوتي من المالك عبر تيليجرام',
+    from: 'whisper_hr', to: 'seraj',
+    walkMsg: 'تفريغ رسالة صوتية عاجلة',
+    turns: [
+      { speaker: 'from', text: 'المالك أرسل صوتية: «كم إقامة تنتهي هذا الشهر؟»' },
+      { speaker: 'to',   text: 'تم تحليل النية (QUERY) — سأكلف فاحص فوراً' },
+      { speaker: 'from', text: 'بانتظار النتيجة لإرسالها لتطبيق تيليجرام ✓' }
+    ],
+    logType: 'CALL',
+    log: '<b>منصت (Whisper) → سراج:</b> حوّل رسالة صوتية من المالك إلى أمر استعلام مباشر.'
+  },
+  {
+    id: 'expiry_alert',
+    label: '10. تنبيه انتهاء الإقامات والتجربة',
+    from: 'fahas', to: 'telegram_hr',
+    walkMsg: 'إرسال قائمة الوثائق المنتهية',
+    turns: [
+      { speaker: 'from', text: 'رصدت 3 إقامات تنتهي خلال 30 يوماً وموظفين بالتجربة' },
+      { speaker: 'to',   text: 'أرسلت تنبيهاً فورياً لجوال المالك على تيليجرام' },
+      { speaker: 'from', text: 'تمت جدولة المتابعة في ملخص الساعة 8 صباحاً ✓' }
+    ],
+    logType: 'REPORT',
+    log: '<b>فاحص → مراسل تيليجرام:</b> أرسل إشعاراً بـ 3 إقامات وعقدين في فترة التجربة قريبة الانتهاء.'
+  },
+  {
+    id: 'anomaly_guard',
+    label: '11. رصد شذوذ في البدلات',
+    from: 'sijil', to: 'hares',
+    walkMsg: 'تنبيه: تغير غير معتمد في بدل سكن!',
+    turns: [
+      { speaker: 'from', text: 'رصدت فرقاً بنسبة 25% في بدل سكن الموظف #88!' },
+      { speaker: 'to',   text: 'جمّدت المسير فوراً ورفعت تنبيه أمان للمالك' },
+      { speaker: 'from', text: 'تم تسجيل الحدث في تقرير الشذوذ الاستباقي 🛡️' }
+    ],
+    logType: 'REPORT',
+    log: '<b>سجل → حارس:</b> اكتشف شذوذاً مالياً في بدل السكن وأوقف صرف المسير تلقائياً.'
+  },
+  {
+    id: 'cos_brief',
+    label: '12. تجميع تقارير الـ 5 أسطر للمالك',
+    from: 'sofia_hr', to: 'seraj',
+    walkMsg: 'تسليم ملخص التقارير الموحدة',
+    turns: [
+      { speaker: 'from', text: 'جمعت تقارير الـ 5 أسطر من جميع الوكلاء السبعة' },
+      { speaker: 'to',   text: 'ممتاز، نرفع للمالك فقط الـ 3 قرارات التي تنتظره' },
+      { speaker: 'from', text: 'تم تحديث لوحة المكتب الحية بنجاح ✓' }
+    ],
+    logType: 'REPORT',
+    log: '<b>رئيس الموظفين → سراج:</b> وحّد تقارير الأقسام السبعة في ملخص تنفيذي من 3 نقاط.'
+  },
+  {
+    id: 'gitnexus_verify',
+    label: '13. فحص المعمارية وأثر التعديل (GitNexus)',
+    from: 'katib', to: 'gitnexus_arch',
+    walkMsg: 'فحص شجرة التأثير قبل كتابة Odoo',
+    turns: [
+      { speaker: 'from', text: 'أريد كتابة 12 عقداً جديداً: هل تفحص مسار الدوال في Odoo؟' },
+      { speaker: 'to',   text: 'فحصت الـ 17,395 رمزاً و 574 تدفقاً: 0 مخاطر تعارض برمجية!' },
+      { speaker: 'from', text: 'رائع! سأطلب ختم حارس وأباشر الكتابة عبر البوابة ✓' }
+    ],
+    logType: 'REPORT',
+    log: '<b>كاتب → مهندس المعمارية:</b> اجتاز فحص شجرة التبعيات عبر GitNexus (Impact: 0 Risk).'
+  }
+];
+
+const DATA_SETS = {
+  odoo: {
+    stats: "6 يشتغلون · 2 ينتظرونك · 0 متوقف · 1 يتعلّم",
+    agents: [
+      { id: 'seraj', charIdx: 0, name: 'سراج · CEO', lv: 6, xp: 85, role: 'المدير التنفيذي (Orchestrator)', room: "CEO SUITE", status: 'Working', task: 'توزيع المهام على الوكلاء السبعة وتلخيص القرارات', quote: 'تم توجيه 14 عملية موارد بشرية اليوم بدقة 98%', suit: '#3b82f6', ant: '#facc15', homeX: 760, homeY: 112, bubble: '...', bType: 'normal', skills: ['seraj_meta_agent.py', 'classify_intent.py'] },
+      { id: 'sofia_hr', charIdx: 1, name: 'رئيس الموظفين (CoS)', lv: 4, xp: 60, role: 'منسق التقارير والاجتماعات', room: "CEO SUITE", status: 'Working', task: 'تجميع تقارير الـ 5 أسطر وتحديث اللوحة', quote: 'طلبتان فقط في خانة ينتظرك تحتاجان اعتمادك', suit: '#8b5cf6', ant: '#4ade80', homeX: 860, homeY: 112, bubble: '...', bType: 'normal', skills: ['agent_events_service.py', 'seraj_session_manager.py'] },
+      { id: 'fahas', charIdx: 3, name: 'فاحص (Fahas)', lv: 3, xp: 65, role: 'وكيل الاستعلام والقراءة الآمنة', room: "WRITERS' ROOM", status: 'Working', task: 'فحص العقود والإقامات قريبة الانتهاء في Odoo', quote: 'تم رصد 3 إقامات وعقدين تنتهي خلال 30 يوماً', suit: '#16a34a', ant: '#4ade80', homeX: 162, homeY: 395, bubble: '...', bType: 'normal', skills: ['odoo_readonly_repository.py', 'document_expiry_service.py'] },
+      { id: 'sijil', charIdx: 4, name: 'سِجل (Sijil)', lv: 3, xp: 70, role: 'وكيل التدقيق ورصد الشذوذ', room: "WRITERS' ROOM", status: 'Working', task: 'توثيق العمليات وفحص الشذوذ في السجلات', quote: '24 عملية مسجلة بالكامل في سجل المراجعة', suit: '#d97706', ant: '#fbbf24', homeX: 282, homeY: 395, bubble: '...', bType: 'normal', skills: ['sijil_audit_service.py', 'observability/tracer.py'] },
+      { id: 'musleh', charIdx: 2, name: 'مُصلح (Musleh)', lv: 5, xp: 80, role: 'وكيل تشخيص وإصلاح البيانات', room: "MONTAGE STUDIO", status: 'Working', task: 'تنظيف ملف Master Excel في وضع المحاكاة Dry-Run', quote: 'تم إصلاح 8 تواريخ مباشرة وتوحيد الهويات', suit: '#ec4899', ant: '#f472b6', homeX: 648, homeY: 395, bubble: '...', bType: 'normal', skills: ['musleh_service.py', 'cleaning.py'] },
+      { id: 'whisper_hr', charIdx: 5, name: 'منصت (Whisper)', lv: 3, xp: 50, role: 'وكيل الأوامر الصوتية', room: "RECORDING BOOTH", status: 'Working', task: 'تحويل الأوامر الصوتية في تيليجرام إلى نصوص', quote: 'جاهز لاستقبال الرسائل الصوتية بالعربية', suit: '#64748b', ant: '#38bdf8', homeX: 912, homeY: 395, bubble: null, bType: 'normal', skills: ['whisper_service.py', 'telegram_bot.py'] },
+      { id: 'rpc_bridge', charIdx: 5, name: 'موصل أودو (RPC)', lv: 4, xp: 72, role: 'بوابة اتصال Odoo XML-RPC', room: "WEB ROOM", status: 'Working', task: 'مراقبة اتصال XML-RPC وسياق الشركات المتعددة', quote: 'الاتصال بـ Odoo مستقر (42ms)', suit: '#0ea5e9', ant: '#38bdf8', homeX: 255, homeY: 675, bubble: '...', bType: 'normal', skills: ['odoo_config_manager.py', 'multi_company_check.py'] },
+      { id: 'mudaqqiq', charIdx: 4, name: 'مُدقّق (Mudaqqiq)', lv: 4, xp: 88, role: 'وكيل الامتثال لنظام العمل السعودي', room: "ACADEMY", status: 'Working', task: 'تدقيق مكافأة نهاية الخدمة (المادة 85) والتأمينات', quote: 'حساب الموظف #104 مطابق لنظام العمل السعودي 100%', suit: '#14b8a6', ant: '#2dd4bf', homeX: 632, homeY: 675, bubble: '...', bType: 'normal', skills: ['saudi_labor_law_rules.py', 'eos_service.py'] },
+      { id: 'scholar_hr', charIdx: 2, name: 'باحث الذاكرة (Memory)', lv: 2, xp: 35, role: 'وكيل التعلم وتطوير المهارات', room: "ADVISOR'S LIBRARY", status: 'Learning', task: 'حفظ الأنماط الناجحة في Vector Store', quote: 'تم تحديث فهرس المعرفة المشتركة والأنماط', suit: '#475569', ant: '#94a3b8', homeX: 1365, homeY: 682, bubble: 'zzz', bType: 'sleep', skills: ['memory/learning.py', 'memory/vector_store.py'] },
+      { id: 'gitnexus_arch', charIdx: 2, name: 'مهندس المعمارية (GitNexus)', lv: 5, xp: 94, role: 'وكيل ذكاء الأكواد وفحص التأثير', room: "GITHUB LIBRARY", status: 'Working', task: 'فهرسة 17,395 رمزاً و 36,898 علاقة وفحص أثر التعديلات', quote: 'فحصت الـ 574 مساراً: لا تعارضات ومستوى الخطر 0%', suit: '#10b981', ant: '#34d399', homeX: 937, homeY: 675, bubble: '...', bType: 'normal', skills: ['gitnexus_impact.py', 'call_graph_walker.py', 'skills_engine.py', 'architecture_guard.py'] },
+      { id: 'katib', charIdx: 0, name: 'كاتب (Katib)', lv: 3, xp: 55, role: 'وكيل التنفيذ والكتابة في Odoo', room: "PUBLISHER HUB", status: 'Needs you', task: 'بانتظار موافقة المالك لكتابة 12 عقداً في Odoo', quote: 'ممنوع الكتابة بدون Write Token صالح', suit: '#ca8a04', ant: '#fde047', homeX: 202, homeY: 965, bubble: '!', bType: 'warn', skills: ['odoo_write_gateway.py', 'odoo_contract_write_gateway.py'] },
+      { id: 'letters_hr', charIdx: 3, name: 'مُصدر الخطابات', lv: 3, xp: 60, role: 'وكيل خطابات الموارد البشرية', room: "PUBLISHER HUB", status: 'Working', task: 'تجهيز مسودات تعريف بالراتب وإخلاء طرف', quote: '3 خطابات جاهزة في المسودات', suit: '#3b82f6', ant: '#60a5fa', homeX: 312, homeY: 965, bubble: '...', bType: 'normal', skills: ['letter_service.py', 'odoo_letter_write_gateway.py'] },
+      { id: 'telegram_hr', charIdx: 1, name: 'مراسل تيليجرام', lv: 3, xp: 68, role: 'وكيل الإشعارات والتنبيهات', room: "MAILROOM", status: 'Working', task: 'إرسال تنبيهات الموافقات وملخص الساعة 8 صباحاً', quote: 'تم إرسال إشعارين لخانة ينتظرك على جوالك', suit: '#06b6d4', ant: '#67e8f9', homeX: 575, homeY: 965, bubble: '...', bType: 'normal', skills: ['telegram_notifier.py', 'telegram_bot.py'] },
+      { id: 'hares', charIdx: 0, name: 'حارس (Hares)', lv: 4, xp: 92, role: 'وكيل الأمان وبوابة الموافقات', room: "ADS ROOM", status: 'Needs you', task: 'إيقاف اعتماد تصفية نهاية الخدمة #104 لحين موافقتك', quote: 'تم قفل بوابة الكتابة لحين صدور قرار المالك', suit: '#ef4444', ant: '#fca5a5', homeX: 912, homeY: 965, bubble: '!', bType: 'alert', skills: ['hares_agent.py', 'make_approval.py'] },
+      { id: 'muwaffaq', charIdx: 5, name: 'موفّق (Muwaffaq)', lv: 3, xp: 74, role: 'وكيل المطابقة الذكية للسجلات', room: "GROWTH ROOM", status: 'Working', task: 'مطابقة أسماء الموظفين والأقسام ومنع التكرار', quote: 'دقة المطابقة الذكية 96.4%', suit: '#a855f7', ant: '#d8b4fe', homeX: 1300, homeY: 965, bubble: '...', bType: 'normal', skills: ['muwaffaq_agent.py', 'matching_thresholds.py'] },
+      { id: 'payroll_hr', charIdx: 4, name: 'محاسب المسيرات (EOSB)', lv: 5, xp: 88, role: 'وكيل الرواتب ونهاية الخدمة', room: "FINANCE OFFICE", status: 'Working', task: 'حساب مسير الرواتب ومستحقات نهاية الخدمة', quote: 'صافي تصفية الموظف #104 = 18,450.00 ريال', suit: '#10b981', ant: '#6ee7b7', homeX: 1290, homeY: 1210, bubble: '...', bType: 'normal', skills: ['payroll_service.py', 'eos_service.py'] }
+    ],
+    collaborations: ODOO_HR_COLLABORATIONS,
+    needs: [
+      { title: 'اعتماد تصفية نهاية الخدمة (المادة 85) للموظف #104 بمبلغ 18,450 ريال', from: 'من: حارس (Hares) · 10:42 ص', suit: '#ef4444' },
+      { title: 'الموافقة على كتابة 12 عقد عمل جديد في Odoo بعد اجتياز Dry-Run', from: 'من: كاتب (Katib) · 09:30 ص', suit: '#ca8a04' },
+      { title: 'اعتماد إرسال 3 خطابات تعريف بالراتب وإخلاء طرف', from: 'من: مُصدر الخطابات · 08:50 ص', suit: '#3b82f6' }
+    ],
+    todos: [
+      { text: 'الموافقة على تصفية مستحقات الموظف #104 في خانة ينتظرك', done: false },
+      { text: 'اعتماد دفعة عقود الموظفين الجدد (12 سجل) للكتابة في Odoo', done: false },
+      { text: 'مراجعة تنبيهات انتهاء الإقامات من فاحص', done: true }
+    ],
+    running: [
+      { title: 'تدقيق مسير رواتب الشهر', agent: 'مدقق · مستحق اليوم', tag: '· نظام العمل', prog: 75, frac: '3/4', after: 'بعد: فاحص (سحب المسيرات)', suit: '#14b8a6' },
+      { title: 'تنظيف قالب الحضور والإجازات', agent: 'مصلح · مستحق اليوم', tag: null, prog: 50, frac: '2/4', after: null, suit: '#ec4899' },
+      { title: 'مطابقة المسميات الوظيفية', agent: 'موفّق · مستحق اليوم', tag: null, prog: 66, frac: '2/3', after: null, suit: '#a855f7' }
+    ],
+    review: [
+      { title: 'تصفية نهاية خدمة #104', agent: 'حارس · بانتظار المالك', prog: 75, frac: '3/4', suit: '#ef4444' },
+      { title: 'استيراد 12 عقد عمل', agent: 'كاتب · جاهز للكتابة', prog: 90, frac: '4/4', suit: '#ca8a04' }
+    ],
+    timeline: [
+      { time: '10:42 ص', type: 'REPORT', text: '<b>حارس → سراج:</b> تم إيقاف عملية الكتابة #104 وتحويلها لخانة ينتظرك.' },
+      { time: '10:39 ص', type: 'REPORT', text: '<b>مدقق → سراج:</b> اكتمل فحص المادة 85؛ لا توجد مخالفات لنظام العمل.' },
+      { time: '10:35 ص', type: 'CALL', text: '<b>سراج → مدقق:</b> راجع حساب نهاية الخدمة للموظف #104 مع خصم الغياب.' },
+      { time: '09:15 ص', type: 'CALL', text: '<b>سراج → فاحص:</b> اسحب العقود التي تنتهي خلال 30 يوماً من Odoo.' }
+    ],
+    standup: [
+      { name: 'سراج (CEO)', text: 'خطة اليوم موزعة؛ قراران فقط في خانة ينتظرك يحتاجان موافقتك.', suit: '#3b82f6' },
+      { name: 'فاحص', text: 'فحصت 145 عقداً نشطاً؛ رصدت 3 إقامات تنتهي قريباً.', suit: '#16a34a' },
+      { name: 'مدقق', text: 'حساب نهاية الخدمة للموظف #104 مطابق للمادة 85 بنسبة 100%.', suit: '#14b8a6' },
+      { name: 'مصلح', text: 'أصلحت 8 تواريخ مباشرة في قالب الإكسل المرفوع بدون أخطاء.', suit: '#ec4899' },
+      { name: 'حارس', text: 'أوقفت الكتابة النهائية في Odoo لحين ضغطك على زر الموافقة.', suit: '#ef4444' }
+    ],
+    weekly: {
+      bullets: [
+        '<b>142 سجل موظف</b> تمت معالجتها ومطابقتها بنجاح في وضع Dry-Run',
+        '<b>0 أخطاء حسابية</b> في مسيرات الرواتب ونهاية الخدمة بعد تدقيق مدقق',
+        '<b>100% حماية أمنية:</b> لم تمر أي عملية كتابة بدون ختم حارس'
+      ],
+      focus: [
+        'إغلاق موافقات تصفية نهاية الخدمة المعلقة اليوم',
+        'تفعيل الفحص الليلي الآلي للوثائق الساعة 3:30 فجراً'
+      ]
+    }
+  }
+};
+// Copy video preset fallback
+DATA_SETS.video = JSON.parse(JSON.stringify(DATA_SETS.odoo));
+
+Object.values(DATA_SETS).forEach(ds => {
+  ds.agents.forEach(a => {
+    a.x = a.homeX;
+    a.y = a.homeY;
+    a.path = [];
+    a.state = 'seated';
+    a.talkTimer = 0;
+    a.partnerId = null;
+    a.defaultBubble = a.bubble;
+    a.defaultBType = a.bType;
+  });
+});
+
+// ============================================================================
+// 4. MULTI-TURN DIALOGUE & FULL PIPELINE RELAY ENGINE
+// ============================================================================
+let collabCursor = 0;
+let relayQueue = [];
+
+function renderScenarioStrip() {
+  const strip = document.getElementById('scenarioStrip');
+  strip.innerHTML = `<span style="color:var(--gold);font-weight:800;font-size:0.82rem;white-space:nowrap">🎯 اختر سيناريو فوري:</span>` +
+    ODOO_HR_COLLABORATIONS.map((sc, idx) =>
+      `<button class="sc-chip" id="sc-chip-${idx}" onclick="runSpecificScenario(${idx})">${sc.label}</button>`
+    ).join('');
+}
+
+function runSpecificScenario(idx) {
+  collabCursor = idx;
+  triggerNextCollaboration(idx);
+}
+
+function triggerNextCollaboration(forcedIndex = null) {
+  const ds = DATA_SETS[currentMode];
+  const idx = forcedIndex !== null ? forcedIndex : (collabCursor % ds.collaborations.length);
+  const scenario = ds.collaborations[idx];
+  if (forcedIndex === null) collabCursor++;
+
+  document.querySelectorAll('.sc-chip').forEach((c, i) => c.classList.toggle('running', i === idx));
+
+  const helper = ds.agents.find(a => a.id === scenario.from);
+  const peer = ds.agents.find(a => a.id === scenario.to);
+  if (!helper || !peer) return;
+
+  // Reset helper position if busy so user sees immediate response
+  helper.state = 'walking_to_peer';
+  helper.partnerId = peer.id;
+  helper.collabScenario = scenario;
+  helper.bubble = '🚶 ' + scenario.walkMsg;
+  helper.bType = 'normal';
+  // Destination: Left visitor chair in front of host's desk facing host
+  helper.path = buildCorridorPath(helper.room, peer.room, peer.homeX - 14, peer.homeY + 48);
+
+  document.getElementById('liveCollabText').innerHTML =
+    `<b>${helper.name}</b> قام من كرسيه في (${helper.room}) ويمشي الآن إلى <b>${peer.name}</b> في (${peer.room}) — <i>${scenario.label}</i>`;
+  document.getElementById('dialogueStepBadge').textContent = '🚶 في الطريق عبر الممر...';
+
+  renderDashboard();
+}
+
+// Full 8-Agent Sequential Relay (سراج -> فاحص -> مصلح -> موفّق -> مدقق -> حارس -> كاتب -> سجل)
+function startFullPipelineRelay() {
+  relayQueue = [5, 2, 3, 0, 1, 4, 7, 12]; // Sequence of scenario indices covering all 8 agents
+  document.getElementById('dialogueStepBadge').textContent = '⚡ سلسلة الـ 8 وكلاء جارية...';
+  const nextIdx = relayQueue.shift();
+  runSpecificScenario(nextIdx);
+}
+
+function triggerStandupGathering() {
+  const ds = DATA_SETS[currentMode];
+  const seats = [
+    [1210, 368], [1245, 368], [1280, 368], [1315, 368], [1350, 368], [1385, 368],
+    [1210, 468], [1245, 468], [1280, 468], [1315, 468], [1350, 468], [1385, 468]
+  ];
+  ds.agents.slice(0, 12).forEach((a, i) => {
+    a.state = 'walking_to_meeting';
+    a.bubble = '🤝 اجتماع الصباح';
+    a.path = buildCorridorPath(a.room, 'MEETING ROOM', seats[i][0], seats[i][1]);
+  });
+  document.getElementById('liveCollabText').innerHTML =
+    `📢 <b>اجتماع الصباح (Standup):</b> جميع الوكلاء قاموا من مكاتبهم ويتجهون الآن إلى قاعة الاجتماعات الكبرى!`;
+}
+
+function returnAllToDesks() {
+  const ds = DATA_SETS[currentMode];
+  ds.agents.forEach(a => {
+    a.state = 'returning';
+    a.bubble = '↩ عودة للمكتب';
+    a.path = buildCorridorPath('MEETING ROOM', a.room, a.homeX, a.homeY);
+  });
+}
+
+setInterval(() => {
+  const ds = DATA_SETS[currentMode];
+  const anyActive = ds.agents.some(a => a.state !== 'seated');
+  if (!anyActive) {
+    if (relayQueue.length > 0) {
+      runSpecificScenario(relayQueue.shift());
+    } else {
+      triggerNextCollaboration();
+    }
+  }
+}, 8500);
+
+// ============================================================================
+// 5. CANVAS 2D ENGINE WITH 3-TURN DIALOGUES & FLOATING +15 XP POPUPS
+// ============================================================================
+const cvs = document.getElementById('hqCanvas');
+const ctx = cvs.getContext('2d');
+let tick = 0;
+
+function rRect(x, y, w, h, r, fill, stroke, lw = 2) {
+  ctx.beginPath();
+  ctx.roundRect(x, y, w, h, r);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw; ctx.stroke(); }
+}
+
+function drawChairAndDeskAtHome(a) {
+  const hx = a.homeX, hy = a.homeY;
+
+  // 1. Office Chair (drawn behind character)
+  if (metroFurnImgs.chair_front && metroFurnImgs.chair_front.complete) {
+    ctx.drawImage(metroFurnImgs.chair_front, hx - 12, hy - 16, 24, 30);
+  } else {
+    rRect(hx - 10, hy - 10, 20, 14, 4, '#1e293b', '#475569', 1.5);
+  }
+
+  // 2. Wooden Desk (in front of chair)
+  if (metroFurnImgs.desk_front && metroFurnImgs.desk_front.complete) {
+    ctx.drawImage(metroFurnImgs.desk_front, hx - 26, hy + 8, 52, 28);
+  } else {
+    rRect(hx - 30, hy + 10, 60, 22, 3, '#8c5828', '#45260c', 2);
+  }
+
+  // 3. Desktop Computer / Dual Monitor with active screen
+  if (metroFurnImgs.pc_front && metroFurnImgs.pc_front.complete) {
+    ctx.drawImage(metroFurnImgs.pc_front, hx - 12, hy + 6, 24, 22);
+  } else {
+    rRect(hx - 11, hy + 12, 22, 12, 2, '#0f172a', '#475569', 1);
+  }
+
+  // 4. Desk accessory (succulent pot / papers)
+  if (metroFurnImgs.plant_pot && metroFurnImgs.plant_pot.complete) {
+    ctx.drawImage(metroFurnImgs.plant_pot, hx + 14, hy + 8, 14, 18);
+  }
+
+  // 5. Visitor Chairs in FRONT of the desk facing each other!
+  // Left visitor chair: (hx - 22, hy + 38) facing RIGHT towards desk center
+  // Right visitor chair: (hx + 6, hy + 38) facing LEFT towards desk center (flipped horizontally)
+  if (metroFurnImgs.chair_side && metroFurnImgs.chair_side.complete) {
+    // Left chair: faces right
+    ctx.drawImage(metroFurnImgs.chair_side, hx - 22, hy + 38, 16, 22);
+    // Right chair: flipped to face left
+    ctx.save();
+    ctx.translate(hx + 6 + 16, hy + 38);
+    ctx.scale(-1, 1);
+    ctx.drawImage(metroFurnImgs.chair_side, 0, 0, 16, 22);
+    ctx.restore();
+  }
+
+  // 6. Arabic Desk Name Plaque (Gold & Navy) - placed below visitor chairs at hy + 62
+  const shortName = a.name.split('·')[0].trim();
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = 'bold 11px "Cairo", Tahoma, sans-serif';
+  const nw = Math.max(68, ctx.measureText(shortName).width + 22);
+  const plaqueH = 20;
+  rRect(hx - nw / 2, hy + 62, nw, plaqueH, 5, 'rgba(9, 16, 28, 0.98)', '#fbbf24', 1.5);
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+  ctx.shadowBlur = 3;
+  ctx.shadowOffsetY = 1;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillText(shortName, hx, hy + 62 + plaqueH / 2);
+  ctx.restore();
+}
+
+function updateAndDrawAgent(a) {
+  const ds = DATA_SETS[currentMode];
+
+  if (a.path && a.path.length > 0) {
+    const target = a.path[0];
+    const dx = target.x - a.x;
+    const dy = target.y - a.y;
+    const dist = Math.hypot(dx, dy);
+    const speed = 3.8;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      a.facingDir = dx > 0 ? 'right' : 'left';
+    } else {
+      a.facingDir = dy > 0 ? 'down' : 'up';
+    }
+
+    if (dist <= speed) {
+      a.x = target.x;
+      a.y = target.y;
+      a.path.shift();
+    } else {
+      a.x += (dx / dist) * speed;
+      a.y += (dy / dist) * speed;
+    }
+
+    if (a.path.length === 0) {
+      if (a.state === 'walking_to_peer') {
+        a.state = 'talking';
+        a.talkTimer = 270;
+      } else if (a.state === 'returning') {
+        a.state = 'seated';
+        a.bubble = a.defaultBubble;
+        a.bType = a.defaultBType;
+        document.getElementById('dialogueStepBadge').textContent = '✓ عاد للمكتب';
+        renderDashboard();
+      } else if (a.state === 'walking_to_meeting') {
+        a.state = 'in_meeting';
+        a.bubble = '💬 جاهز';
+      }
+    }
+  } else if (a.state === 'talking') {
+    a.talkTimer--;
+    const peer = ds.agents.find(p => p.id === a.partnerId);
+    const sc = a.collabScenario;
+
+    if (peer && sc && sc.turns) {
+      let stageIdx = 0;
+      if (a.talkTimer < 180 && a.talkTimer >= 90) stageIdx = 1;
+      else if (a.talkTimer < 90) stageIdx = 2;
+
+      const currentTurn = sc.turns[stageIdx] || sc.turns[0];
+      document.getElementById('dialogueStepBadge').textContent = `💬 مرحلة الحوار (${stageIdx + 1}/3)`;
+
+      if (currentTurn.speaker === 'from') {
+        a.bubble = '🗣️ ' + currentTurn.text;
+        peer.bubble = '👂 يستمع...';
+        document.getElementById('liveCollabText').innerHTML = `<b>${a.name} يخاطب ${peer.name}:</b> «${currentTurn.text}»`;
+      } else {
+        peer.bubble = '💡 ' + currentTurn.text;
+        a.bubble = '👍 يراجع...';
+        document.getElementById('liveCollabText').innerHTML = `<b>${peer.name} يرد على ${a.name}:</b> «${currentTurn.text}»`;
+      }
+
+      // Animated energy link between agents
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y - 10);
+      ctx.lineTo(peer.x, peer.y - 10);
+      ctx.strokeStyle = stageIdx === 2 ? '#facc15' : '#34d399';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([5, 4]);
+      ctx.lineDashOffset = -tick * 0.8;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    if (a.talkTimer <= 0) {
+      if (peer && sc) {
+        peer.bType = 'normal';
+        peer.bubble = '✓ تم الحل';
+        a.xp = Math.min(100, a.xp + 15);
+        peer.xp = Math.min(100, peer.xp + 10);
+        floatingPopups.push({ x: a.x, y: a.y - 40, text: '+15 XP 🌟', life: 75 });
+        floatingPopups.push({ x: peer.x, y: peer.y - 40, text: '+10 XP ✓', life: 75 });
+
+        ds.timeline.unshift({
+          time: new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' }),
+          type: sc.logType || 'REPORT',
+          text: sc.log
+        });
+        setTimeout(() => { peer.bubble = peer.defaultBubble === '!' ? '...' : peer.defaultBubble; }, 2200);
+        renderDashboard();
+      }
+      a.state = 'returning';
+      a.bubble = '↩ عودة للمكتب';
+      a.path = buildCorridorPath(peer ? peer.room : a.room, a.room, a.homeX, a.homeY);
+    }
+  }
+
+  const isMoving = a.path && a.path.length > 0;
+  const bob = isMoving ? Math.abs(Math.sin(tick * 0.35)) * 2 : 0;
+  const x = a.x, y = a.y - bob;
+
+  // Warning / Alert pulse aura
+  if (a.bType === 'alert' || a.bType === 'warn') {
+    const rad = 24 + Math.sin(tick * 0.12) * 4;
+    ctx.beginPath();
+    ctx.arc(x, a.y - 8, rad, 0, Math.PI * 2);
+    ctx.strokeStyle = a.bType === 'alert' ? 'rgba(239,68,68,0.75)' : 'rgba(234,179,8,0.75)';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+
+  // Talking rotating halo
+  if (a.state === 'talking') {
+    const haloR = 26 + Math.sin(tick * 0.15) * 4;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, a.y - 12, haloR, 0, Math.PI * 2);
+    ctx.strokeStyle = '#facc15';
+    ctx.lineWidth = 2.5;
+    ctx.setLineDash([4, 4]);
+    ctx.lineDashOffset = tick * 0.6;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // DRAW AUTHENTIC METROCITY CHARACTER
+  drawMetroCharacter(a, x, y, isMoving, tick);
+
+  // Moving name tag (shown only while walking through corridors)
+  if (isMoving) {
+    ctx.font = 'bold 10px "Cairo", Tahoma, sans-serif';
+    const nw = ctx.measureText(a.name).width + 14;
+    rRect(x - nw / 2, a.y + 10, nw, 15, 4, 'rgba(11,20,34,0.94)', '#dfb045', 1);
+    ctx.fillStyle = '#fde68a';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(a.name, x, a.y + 18);
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  // Speech bubble
+  if (a.bubble) {
+    ctx.font = 'bold 11.5px "Cairo", Tahoma, sans-serif';
+    const textW = Math.max(38, ctx.measureText(a.bubble).width + 20);
+    const by = y - 56 + Math.sin((tick + a.homeY) * 0.1) * 2;
+    let bf = '#ffffff', bt = '#0f172a';
+    if (a.bType === 'alert') { bf = '#fca5a5'; bt = '#7f1d1d'; }
+    else if (a.bType === 'warn') { bf = '#fde047'; bt = '#713f12'; }
+    else if (a.state === 'talking') { bf = '#dcfce7'; bt = '#064e3b'; }
+
+    rRect(x - textW / 2, by - 13, textW, 25, 10, bf, '#0f172a', 2);
+    ctx.fillStyle = bt;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(a.bubble, x, by);
+    ctx.textAlign = 'start';
+    ctx.textBaseline = 'alphabetic';
+  }
+}
+
+function drawWorld() {
+  tick++;
+  // Deep luxurious navy canvas background
+  ctx.fillStyle = '#070d17';
+  ctx.fillRect(0, 0, cvs.width, cvs.height);
+
+  // Slate stone terrace ground
+  ctx.fillStyle = '#0a121f';
+  ctx.fillRect(30, 20, 1460, 1310);
+  ctx.strokeStyle = '#121e33';
+  ctx.lineWidth = 1;
+  for (let sx = 30; sx <= 1490; sx += 48) {
+    ctx.beginPath(); ctx.moveTo(sx, 20); ctx.lineTo(sx, 1330); ctx.stroke();
+  }
+  for (let sy = 20; sy <= 1330; sy += 48) {
+    ctx.beginPath(); ctx.moveTo(30, sy); ctx.lineTo(1490, sy); ctx.stroke();
+  }
+
+  // Cross Corridors with Terrazzo Stone Flooring
+  [245, 525, 800, 1075].forEach(cy => {
+    ctx.fillStyle = '#101c2e';
+    ctx.fillRect(40, cy, 1440, 52);
+    ctx.strokeStyle = '#223652';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(40, cy, 1440, 52);
+
+    // Warm hallway ambient light sconces every 160px
+    for (let lx = 120; lx < 1440; lx += 160) {
+      const grad = ctx.createRadialGradient(lx, cy + 26, 2, lx, cy + 26, 36);
+      grad.addColorStop(0, 'rgba(254, 240, 138, 0.12)');
+      grad.addColorStop(1, 'rgba(254, 240, 138, 0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(lx, cy + 26, 36, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+
+  // Central Grand Corridor Spine
+  ctx.fillStyle = '#132137';
+  ctx.fillRect(728, 235, 64, 1095);
+  ctx.strokeStyle = '#2d456b';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(728, 235, 64, 1095);
+
+  // Grand Persian Carpet Runner in Central Corridor
+  ctx.fillStyle = '#881337'; // rich royal burgundy
+  ctx.fillRect(742, 238, 36, 1090);
+  ctx.strokeStyle = '#dfb045'; // gold braided border
+  ctx.lineWidth = 2;
+  ctx.strokeRect(742, 238, 36, 1090);
+  // Gold geometric diamond pattern along runner
+  ctx.fillStyle = 'rgba(223, 176, 69, 0.45)';
+  for (let ry = 252; ry < 1320; ry += 28) {
+    ctx.beginPath();
+    ctx.moveTo(760, ry - 6);
+    ctx.lineTo(768, ry);
+    ctx.lineTo(760, ry + 6);
+    ctx.lineTo(752, ry);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // Corridor Architectural Columns & Plant Pots
+  [300, 580, 860, 1140].forEach(py => {
+    rRect(716, py - 6, 12, 12, 2, '#334155', '#dfb045', 1);
+    rRect(792, py - 6, 12, 12, 2, '#334155', '#dfb045', 1);
+  });
+
+  // DRAW ALL 14 ARCHITECTURAL OFFICES WITH METROCITY DETAILS
+  ROOMS.forEach(r => {
+    // 1. FLOORING SYSTEMS (NO FLAT PLAIN BOXES!)
+    if (r.id === 'ceo') {
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#4a250e', '#2e1607');
+      drawAreaRug(r.x + 35, r.y + 44, r.w - 70, r.h - 64, '#881337', '#dfb045', true, 'persian');
+    } else if (r.id === 'meeting') {
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#5c3314', '#3d200a');
+      drawAreaRug(r.x + 36, r.y + 48, r.w - 72, r.h - 80, '#172554', '#3b82f6', false, 'corporate');
+    } else if (r.id === 'mailroom') {
+      // NEW TELEGRAM MESSENGER FLOOR: Warm Honey Oak + Telegram Deep Navy & Cyan Executive Area Rug!
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#5c381c', '#3a200d');
+      drawAreaRug(r.x + 28, r.y + 36, r.w - 56, r.h - 58, '#0b1d33', '#0284c7', true, 'corporate');
+    } else if (r.id === 'web' || r.id === 'library') {
+      drawTechFloor(r.x, r.y, r.w, r.h);
+      drawAreaRug(r.x + 36, r.y + 50, r.w - 72, r.h - 80, '#091524', '#0ea5e9', false, 'corporate');
+    } else if (r.id === 'writers') {
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#6e4726', '#3d200c');
+      drawAreaRug(r.x + 24, r.y + 48, r.w - 48, r.h - 78, '#143828', '#10b981', false, 'corporate');
+    } else if (r.id === 'studio') {
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#5c3518', '#381c09');
+      drawAreaRug(r.x + 28, r.y + 48, r.w - 56, r.h - 78, '#2b1b10', '#f59e0b', false, 'corporate');
+    } else if (r.id === 'academy') {
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#6e4726', '#3d200c');
+      drawAreaRug(r.x + 28, r.y + 48, r.w - 56, r.h - 78, '#330c14', '#dfb045', true, 'persian');
+    } else if (r.id === 'advisor') {
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#613f22', '#3d200c');
+      drawAreaRug(r.x + 28, r.y + 48, r.w - 56, r.h - 78, '#181a38', '#818cf8', false, 'corporate');
+    } else if (r.id === 'publisher') {
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#6e4726', '#3d200c');
+      drawAreaRug(r.x + 24, r.y + 48, r.w - 48, r.h - 78, '#2e1b10', '#eab308', false, 'corporate');
+    } else if (r.id === 'ads') {
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#734b28', '#3d200c');
+      drawAreaRug(r.x + 28, r.y + 48, r.w - 56, r.h - 78, '#2b0d13', '#ef4444', true, 'corporate');
+    } else if (r.id === 'growth') {
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#6e4726', '#3d200c');
+      drawAreaRug(r.x + 28, r.y + 48, r.w - 56, r.h - 78, '#240f38', '#c084fc', false, 'corporate');
+    } else if (r.id === 'finance') {
+      drawParquetFloor(r.x, r.y, r.w, r.h, '#5c3b20', '#3a200d');
+      drawAreaRug(r.x + 28, r.y + 44, r.w - 56, r.h - 68, '#0d281a', '#10b981', true, 'corporate');
+    } else {
+      drawParquetFloor(r.x, r.y, r.w, r.h, r.floor || '#633818', '#3d200c');
+    }
+
+    // 2. 3D ARCHITECTURAL WALLS & DOORWAYS (TRUE ARCHITECTURAL OPENINGS & OPPOSITE BADGES)
+    drawArchRoomStructure(r);
+
+    // 3. ROOM SPECIFIC METROCITY FURNITURE & DECORATIONS
+    if (r.id === 'ceo') {
+      // CEO Suite: Bookshelves, Large Fig Plants, Paintings, Clocks, Sofa, Coffee Table
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + 22, r.y + 20, 48, 48);
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + r.w - 55, r.y + 16, 48, 48);
+      }
+      if (metroFurnImgs.large_plant && metroFurnImgs.large_plant.complete) {
+        ctx.drawImage(metroFurnImgs.large_plant, r.x + 18, r.y + r.h - 60, 32, 48);
+        ctx.drawImage(metroFurnImgs.large_plant, r.x + r.w - 42, r.y + r.h - 60, 32, 48);
+      }
+      if (metroFurnImgs.painting_large && metroFurnImgs.painting_large.complete) {
+        ctx.drawImage(metroFurnImgs.painting_large, r.x + 138, r.y + 16, 44, 24);
+      }
+      if (metroFurnImgs.clock && metroFurnImgs.clock.complete) {
+        ctx.drawImage(metroFurnImgs.clock, r.x + 190, r.y + 20, 16, 16);
+      }
+      // Executive Corner Lounge
+      if (metroFurnImgs.sofa_front && metroFurnImgs.sofa_front.complete) {
+        ctx.drawImage(metroFurnImgs.sofa_front, r.x + 28, r.y + 90, 48, 28);
+      }
+      if (metroFurnImgs.coffee_table && metroFurnImgs.coffee_table.complete) {
+        ctx.drawImage(metroFurnImgs.coffee_table, r.x + 36, r.y + 122, 32, 22);
+      }
+    } else if (r.id === 'meeting') {
+      // Boardroom: Grand Conference Table, Chairs, Smart Wall Screen, Whiteboard, Clock
+      rRect(r.x + 82, r.y + 14, 120, 42, 4, '#090d16', '#3b82f6', 2);
+      ctx.fillStyle = '#60a5fa';
+      ctx.font = 'bold 9px "Cairo", Tahoma, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('📊 Odoo HR Live KPI', r.x + 142, r.y + 24);
+      ctx.textAlign = 'start';
+      ctx.textBaseline = 'alphabetic';
+      // Mini live bar chart on screen
+      ctx.fillStyle = '#22c55e'; ctx.fillRect(r.x + 92, r.y + 36, 18, 12);
+      ctx.fillStyle = '#facc15'; ctx.fillRect(r.x + 114, r.y + 32, 18, 16);
+      ctx.fillStyle = '#38bdf8'; ctx.fillRect(r.x + 136, r.y + 30, 18, 18);
+      ctx.fillStyle = '#a855f7'; ctx.fillRect(r.x + 158, r.y + 34, 18, 14);
+
+      if (metroFurnImgs.whiteboard && metroFurnImgs.whiteboard.complete) {
+        ctx.drawImage(metroFurnImgs.whiteboard, r.x + 24, r.y + 20, 48, 40);
+      }
+      if (metroFurnImgs.clock && metroFurnImgs.clock.complete) {
+        ctx.drawImage(metroFurnImgs.clock, r.x + r.w / 2 - 8, r.y + 16, 16, 16);
+      }
+      if (metroFurnImgs.large_plant && metroFurnImgs.large_plant.complete) {
+        ctx.drawImage(metroFurnImgs.large_plant, r.x + r.w - 46, r.y + 20, 32, 48);
+      }
+      // Grand Conference Table
+      rRect(r.x + 58, r.y + 82, 170, 62, 10, '#78350f', '#451a03', 3);
+      rRect(r.x + 66, r.y + 90, 154, 46, 8, '#92400e', '#78350f', 1.5);
+      // Center Teleconference Pod
+      ctx.beginPath();
+      ctx.arc(r.x + 143, r.y + 113, 8, 0, Math.PI * 2);
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Chairs around conference table: Top row faces DOWN (chair_front), Bottom row faces UP (chair_back)
+      for (let cx = r.x + 72; cx < r.x + 215; cx += 28) {
+        if (metroFurnImgs.chair_front && metroFurnImgs.chair_front.complete) {
+          ctx.drawImage(metroFurnImgs.chair_front, cx, r.y + 64, 18, 22);
+        }
+        if (metroFurnImgs.chair_back && metroFurnImgs.chair_back.complete) {
+          ctx.drawImage(metroFurnImgs.chair_back, cx, r.y + 140, 18, 22);
+        } else if (metroFurnImgs.chair_front && metroFurnImgs.chair_front.complete) {
+          ctx.drawImage(metroFurnImgs.chair_front, cx, r.y + 140, 18, 22);
+        }
+      }
+    } else if (r.id === 'mailroom') {
+      // NEW TELEGRAM MESSENGER DECOR:
+      // Telegram Communication Center: Sofas, Espresso Machine, Telegram Dispatch Bulletin Board, Side Plant
+      if (metroFurnImgs.sofa_front && metroFurnImgs.sofa_front.complete) {
+        ctx.drawImage(metroFurnImgs.sofa_front, r.x + 32, r.y + 62, 48, 30);
+      }
+      if (metroFurnImgs.coffee_table && metroFurnImgs.coffee_table.complete) {
+        ctx.drawImage(metroFurnImgs.coffee_table, r.x + 40, r.y + 96, 36, 26);
+      }
+      // Kitchen & Espresso Counter
+      rRect(r.x + 165, r.y + 44, 85, 34, 4, '#1e293b', '#0284c7', 2);
+      if (metroFurnImgs.coffee_machine && metroFurnImgs.coffee_machine.complete) {
+        ctx.drawImage(metroFurnImgs.coffee_machine, r.x + 175, r.y + 42, 28, 28);
+      }
+      // Animated Steam Puffs
+      ctx.save();
+      const steamY = r.y + 36 - ((tick * 0.4) % 12);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+      ctx.beginPath();
+      ctx.arc(r.x + 189, steamY, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Telegram Dispatch Pinboard on Wall (Perfect Centered, No Spill!)
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      rRect(r.x + 88, r.y + 20, 88, 36, 4, '#0f172a', '#0284c7', 1.5);
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 9px "Cairo", sans-serif';
+      ctx.fillText('✈ Telegram Bot', r.x + 88 + 44, r.y + 30);
+      ctx.fillStyle = '#22c55e';
+      ctx.font = 'bold 8px "Cairo", sans-serif';
+      ctx.fillText('● 100% Online', r.x + 88 + 44, r.y + 44);
+      ctx.restore();
+
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + r.w - 56, r.y + 20, 44, 44);
+      }
+      if (metroFurnImgs.large_plant && metroFurnImgs.large_plant.complete) {
+        ctx.drawImage(metroFurnImgs.large_plant, r.x + 220, r.y + 40, 32, 48);
+      }
+    } else if (r.id === 'web') {
+      // Odoo XML-RPC Integration Gateway
+      rRect(r.x + 20, r.y + 24, 38, 54, 4, '#0f172a', '#38bdf8', 2);
+      rRect(r.x + 64, r.y + 24, 38, 54, 4, '#0f172a', '#38bdf8', 2);
+      for (let ly = r.y + 32; ly < r.y + 70; ly += 8) {
+        ctx.fillStyle = (Math.sin(tick * 0.1 + ly) > 0) ? '#22c55e' : '#0ea5e9';
+        ctx.fillRect(r.x + 26, ly, 4, 3);
+        ctx.fillRect(r.x + 70, ly, 4, 3);
+      }
+      // Odoo XML-RPC status badge (perfectly centered, no text overflow!)
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      rRect(r.x + 115, r.y + 20, 88, 36, 4, '#091522', '#0284c7', 1.5);
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 9px "Cairo", sans-serif';
+      ctx.fillText('⚡ Odoo XML-RPC', r.x + 115 + 44, r.y + 30);
+      ctx.fillStyle = '#22c55e';
+      ctx.font = 'bold 8px "Cairo", sans-serif';
+      ctx.fillText('● 42ms Stable', r.x + 115 + 44, r.y + 44);
+      ctx.restore();
+
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + r.w - 54, r.y + 24, 44, 44);
+      }
+      if (metroFurnImgs.clock && metroFurnImgs.clock.complete) {
+        ctx.drawImage(metroFurnImgs.clock, r.x + 215, r.y + 20, 16, 16);
+      }
+      if (metroFurnImgs.plant_pot && metroFurnImgs.plant_pot.complete) {
+        ctx.drawImage(metroFurnImgs.plant_pot, r.x + r.w - 38, r.y + r.h - 50, 20, 28);
+      }
+    } else if (r.id === 'library') {
+      // مستودع المهارات والتوثيق (GitNexus Code Intelligence & Architecture Hub)
+      // 1. Dual High-density Data Server Racks with pulsing LEDs
+      rRect(r.x + 20, r.y + 24, 36, 54, 4, '#09131f', '#10b981', 2);
+      rRect(r.x + 62, r.y + 24, 36, 54, 4, '#09131f', '#10b981', 2);
+      for (let ly = r.y + 32; ly < r.y + 70; ly += 8) {
+        ctx.fillStyle = (Math.sin(tick * 0.12 + ly) > 0) ? '#34d399' : '#059669';
+        ctx.fillRect(r.x + 26, ly, 4, 3);
+        ctx.fillRect(r.x + 68, ly, 4, 3);
+      }
+
+      // 2. Git Architectural Dependency Graph Whiteboard (Visual Graph Intelligence)
+      rRect(r.x + 108, r.y + 20, 72, 44, 3, '#0b1626', '#34d399', 1.5);
+      ctx.save();
+      ctx.strokeStyle = 'rgba(52, 211, 153, 0.6)';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      // Git Branching Graph Lines
+      ctx.moveTo(r.x + 116, r.y + 42);
+      ctx.lineTo(r.x + 130, r.y + 32);
+      ctx.lineTo(r.x + 152, r.y + 32);
+      ctx.lineTo(r.x + 168, r.y + 42);
+      ctx.moveTo(r.x + 116, r.y + 42);
+      ctx.lineTo(r.x + 134, r.y + 50);
+      ctx.lineTo(r.x + 168, r.y + 42);
+      ctx.stroke();
+      // Graph Commit Nodes
+      const gNodes = [
+        [r.x + 116, r.y + 42, '#38bdf8'],
+        [r.x + 130, r.y + 32, '#facc15'],
+        [r.x + 152, r.y + 32, '#34d399'],
+        [r.x + 134, r.y + 50, '#a855f7'],
+        [r.x + 168, r.y + 42, '#10b981']
+      ];
+      gNodes.forEach(([nx, ny, col]) => {
+        ctx.beginPath();
+        ctx.arc(nx, ny, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = col;
+        ctx.fill();
+      });
+      ctx.restore();
+
+      // 3. GitNexus Tech Intelligence Plaque (Perfectly centered, zero text overflow!)
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      rRect(r.x + 188, r.y + 20, 88, 36, 4, '#091522', '#10b981', 1.5);
+      ctx.fillStyle = '#34d399';
+      ctx.font = 'bold 9px "Cairo", sans-serif';
+      ctx.fillText('🌳 GitNexus 17k', r.x + 188 + 44, r.y + 30);
+      ctx.fillStyle = '#22c55e';
+      ctx.font = 'bold 8px "Cairo", sans-serif';
+      ctx.fillText('● 574 Flows OK', r.x + 188 + 44, r.y + 44);
+      ctx.restore();
+
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + r.w - 52, r.y + 68, 44, 44);
+      }
+      if (metroFurnImgs.clock && metroFurnImgs.clock.complete) {
+        ctx.drawImage(metroFurnImgs.clock, r.x + 140, r.y + 66, 16, 16);
+      }
+      if (metroFurnImgs.plant_pot && metroFurnImgs.plant_pot.complete) {
+        ctx.drawImage(metroFurnImgs.plant_pot, r.x + 22, r.y + r.h - 48, 20, 28);
+      }
+    } else if (r.id === 'booth') {
+      // Acoustic recording booth
+      ctx.save();
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+      ctx.lineWidth = 2.5;
+      ctx.strokeRect(r.x + 18, r.y + 20, r.w - 36, 48);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(r.x + 140, r.y + 40, 4, 24);
+      ctx.beginPath();
+      ctx.arc(r.x + 142, r.y + 38, 6, 0, Math.PI * 2);
+      ctx.fillStyle = '#38bdf8';
+      ctx.fill();
+      ctx.restore();
+      if (metroFurnImgs.plant_pot && metroFurnImgs.plant_pot.complete) {
+        ctx.drawImage(metroFurnImgs.plant_pot, r.x + 24, r.y + 30, 20, 28);
+      }
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + r.w - 54, r.y + 20, 44, 44);
+      }
+    } else if (r.id === 'writers') {
+      // فاحص وسجل: 2 Bookshelves, Archive Filing Cabinets, Printer, Clock
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + 20, r.y + 20, 44, 44);
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + r.w - 54, r.y + 20, 44, 44);
+      }
+      // Metal Filing Archive Cabinet
+      rRect(r.x + 72, r.y + 22, 28, 40, 2, '#334155', '#1e293b', 1.5);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(r.x + 78, r.y + 30, 16, 2);
+      ctx.fillRect(r.x + 78, r.y + 42, 16, 2);
+      ctx.fillRect(r.x + 78, r.y + 54, 16, 2);
+      if (metroFurnImgs.clock && metroFurnImgs.clock.complete) {
+        ctx.drawImage(metroFurnImgs.clock, r.x + 115, r.y + 20, 16, 16);
+      }
+      if (metroFurnImgs.plant_pot && metroFurnImgs.plant_pot.complete) {
+        ctx.drawImage(metroFurnImgs.plant_pot, r.x + 140, r.y + 24, 20, 28);
+      }
+    } else if (r.id === 'academy') {
+      // مدقق: Law Bookshelves, Scales of Justice plaque, Certificate
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + 20, r.y + 20, 44, 44);
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + r.w - 54, r.y + 20, 44, 44);
+      }
+      // Law plaque (Centered, No Spill)
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      rRect(r.x + 75, r.y + 20, 72, 26, 4, '#0b1424', '#dfb045', 1.5);
+      ctx.fillStyle = '#dfb045';
+      ctx.font = 'bold 8.5px "Cairo", sans-serif';
+      ctx.fillText('⚖ المادة 85', r.x + 75 + 36, r.y + 33);
+      ctx.restore();
+      if (metroFurnImgs.clock && metroFurnImgs.clock.complete) {
+        ctx.drawImage(metroFurnImgs.clock, r.x + 140, r.y + 20, 16, 16);
+      }
+    } else if (r.id === 'advisor') {
+      // باحث الذاكرة: Memory vector core, Bookshelf, Whiteboard
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + 20, r.y + 20, 44, 44);
+      }
+      if (metroFurnImgs.whiteboard && metroFurnImgs.whiteboard.complete) {
+        ctx.drawImage(metroFurnImgs.whiteboard, r.x + 75, r.y + 20, 44, 36);
+      }
+      if (metroFurnImgs.large_plant && metroFurnImgs.large_plant.complete) {
+        ctx.drawImage(metroFurnImgs.large_plant, r.x + r.w - 46, r.y + 20, 32, 48);
+      }
+    } else if (r.id === 'ads') {
+      // حارس: Security CCTV screens (Centered, Wide Box, No Text Overflow!)
+      ctx.save();
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      rRect(r.x + 18, r.y + 20, 86, 38, 4, '#090d16', '#ef4444', 1.5);
+      ctx.fillStyle = '#ef4444';
+      ctx.font = 'bold 9px "Cairo", sans-serif';
+      ctx.fillText('🛡 CCTV Gate', r.x + 18 + 43, r.y + 31);
+      ctx.fillStyle = '#22c55e';
+      ctx.font = 'bold 8px "Cairo", sans-serif';
+      ctx.fillText('● Locked', r.x + 18 + 43, r.y + 46);
+      ctx.restore();
+
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + r.w - 54, r.y + 20, 44, 44);
+      }
+      if (metroFurnImgs.plant_pot && metroFurnImgs.plant_pot.complete) {
+        ctx.drawImage(metroFurnImgs.plant_pot, r.x + 85, r.y + 24, 20, 28);
+      }
+    } else if (r.id === 'finance') {
+      // محاسب المسيرات: Safe box, Bookshelf, Ledger cabinet
+      rRect(r.x + 22, r.y + 22, 32, 32, 4, '#1e293b', '#dfb045', 2);
+      ctx.beginPath();
+      ctx.arc(r.x + 38, r.y + 38, 7, 0, Math.PI * 2);
+      ctx.strokeStyle = '#dfb045';
+      ctx.stroke();
+
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + r.w - 54, r.y + 20, 44, 44);
+      }
+      if (metroFurnImgs.plant_pot && metroFurnImgs.plant_pot.complete) {
+        ctx.drawImage(metroFurnImgs.plant_pot, r.x + 70, r.y + 24, 20, 28);
+      }
+    } else {
+      // Standard Specialist Offices: Bookshelves, Archive Filing Cabinets, Plants, Clock
+      if (metroFurnImgs.bookshelf && metroFurnImgs.bookshelf.complete) {
+        ctx.drawImage(metroFurnImgs.bookshelf, r.x + 20, r.y + 20, 44, 44);
+      }
+      rRect(r.x + 72, r.y + 22, 28, 40, 2, '#334155', '#1e293b', 1.5);
+      ctx.fillStyle = '#94a3b8';
+      ctx.fillRect(r.x + 78, r.y + 30, 16, 2);
+      ctx.fillRect(r.x + 78, r.y + 42, 16, 2);
+      ctx.fillRect(r.x + 78, r.y + 54, 16, 2);
+
+      if (metroFurnImgs.clock && metroFurnImgs.clock.complete) {
+        ctx.drawImage(metroFurnImgs.clock, r.x + 115, r.y + 20, 16, 16);
+      }
+      if (metroFurnImgs.plant_pot && metroFurnImgs.plant_pot.complete) {
+        ctx.drawImage(metroFurnImgs.plant_pot, r.x + r.w - 38, r.y + 24, 20, 28);
+      }
+    }
+  });
+
+  // 4. DRAW METROCITY AGENTS AND FURNITURE
+  const agents = DATA_SETS[currentMode].agents;
+  agents.forEach(drawChairAndDeskAtHome);
+  agents.forEach(updateAndDrawAgent);
+
+  // 5. FLOATING +15 XP REWARD BADGES
+  floatingPopups = floatingPopups.filter(p => p.life > 0);
+  floatingPopups.forEach(p => {
+    p.life--;
+    p.y -= 0.7;
+    ctx.fillStyle = '#facc15';
+    ctx.font = 'bold 14px "Cairo", Tahoma';
+    ctx.textAlign = 'center';
+    ctx.fillText(p.text, p.x, p.y);
+    ctx.textAlign = 'start';
+  });
+
+  requestAnimationFrame(drawWorld);
+}
+
+// ============================================================================
+// 6. RENDER BENTO DASHBOARD & MODAL
+// ============================================================================
+function renderDashboard() {
+  const d = DATA_SETS[currentMode];
+  document.getElementById('teamStatsText').textContent = d.stats;
+  document.getElementById('needsBadge').textContent = d.needs.length;
+
+  document.getElementById('teamListContainer').innerHTML = d.agents.slice(0, 8).map(a => {
+    const isMoving = a.state !== 'seated';
+    const pillClass = isMoving ? 'walk' : (a.status === 'Working' ? '' : (a.status === 'Learning' ? 'learn' : 'wait'));
+    const statusLabel = isMoving ? '🚶 يتعاون الآن' : (a.status === 'Working' ? '● يشتغل' : '● ينتظرك');
+    return `
+      <div class="item-card clickable" onclick="openProfileModal('${a.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div class="bot-avatar">${createMetroAvatarHTML(a.charIdx || 0)}</div>
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                <b style="font-size:1.02rem">${a.name}</b>
+                <span class="lv-pill">Lv ${a.lv} (${a.xp} XP)</span>
+                <span style="color:var(--text-sub);font-size:0.86rem">${a.role}</span>
+              </div>
+              <div style="color:#cbd5e1;font-size:0.88rem;margin-top:5px">${a.task}</div>
+            </div>
+          </div>
+          <span class="work-pill ${pillClass}">${statusLabel}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('needsContainer').innerHTML = d.needs.map((n, idx) => `
+    <div class="item-card gold-outline">
+      <div style="font-weight:800;font-size:0.96rem;line-height:1.45;margin-bottom:8px">${n.title}</div>
+      <div style="display:flex;align-items:center;gap:10px;color:var(--text-sub);font-size:0.84rem">
+        <div class="bot-avatar sm">${createMetroAvatarHTML(0)}</div>
+        <span>${n.from}</span>
+      </div>
+      <button class="open-btn" onclick="this.textContent='✓ تم الاعتماد والتنفيذ في Odoo';this.style.background='#34d399'">اعتماد وتنفيذ (Open)</button>
+    </div>
+  `).join('');
+
+  document.getElementById('todoContainer').innerHTML = d.todos.map(t => `
+    <div class="todo-row ${t.done ? 'checked' : ''}" onclick="this.classList.toggle('checked');this.querySelector('.todo-box').textContent=this.classList.contains('checked')?'✓':''">
+      <div class="todo-box">${t.done ? '✓' : ''}</div>
+      <div class="todo-text" style="font-weight:700;font-size:0.92rem">${t.text}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('weeklyContainer').innerHTML = `
+    <h2 class="panel-title">التقرير الأسبوعي (Weekly report)</h2>
+    <ul style="padding-right:20px;line-height:1.75;color:#e2e8f0;font-size:0.9rem">
+      ${d.weekly.bullets.map(b => `<li>${b}</li>`).join('')}
+    </ul>
+  `;
+
+  document.getElementById('kanbanContainer').innerHTML = `
+    <div class="k-col">
+      <div class="k-head"><span>RUNNING · جارية</span><span>${d.running.length}</span></div>
+      ${d.running.map(r => `
+        <div class="item-card">
+          <b style="font-size:0.92rem">${r.title}</b>
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-sub);font-size:0.78rem;margin-top:6px">
+            <div class="bot-avatar sm">${createRobotAvatarSVG(r.suit, '#4ade80')}</div>
+            <span>${r.agent}</span>
+          </div>
+          ${r.frac ? `<div class="prog-row"><div class="prog-track"><div class="prog-fill" style="width:${r.prog}%"></div></div><span style="color:var(--text-sub);font-size:0.76rem">${r.frac}</span></div>` : ''}
+          ${r.after ? `<div class="after-pill">${r.after}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+    <div class="k-col">
+      <div class="k-head"><span>REVIEW · للمراجعة</span><span>${d.review.length}</span></div>
+      ${d.review.map(rv => `
+        <div class="item-card">
+          <b style="font-size:0.92rem">${rv.title}</b>
+          <div style="display:flex;align-items:center;gap:8px;color:var(--text-sub);font-size:0.78rem;margin-top:6px">
+            <div class="bot-avatar sm">${createRobotAvatarSVG(rv.suit, '#facc15')}</div>
+            <span>${rv.agent}</span>
+          </div>
+          ${rv.frac ? `<div class="prog-row"><div class="prog-track"><div class="prog-fill" style="width:${rv.prog}%"></div></div><span style="color:var(--text-sub);font-size:0.76rem">${rv.frac}</span></div>` : ''}
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  document.getElementById('timelineContainer').innerHTML = d.timeline.slice(0, 8).map(tl => `
+    <div class="tl-item">
+      <div class="tl-dot ${tl.type.toLowerCase()}"></div>
+      <span style="color:var(--text-sub);font-size:0.8rem">${tl.time}</span>
+      <div class="bot-avatar sm">${createRobotAvatarSVG('#3b82f6', '#4ade80')}</div>
+      <span class="tl-type">${tl.type}</span>
+      <div style="line-height:1.45;color:#e2e8f0">${tl.text}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('standupContainer').innerHTML = d.standup.map(s => `
+    <div style="display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:start">
+      <div class="bot-avatar sm" style="margin-top:4px">${createRobotAvatarSVG(s.suit, '#4ade80')}</div>
+      <div class="item-card" style="padding:10px 12px">
+        <b style="color:var(--gold);font-size:0.88rem">${s.name}</b>
+        <p style="font-size:0.86rem;line-height:1.45;margin-top:3px;color:#e2e8f0">${s.text}</p>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openProfileModal(agentId) {
+  const d = DATA_SETS[currentMode];
+  const a = d.agents.find(x => x.id === agentId) || d.agents[0];
+  const modal = document.getElementById('profileModal');
+  document.getElementById('profileModalBody').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:18px">
+      <div style="display:flex;gap:16px;align-items:center">
+        <div class="bot-avatar" style="width:68px;height:68px;border-radius:18px">${createMetroAvatarHTML(a.charIdx || 0)}</div>
+        <div>
+          <h2 style="font-size:1.4rem;font-weight:800">${a.name}</h2>
+          <p style="color:var(--text-sub);font-size:0.92rem;margin:4px 0 8px">${a.role} · ${a.room}</p>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span class="work-pill">● ${a.status}</span>
+            <span class="lv-pill">Lv ${a.lv}</span>
+          </div>
+        </div>
+      </div>
+      <button onclick="document.getElementById('profileModal').classList.remove('open')" style="background:#162438;color:#fff;border:1px solid #2b4263;width:36px;height:36px;border-radius:10px;cursor:pointer">✕</button>
+    </div>
+    <div class="item-card" style="margin-bottom:16px">
+      <div style="font-weight:800;font-size:0.98rem">${a.task}</div>
+      <div style="color:var(--gold);font-size:0.88rem;margin-top:6px">"${a.quote}"</div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:12px">
+      <span style="font-size:1.6rem;font-weight:900">Lv ${a.lv}</span>
+      <span style="color:var(--text-sub);font-size:0.9rem">${a.xp} / 100 XP نحو المستوى ${a.lv + 1}</span>
+    </div>
+    <div class="xp-gold-track"><div class="xp-gold-fill" style="width:${a.xp}%"></div></div>
+    <div style="color:var(--text-sub);font-size:0.8rem;font-weight:700;margin:14px 0 8px">الأدوات والملفات المربوطة (${a.skills.length})</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      ${a.skills.map(s => `<div class="item-card"><b>${s}</b></div>`).join('')}
+    </div>
+  `;
+  modal.classList.add('open');
+}
+
+cvs.addEventListener('click', e => {
+  const rect = cvs.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (cvs.width / rect.width);
+  const my = (e.clientY - rect.top) * (cvs.height / rect.height);
+  for (const a of DATA_SETS[currentMode].agents) {
+    if (Math.hypot(mx - a.x, my - a.y) < 34) {
+      openProfileModal(a.id);
+      return;
+    }
+  }
+});
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btnModeVideo').classList.toggle('active', mode === 'video');
+  document.getElementById('btnModeOdoo').classList.toggle('active', mode === 'odoo');
+  renderDashboard();
+}
+
+const HANDBOOK_DOCS = {
+  diff: `<h3>أولاً: الفرق الجوهري بين الرابطين (ai-company-hq vs ai-company-templates)</h3>
+<table class="comp-table">
+  <tr><th>وجه المقارنة</th><th>الرابط الأول: ai-company-hq (المقر والمعمارية)</th><th>الرابط الثاني: ai-company-templates (القوالب وخطة التنفيذ)</th></tr>
+  <tr><td><b>الهدف الأساسي</b></td><td>شرح الهندسة الكاملة وطريقة عمل النظام من الصفر وكيف تترابط أدوات Claude Code معاً.</td><td>توفير الملفات النصية الجاهزة للنسخ (Fill-in-the-blanks) وخطة تطبيق تدريجية خلال 7 أيام.</td></tr>
+  <tr><td><b>طريقة البناء</b></td><td>يعطيك أمراً شاملاً واحداً (Master Prompt) تنسخه ليبني لك الهيكل دفعة واحدة.</td><td>يعطيك 8 قوالب منفصلة لتنشئها وتتحكم في تفاصيلها يدوياً ملفاً تلو الآخر.</td></tr>
+  <tr><td><b>الأدوار الإدارية</b></td><td>يركز على المدير التنفيذي (CEO) + أقسام التنفيذ المباشرة.</td><td>يضيف دور رئيس الموظفين (Chief of Staff) لمتابعة المهام العالقة وتجهيز أجندة الاجتماعات.</td></tr>
+  <tr><td><b>تفاصيل الصلاحيات</b></td><td>يدمج قواعد الأمان داخل دليل الشركة (README.md) وبروتوكول اللوحة.</td><td>يفصل الصلاحيات في ملف مستقل team/approvals.md ويضيف بند «مو شغلك» لمنع تداخل الأقسام.</td></tr>
+  <tr><td><b>الأنظمة المتقدمة</b></td><td>ينفرد بشرح نظام المستويات (Levels 1-10 & XP)، ساعة الدراسة من GitHub، وبروتوكول (if_version).</td><td>ينفرد بقاموس المصطلحات التقنية وتوزيع النماذج القوية والرخيصة + مثال عملي جاهز.</td></tr>
+</table>
+<h3 style="margin-top:16px">ثانياً: المسارات التطبيقية الـ 4 المخصصة لك</h3>
+<p style="line-height:1.9;margin-top:8px">
+1. <b>استوديو تصميم الهويات البصرية والتغليف والواجهات (Branding, Packaging & UI/UX Studio):</b> (قسم البحث والتوجه الفني، قسم المحتوى الإبداعي والـ Prompts، قسم فحص الجودة UI/UX، وقسم عروض العملاء).<br>
+2. <b>فريق تطوير البرمجيات وأنظمة الـ ERP والمتاجر (Software & ERP Engineering Squad):</b> (محلل منطق الأعمال وحالات الحافة في نظام العمل، مهندس الكود وقواعد البيانات، ومختبر الجودة واكتشاف الأخطاء).<br>
+3. <b>ماكينة تسويق ومبيعات لقطاع التجزئة والتجارة الإلكترونية (Retail & E-Commerce Growth Team):</b> (راصد الترندات والعروض، كاتب السكربتات والإعلانات، وقسم خدمة العملاء والردود المسودة).<br>
+4. <b>تشغيل المعمارية محلياً (Local Agentic AI Harness):</b> تشغيل نفس هيكلة <code>team/</code> على نموذج محلي (Qwen 9B/14B) بنمط Sequential Orchestrator-Worker لتوفير التكلفة وحماية خصوصية بيانات Odoo.
+</p>`,
+
+  steps: `أبي أبني شركة من موظفين AI داخل هذا المجلد. أنا المالك، وأبي أكلّم جلسة وحدة بس: المدير التنفيذي.
+1. اسألني أول: وش نوع مشروعي، وش الشغل اللي يتكرر عندي كل يوم وكل أسبوع، وكم ساعة أقدر أعطي.
+2. اقترح من 3 إلى 4 أقسام مبدئياً (كل قسم جلسة Claude Code مستقلة)، مع وصف كل قسم بسطرين، وانتظر موافقتي.
+3. بعد موافقتي، سوّ مجلد team فيه:
+   - README.md: دليل الشركة (من نحن، الفريق، القواعد، وصيغة التقرير الموحدة: تم / الملفات / يحتاج المالك / متوقف / التالي)
+   - approvals.md: جدول الموافقات (ما يُنفذ تلقائياً، ما يحتاج موافقة المدير، وما يحتاج موافقة المالك الحصرية)
+   - jd/: وصف وظيفة لكل قسم يتضمن: (الشغل، مو شغلك، الأدوات، التسليم، وقائمة «خلص») + ملف خاص لـ رئيس الموظفين (Chief of Staff)
+   - checklists.md: قائمة شروط «خلص» لكل مرحلة قبل التسليم
+   - board-protocol.md: متى وكيف يحدّث كل قسم اللوحة باستخدام رقم الإصدار (if_version)
+   - levels.md: 10 مستويات، نقاط XP من الشغل الحقيقي بس، وصلاحيات كل مستوى
+   - rituals/README.md: ملخص الصباح، ختام اليوم، اجتماع الأسبوع، المراجعة الشهرية، فحص الليل
+4. سوّ لي Artifact لوحة مكتب حيّة بقاعدة بيانات مشتركة (staff / events / tasks / needs)، فيها خانة «ينتظرك».
+5. اقترح المهام المجدولة للروتين، ولا تشغّل شي قبل موافقتي.
+
+قواعد ثابتة:
+- أي نشر أو إرسال أو صرف أو دفع أو تغيير إعدادات أو كلمة سر = بموافقتي أنا بس، ولكل مرة لحالها.
+- لا تثبّت أي مهارة (Skill) أو أداة قبل ما تعرض علي ملفاتها.
+- الأوقات بنظام 12 ساعة.`,
+
+  readme: `# دليل منظومة وكلاء الموارد البشرية (Odoo HR Agents - team/README.md)
+
+المالك (Owner): مدير النظام (الإنسان).
+المنسق العام (Master Orchestrator): نقطة التواصل الوحيدة مع المالك، ويدير تشغيل الوكلاء بالتسلسل (Sequential Execution).
+
+## الفريق (Worker Agents)
+1. **وكيل الرواتب ونهاية الخدمة (\`payroll_eosb\`):** يحسب مسيرات الرواتب، البدلات، الاستقطاعات، ومستحقات نهاية الخدمة (EOSB) وفق نظام العمل السعودي.
+2. **وكيل الحضور والإجازات (\`attendance_leaves\`):** يراجع سجلات البصمة، الغياب، أرصدة الإجازات، وتأثيرها المالي على المسير.
+3. **وكيل العقود والامتثال (\`contracts_audit\`):** يفحص صلاحية العقود، فترات التجربة، وتطابق هياكل الرواتب في Odoo مع اللوائح.
+
+## القواعد الصارمة (Core Guardrails)
+1. **التسلسل الإلزامي:** كل وكيل يستلم مهمته من \`orchestrator\` فقط، ويرفع تقريره إلى \`orchestrator\` فقط.
+2. **ممنوع الكتابة المباشرة (Read/Draft Only):** يُمنع تأكيد أي مسير رواتب، أو تعديل راتب أساسي، أو اعتماد تصفية مستحقات في Odoo إلا بعد موافقة صريحة من المالك في \`needs_approval\`.
+3. **الالتزام بالمسار:** أي طلب يخرج عن قسمك (انظر بند «مو شغلك») يُعاد فوراً للمنسق العام مع حالة \`BLOCKED_OUT_OF_SCOPE\`.
+4. **الحساب بالحتمية البرمجية:** يُمنع حساب المبالغ المالية بالتخمين النصي؛ يجب دائماً استدعاء أدوات الحساب البرمجية (Tools).
+5. **شرط الإنجاز:** لا تُكتب حالة المهمة \`DONE\` إلا بعد استيفاء كافة شروط \`team/checklists.md\`.
+6. **التعلم التراكمي:** كل تصحيح يقرره المالك يُضاف كقاعدة دائمة في \`team/learned_rules.md\`.
+
+## صيغة التقرير الموحدة (تُرسل للمنسق العام بـ 5 أسطر فقط)
+- **تم (DONE):** [ملخص الإنجاز في سطر واحد + الأرقام المحسوبة]
+- **السجلات/الملفات (RECORDS):** [معرفات سجلات Odoo مثل \`hr.payslip(42)\` أو مسار ملف التقرير]
+- **يحتاج المالك (NEEDS_OWNER):** [القرار المطلوب اعتماده + القيمة المالية، أو «لا شيء»]
+- **متوقف (BLOCKED):** [سبب التوقف أو البيانات الناقصة في Odoo، أو «لا شيء»]
+- **التالي (NEXT):** [الوكيل التالي المقترح أو «فاضي»]`,
+
+  approvals: `# مصفوفة الصلاحيات والاعتمادات (team/approvals.md - HITL Checkpoints)
+
+## 🟢 المستوى 1: تنفيذ تلقائي (Auto-Execute - Read & Simulate)
+- قراءة بيانات الموظفين، العقود، وسجلات الحضور من Odoo (\`search_read\`).
+- تشغيل أدوات المحاكاة الحسابية لمكافأة نهاية الخدمة أو الرواتب في الذاكرة المؤقتة (Dry-Run).
+- فحص الأخطاء وتوليد تقارير المراجعة في مجلد التقارير المحلي.
+
+## 🟡 المستوى 2: مراجعة المنسق العام (Orchestrator Gate)
+- دمج مخرجات أكثر من وكيل (مثل ربط خصم الغياب من \`attendance_leaves\` مع مسير الرواتب في \`payroll_eosb\`).
+- معالجة حالات الحافة في العقود (مثل موظف استقال خلال فترة التجربة أو لديه إجازة غير مدفوعة متداخلة).
+
+## 🔴 المستوى 3: موافقة المالك الحصرية (Owner Checkpoint - REQUIRED)
+يتوقف التنفيذ فوراً وتُضاف بطاقة في \`needs_approval\` لكل عملية مما يلي:
+1. تغيير حالة أي مسير رواتب في Odoo من \`draft\` إلى \`verify\` أو \`done\`.
+2. اعتماد حساب تصفية نهاية الخدمة (EOSB) أو تعديل سبب إنهاء العقد (استقالة / مادة 80 / مادة 84 / مادة 85).
+3. تعديل الراتب الأساسي أو البدلات الثابتة في سجل العقد (\`hr.contract\`).
+4. الموافقة على استثناء من خصم غياب أو تعديل رصيد إجازات سنوية بأثر رجعي.
+5. إرسال أي إشعار أو قسيمة راتب (Payslip Email/Message) للموظف.`,
+
+  jds: `# 1. المنسق العام (team/jd/orchestrator.md)
+يرفع تقاريره إلى: المالك مباشرةً.
+## الشغل
+- استلام طلب المالك، تحليله، وتقسيمه إلى خطوات تسلسلية (Sequential Steps).
+- استدعاء الوكيل المختص واحداً تلو الآخر وتمرير السياق الضروري فقط (Minimal Context).
+- تجميع القرارات الحرجة في خانة «ينتظرك» وتقديم ملخص نهائي للمالك لا يتجاوز 3 نقاط.
+## مو شغلك
+- لا تكتب استعلامات Odoo التفصيلية ولا تحسب معادلات نهاية الخدمة بنفسك؛ أرسلها للوكيل المختص.
+
+---
+# 2. وكيل الرواتب ونهاية الخدمة (team/jd/payroll_eosb.md)
+يرفع تقاريره إلى: المنسق العام (\`orchestrator\`)
+## الشغل
+- مراجعة وحساب مسيرات الرواتب الشهرية (\`hr.payslip\`) ومطابقة البدلات والاستقطاعات.
+- حساب مكافأة نهاية الخدمة (EOSB) وفق نظام العمل السعودي (المواد 84، 85، 80) مع استبعاد أيام الغياب بدون أجر.
+## مو شغلك
+- لا تعدل أرصدة الإجازات أو سجلات الحضور بنفسك (اطلبها من \`attendance_leaves\`).
+- لا تضغط اعتماد نهائي للمسير أو التصفية بدون موافقة المالك.
+
+---
+# 3. وكيل الحضور والإجازات (team/jd/attendance_leaves.md)
+## الشغل
+- فحص سجلات الحضور (\`hr.attendance\`) وطلبات الإجازات (\`hr.leave\`) وحساب صافي أيام الغياب والتأخير.
+## مو شغلك
+- لا تحسب مبالغ مالية أو ريالات؛ سلم «عدد الأيام والساعات المعتمدة» فقط.
+
+---
+# 4. وكيل العقود والامتثال (team/jd/contracts_audit.md)
+## الشغل
+- فحص عقود الموظفين (\`hr.contract\`) ورصد العقود وفترات التجربة التي تقترب من الانتهاء.
+## مو شغلك
+- لا تنشئ مسيرات رواتب ولا تجدد عقداً في Odoo بدون قرار معتمد من المالك.`,
+
+  checklists: `# قائمة شروط «خلص» (team/checklists.md - Self-Correction & Validation Checklist)
+
+## 1. فحص سلامة البيانات (Data Integrity Check)
+- [ ] كل رقم موظف (\`employee_id\`) أو عقد (\`contract_id\`) مذكور في التقرير موجود فعلياً في استجابة أداة Odoo وليس مفترضاً.
+- [ ] التواريخ بصيغة موحدة (\`YYYY-MM-DD\`) وتم التحقق من أن \`date_end >= date_start\`.
+
+## 2. فحص الدقة الحسابية (Math & Logic Verification)
+- [ ] أي مبلغ مالي مذكور يطابق ناتج أداة الحساب البرمجية (Python Calculator Tool) بنسبة 100% دون تقريب عشوائي.
+- [ ] في حسابات نهاية الخدمة: تم ذكر المادة النظامية المطبقة (مادة 84 أو مادة 85 أو مادة 80) وصافي سنوات الخدمة بالكسور العشرية الدقيقة.
+
+## 3. فحص الأمان والصلاحيات (Safety & HITL Check)
+- [ ] لم يتم تنفيذ أي عملية كتابة حرجة من المستوى الأحمر (🔴) دون وجود \`approval_id\` صالح من المالك.
+- [ ] التقرير مكتوب بصيغة الـ 5 أسطر الإلزامية (تم / السجلات / يحتاج المالك / متوقف / التالي).`,
+
+  statejson: `{
+  "version": 12,
+  "last_updated": "10:30 ص",
+  "staff": {
+    "orchestrator": { "status": "يشتغل", "current_task": "مراجعة تصفية الموظف #104", "level": 3, "xp": 140 },
+    "payroll_eosb": { "status": "ينتظرك", "current_task": "حساب نهاية خدمة استقالة (5.4 سنوات)", "level": 2, "xp": 85 },
+    "attendance_leaves": { "status": "فاضي", "current_task": "لا شيء", "level": 2, "xp": 70 },
+    "contracts_audit": { "status": "فاضي", "current_task": "لا شيء", "level": 1, "xp": 30 }
+  },
+  "needs_approval": [
+    {
+      "approval_id": "REQ-009",
+      "agent": "payroll_eosb",
+      "action_type": "CONFIRM_EOSB_SETTLEMENT",
+      "odoo_record": "hr.employee(104)",
+      "summary": "اعتماد مكافأة نهاية خدمة (استقالة - المادة 85) بمبلغ 18,450.00 ريال بعد حسم 4 أيام غياب بدون أجر.",
+      "status": "PENDING_OWNER"
+    }
+  ],
+  "recent_reports": [
+    {
+      "time": "10:28 ص",
+      "agent": "payroll_eosb",
+      "done": "حساب مستحقات نهاية الخدمة للموظف #104 (خدمة صافية 5.38 سنة، استحقاق الثلثين)",
+      "records": "hr.employee(104), hr.contract(88)",
+      "needs_owner": "الموافقة على الطلب REQ-009 بمبلغ 18,450.00 ريال",
+      "blocked": "لا شيء",
+      "next": "فاضي"
+    }
+  ]
+}`
+};
+
+function showHandbookTab(key, btn) {
+  if (btn) {
+    document.querySelectorAll('.hb-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const box = document.getElementById('hbContentBox');
+  if (key === 'diff') {
+    box.innerHTML = `<div class="item-card">${HANDBOOK_DOCS.diff}</div>`;
+  } else {
+    box.innerHTML = `<div class="code-box"><button class="copy-btn" onclick="navigator.clipboard.writeText(HANDBOOK_DOCS['${key}']);this.textContent='✓ تم النسخ'">نسخ الكود</button>${HANDBOOK_DOCS[key]}</div>`;
+  }
+}
+
+document.getElementById('mapDots').innerHTML = Array.from({length: 12}, (_, i) =>
+  `<span class="t-dot ${i === 0 ? 'active' : ''}" title="سيناريو ${i + 1}" onclick="runSpecificScenario(${i})"></span>`
+).join('');
+
+renderScenarioStrip();
+renderDashboard();
+showHandbookTab('diff');
+drawWorld();
+setTimeout(() => runSpecificScenario(0), 1500);
+</script>
+</body>
+</html>

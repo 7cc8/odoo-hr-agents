@@ -1,0 +1,39 @@
+{
+  "episode_id": "ep_c43569b94685",
+  "timestamp": "2026-11-02T06:34:04.473955",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "modaqeq",
+    "sijil"
+  ],
+  "user_query": "اعتماد قمرة القيادة وتصحيح الموديل إلى Qwen 3.5 9B وتطهير الواجهة",
+  "intent": "system_optimization_and_verification",
+  "context": {
+    "tests": "cockpit_acceptance",
+    "viewport": "1440x900"
+  },
+  "result": {
+    "status": "success",
+    "tests_passed": 15,
+    "visual_harmony": "100%"
+  },
+  "success": true,
+  "confidence": 1.0,
+  "decision_path": [
+    "remove_academic_pillars",
+    "clean_sim_strip",
+    "fix_model_qwen3.5",
+    "run_tests_15"
+  ],
+  "strategies_used": [
+    "hallmark_the_floor",
+    "21st_dev_ui",
+    "pytest_suite"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 1250,
+  "company_id": 1,
+  "user_id": "admin"
+}

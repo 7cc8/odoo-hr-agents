@@ -1,5 +1,6 @@
 from __future__ import annotations
 import os
+import time
 import xmlrpc.client
 from typing import Any, Dict, List, Optional
 
@@ -1081,6 +1082,52 @@ class OdooReadonlyRepository:
             )
         except Exception:
             return []
+
+
+_shared_repo_instance: Optional[OdooReadonlyRepository] = None
+_shared_repo_cfg_key: Optional[str] = None
+_shared_repo_last_used: float = 0.0
+
+
+def get_shared_readonly_repository(force_refresh: bool = False) -> OdooReadonlyRepository:
+    """Returns a shared, pooled OdooReadonlyRepository instance to avoid re-authenticating on every request."""
+    global _shared_repo_instance, _shared_repo_cfg_key, _shared_repo_last_used
+
+    active_cfg: Dict[str, str] = {}
+    try:
+        from odoo_config_manager import get_active_odoo_config
+        active_cfg = get_active_odoo_config()
+    except Exception:
+        pass
+
+    url = (active_cfg.get("url") or os.environ.get("ODOO_URL", "")).rstrip("/")
+    db = active_cfg.get("db") or os.environ.get("ODOO_DB", "")
+    username = active_cfg.get("username") or os.environ.get("ODOO_USER") or os.environ.get("ODOO_USERNAME", "")
+    api_key = active_cfg.get("api_key") or os.environ.get("ODOO_API_KEY", "")
+    cfg_key = f"{url}:{db}:{username}:{api_key}"
+
+    now = time.time()
+    if (
+        force_refresh
+        or _shared_repo_instance is None
+        or _shared_repo_cfg_key != cfg_key
+        or (now - _shared_repo_last_used > 900)
+    ):
+        repo = OdooReadonlyRepository(url=url, db=db, username=username, api_key=api_key)
+        repo.connect()
+        _shared_repo_instance = repo
+        _shared_repo_cfg_key = cfg_key
+
+    _shared_repo_last_used = now
+    return _shared_repo_instance
+
+
+def reset_shared_readonly_repository() -> None:
+    """Invalidates the shared OdooReadonlyRepository cache."""
+    global _shared_repo_instance, _shared_repo_cfg_key
+    _shared_repo_instance = None
+    _shared_repo_cfg_key = None
+
 
 
 

@@ -1,0 +1,23 @@
+{
+  "plan_id": "plan_1793997956_6d58c6fe",
+  "plan_type": "create",
+  "target_model": "hr.employee",
+  "target_records": [],
+  "operation_details": {
+    "action": "create",
+    "name": "ناصر الزهراني",
+    "values": {
+      "name": "ناصر الزهراني",
+      "job_title": "مطور برمجيات اول",
+      "work_email": "",
+      "department_id": 1
+    }
+  },
+  "created_by": "web_test_add_full",
+  "approved_by": "web_test_add_full",
+  "created_at": "2026-11-06T20:45:56.409975",
+  "expires_at": "2026-11-06T20:50:56.409975",
+  "is_consumed": true,
+  "consumed_at": "2026-11-06T20:45:56.435515",
+  "status": "consumed"
+}
