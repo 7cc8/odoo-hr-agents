@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import logging
 import re
 from dataclasses import dataclass, field
@@ -45,16 +46,71 @@ class ConversationSession:
     pending_clarification: Optional[Dict[str, Any]] = None
     pending_action: Optional[Dict[str, Any]] = None
     history: List[Dict[str, Any]] = field(default_factory=list)
+    handoffs: List[Dict[str, Any]] = field(default_factory=list)
+    checkpoints: List[Dict[str, Any]] = field(default_factory=list)
     last_query_topic: Optional[str] = None
+    title: Optional[str] = None
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+    def record_handoff(
+        self,
+        from_agent: str,
+        to_agent: str,
+        intent: str,
+        context_summary: str = "",
+        payload: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """توثيق عملية تسليم وتفويض المهام بين الوكلاء وحفظها في سياق الجلسة."""
+        ho = {
+            "handoff_id": f"ho_{int(datetime.now().timestamp() * 1000)}",
+            "from_agent": from_agent,
+            "to_agent": to_agent,
+            "intent": intent,
+            "context_summary": context_summary,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "payload": payload or {},
+        }
+        self.handoffs.append(ho)
+        if len(self.handoffs) > 50:
+            self.handoffs = self.handoffs[-50:]
+        return ho
+
+    def record_checkpoint(
+        self,
+        phase: str,
+        agent: str,
+        status: str = "success",
+        artifacts: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """تسجيل نقطة تفتيش وحفظ لحالة خط أنابيب الوكلاء."""
+        cp = {
+            "checkpoint_id": f"cp_{int(datetime.now().timestamp() * 1000)}",
+            "phase": phase,
+            "agent": agent,
+            "status": status,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "artifacts": artifacts or {},
+        }
+        self.checkpoints.append(cp)
+        if len(self.checkpoints) > 50:
+            self.checkpoints = self.checkpoints[-50:]
+        return cp
 
     def add_message(self, role: str, content: str, tool_calls: Optional[List[Dict[str, Any]]] = None) -> None:
-        """إضافة رسالة إلى تاريخ الجلسة مع الحفاظ على سقف أقصى 12 رسالة ومزامنتها مع ذاكرة العمل الموحدة."""
+        """إضافة رسالة إلى تاريخ الجلسة مع الحفاظ على سقف أقصى 30 رسالة وتحديث الطابع الزمني والعنوان ومزامنتها مع ذاكرة العمل الموحدة."""
         msg: Dict[str, Any] = {"role": role, "content": content}
         if tool_calls:
             msg["tool_calls"] = tool_calls
         self.history.append(msg)
-        if len(self.history) > 12:
-            self.history = self.history[-12:]
+        if len(self.history) > 30:
+            self.history = self.history[-30:]
+
+        self.updated_at = datetime.now(timezone.utc).isoformat()
+        if not self.title and role == "user":
+            first_line = content.strip().split("\n")[0][:45].strip()
+            self.title = first_line or "محادثة استفسار"
+
         try:
             from memory.manager import MemoryManager
             wm = MemoryManager.get_instance().get_working_memory(self.chat_id)
@@ -117,6 +173,26 @@ class SerajSessionManager:
         cid = str(chat_id)
         if cid in self.sessions:
             del self.sessions[cid]
+
+    def list_sessions(self) -> List[Dict[str, Any]]:
+        """إرجاع قائمة بكافة الجلسات النشطة مرتبة تنازلياً حسب آخر نشاط."""
+        result = []
+        for s in sorted(self.sessions.values(), key=lambda x: x.updated_at, reverse=True):
+            display_title = s.title
+            if not display_title:
+                display_title = f"جلسة {s.chat_id[:8]}" if s.chat_id.startswith("web_") else s.chat_id
+            last_msg = ""
+            if s.history:
+                last_msg = str(s.history[-1].get("content") or "")[:80]
+            result.append({
+                "chat_id": s.chat_id,
+                "title": display_title,
+                "created_at": s.created_at,
+                "updated_at": s.updated_at,
+                "message_count": len(s.history),
+                "last_message": last_msg,
+            })
+        return result
 
     def resolve_pending_clarification(
         self,

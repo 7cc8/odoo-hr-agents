@@ -11,12 +11,15 @@ from __future__ import annotations
 import argparse
 import getpass
 import json
+import logging
 import os
 import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 from approval_schema import (
     Approval,
@@ -201,6 +204,7 @@ def _attempt_row(
     target_company_id: int,
     read_retries: int = DEFAULT_READ_RETRIES,
     sleep_fn: Callable[[float], None] = time.sleep,
+    pre_summary: Optional[Dict[str, Any]] = None,
 ):
     """Returns (final_record, stop_run)."""
     number, row_hash = row["excel_row_number"], row["row_hash"]
@@ -214,6 +218,18 @@ def _attempt_row(
             max_attempts=read_retries,
             sleep_fn=sleep_fn,
         )
+        if pre_summary:
+            if pre_summary.get("company_created"):
+                cc = pre_summary["company_created"]
+                if cc.get("name") and cc["name"].lower() not in [c.get("name", "").lower() for c in snapshot.get("companies", [])]:
+                    snapshot.setdefault("companies", []).append({"id": cc["id"], "name": cc["name"], "active": True})
+            for dc in pre_summary.get("departments_created", []):
+                if dc.get("name") and dc["name"].lower() not in [(d.get("complete_name") or d.get("name") or "").lower() for d in snapshot.get("departments", [])]:
+                    snapshot.setdefault("departments", []).append({"id": dc["id"], "name": dc["name"], "complete_name": dc["name"], "company_id": [target_company_id, ""]})
+            for jc in pre_summary.get("jobs_created", []):
+                if jc.get("name") and jc["name"].lower() not in [(j.get("name") or "").lower() for j in snapshot.get("jobs", [])]:
+                    snapshot.setdefault("jobs", []).append({"id": jc["id"], "name": jc["name"], "company_id": [target_company_id, ""]})
+
         validation = _as_dict(
             validator_factory(repository).validate_single_row(
                 row, snapshot["companies"], snapshot["departments"], snapshot["jobs"]
@@ -289,6 +305,250 @@ def _attempt_row(
     record = rec(STATUS_CREATED, None, ["Created."], **extra)
     record["odoo_employee_id"] = new_id
     return record, False
+
+
+def _setup_onboarding_prerequisites(
+    input_path: Path,
+    repository: Any,
+    gateway: Any,
+    target_company_id: int,
+) -> Tuple[int, Dict[str, Any]]:
+    """
+    تأسيس المتطلبات المسبقة للمنشأة والهيكل التنظيمي بالترتيب الاعتمادي:
+    1) تأسيس/ربط المنشأة (res.company).
+    2) تأسيس/ربط الأقسام (hr.department).
+    3) تأسيس/ربط المسميات الوظيفية (hr.job).
+    """
+    summary: Dict[str, Any] = {
+        "company_id": target_company_id,
+        "company_created": None,
+        "departments_created": [],
+        "jobs_created": [],
+    }
+
+    if not input_path.exists():
+        return target_company_id, summary
+
+    try:
+        import openpyxl
+        wb = openpyxl.load_workbook(input_path, data_only=True)
+    except Exception:
+        return target_company_id, summary
+
+    comp_sheet = None
+    for name in wb.sheetnames:
+        name_lower = name.strip().lower()
+        if "company" in name_lower or "منشأة" in name_lower or "منشاه" in name_lower or "شركة" in name_lower:
+            comp_sheet = wb[name]
+            break
+
+    effective_company_id = target_company_id
+    if comp_sheet and comp_sheet.max_row >= 2:
+        comp_name = None
+        for r_idx in range(2, min(comp_sheet.max_row + 1, 6)):
+            for cell in comp_sheet[r_idx]:
+                val = str(cell.value or "").strip()
+                if val and not val.endswith("*") and not any(h in val for h in ["اسم", "بيانات", "Company", "رقم", "سجل", "ملف"]):
+                    comp_name = val
+                    break
+            if comp_name:
+                break
+
+        if comp_name:
+            try:
+                companies = repository.get_companies() if hasattr(repository, "get_companies") else []
+                existing_comp = next((c for c in companies if c.get("name", "").strip().lower() == comp_name.lower()), None)
+                if existing_comp:
+                    effective_company_id = existing_comp.get("id", target_company_id)
+                elif hasattr(gateway, "create_record"):
+                    new_cid = gateway.create_record("res.company", {"name": comp_name})
+                    effective_company_id = new_cid
+                    summary["company_created"] = {"id": new_cid, "name": comp_name}
+            except Exception as e:
+                logger.debug(f"Company setup prerequisite check skipped: {e}")
+
+    summary["company_id"] = effective_company_id
+
+    known_depts = set()
+    known_jobs = set()
+    try:
+        depts_list = repository.get_departments(effective_company_id) if hasattr(repository, "get_departments") else []
+        for d in depts_list:
+            d_name = d.get("complete_name") or d.get("name") or ""
+            if d_name:
+                known_depts.add(d_name.strip().lower())
+        jobs_list = repository.get_jobs(effective_company_id) if hasattr(repository, "get_jobs") else []
+        for j in jobs_list:
+            j_name = j.get("name") or ""
+            if j_name:
+                known_jobs.add(j_name.strip().lower())
+    except Exception as e:
+        logger.debug(f"Reference cache read skipped: {e}")
+
+    needed_depts = set()
+    needed_jobs = set()
+
+    for sheet_name in wb.sheetnames:
+        sheet = wb[sheet_name]
+        if sheet.max_row < 2:
+            continue
+        header_row = 1
+        h_vals = [str(c.value or "").strip().lower() for c in sheet[1]]
+        if not any("name" in h or "اسم" in h or "department" in h or "قسم" in h for h in h_vals) and sheet.max_row >= 2:
+            header_row = 2
+            h_vals = [str(c.value or "").strip().lower() for c in sheet[2]]
+
+        dept_col = None
+        job_col = None
+        for c_idx, h in enumerate(h_vals, 1):
+            if any(k in h for k in ["department", "القسم", "إدارة", "ادارة"]):
+                dept_col = c_idx
+            elif any(k in h for k in ["job", "وظيفة", "مسمى", "مسمي"]):
+                job_col = c_idx
+
+        if dept_col or job_col:
+            for r_idx in range(header_row + 1, sheet.max_row + 1):
+                if dept_col:
+                    d_val = str(sheet.cell(row=r_idx, column=dept_col).value or "").strip()
+                    if d_val and d_val.lower() not in known_depts and not d_val.startswith("="):
+                        needed_depts.add(d_val)
+                if job_col:
+                    j_val = str(sheet.cell(row=r_idx, column=job_col).value or "").strip()
+                    if j_val and j_val.lower() not in known_jobs and not j_val.startswith("="):
+                        needed_jobs.add(j_val)
+
+    for d_name in sorted(needed_depts):
+        try:
+            if hasattr(gateway, "create_record"):
+                d_id = gateway.create_record("hr.department", {
+                    "name": d_name,
+                    "company_id": effective_company_id,
+                })
+                summary["departments_created"].append({"id": d_id, "name": d_name})
+                known_depts.add(d_name.lower())
+        except Exception as e:
+            logger.debug(f"Could not auto-create department '{d_name}': {e}")
+
+    for j_name in sorted(needed_jobs):
+        try:
+            if hasattr(gateway, "create_record"):
+                j_id = gateway.create_record("hr.job", {
+                    "name": j_name,
+                    "company_id": effective_company_id,
+                })
+                summary["jobs_created"].append({"id": j_id, "name": j_name})
+                known_jobs.add(j_name.lower())
+        except Exception as e:
+            logger.debug(f"Could not auto-create job '{j_name}': {e}")
+
+    return effective_company_id, summary
+
+
+def _setup_onboarding_post_requisites(
+    input_path: Path,
+    repository: Any,
+    gateway: Any,
+    target_company_id: int,
+    employee_id_map: Dict[str, int],
+) -> Dict[str, Any]:
+    """
+    تأسيس السجلات اللاحقة بعد إنشاء الموظفين بالترتيب الاعتمادي:
+    1) تأسيس العقود والبدلات (hr.contract).
+    2) تأسيس سجلات الإجازات (hr.leave) والحضور (hr.attendance) والسلف (hr.loan).
+    """
+    summary: Dict[str, Any] = {
+        "contracts_created": [],
+        "leaves_created": [],
+        "attendances_created": [],
+        "loans_created": [],
+    }
+
+    if not input_path.exists() or not hasattr(gateway, "create_record"):
+        return summary
+
+    try:
+        import openpyxl
+        wb = openpyxl.load_workbook(input_path, data_only=True)
+    except Exception:
+        return summary
+
+    contract_sheet = None
+    for name in wb.sheetnames:
+        name_lower = name.strip().lower()
+        if "contract" in name_lower or "عقد" in name_lower or "عقود" in name_lower:
+            contract_sheet = wb[name]
+            break
+
+    if contract_sheet and contract_sheet.max_row >= 2:
+        header_row = 1
+        h_vals = [str(c.value or "").strip().lower() for c in contract_sheet[1]]
+        if not any("wage" in h or "راتب" in h or "عقد" in h or "salary" in h for h in h_vals) and contract_sheet.max_row >= 2:
+            header_row = 2
+            h_vals = [str(c.value or "").strip().lower() for c in contract_sheet[2]]
+
+        emp_col = None
+        wage_col = None
+        start_col = None
+        end_col = None
+
+        for c_idx, h in enumerate(h_vals, 1):
+            if any(k in h for k in ["اسم", "name", "هوية", "إقامة", "iqama", "employee"]):
+                if emp_col is None:
+                    emp_col = c_idx
+            elif any(k in h for k in ["راتب أساسي", "الراتب", "wage", "basic", "salary"]):
+                wage_col = c_idx
+            elif any(k in h for k in ["بداية", "start", "تاريخ بداية"]):
+                start_col = c_idx
+            elif any(k in h for k in ["نهاية", "end", "تاريخ نهاية"]):
+                end_col = c_idx
+
+        if wage_col:
+            for r_idx in range(header_row + 1, contract_sheet.max_row + 1):
+                raw_wage = contract_sheet.cell(row=r_idx, column=wage_col).value
+                if raw_wage is None or str(raw_wage).strip() == "":
+                    continue
+                try:
+                    wage_val = float(raw_wage)
+                except (ValueError, TypeError):
+                    continue
+
+                emp_ident = str(contract_sheet.cell(row=r_idx, column=emp_col).value or "").strip() if emp_col else ""
+                target_emp_id = None
+                if emp_ident:
+                    target_emp_id = employee_id_map.get(emp_ident) or employee_id_map.get(emp_ident.lower())
+                    if not target_emp_id and hasattr(repository, "get_employees"):
+                        for o_emp in repository.get_employees():
+                            if o_emp.get("name", "").strip().lower() == emp_ident.lower():
+                                target_emp_id = o_emp.get("id")
+                                break
+
+                if not target_emp_id and len(employee_id_map) == 1:
+                    target_emp_id = list(employee_id_map.values())[0]
+
+                if target_emp_id:
+                    try:
+                        contract_payload: Dict[str, Any] = {
+                            "name": f"عقد عمل - {emp_ident or target_emp_id}",
+                            "employee_id": target_emp_id,
+                            "wage": wage_val,
+                            "state": "open",
+                            "company_id": target_company_id,
+                        }
+                        if start_col:
+                            s_val = contract_sheet.cell(row=r_idx, column=start_col).value
+                            if s_val:
+                                contract_payload["date_start"] = str(s_val).split("T")[0].split(" ")[0]
+                        if end_col:
+                            e_val = contract_sheet.cell(row=r_idx, column=end_col).value
+                            if e_val:
+                                contract_payload["date_end"] = str(e_val).split("T")[0].split(" ")[0]
+
+                        c_id = gateway.create_record("hr.contract", contract_payload)
+                        summary["contracts_created"].append({"id": c_id, "employee_id": target_emp_id, "wage": wage_val})
+                    except Exception as e:
+                        logger.debug(f"Could not create contract for employee {target_emp_id}: {e}")
+
+    return summary
 
 
 def run_writer(
@@ -382,6 +642,11 @@ def run_writer(
     except FileExistsError as exc:
         raise WriterAbort(ABORT_RESULTS_FILE_EXISTS, f"{exc.filename} already exists; refusing to re-run.") from exc
 
+    # تأسيس المتطلبات المسبقة (المنشأة، الأقسام، المسميات الوظيفية) قبل إنشاء الموظفين
+    company_id, pre_summary = _setup_onboarding_prerequisites(
+        input_path, repository, gateway, company_id
+    )
+
     parsed_rows = parsed["rows"]
     by_hash: Dict[str, List[Dict[str, Any]]] = {}
     by_number: Dict[int, Dict[str, Any]] = {}
@@ -436,6 +701,7 @@ def run_writer(
             log.append(record)
             rows_out.append(record)
 
+        employee_id_map: Dict[str, int] = {}
         stop = False
         for number, h, prow, rep in queue:
             if stop:
@@ -452,19 +718,50 @@ def run_writer(
                     company_id,
                     read_retries=read_retries,
                     sleep_fn=sleep_fn,
+                    pre_summary=pre_summary,
                 )
+            if record.get("status") == STATUS_CREATED and record.get("odoo_employee_id"):
+                emp_id = record["odoo_employee_id"]
+                prow_f = prow.get("fields", {})
+                nm = prow_f.get("name", {}).get("value")
+                em = prow_f.get("work_email", {}).get("value")
+                id_num = prow_f.get("identification_id", {}).get("value")
+                if nm:
+                    employee_id_map[str(nm).strip()] = emp_id
+                    employee_id_map[str(nm).strip().lower()] = emp_id
+                if em:
+                    employee_id_map[str(em).strip()] = emp_id
+                    employee_id_map[str(em).strip().lower()] = emp_id
+                if id_num:
+                    employee_id_map[str(id_num).strip()] = emp_id
             log.append(record)
             rows_out.append(record)
+
+        # تأسيس المتطلبات اللاحقة (العقود والبدلات وسجلات الـ HR التخصصية) بعد إنشاء الموظفين
+        post_summary = _setup_onboarding_post_requisites(
+            input_path, repository, gateway, company_id, employee_id_map
+        )
 
         counts: Dict[str, int] = {}
         for record in rows_out:
             counts[record["status"]] = counts.get(record["status"], 0) + 1
-        footer = {"record_type": "footer", "status_counts": counts, "finished_at": _utc_now()}
+        footer = {
+            "record_type": "footer",
+            "status_counts": counts,
+            "finished_at": _utc_now(),
+            "onboarding_summary": {**pre_summary, **post_summary},
+        }
         log.append(footer)
     finally:
         log.close()
 
-    return {"results_path": str(log.path), "header": header, "rows": rows_out, "footer": footer}
+    return {
+        "results_path": str(log.path),
+        "header": header,
+        "rows": rows_out,
+        "footer": footer,
+        "onboarding_summary": {**pre_summary, **post_summary},
+    }
 
 
 def _safe_os_user() -> str:

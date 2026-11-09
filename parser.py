@@ -35,6 +35,147 @@ OFFICIAL_TEMPLATE_EXAMPLE_NAME = "أحمد محمد العتيبي"
 OFFICIAL_TEMPLATE_EXAMPLE_EMAIL = "ahmed@company.com"
 
 
+# Canonical mapping of Arabic, English, and bilingual column headers.
+# Specific variants (e.g. English name, company en) MUST appear before generic ones.
+HEADER_MAPPING_RULES = [
+    # Explicit secondary / English columns
+    ("اسم الموظف بالانجليزي", "name_en"),
+    ("اسم الموظف بالإنجليزي", "name_en"),
+    ("اسم الموظف باللغة الإنجليزية", "name_en"),
+    ("اسم الموظف باللغة الانجليزية", "name_en"),
+    ("الاسم بالإنجليزي", "name_en"),
+    ("الاسم بالانجليزي", "name_en"),
+    ("employee name en", "name_en"),
+    ("name en", "name_en"),
+    ("name_en", "name_en"),
+    ("المنشأة بالإنجليزي", "company_en"),
+    ("الشركة بالإنجليزي", "company_en"),
+    ("company en", "company_en"),
+    ("company_en", "company_en"),
+    ("المسمى الوظيفي بالإنجليزي", "job_title_en"),
+    ("المسمى الوظيفي بالانجليزي", "job_title_en"),
+    ("الوظيفة بالإنجليزي", "job_title_en"),
+    ("job title en", "job_title_en"),
+    ("job_title_en", "job_title_en"),
+    ("القسم بالإنجليزي", "department_en"),
+    ("department en", "department_en"),
+    ("department_en", "department_en"),
+
+    # National ID / Iqama
+    ("رقم الهوية الوطنية / الإقامة (10 أرقام)", "national_id"),
+    ("رقم الهوية الوطنية / الإقامة", "national_id"),
+    ("رقم الهوية الوطنية / الاقامة", "national_id"),
+    ("الهوية الوطنية / الإقامة", "national_id"),
+    ("رقم الهوية الوطنية", "national_id"),
+    ("الهوية الوطنية", "national_id"),
+    ("رقم الهوية", "national_id"),
+    ("رقم الإقامة", "national_id"),
+    ("رقم الاقامة", "national_id"),
+    ("الهوية / الإقامة", "national_id"),
+    ("national id", "national_id"),
+    ("national_id", "national_id"),
+    ("iqama", "national_id"),
+
+    # Employee Name (Arabic & Bilingual & General)
+    ("اسم الموظف الكامل بالعربي", "name"),
+    ("اسم الموظف بالعربي", "name"),
+    ("اسم الموظف الكامل", "name"),
+    ("اسم الموظف / employee name", "name"),
+    ("الاسم الكامل / full name", "name"),
+    ("الاسم / name", "name"),
+    ("اسم الموظف", "name"),
+    ("الاسم الكامل", "name"),
+    ("employee name", "name"),
+    ("full name", "name"),
+    ("name", "name"),
+
+    # Email
+    ("البريد الإلكتروني للعمل", "work_email"),
+    ("البريد الالكتروني للعمل", "work_email"),
+    ("البريد الإلكتروني / work email", "work_email"),
+    ("البريد الالكتروني / work email", "work_email"),
+    ("البريد الإلكتروني / email", "work_email"),
+    ("البريد الالكتروني / email", "work_email"),
+    ("البريد / email", "work_email"),
+    ("البريد الإلكتروني", "work_email"),
+    ("البريد الالكتروني", "work_email"),
+    ("بريد العمل", "work_email"),
+    ("work email", "work_email"),
+    ("work_email", "work_email"),
+    ("email", "work_email"),
+
+    # Phone numbers
+    ("هاتف العمل / work phone", "work_phone"),
+    ("هاتف العمل", "work_phone"),
+    ("work phone", "work_phone"),
+    ("work_phone", "work_phone"),
+    ("رقم الجوال (05xxxxxxxx)", "mobile_phone"),
+    ("رقم الجوال / mobile phone", "mobile_phone"),
+    ("رقم الجوال / mobile", "mobile_phone"),
+    ("الجوال / mobile", "mobile_phone"),
+    ("رقم الجوال", "mobile_phone"),
+    ("رقم الهاتف المحمول", "mobile_phone"),
+    ("الجوال", "mobile_phone"),
+    ("mobile phone", "mobile_phone"),
+    ("mobile_phone", "mobile_phone"),
+    ("mobile", "mobile_phone"),
+    ("phone", "work_phone"),
+
+    # Job Title / Job
+    ("المسمى الوظيفي / job title", "job_title"),
+    ("المسمى الوظيفي / job", "job_title"),
+    ("الوظيفة / job title", "job_title"),
+    ("الوظيفة / job", "job"),
+    ("المسمى الوظيفي", "job_title"),
+    ("مسمى الوظيفة", "job_title"),
+    ("الوظيفة", "job"),
+    ("job title", "job_title"),
+    ("job_title", "job_title"),
+    ("job", "job"),
+
+    # Company
+    ("المنشأة التابع لها", "company"),
+    ("المنشأة / company", "company"),
+    ("الشركة / company", "company"),
+    ("اسم المنشأة", "company"),
+    ("اسم الشركة", "company"),
+    ("المنشأة", "company"),
+    ("المنشاه", "company"),
+    ("الشركة", "company"),
+    ("الشركه", "company"),
+    ("company", "company"),
+
+    # Department
+    ("القسم / الإدارة", "department"),
+    ("القسم / الادارة", "department"),
+    ("القسم / department", "department"),
+    ("الإدارة / department", "department"),
+    ("الادارة / department", "department"),
+    ("اسم القسم", "department"),
+    ("اسم الإدارة", "department"),
+    ("القسم", "department"),
+    ("الإدارة", "department"),
+    ("الادارة", "department"),
+    ("department", "department"),
+
+    # Hiring Date
+    ("تاريخ المباشرة / hiring date", "hiring_date"),
+    ("تاريخ المباشرة / hire date", "hiring_date"),
+    ("تاريخ التعيين / hiring date", "hiring_date"),
+    ("تاريخ التعيين / hire date", "hiring_date"),
+    ("تاريخ المباشرة", "hiring_date"),
+    ("تاريخ التعيين", "hiring_date"),
+    ("تاريخ الالتحاق", "hiring_date"),
+    ("تاريخ بدء العمل", "hiring_date"),
+    ("hiring date", "hiring_date"),
+    ("hiring_date", "hiring_date"),
+    ("hire date", "hiring_date"),
+    ("hire_date", "hiring_date"),
+    ("joining date", "hiring_date"),
+    ("joining_date", "hiring_date"),
+]
+
+
 class ParserError(Exception):
     pass
 
@@ -124,43 +265,61 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
             header_row_idx = 2
 
     header_cells = [cell.value for cell in ws[header_row_idx]]
+    # Strip trailing empty/None/whitespace/unnamed headers
+    while header_cells and (
+        header_cells[-1] is None
+        or str(header_cells[-1]).strip() == ""
+        or str(header_cells[-1]).strip().lower().startswith("unnamed:")
+    ):
+        header_cells.pop()
+
     headers_norm = [normalize_header(to_text_preserve(v)) for v in header_cells]
 
-    # Map Arabic headers if present
-    AR_MAP = {
-        "اسم الموظف الكامل بالعربي": "name",
-        "اسم الموظف": "name",
-        "البريد الإلكتروني للعمل": "work_email",
-        "البريد الإلكتروني": "work_email",
-        "رقم الجوال (05xxxxxxxx)": "mobile_phone",
-        "رقم الجوال": "mobile_phone",
-        "هاتف العمل": "work_phone",
-        "المسمى الوظيفي": "job_title",
-        "المنشأة التابع لها": "company",
-        "الشركة": "company",
-        "القسم / الإدارة": "department",
-        "القسم": "department",
-        "تاريخ المباشرة": "hiring_date",
-    }
+    # Map Arabic, English, and bilingual headers according to canonical priority rules
+    for idx, h in enumerate(headers_norm):
+        if not h or h.startswith("unnamed:"):
+            headers_norm[idx] = ""
+            continue
+        matched_key = None
+        # 1. Exact match against rule target or pattern
+        for pat, key in HEADER_MAPPING_RULES:
+            pat_norm = normalize_header(pat)
+            if h == pat_norm:
+                matched_key = key
+                break
+        # 2. Substring match (specific patterns are checked first in list)
+        if not matched_key:
+            for pat, key in HEADER_MAPPING_RULES:
+                pat_norm = normalize_header(pat)
+                if pat_norm in h:
+                    matched_key = key
+                    break
+        if matched_key:
+            headers_norm[idx] = matched_key
+
+    # Gracefully disambiguate duplicate headers rather than crashing
+    seen_headers: Dict[str, int] = {}
     for idx, h in enumerate(headers_norm):
         if not h:
-            continue  # blank header cell: '' in <any str> is True and would be mislabeled 'name'
-        for ar_k, en_k in AR_MAP.items():
-            if ar_k in h or h in ar_k:
-                headers_norm[idx] = en_k
-                break
-
-    if len(headers_norm) != len(set(headers_norm)):
-        # Filter duplicates only if non-empty
-        non_empty_headers = [h for h in headers_norm if h]
-        if len(non_empty_headers) != len(set(non_empty_headers)):
-            raise ParserError("duplicate_header")
+            continue
+        if h in seen_headers:
+            seen_headers[h] += 1
+            disambiguated = f"{h}_{seen_headers[h]}"
+            warnings = sorted(set(warnings) | {f"duplicate_header_disambiguated:{disambiguated}"})
+            headers_norm[idx] = disambiguated
+        else:
+            seen_headers[h] = 1
 
     header_map = {h: idx + 1 for idx, h in enumerate(headers_norm) if h}
     if "job_title" in header_map and "job" not in header_map:
         header_map["job"] = header_map["job_title"]
+    elif "job" in header_map and "job_title" not in header_map:
+        header_map["job_title"] = header_map["job"]
+
     if "mobile_phone" in header_map and "work_phone" not in header_map:
         header_map["work_phone"] = header_map["mobile_phone"]
+    elif "work_phone" in header_map and "mobile_phone" not in header_map:
+        header_map["mobile_phone"] = header_map["work_phone"]
 
     if target_sheet == REQUIRED_SHEET or "employee" in target_sheet.lower():
         missing = [h for h in REQUIRED_HEADERS if h not in header_map]

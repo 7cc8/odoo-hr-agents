@@ -131,6 +131,51 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
     }
 
 
+# ==================== SESSIONS MANAGEMENT ====================
+
+@router.get("/api/seraj/sessions")
+def get_seraj_sessions_endpoint(request: Request) -> Dict[str, Any]:
+    """Returns the list of active chat sessions with titles and timestamps."""
+    from seraj_session_manager import SerajSessionManager
+    sessions = SerajSessionManager.get_instance().list_sessions()
+    return {"status": "success", "sessions": sessions}
+
+
+@router.get("/api/seraj/session/{chat_id}")
+def get_seraj_session_detail_endpoint(chat_id: str, request: Request) -> Dict[str, Any]:
+    """Returns the full message history and metadata for a specific chat session."""
+    from seraj_session_manager import SerajSessionManager
+    mgr = SerajSessionManager.get_instance()
+    if chat_id not in mgr.sessions:
+        s = mgr.get_session(chat_id)
+    else:
+        s = mgr.sessions[chat_id]
+    return {
+        "status": "success",
+        "session": {
+            "chat_id": s.chat_id,
+            "title": s.title or (f"جلسة {s.chat_id[:8]}" if s.chat_id.startswith("web_") else s.chat_id),
+            "created_at": s.created_at,
+            "updated_at": s.updated_at,
+            "history": s.history,
+            "pending_action": s.pending_action,
+            "pending_clarification": s.pending_clarification,
+            "company_id": s.company_id,
+            "company_name": s.company_name,
+            "handoffs": getattr(s, "handoffs", []),
+            "checkpoints": getattr(s, "checkpoints", []),
+        }
+    }
+
+
+@router.delete("/api/seraj/session/{chat_id}")
+def delete_seraj_session_endpoint(chat_id: str, request: Request) -> Dict[str, Any]:
+    """Deletes or resets a specific chat session."""
+    from seraj_session_manager import SerajSessionManager
+    SerajSessionManager.get_instance().reset_session(chat_id)
+    return {"status": "success", "message": f"تم تصفير الجلسة {chat_id} بنجاح."}
+
+
 # ==================== ASSISTANTS & DISCOVERY ====================
 
 @router.post("/assistants/search")
@@ -170,7 +215,18 @@ async def get_assistant_detail_endpoint(assistant_id: str, request: Request) -> 
 @router.get("/threads/search")
 async def search_threads_endpoint(request: Request) -> List[Dict[str, Any]]:
     """Returns list of threads for conversational clients."""
-    return []
+    from seraj_session_manager import SerajSessionManager
+    sessions = SerajSessionManager.get_instance().list_sessions()
+    return [
+        {
+            "thread_id": s["chat_id"],
+            "title": s["title"],
+            "created_at": s["created_at"],
+            "updated_at": s["updated_at"],
+            "metadata": {"message_count": s["message_count"]},
+        }
+        for s in sessions
+    ]
 
 
 # ==================== STANDALONE CHAT ENDPOINT ====================

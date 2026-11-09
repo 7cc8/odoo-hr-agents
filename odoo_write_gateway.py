@@ -16,6 +16,13 @@ ALLOWED_WRITE_MODELS = frozenset({
     "hr.applicant",
     "hr.leave.type",
     "res.company",
+    "hr.contract",
+    "hr.leave",
+    "hr.attendance",
+    "hr.loan",
+    "hr.payslip",
+    "hr.appraisal",
+    "hr.disciplinary",
 })
 
 # P5-S11: Safe fields whitelist - prevent writing sensitive/system fields
@@ -29,23 +36,37 @@ SAFE_WRITE_FIELDS = frozenset({
     "place_of_birth", "country_of_birth", "marital", "children", "notes",
     "color", "image_1920", "image_1024", "image_512", "image_256", "image_128",
     "active",  # for archive/unarchive
+    "identification_id", "job_title", "phone", "email",
     
     # hr.department safe fields
     "department_id", "manager_id", "parent_id", "note", "color",
     
     # hr.job safe fields
-    "job_title", "expected_employees", "no_of_employee", "description",
+    "expected_employees", "no_of_employee", "description",
     
     # hr.applicant safe fields
     "partner_name", "email_from", "partner_phone", "partner_mobile", "salary_expected", "stage_id", "priority",
 
+    # hr.contract safe fields
+    "employee_id", "wage", "date_start", "date_end", "state", "structure_type_id",
+    "trial_date_end", "advantages",
+
+    # hr.leave safe fields
+    "holiday_status_id", "request_date_from", "request_date_to", "number_of_days",
+
+    # hr.attendance safe fields
+    "check_in", "check_out",
+
+    # hr.loan safe fields
+    "loan_amount", "installment", "date",
+
     # Common safe fields
-    "note", "description", "sequence", "color",
+    "note", "description", "sequence", "color", "currency_id", "vat",
 })
 
 # P5-S11: Sensitive fields - require special approval (not in safe list)
 SENSITIVE_FIELDS = frozenset({
-    "identification_id", "passport_id", "iqama_id", "bank_account_id",
+    "passport_id", "iqama_id", "bank_account_id",
     "salary", "hourly_cost", "attendance_ids", "leave_ids", "contract_ids",
     "user_id", "resource_id", "resource_calendar_id",  # system fields
 })

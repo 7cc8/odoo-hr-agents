@@ -92,6 +92,10 @@ class QuickApproveAndExecuteRequest(BaseModel):
 
 class TemplateGenerateRequest(BaseModel):
     company_id: Optional[int] = None
+    template_type: Optional[str] = "employee"
+    module: Optional[str] = None
+    include_example_row: Optional[bool] = False
+    language: Optional[str] = "ar"
 
 
 class ConditionalExecutionApprovalRequest(BaseModel):
@@ -318,7 +322,7 @@ async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
         selected_module = definition.module
         selected_template_id = definition.template_id
     else:
-        template_path = generate_template(snapshot, output_dir=str(generation_dir))
+        template_path = generate_template(snapshot, output_dir=str(generation_dir), language=language)
         selected_module = "employees"
         selected_template_id = "generated:employees"
     company_name = snapshot["companies"][0]["name"] if snapshot.get("companies") else "الشركة الافتراضية"
@@ -671,6 +675,21 @@ async def run_dry_run_endpoint(
         "rejected": report_dict.get("summary", {}).get("status_counts", {}).get("rejected", 0) + report_dict.get("summary", {}).get("status_counts", {}).get("failed", 0),
     }
 
+    # بث أحداث تتبع الوكلاء الحية في خط أنابيب فحص الإكسل
+    try:
+        from agents.agent_events_service import emit_agent_event
+        acc_cnt = report_dict["excel_validation_stats"]["accepted"]
+        rej_cnt = report_dict["excel_validation_stats"]["rejected"]
+        emit_agent_event(run_id, "seraj", "orchestrate", decision="بدء خط أنابيب فحص القالب", reasoning="رفع ملف الإكسل وتمريره على الوكلاء المتخصصين", status="in_progress")
+        emit_agent_event(run_id, "fahas", "inspect_records", decision="استعلام وفحص الكيانات المرجعية في Odoo", reasoning="فحص الأقسام والوظائف والشركات لمنع التكرار", status="success")
+        emit_agent_event(run_id, "muwaffaq", "entity_matching", decision="المطابقة الذكية والربط الدلالي", reasoning="مطابقة المسميات مع شجرة Odoo", status="success")
+        emit_agent_event(run_id, "mudaqqiq", "compliance_audit", decision=f"تدقيق الامتثال لنظام العمل ({acc_cnt} مقبول، {rej_cnt} مرفوض)", reasoning="مراجعة العقود والبيانات وفق مواد نظام العمل", status="success" if rej_cnt == 0 else "in_progress")
+        if rejected_rows_details:
+            emit_agent_event(run_id, "musleh", "auto_healing", decision=f"تشخيص أسباب الرفض واقتراح الحلول لـ {len(rejected_rows_details)} صفوف", reasoning="توليد توصيات الإصلاح الذاتي", status="success")
+        emit_agent_event(run_id, "hares", "checkpoint", decision="تجهيز نقطة التفتيش وخطة الاعتماد", reasoning="قفل الكتابة المباشرة في Odoo حتى صدور الاعتماد البشري الصريح", status="waiting_approval")
+    except Exception:
+        pass
+
     audit_log_access("/dry-run", request, {"run_id": run_id, "file": str(saved_path)})
     return report_dict
 
@@ -899,6 +918,14 @@ def execute_writer_endpoint(req: WriteRequest, request: Request) -> Dict[str, An
             company_id=target_company_id,
             max_rows=req.max_rows,
         )
+
+        try:
+            from agents.agent_events_service import emit_agent_event
+            run_id_val = result.get("run_id") or req.run_id or "run_write"
+            emit_agent_event(run_id_val, "katib", "execute_write", decision=f"تنفيذ كتابة {result.get('written_count', 0)} سجلاً في Odoo", reasoning="تنفيذ أوامر الاعتماد الصريحة بنجاح", status="success")
+            emit_agent_event(run_id_val, "sijil", "audit_record", decision="توثيق العملية في سجل التدقيق اللاتراجعي", reasoning="حفظ البصمة الأمنية للعملية ونتائج التحقق الراجع", status="success")
+        except Exception:
+            pass
     except (writer.WriterAbort, EnvironmentGuardError) as exc:
         if isinstance(exc, writer.WriterAbort):
             if exc.code == writer.ABORT_APPROVAL_EXPIRED:

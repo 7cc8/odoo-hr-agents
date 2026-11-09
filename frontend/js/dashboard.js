@@ -269,6 +269,7 @@
       loadLlmSettings();
       populateTemplateCompanySelector();
       loadAgentsOverview();
+      loadChatSessions();
       loadRecentAuditMetrics();
       loadOperationsList();
       checkSavedMotionPreference();
@@ -556,10 +557,13 @@
               )
               .join("");
             compSelect.disabled = false;
+            window.cachedCompanies = data.companies;
+            renderCompaniesOverview(data.companies);
           } else if (compSelect) {
             compSelect.innerHTML =
               '<option value="">لا توجد شركات متاحة</option>';
             compSelect.disabled = true;
+            renderCompaniesOverview([]);
           }
 
           // Populate inputs ONLY on first load (if empty) or if explicitly requested via forceFill
@@ -628,6 +632,75 @@
       }
     }
 
+    function renderCompaniesOverview(companies) {
+      const container = document.getElementById("companiesOverviewList");
+      const badge = document.getElementById("companiesOverviewBadge");
+      if (!container) return;
+
+      if (!companies || companies.length === 0) {
+        if (badge) {
+          badge.textContent = "لا توجد منشآت";
+          badge.className = "badge badge-neutral";
+        }
+        container.innerHTML = `
+          <div style="text-align: center; padding: 24px; color: var(--color-silver-mist); font-size: 13px;">
+            لا توجد منشآت مسجلة في قاعدة بيانات Odoo الحالية.
+          </div>`;
+        return;
+      }
+
+      if (badge) {
+        badge.textContent = `${companies.length} منشآت مسجلة`;
+        badge.className = "badge badge-success";
+      }
+
+      container.innerHTML = companies.map((c, idx) => {
+        const isCurrent = c.id === selectedCompanyId;
+        return `
+          <div style="
+            display: grid;
+            grid-template-columns: 70px 2fr 1.5fr 110px;
+            gap: 16px;
+            align-items: center;
+            padding: 12px 16px;
+            background: ${isCurrent ? 'rgba(var(--ok-rgb), 0.05)' : 'rgba(var(--ink-rgb), 0.015)'};
+            border: 1px solid ${isCurrent ? 'rgba(var(--ok-rgb), 0.3)' : 'rgba(var(--ink-rgb), 0.05)'};
+            border-radius: 8px;
+            transition: background-color 150ms ease-out;
+          ">
+            <div style="text-align: center">
+              <span class="mono" style="
+                background: ${isCurrent ? 'rgba(var(--ok-rgb), 0.15)' : 'rgba(var(--ink-rgb), 0.05)'};
+                color: ${isCurrent ? 'var(--color-phosphor-green)' : 'var(--color-silver-mist)'};
+                padding: 3px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: 700;
+              ">#${c.id || (idx + 1)}</span>
+            </div>
+            <div>
+              <div style="font-weight: 700; color: ${isCurrent ? 'var(--ink)' : 'var(--color-snow)'}; font-size: 13.5px">
+                ${escapeHtml(c.name || 'منشأة')}
+              </div>
+              <div style="font-size: 12px; color: ${isCurrent ? 'var(--color-phosphor-green)' : 'var(--color-smoke)'}; margin-top: 2px;">
+                ${isCurrent ? 'المنشأة المحددة للعمليات الحالية • نشطة' : 'منشأة مصرح بها في النظام'}
+              </div>
+            </div>
+            <div>
+              <div style="width: 100%; height: 8px; background: rgba(var(--ink-rgb), 0.06); border-radius: 4px; overflow: hidden;">
+                <div style="width: ${isCurrent ? '100%' : '35%'}; height: 100%; background: ${isCurrent ? 'var(--color-phosphor-green)' : 'var(--color-slate)'}; border-radius: 4px;"></div>
+              </div>
+            </div>
+            <div style="text-align: center">
+              <span class="badge ${isCurrent ? 'badge-success' : 'badge-neutral'}" style="font-size: 12px; padding: 4px 10px;">
+                ${isCurrent ? 'نشطة' : 'جاهزة'}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
     function handleCompanyChange(newCompanyId) {
       if (
         currentOperationId &&
@@ -651,6 +724,9 @@
       selectedCompanyId = parseInt(newCompanyId, 10);
       document.getElementById("settingsSelectedCompany").textContent =
         `الشركة المختارة: ${document.getElementById("companySelector").selectedOptions[0]?.textContent.trim()}`;
+      if (window.cachedCompanies) {
+        renderCompaniesOverview(window.cachedCompanies);
+      }
       // New requests use the selected scope; never transplant an existing plan.
       currentOperationId = null;
       currentOperationStatus = null;
@@ -2267,7 +2343,6 @@
         )
       ) {
         currentOperationId = null;
-        currentChatId = `web_${crypto.randomUUID()}`;
         lastEventSequence = 0;
       }
 
@@ -2333,6 +2408,7 @@
         hideTypingIndicator();
         setSerajIdle();
         loadAgentsOverview();
+        loadChatSessions();
       }
     }
 
@@ -2370,6 +2446,7 @@
         hideTypingIndicator();
         setSerajIdle();
         loadAgentsOverview();
+        loadChatSessions();
       }
     }
 
@@ -2408,6 +2485,7 @@
         hideTypingIndicator();
         setSerajIdle();
         loadAgentsOverview();
+        loadChatSessions();
       }
     }
 
@@ -2838,11 +2916,157 @@
       }
 
       resetAllAgentsToIdle();
+      loadChatSessions();
       const input = document.getElementById("chatInput");
       if (input) {
         input.value = "";
         autoResizeTextarea(input);
         input.focus();
+      }
+    }
+
+    async function loadChatSessions() {
+      const selector = document.getElementById("chatSessionSelector");
+      if (!selector) return;
+      try {
+        const res = await fetch("/api/seraj/sessions");
+        if (!res.ok) return;
+        const data = await res.json();
+        const sessions = data.sessions || [];
+
+        selector.innerHTML = '<option value="" disabled>سجل الجلسات السابقة...</option>';
+
+        let foundCurrent = false;
+        sessions.forEach(s => {
+          const opt = document.createElement("option");
+          opt.value = s.chat_id;
+          const msgCountStr = s.message_count ? ` (${s.message_count})` : "";
+          opt.textContent = `${s.title}${msgCountStr}`;
+          if (s.chat_id === currentChatId) {
+            opt.selected = true;
+            foundCurrent = true;
+          }
+          selector.appendChild(opt);
+        });
+
+        if (!foundCurrent && currentChatId) {
+          const opt = document.createElement("option");
+          opt.value = currentChatId;
+          opt.textContent = "جلسة حالية (جديدة)";
+          opt.selected = true;
+          selector.insertBefore(opt, selector.children[1] || null);
+        }
+      } catch (e) {
+        console.warn("Failed to load chat sessions:", e);
+      }
+    }
+
+    async function switchChatSession(chatId) {
+      if (!chatId || chatId === currentChatId || chatRequestInFlight) return;
+      hideHitlGate();
+      currentOperationId = null;
+      currentChatId = chatId;
+      currentOperationStatus = null;
+      lastEventSequence = 0;
+
+      const chatMessages = document.getElementById("chatMessages");
+      if (chatMessages) {
+        chatMessages.innerHTML = `
+          <div class="msg-bubble msg-assistant">
+            <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: var(--paper-2);">
+              <img src="/images/seraj.webp" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
+            </div>
+            <div class="msg-content-wrapper">
+              <div class="msg-meta">
+                <span>سراج</span> • <span class="mono">استرجاع الجلسة</span>
+              </div>
+              <div class="msg-card">
+                جاري استرجاع سجل محادثة هذه الجلسة…
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      try {
+        const res = await fetch(`/api/seraj/session/${encodeURIComponent(chatId)}`);
+        if (!res.ok) {
+          if (chatMessages) {
+            chatMessages.innerHTML = `
+              <div class="msg-bubble msg-assistant">
+                <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: var(--paper-2);">
+                  <img src="/images/seraj.webp" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
+                </div>
+                <div class="msg-content-wrapper">
+                  <div class="msg-meta"><span>سراج</span></div>
+                  <div class="msg-card">تعذر استرجاع سجل هذه الجلسة من الخادم.</div>
+                </div>
+              </div>
+            `;
+          }
+          return;
+        }
+
+        const data = await res.json();
+        const session = data.session || {};
+        const history = session.history || [];
+
+        if (chatMessages) {
+          chatMessages.innerHTML = "";
+          if (history.length === 0) {
+            chatMessages.innerHTML = `
+              <div class="msg-bubble msg-assistant">
+                <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: var(--paper-2);">
+                  <img src="/images/seraj.webp" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
+                </div>
+                <div class="msg-content-wrapper">
+                  <div class="msg-meta">
+                    <span>سراج</span> • <span class="mono">${session.title || 'جلسة'}</span>
+                  </div>
+                  <div class="msg-card">
+                    هذه الجلسة خالية من الرسائل السابقة. يمكنك بدء الحوار الآن.
+                  </div>
+                </div>
+              </div>
+            `;
+          } else {
+            history.forEach(msg => {
+              if (msg.role === "user") {
+                appendUserMessage(msg.content);
+              } else if (msg.role === "assistant") {
+                appendSerajMessage(msg.content);
+              }
+            });
+          }
+
+          // Re-insert typing indicator
+          const typing = document.createElement("div");
+          typing.id = "typingIndicator";
+          typing.className = "typing-indicator msg-bubble msg-assistant";
+          typing.setAttribute("role", "status");
+          typing.setAttribute("aria-label", "سراج يكتب الرد");
+          typing.setAttribute("aria-live", "polite");
+          typing.style.display = "none";
+          typing.innerHTML = `
+            <div class="msg-avatar" style="border-color: var(--agent-seraj); overflow: hidden; background: var(--paper-2);">
+              <img src="/images/seraj.webp" alt="سراج" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.src='/images/svg/seraj.svg';">
+            </div>
+            <div class="typing-dots">
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+              <div class="typing-dot"></div>
+            </div>
+          `;
+          chatMessages.appendChild(typing);
+        }
+
+        if (session.company_id && typeof selectCompany === "function") {
+          selectCompany(session.company_id);
+        }
+      } catch (err) {
+        console.error("Error switching session:", err);
+      } finally {
+        loadChatSessions();
       }
     }
 

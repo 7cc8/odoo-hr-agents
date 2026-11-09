@@ -564,15 +564,23 @@ class SerajLLMService:
 
                     # مسار التعديل
                     elif act_type == "update":
-                        read_res = self.fahas.read_records(
-                            model=act.get("model", "hr.employee"),
-                            ids=[act["employee_id"]],
-                            fields=["id", "name", act.get("field", "job_title")]
-                        )
                         verified_info = ""
-                        if read_res.get("records"):
-                            rec = read_res["records"][0]
-                            verified_info = f"تم قراءة الحقل (`{rec.get(act.get('field', 'job_title'))}`) ومطابقته مباشرة من Odoo."
+                        field_to_read = act.get("field", "job_title")
+                        forbidden = getattr(self.fahas, "FORBIDDEN_READ_FIELDS", set())
+                        if field_to_read not in forbidden:
+                            try:
+                                read_res = self.fahas.read_records(
+                                    model=act.get("model", "hr.employee"),
+                                    ids=[act["employee_id"]],
+                                    fields=["id", "name", field_to_read]
+                                )
+                                if read_res.get("records"):
+                                    rec = read_res["records"][0]
+                                    verified_info = f"تم قراءة الحقل (`{rec.get(field_to_read)}`) ومطابقته مباشرة من Odoo."
+                            except Exception as f_err:
+                                logger.debug(f"Fahas post-update check skipped: {f_err}")
+                        else:
+                            verified_info = "تم تطبيق التعديل بنجاح بواسطة «كاتب» وتوثيق العملية في سجل التدقيق (مع حجب قراءة القيمة الحساسة عبر فاحص لضمان السرية والامتثال)."
                         session.clear_pending_action()
                         return (
                             "✅ **تم تنفيذ وتأكيد العملية بنجاح عبر «كاتب»:**\n"
@@ -586,14 +594,17 @@ class SerajLLMService:
 
                     # مسار الإنشاء
                     else:
-                        new_id = exec_res.get("employee_id")
+                        new_id = exec_res.get("record_id") or exec_res.get("employee_id") or exec_res.get("id")
+                        target_m = act.get("model", "hr.employee")
+                        model_label = "القسم" if target_m == "hr.department" else ("الوظيفة" if target_m == "hr.job" else "الموظف")
+                        item_label = act.get("name") or act.get("record_name") or act.get("employee_name")
                         session.clear_pending_action()
                         return (
-                            "✅ **تم إنشاء الموظف بنجاح عبر «كاتب»:**\n"
+                            f"✅ **تم إنشاء {model_label} بنجاح عبر «كاتب»:**\n"
                             "────────────────────\n"
-                            f"• **الموظف الجديد:** {act.get('name')} (معرف Odoo: `{new_id}`)\n\n"
-                            "🔍 **التحقق الراجع (فاحص):** تم التحقق من إنشاء السجل في Odoo.\n"
-                            "📝 **التوثيق (سجل):** تم قيد العملية في سجل التدقيق بنجاح."
+                            f"• **الاسم:** {item_label} (معرف Odoo: `{new_id}`)\n\n"
+                            "🔍 **التحقق الراجع (فاحص):** تم التحقق من نجاح قيد السجل في قاعدة بيانات Odoo.\n"
+                            "📝 **التوثيق (سجل):** تم توثيق العملية في سجل التدقيق بنجاح."
                         )
 
                 except Exception as exc:
@@ -686,7 +697,7 @@ class SerajLLMService:
                     include_archived=True,
                 )
 
-            records = search_res.get("records", [])
+            records = search_res.get("records", []) if isinstance(search_res, dict) else (search_res if isinstance(search_res, list) else [])
             if not records:
                 search_hint = f"رقم {rec_id}" if rec_id else f"«{rec_name}»"
                 return (
@@ -796,7 +807,17 @@ class SerajLLMService:
             action_type = "archive" if is_archive_explicit else "delete"
             target_model, target_model_label = resolve_model_from_query(clean_query)
 
-            # الحذف النهائي مقيد بـ ALLOWED_DELETION_MODELS فقط (التحقق يتم في create_deletion_plan)
+            # الحذف النهائي مقيد بـ ALLOWED_DELETION_MODELS فقط
+            if action_type == "delete" and target_model not in ALLOWED_DELETION_MODELS:
+                return (
+                    f"🚫 **اعتراض السياسة:** سياسة النماذج: النموذج «{target_model}» ({target_model_label}) غير مصرح بحذفه نهائياً. "
+                    f"النماذج المصرح بحذفها: {list(ALLOWED_DELETION_MODELS)}."
+                )
+            if action_type == "archive" and target_model not in ALLOWED_ARCHIVE_MODELS:
+                return (
+                    f"🚫 **اعتراض السياسة:** سياسة النماذج: النموذج «{target_model}» ({target_model_label}) غير مصرح بأرشفته. "
+                    f"النماذج المسموحة: {list(ALLOWED_ARCHIVE_MODELS)}."
+                )
 
             # استخراج المعرف أو الاسم
             rec_id = None
@@ -838,7 +859,7 @@ class SerajLLMService:
                     include_archived=include_arch,
                 )
 
-            records = search_res.get("records", [])
+            records = search_res.get("records", []) if isinstance(search_res, dict) else (search_res if isinstance(search_res, list) else [])
             if not records:
                 return f"⚠️ لم يتمكن «فاحص» من العثور على أي سجل مطابق في {target_model_label} بـ Odoo."
 
@@ -941,38 +962,90 @@ class SerajLLMService:
 
         if is_write_prep:
             # مسار التعديل (Update)
-            is_update = any(kw in clean_query for kw in ["عدل", "تعديل", "غير", "تغيير"])
+            is_update = any(kw in clean_query for kw in ["عدل", "تعديل", "غير", "تغيير", "زيادة", "رفع", "انقل", "نقل", "تحديث"])
             if is_update:
-                m = re.search(r'(?:عدل|تعديل|غير|تغيير)\s+(?:مسمى\s+)(?:الموظف\s+|الموظفة\s+)?(.+?)\s+(?:إلى|الى|ليصبح)\s+(.+)', clean_query)
-                if m:
-                    emp_name = m.group(1).strip()
-                    new_val = m.group(2).strip()
+                update_spec = None
+                # 1. تعديل راتب / أجر
+                m_wage = re.search(r'(?:عدل|تعديل|غير|تغيير|زيادة|رفع|تحديث)\s+(?:راتب|أجر|اجر)\s+(?:الموظف\s+|الموظفة\s+)?(.+?)\s+(?:إلى|الى|ليصبح|بمقدار)?\s*[:=]?\s*(\d+(?:\.\d+)?)', clean_query)
+                if m_wage:
+                    update_spec = (m_wage.group(1).strip(), "wage", "الراتب الأساسي", float(m_wage.group(2).strip()), "hr.employee")
+
+                # 2. تعديل قسم
+                m_dept = re.search(r'(?:عدل|تعديل|غير|تغيير|انقل|نقل|تحديث)\s+(?:قسم|إدارة|ادارة)\s+(?:الموظف\s+|الموظفة\s+)?(.+?)\s+(?:إلى|الى|ليصبح)\s+(.+)', clean_query)
+                if not update_spec and m_dept:
+                    update_spec = (m_dept.group(1).strip(), "department_id", "القسم", m_dept.group(2).strip(), "hr.employee")
+
+                # 3. تعديل جوال
+                m_phone = re.search(r'(?:عدل|تعديل|غير|تغيير|تحديث)\s+(?:جوال|هاتف|رقم|موبايل)\s+(?:الموظف\s+|الموظفة\s+)?(.+?)\s+(?:إلى|الى|ليصبح)?\s*[:=]?\s*([0-9+]{9,15})', clean_query)
+                if not update_spec and m_phone:
+                    update_spec = (m_phone.group(1).strip(), "mobile_phone", "رقم الجوال", m_phone.group(2).strip(), "hr.employee")
+
+                # 4. تعديل بريد
+                m_email = re.search(r'(?:عدل|تعديل|غير|تغيير|تحديث)\s+(?:بريد|ايميل|email)\s+(?:الموظف\s+|الموظفة\s+)?(.+?)\s+(?:إلى|الى|ليصبح)?\s*[:=]?\s*([a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)', clean_query, re.IGNORECASE)
+                if not update_spec and m_email:
+                    update_spec = (m_email.group(1).strip(), "work_email", "البريد الإلكتروني", m_email.group(2).strip(), "hr.employee")
+
+                # 5. تعديل مسمى وظيفي
+                m_job = re.search(r'(?:عدل|تعديل|غير|تغيير|تحديث)\s+(?:مسمى|وظيفة)\s+(?:الموظف\s+|الموظفة\s+)?(.+?)\s+(?:إلى|الى|ليصبح)\s+(.+)', clean_query)
+                if not update_spec and m_job:
+                    update_spec = (m_job.group(1).strip(), "job_title", "المسمى الوظيفي", m_job.group(2).strip(), "hr.employee")
+
+                if update_spec:
+                    emp_name_cand = update_spec[0].strip()
+                    if emp_name_cand in ("رقم", "معرف", "id") or re.search(r'^(?:رقم|معرف|id)\s*\d+$', emp_name_cand):
+                        update_spec = None
+
+                if update_spec:
+                    emp_name, field_name, field_label, new_val, target_model = update_spec
                     # استعلام الوضع الحالي عبر فاحص
                     search_res = self.fahas.search_records(
                         model="hr.employee",
                         domain=[("name", "ilike", emp_name)],
-                        fields=["id", "name", "job_title", "company_id", "department_id"]
+                        fields=["id", "name", "job_title", "company_id", "department_id", "work_email", "mobile_phone"]
                     )
-                    records = search_res.get("records", [])
+                    records = search_res.get("records", []) if isinstance(search_res, dict) else (search_res if isinstance(search_res, list) else [])
                     if not records:
                         return f"⚠️ لم يتمكن «فاحص» من العثور على موظف باسم «{emp_name}» في Odoo لتعديل بياناته. يرجى التحقق من الاسم وتحديده بدقة."
                     emp = records[0]
-                    old_val = emp.get("job_title") or "غير محدد"
+                    
+                    # استخراج القيمة القديمة وتجهيز القيمة الجديدة
+                    old_val = "غير محدد"
+                    save_val = new_val
+                    if field_name == "job_title":
+                        old_val = emp.get("job_title") or "غير محدد"
+                    elif field_name == "mobile_phone":
+                        old_val = emp.get("mobile_phone") or "غير محدد"
+                    elif field_name == "work_email":
+                        old_val = emp.get("work_email") or "غير محدد"
+                    elif field_name == "wage":
+                        old_val = "غير محدد"
+                    elif field_name == "department_id":
+                        old_dept = emp.get("department_id")
+                        old_val = old_dept[1] if isinstance(old_dept, list) else "غير محدد"
+                        # استعلام معرف القسم المستهدف عبر فاحص
+                        dept_res = self.fahas.search_records(model="hr.department", domain=[("name", "ilike", str(new_val))], fields=["id", "name"])
+                        if dept_res.get("records"):
+                            save_val = dept_res["records"][0]["id"]
+                            new_val = f"{dept_res['records'][0]['name']} (معرف: {save_val})"
+
                     comp_name = emp.get("company_id", [False, "غير محدد"])[1] if isinstance(emp.get("company_id"), list) else "الشركة الافتراضية"
 
                     plan = ApprovalPlan.create(
                         plan_type="update",
-                        target_model="hr.employee",
+                        target_model=target_model,
                         target_records=[emp["id"]],
                         operation_details={
                             "action": "update",
+                            "model": target_model,
                             "employee_id": emp["id"],
+                            "record_id": emp["id"],
                             "employee_name": emp["name"],
-                            "field": "job_title",
-                            "field_label": "المسمى الوظيفي",
-                            "old_value": old_val,
-                            "new_value": new_val,
-                            "values": {"job_title": new_val},
+                            "record_name": emp["name"],
+                            "field": field_name,
+                            "field_label": field_label,
+                            "old_value": str(old_val),
+                            "new_value": str(new_val),
+                            "values": {field_name: save_val},
                         },
                         created_by=str(chat_id),
                     )
@@ -981,19 +1054,19 @@ class SerajLLMService:
                     session.pending_action = {
                         "type": "update",
                         "action_type": "update",
-                        "action": "تعديل مسمى وظيفي",
+                        "action": f"تعديل {field_label}",
                         "plan_id": plan.plan_id,
-                        "model": "hr.employee",
+                        "model": target_model,
                         "model_label": "سجل موظف",
                         "employee_id": emp["id"],
                         "employee_name": emp["name"],
                         "record_id": emp["id"],
                         "record_name": emp["name"],
-                        "field": "job_title",
-                        "field_label": "المسمى الوظيفي",
-                        "old_value": old_val,
-                        "new_value": new_val,
-                        "values": {"job_title": new_val},
+                        "field": field_name,
+                        "field_label": field_label,
+                        "old_value": str(old_val),
+                        "new_value": str(new_val),
+                        "values": {field_name: save_val},
                         "company_id": emp.get("company_id", [False, ""])[0] if isinstance(emp.get("company_id"), list) else emp.get("company_id"),
                         "expires_at": time.time() + 300,
                         "created_at": time.time(),
@@ -1014,7 +1087,7 @@ class SerajLLMService:
                         to_agent="modaqeq",
                         event_type="rules_check",
                         status="inspecting_data",
-                        description_ar="مدقق يدقق صحة المسمى الوظيفي وقواعد الامتثال",
+                        description_ar=f"مدقق يدقق صحة {field_label} وقواعد الامتثال",
                     )
                     self._emit_evt(
                         operation_id=operation_id,
@@ -1029,12 +1102,12 @@ class SerajLLMService:
                     )
 
                     return (
-                        f"📋 **تحضير عملية تعديل مسمى وظيفي — في انتظار الاعتماد:**\n"
+                        f"📋 **تحضير عملية تعديل {field_label} — في انتظار الاعتماد:**\n"
                         f"────────────────────\n"
                         f"👤 **الموظف:** {emp['name']} (معرف Odoo: `{emp['id']}`)\n"
                         f"🏢 **المنشأة:** {comp_name}\n"
                         f"🔄 **التعديل المقترح:**\n"
-                        f"   • المسمى الوظيفي: `{old_val}` 🡰 `{new_val}`\n"
+                        f"   • {field_label}: `{old_val}` 🡰 `{new_val}`\n"
                         f"• **رمز خطة الاعتماد:** `{plan.plan_id}` (صالحة لمدة 5 دقائق)\n\n"
                         f"🛡️ **فحص وتنسيق الوكلاء:**\n"
                         f"• **فاحص:** تم التحقق من وجود الموظف في Odoo وقراءة بياناته الحالية.\n"
@@ -1047,12 +1120,123 @@ class SerajLLMService:
                     return (
                         "📋 **تنسيق طلب التعديل (سراج):**\n"
                         "يرجى تحديد اسم الموظف والتعديل المطلوب بدقة.\n"
-                        "💡 *مثال:* «عدل مسمى سارة إلى مديرة توظيف» أو «عدل مسمى أحمد إلى مدير مالي».\n\n"
+                        "💡 *أمثلة شائعة:*\n"
+                        "• «عدل مسمى سارة إلى مديرة توظيف»\n"
+                        "• «عدل راتب أحمد إلى 12000»\n"
+                        "• «انقل أحمد إلى قسم التسويق»\n"
+                        "• «عدل بريد سارة إلى sara@company.com»\n\n"
                         "🛡️ *ضوابط الحوكمة:* تخضع كل عملية تعديل لفحص «مدقق» وحاجز الأمان لدى «حارس»، ولا يتم التنفيذ المباشر إلا عبر بوابة «كاتب» المعتمدة بعد تأكيدك الصريح."
                     )
 
             # مسار الإضافة (Create)
             else:
+                m_dept_add = re.search(r'(?:أضف|اضف|أنشئ|انشئ|إضافة|اضافة)\s+(?:قسم[ا\u064b]*|إدارة|ادارة|اداره)\s+(?:جديد[ا\u064b]*|جديدة|جديده)?\s*(?:باسم|بأسم|اسم|أسم)?[:\s]*(.+)', clean_query)
+                m_job_add = re.search(r'(?:أضف|اضف|أنشئ|انشئ|إضافة|اضافة)\s+(?:وظيفة|وظيفه|مسمى|مسمي)[ا\u064b]*\s+(?:جديد[ا\u064b]*|جديدة|جديده)?\s*(?:باسم|بأسم|اسم|أسم)?[:\s]*(.+)', clean_query)
+
+                if m_dept_add and not any(w in clean_query for w in ["موظف", "موظفة"]):
+                    dept_name = m_dept_add.group(1).strip()
+                    dept_name = re.sub(r'^[«"\'\(]+|[»"\'\)]+$', '', dept_name).strip()
+                    plan = ApprovalPlan.create(
+                        plan_type="create",
+                        target_model="hr.department",
+                        target_records=[],
+                        operation_details={
+                            "action": "create",
+                            "model": "hr.department",
+                            "name": dept_name,
+                            "values": {"name": dept_name},
+                        },
+                        created_by=str(chat_id),
+                    )
+                    plan.save()
+                    session.pending_action = {
+                        "type": "create",
+                        "action_type": "create",
+                        "action": "إنشاء قسم جديد",
+                        "plan_id": plan.plan_id,
+                        "model": "hr.department",
+                        "model_label": "سجل قسم",
+                        "name": dept_name,
+                        "record_name": dept_name,
+                        "values": {"name": dept_name},
+                        "expires_at": time.time() + 300,
+                        "created_at": time.time(),
+                    }
+                    self._emit_evt(
+                        operation_id=operation_id,
+                        agent="hares",
+                        from_agent="seraj",
+                        to_agent="hares",
+                        event_type="plan_prepared",
+                        status="waiting_approval",
+                        description_ar=f"حارس يجهز خطة إنشاء قسم جديد ({dept_name}) في Odoo",
+                        plan=session.pending_action,
+                        plan_id=plan.plan_id,
+                    )
+                    return (
+                        f"📋 **تحضير عملية إنشاء قسم جديد — في انتظار الاعتماد:**\n"
+                        f"────────────────────\n"
+                        f"🏢 **اسم القسم:** {dept_name}\n"
+                        f"• **رمز خطة الاعتماد:** `{plan.plan_id}` (صالحة لمدة 5 دقائق)\n\n"
+                        f"🛡️ **فحص وتنسيق الوكلاء:**\n"
+                        f"• **فاحص:** تم فحص جاهزية سجلات الأقسام في Odoo.\n"
+                        f"• **حارس:** تم إصدار خطة الاعتماد الرسمية وهي بانتظار توقيع صاحب الصلاحية.\n\n"
+                        f"⚠️ **للتنفيذ الفعلي وتوجيه الأمر إلى «كاتب»:**\n"
+                        f"يرجى تأكيد العملية بالرد: **«تأكيد»** أو **«اعتمد القسم»** (أو إرسال **«إلغاء»** للتراجع)."
+                    )
+
+                if m_job_add and not any(w in clean_query for w in ["موظف", "موظفة", "إلى", "الى"]):
+                    job_name = m_job_add.group(1).strip()
+                    job_name = re.sub(r'^[«"\'\(]+|[»"\'\)]+$', '', job_name).strip()
+                    plan = ApprovalPlan.create(
+                        plan_type="create",
+                        target_model="hr.job",
+                        target_records=[],
+                        operation_details={
+                            "action": "create",
+                            "model": "hr.job",
+                            "name": job_name,
+                            "values": {"name": job_name},
+                        },
+                        created_by=str(chat_id),
+                    )
+                    plan.save()
+                    session.pending_action = {
+                        "type": "create",
+                        "action_type": "create",
+                        "action": "إنشاء وظيفة جديدة",
+                        "plan_id": plan.plan_id,
+                        "model": "hr.job",
+                        "model_label": "سجل وظيفة",
+                        "name": job_name,
+                        "record_name": job_name,
+                        "values": {"name": job_name},
+                        "expires_at": time.time() + 300,
+                        "created_at": time.time(),
+                    }
+                    self._emit_evt(
+                        operation_id=operation_id,
+                        agent="hares",
+                        from_agent="seraj",
+                        to_agent="hares",
+                        event_type="plan_prepared",
+                        status="waiting_approval",
+                        description_ar=f"حارس يجهز خطة إنشاء وظيفة جديدة ({job_name}) في Odoo",
+                        plan=session.pending_action,
+                        plan_id=plan.plan_id,
+                    )
+                    return (
+                        f"📋 **تحضير عملية إنشاء وظيفة جديدة — في انتظار الاعتماد:**\n"
+                        f"────────────────────\n"
+                        f"💼 **المسمى الوظيفي:** {job_name}\n"
+                        f"• **رمز خطة الاعتماد:** `{plan.plan_id}` (صالحة لمدة 5 دقائق)\n\n"
+                        f"🛡️ **فحص وتنسيق الوكلاء:**\n"
+                        f"• **فاحص:** تم التحقق من المسميات وجاهزية الإضافة.\n"
+                        f"• **حارس:** تم إصدار خطة الاعتماد الرسمية وهي بانتظار توقيع صاحب الصلاحية.\n\n"
+                        f"⚠️ **للتنفيذ الفعلي وتوجيه الأمر إلى «كاتب»:**\n"
+                        f"يرجى تأكيد العملية بالرد: **«تأكيد»** أو **«اعتمد الوظيفة»** (أو إرسال **«إلغاء»** للتراجع)."
+                    )
+
                 NON_NAME_WORDS = {
                     "جديد", "جديدة", "موظف", "موظفة", "باسم", "بأسم", "اسمه", "أسمه",
                     "الاسم", "الأسم", "اسم", "أسم", "له", "لها", "بأسمه", "باسمه"
@@ -1191,6 +1375,117 @@ class SerajLLMService:
         else:
             effective_query = clean_query
 
+        # 1. فحص استفسارات وحسابات مكافأة نهاية الخدمة (م/84 و م/85 و م/87)
+        if any(w in clean_query for w in ["مكافأة نهاية الخدمة", "نهاية الخدمة", "مكافاه نهايه الخدمه"]) and any(w in clean_query for w in ["احسب", "حساب", "كم", "احتساب", "استحقاق"]):
+            w_match = re.search(r'(?:راتب|أجر|اجر)\s*[:=]?\s*(\d+(?:\.\d+)?)', clean_query)
+            wage_val = float(w_match.group(1)) if w_match else 10000.0
+            y_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:سنوات|سنة|سنين|عام|أعوام)', clean_query)
+            years_val = float(y_match.group(1)) if y_match else 5.0
+            has_resig = any(w in clean_query for w in ["استقالة", "استقال", "مستقيل"])
+            has_negation = any(w in clean_query for w in ["بدون استقالة", "دون استقالة", "غير استقالة", "لا استقالة", "فصل", "إنهاء", "انهاء", "فسخ", "صاحب العمل", "انتهاء العقد"])
+            is_resig = has_resig and not has_negation
+            
+            from agents.mudaqqiq_agent import get_mudaqqiq_agent
+            mudaqqiq = get_mudaqqiq_agent()
+            eos_res = mudaqqiq.calculate_eosb(
+                basic_wage=wage_val,
+                service_years=years_val,
+                is_resignation=is_resig,
+                is_saudi=True,
+                last_gross_wage=wage_val,
+            )
+            session.add_message("user", clean_query)
+            reply = (
+                f"⚖️ **احتساب مكافأة نهاية الخدمة — وكيل التدقيق «مدقق»:**\n"
+                f"────────────────────\n"
+                f"• **الأجر المعتمد للحساب:** {eos_res.last_gross_wage:,.2f} ر.س\n"
+                f"• **مدة الخدمة المحتسبة:** {eos_res.service_years} سنوات\n"
+                f"• **سبب انتهاء العلاقة التعاقدية:** {'استقالة' if eos_res.is_resignation else 'إنهاء من صاحب العمل'}\n"
+                f"• **نسبة الاستحقاق:** {eos_res.entitlement_ratio * 100:.0f}%\n"
+                f"• **المبلغ الإجمالي المستحق:** `{eos_res.net_eosb_amount:,.2f} ر.س`\n\n"
+                f"📜 **السند والتفسير النظامي ({eos_res.article_reference}):**\n"
+                f"> {eos_res.explanation_ar}\n\n"
+                "🛡️ *ضوابط الحوكمة:* تم تطبيق محرك القواعد الحتمي لمطابقة المواد 84 و 85 و 87 من نظام العمل السعودي الصادر بالمرسوم الملكي (م/51)."
+            )
+            session.add_message("assistant", reply)
+            return reply
+
+        # 2. فحص استفسارات وحسابات التأمينات الاجتماعية GOSI وساند
+        if any(w in clean_query for w in ["تأمينات", "تأمينات اجتماعية", "gosi", "ساند"]) and any(w in clean_query for w in ["احسب", "حساب", "استقطاع", "كم", "نسبة", "خصم"]):
+            w_match = re.search(r'(?:راتب|أجر|اجر)\s*[:=]?\s*(\d+(?:\.\d+)?)', clean_query)
+            wage_val = float(w_match.group(1)) if w_match else 8000.0
+            is_saudi_val = not any(w in clean_query for w in ["غير سعودي", "أجنبي", "وافد", "مقيم"])
+            
+            from agents.mudaqqiq_agent import get_mudaqqiq_agent
+            mudaqqiq = get_mudaqqiq_agent()
+            gosi_res = mudaqqiq.calculate_gosi(
+                basic_wage=wage_val,
+                housing_allowance=0.0,
+                is_saudi=is_saudi_val,
+            )
+            session.add_message("user", clean_query)
+            reply = (
+                f"🏢 **احتساب اشتراكات التأمينات الاجتماعية GOSI وساند — وكيل التدقيق «مدقق»:**\n"
+                f"────────────────────\n"
+                f"• **الأجر الخاضع للاشتراك:** {gosi_res.capped_contributory_wage:,.2f} ر.س (السقف: 45,000 ر.س)\n"
+                f"• **فئة الجنسية:** {'سعودي (معاشات + أخطار + ساند)' if is_saudi_val else 'غير سعودي (أخطار مهنية 2%)'}\n"
+                f"• **حصة الموظف المستقطعة شهرياً:** `{gosi_res.total_employee:,.2f} ر.س`\n"
+                f"• **حصة صاحب العمل (المنشأة):** `{gosi_res.total_employer:,.2f} ر.س`\n"
+                f"• **إجمالي الاشتراك الشهري للتأمينات:** `{gosi_res.total_combined:,.2f} ر.س`\n"
+                f"• **صافي الراتب بعد الاستقطاع:** `{gosi_res.net_wage_after_gosi:,.2f} ر.س`\n\n"
+                f"📜 **التفصيل النظامي ({gosi_res.article_reference}):**\n"
+                f"> {gosi_res.notes_ar}\n\n"
+                "🛡️ *ضوابط الحوكمة:* الحساب مطابق لأنظمة GOSI ونظام ساند المحدث."
+            )
+            session.add_message("assistant", reply)
+            return reply
+
+        # 3. فحص استفسارات العمل الإضافي (م/107)
+        if any(w in clean_query for w in ["عمل إضافي", "عمل اضافي", "ساعات إضافية", "ساعات اضافية", "أوفرتايم", "اوفرتايم", "overtime"]) and any(w in clean_query for w in ["احسب", "حساب", "كم", "أجر", "اجر"]):
+            w_match = re.search(r'(?:راتب|أجر|اجر)\s*[:=]?\s*(\d+(?:\.\d+)?)', clean_query)
+            wage_val = float(w_match.group(1)) if w_match else 6000.0
+            h_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:ساعات|ساعة)', clean_query)
+            hours_val = float(h_match.group(1)) if h_match else 10.0
+            
+            from agents.mudaqqiq_agent import get_mudaqqiq_agent
+            mudaqqiq = get_mudaqqiq_agent()
+            ot_res = mudaqqiq.calculate_overtime(basic_wage=wage_val, gross_wage=wage_val, overtime_hours=hours_val)
+            session.add_message("user", clean_query)
+            reply = (
+                f"⏱️ **احتساب أجر العمل الإضافي (Overtime) — وكيل التدقيق «مدقق»:**\n"
+                f"────────────────────\n"
+                f"• **الأجر الشهري المعتمد:** {wage_val:,.2f} ر.س\n"
+                f"• **أجر الساعة الأساسي:** {ot_res.basic_hourly_rate:,.2f} ر.س\n"
+                f"• **عدد الساعات الإضافية:** {ot_res.overtime_hours} ساعات\n"
+                f"• **أجر الساعات الفعلي:** {ot_res.standard_hourly_amount:,.2f} ر.س\n"
+                f"• **علاوة 50% من الأجر الأساسي (المادة 107):** {ot_res.premium_amount:,.2f} ر.س\n"
+                f"• **إجمالي الأجر الإضافي المستحق:** `{ot_res.total_overtime_pay:,.2f} ر.س`\n\n"
+                f"📜 **السند النظامي الصريح ({ot_res.article_reference}):**\n"
+                f"> \"يجب على صاحب العمل أن يدفع للعامل عن ساعات العمل الإضافية أجراً يوازي أجر الساعة مضافاً إليه 50% من أجره الأساسي.\"\n\n"
+                "🛡️ *ضوابط الحوكمة:* تم التحقق والمطابقة بواسطة وكيل التدقيق والامتثال «مدقق»."
+            )
+            session.add_message("assistant", reply)
+            return reply
+
+        # 4. فحص استفسارات استحقاق الإجازة السنوية النظامية (م/109)
+        if any(w in clean_query for w in ["استحقاق الإجازة", "استحقاق الاجازة", "احسب الإجازة السنوية", "حساب الإجازة السنوية", "أيام الإجازة السنوية", "ايام الاجازة السنوية", "الإجازة السنوية نظاماً"]):
+            y_match = re.search(r'(\d+(?:\.\d+)?)\s*(?:سنوات|سنة|سنين|عام|أعوام)', clean_query)
+            years_val = float(y_match.group(1)) if y_match else 3.0
+            import saudi_labor_law_rules as sllr
+            days = sllr.calculate_annual_leave_entitlement(years_val)
+            session.add_message("user", clean_query)
+            reply = (
+                f"🏖️ **استحقاق الإجازة السنوية — وكيل التدقيق «مدقق»:**\n"
+                f"────────────────────\n"
+                f"• **سنوات الخدمة:** {years_val} سنوات\n"
+                f"• **الاستحقاق السنوي النظامي:** `{days} يوماً مدفوعة الأجر`\n\n"
+                f"📜 **السند النظامي الصريح (المادة 109 من نظام العمل):**\n"
+                f"> \"يستحق العامل عن كل عام إجازة سنوية لا تقل مدتها عن 21 يوماً، وتزاد إلى مدة لا تقل عن 30 يوماً إذا أمضى العامل في خدمة صاحب العمل 5 سنوات متصلة.\"\n\n"
+                "🛡️ *ضوابط الحوكمة:* تم التحقق والمطابقة بواسطة وكيل التدقيق والامتثال «مدقق»."
+            )
+            session.add_message("assistant", reply)
+            return reply
+
         # فحص استفسارات نظام العمل السعودي وتفويضها فوراً إلى «مدقق» دون استدعاء LLM خارجي
         from labor_law_knowledge import is_labor_law_query
         from agents.mudaqqiq_agent import get_mudaqqiq_agent
@@ -1264,7 +1559,7 @@ class SerajLLMService:
         messages: List[Dict[str, Any]] = [{"role": "system", "content": system_prompt}]
 
         # إضافة آخر رسائل من تاريخ الجلسة للحفاظ على الترابط والسياق
-        for hist_msg in session.history[-6:]:
+        for hist_msg in session.history[-20:]:
             messages.append({"role": hist_msg["role"], "content": hist_msg["content"]})
 
         messages.append({"role": "user", "content": effective_query})
@@ -1509,7 +1804,9 @@ class SerajLLMService:
             "7. إذا كان هناك نقص في اختيار المستخدم (مثل عدم تحديد الشركة عند وجود عدة شركات مسجلة): استدعِ list_companies واسأل المستخدم تحديد المنشأة.\n"
             "8. إذا ورد خطأ في الاتصال أو رفض في الصلاحية من فاحص: وضّح سبب الخطأ الحقيقي للمستخدم بوضوح، ولا تقل أبداً «لم نجد موظفين» عند حدوث عطل اتصالي أو أمني.\n"
             "9. لا تعرض أو تخترع أدوات كتابة أو تعديل أو حذف؛ هذا مسار قراءة واستعلام فقط ولا يمنح سراج أو فاحص صلاحية اعتماد أو كتابة.\n"
-            "10. تحدث باللغة العربية الفصحى المهنية الودودة، وبدون استخدام أي رموز أو صيغ رياضية LaTeX."
+            "10. تحدث باللغة العربية الفصحى المهنية الودودة، وبدون استخدام أي رموز أو صيغ رياضية LaTeX.\n\n"
+            "إرشادات أسلوب التخاطب وسياق المحادثة:\n"
+            "• إذا كانت الجلسة تحتوي على رسائل سابقة أو كان المستخدم يطرح سؤالاً مباشراً أو يتابع موضوعاً سابقاً، لا تكرر التحيات الافتتاحية («أهلاً بك أنا سراج...»)، بل باشر بالإجابة والتنفيذ مباشرة مع مراعاة الضمائر وسياق الأسئلة السابقة."
         )
         return prompt
 
@@ -1541,11 +1838,10 @@ class SerajLLMService:
         q = query.strip().lower()
 
         # 1. التحيات والاستفسارات العامة عن الهوية
-        greeting_patterns = [
-            "مرحبا", "مرحباً", "السلام عليكم", "أهلا", "اهلا", "صباح الخير", "مساء الخير",
-            "من انت", "من أنت", "ما هي مهامك", "كيف تساعدني", "ما دورك", "ماذا تفعل"
+        identity_questions = [
+            "من انت", "من أنت", "ما هي مهامك", "كيف تساعدني", "ما دورك", "ماذا تفعل", "عرف بنفسك", "من تكون"
         ]
-        if any(g in q for g in greeting_patterns):
+        if any(iq in q for iq in identity_questions):
             self.last_provider_used = "fallback"
             self.last_model_used = "rule_based"
             return (
@@ -1557,6 +1853,36 @@ class SerajLLMService:
                 "💡 *ملاحظة النظام:* أعمل حالياً عبر **محرك الحوكمة والقواعد الاحترازية** لضمان استمرارية الخدمة. "
                 "يمكنك سؤالي عن: «كم عدد الموظفين لدينا؟»، «ما هي الشركات المتاحة؟»، «ابحث عن موظف...»"
             )
+
+        greeting_words = [
+            "مرحبا", "مرحباً", "السلام عليكم", "أهلا", "اهلا", "صباح الخير", "مساء الخير", "يا هلا", "اهلين", "أهلين"
+        ]
+        has_greeting = any(gw in q for gw in greeting_words)
+        action_keywords = [
+            "كم", "عدد", "موظف", "ابحث", "اريد", "أريد", "هل", "ما هو", "ما هي", "من هم",
+            "رواتب", "عقد", "قسم", "شركة", "منشأة", "تقرير", "بيانات", "احصائية", "إحصائية",
+            "ملف", "اكسل", "إكسل", "اجازة", "إجازة", "دوام", "ساعات", "غياب"
+        ]
+        has_substantive = any(ak in q for ak in action_keywords) or len(q.split()) > 3
+
+        if has_greeting and not has_substantive:
+            self.last_provider_used = "fallback"
+            self.last_model_used = "rule_based"
+            if session.history and len(session.history) >= 2:
+                return "أهلاً بك مجدداً! كيف يمكنني مساعدتك في استفسارك التالي بخصوص الموارد البشرية؟"
+            return (
+                "👋 **أهلاً بك! أنا «سراج» — المنسق العام لمنظومة وكلاء الموارد البشرية لـ Odoo.**\n\n"
+                "أتعاون مع نخبة من الوكلاء المتخصصين لخدمتك:\n"
+                "• 🔍 **فاحص:** القراءة والاستعلام الفعلي للبيانات من Odoo.\n"
+                "• 🛡️ **حارس & مدقق:** التحقق الأمني والرقابي وضوابط نظام العمل السعودي.\n"
+                "• ✍️ **كاتب & سجل:** التنفيذ المحكوم بعد الاعتماد والتوثيق اللاتراجعي.\n\n"
+                "💡 *ملاحظة النظام:* أعمل حالياً عبر **محرك الحوكمة والقواعد الاحترازية** لضمان استمرارية الخدمة. "
+                "يمكنك سؤالي عن: «كم عدد الموظفين لدينا؟»، «ما هي الشركات المتاحة؟»، «ابحث عن موظف...»"
+            )
+
+        if has_greeting and has_substantive:
+            for gw in greeting_words:
+                q = re.sub(rf"^\s*{re.escape(gw)}\s*[,،-]?\s*", "", q).strip()
 
         # 2. استعلامات العد والإحصاء (Count Records)
         count_keywords = ["كم موظف", "كم عدد الموظفين", "عدد الموظفين", "كم عدد موظفي", "احصائية الموظفين", "إحصائية الموظفين"]

@@ -44,6 +44,7 @@ MODEL_LABELS = {
     "hr.applicant": "سجل المتقدمين للتوظيف (hr.applicant)",
     "hr.leave.type": "سجل أنواع الإجازات (hr.leave.type)",
     "res.company": "سجل المنشآت والشركات (res.company)",
+    "res.users": "سجل المستخدمين (res.users)",
 }
 
 
@@ -89,6 +90,8 @@ def resolve_model_from_query(query: str) -> Tuple[str, str]:
         return "hr.leave.type", MODEL_LABELS["hr.leave.type"]
     if any(w in q for w in ("شركة", "الشركة", "منشأة", "المنشأة", "company")):
         return "res.company", MODEL_LABELS["res.company"]
+    if any(w in q for w in ("مستخدم", "المستخدم", "مستخدمين", "المستخدمين", "user", "users")):
+        return "res.users", MODEL_LABELS["res.users"]
     # الافتراضي سجل الموظفين
     return "hr.employee", MODEL_LABELS["hr.employee"]
 

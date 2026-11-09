@@ -64,6 +64,31 @@ DROPDOWN_COLUMNS = {
     "job":        "jobs",
 }
 
+# Arabic and Bilingual labels for employee columns
+AR_COLUMN_LABELS = {
+    "name": "اسم الموظف الكامل بالعربي",
+    "work_email": "البريد الإلكتروني للعمل",
+    "work_phone": "هاتف العمل",
+    "mobile_phone": "رقم الجوال (05xxxxxxxx)",
+    "job_title": "المسمى الوظيفي",
+    "hiring_date": "تاريخ المباشرة",
+    "company": "المنشأة التابع لها",
+    "department": "القسم / الإدارة",
+    "job": "الوظيفة",
+}
+
+BILINGUAL_COLUMN_LABELS = {
+    "name": "اسم الموظف / Employee Name",
+    "work_email": "البريد الإلكتروني / Work Email",
+    "work_phone": "هاتف العمل / Work Phone",
+    "mobile_phone": "رقم الجوال / Mobile Phone",
+    "job_title": "المسمى الوظيفي / Job Title",
+    "hiring_date": "تاريخ المباشرة / Hiring Date",
+    "company": "المنشأة / Company",
+    "department": "القسم / Department",
+    "job": "الوظيفة / Job",
+}
+
 # Styles
 _HEADER_FILL_REQUIRED   = PatternFill("solid", fgColor="1F4E79")   # dark blue — required
 _HEADER_FILL_OPTIONAL   = PatternFill("solid", fgColor="2E75B6")   # lighter blue — optional
@@ -116,13 +141,22 @@ def _write_cell(ws, row: int, col: int, value, font=None, fill=None, alignment=N
 # Sheet 1: Employees
 # ---------------------------------------------------------------------------
 
-def _build_employees_sheet(wb: openpyxl.Workbook, snapshot: Dict[str, Any]) -> None:
+def _build_employees_sheet(wb: openpyxl.Workbook, snapshot: Dict[str, Any], language: str = "en") -> None:
     ws = wb.create_sheet("Employees", 0)
-    ws.sheet_view.rightToLeft = False  # LTR — column names are English
+    lang = (language or "en").lower().strip()
+    is_rtl = lang in ("ar", "arabic", "bilingual", "bi")
+    ws.sheet_view.rightToLeft = is_rtl
 
     # --- Header row (row 1) ---
     for col_idx, col in enumerate(EMPLOYEE_COLUMNS, start=1):
-        label = col["label"]
+        key = col["key"]
+        if lang in ("ar", "arabic"):
+            label = AR_COLUMN_LABELS.get(key, col["label"])
+        elif lang in ("bilingual", "bi"):
+            label = BILINGUAL_COLUMN_LABELS.get(key, f"{AR_COLUMN_LABELS.get(key, col['label'])} / {col['label']}")
+        else:
+            label = col["label"]
+
         if col["required"]:
             display = f"{label} *"
             fill = _HEADER_FILL_REQUIRED
@@ -131,7 +165,7 @@ def _build_employees_sheet(wb: openpyxl.Workbook, snapshot: Dict[str, Any]) -> N
             fill = _HEADER_FILL_OPTIONAL
         _write_cell(ws, 1, col_idx, display, font=_HEADER_FONT, fill=fill,
                     alignment=Alignment(horizontal="center", vertical="center"))
-        _set_col_width(ws, col_idx, col["width"])
+        _set_col_width(ws, col_idx, max(col["width"], len(display) + 4))
 
         # Force text format for phone columns
         if col.get("format") == "@":
@@ -545,6 +579,7 @@ def _build_instructions_sheet(wb: openpyxl.Workbook) -> None:
 def generate_template(
     snapshot: Dict[str, Any],
     output_dir: str = "samples",
+    language: str = "en",
 ) -> Path:
     """Build and save the Excel template. Returns the output path."""
     output_path = Path(output_dir)
@@ -560,7 +595,7 @@ def generate_template(
     if "Sheet" in wb.sheetnames:
         del wb["Sheet"]
 
-    _build_employees_sheet(wb, snapshot)
+    _build_employees_sheet(wb, snapshot, language=language)
     _build_reference_sheet(wb, snapshot, generated_at)
     _build_instructions_sheet(wb)
 

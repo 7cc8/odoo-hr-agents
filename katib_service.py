@@ -316,23 +316,40 @@ class KatibService:
                 }
 
         elif action_type == "update":
-            emp_id = action.get("record_id") or action.get("employee_id")
-            if not emp_id or not isinstance(emp_id, int):
-                raise KatibExecutionError("معرف الموظف غير محدد أو غير صالح للتعديل.")
+            model = action.get("model", "hr.employee")
+            rec_id = action.get("record_id") or action.get("employee_id")
+            if not rec_id or not isinstance(rec_id, int):
+                raise KatibExecutionError("معرف السجل غير محدد أو غير صالح للتعديل.")
             field_name = action.get("field")
             new_val = action.get("new_value")
             values = action.get("values") or {field_name: new_val}
             
-            ok = self.update_employee(emp_id, values)
+            if model == "hr.employee":
+                ok = self.update_employee(rec_id, values)
+            else:
+                gw = self._get_gateway()
+                ok = gw.write_record(model, rec_id, values)
+                self.log_audit_record({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "stage": "katib_write",
+                    "action": "update_record",
+                    "model": model,
+                    "record_id": rec_id,
+                    "values": values,
+                    "status": "success" if ok else "failed",
+                })
             return {
                 "ok": ok,
                 "action": "update",
-                "employee_id": emp_id,
+                "model": model,
+                "record_id": rec_id,
+                "employee_id": rec_id,
                 "values": values,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
         elif action_type == "create":
+            model = action.get("model", "hr.employee")
             raw_vals = action.get("values") or {}
             if not raw_vals:
                 raw_vals = {
@@ -340,7 +357,6 @@ class KatibService:
                     "work_email": action.get("work_email"),
                     "company_id": action.get("company_id"),
                 }
-            # Clean and filter values: discard dummy/empty fields and only retain safe write fields
             clean_vals = {}
             for k, v in raw_vals.items():
                 if str(k).startswith("custom_field_"):
@@ -351,12 +367,27 @@ class KatibService:
                     clean_vals[k] = v
 
             if "name" not in clean_vals or not clean_vals["name"]:
-                clean_vals["name"] = action.get("name") or action.get("record_name") or action.get("employee_name") or "موظف جديد"
+                clean_vals["name"] = action.get("name") or action.get("record_name") or action.get("employee_name") or "سجل جديد"
 
-            new_id = self.create_employee(clean_vals)
+            if model == "hr.employee":
+                new_id = self.create_employee(clean_vals)
+            else:
+                gw = self._get_gateway()
+                new_id = gw.create_record(model, clean_vals)
+                self.log_audit_record({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "stage": "katib_write",
+                    "action": "create_record",
+                    "model": model,
+                    "record_id": new_id,
+                    "values": clean_vals,
+                    "status": "success",
+                })
             return {
                 "ok": True,
                 "action": "create",
+                "model": model,
+                "record_id": new_id,
                 "employee_id": new_id,
                 "values": clean_vals,
                 "timestamp": datetime.now(timezone.utc).isoformat(),

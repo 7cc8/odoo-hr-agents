@@ -22,7 +22,7 @@ from __future__ import annotations
 import json
 import logging
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
@@ -31,6 +31,29 @@ from agents.base_agent import BaseAgent, AgentGoal, AgentMemory
 from seraj_session_manager import SerajSessionState, SerajState
 
 logger = logging.getLogger("seraj_meta_agent")
+
+
+@dataclass
+class AgentHandoff:
+    """توثيق عملية تسليم وتفويض المهام بين الوكلاء (Agent Handoff)."""
+    handoff_id: str
+    from_agent: str
+    to_agent: str
+    intent: str
+    context_summary: str
+    timestamp: str
+    payload: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class PipelineCheckpoint:
+    """نقطة تفتيش وحفظ لحالة خط الأنابيب (Pipeline Checkpoint)."""
+    checkpoint_id: str
+    phase: str
+    agent: str
+    status: str
+    timestamp: str
+    artifacts: Dict[str, Any] = field(default_factory=dict)
 
 
 class AgentType(str, Enum):
@@ -102,7 +125,40 @@ class SerajMetaAgent(BaseAgent):
         # أنماط مُتعلّمة
         self.learned_patterns: Dict[str, List[AgentType]] = {}
         
+        # سجل تسليم المهام ونقاط التفتيش (Handoffs & Checkpoints)
+        self.handoffs: List[AgentHandoff] = []
+        self.checkpoints: List[PipelineCheckpoint] = []
+        
         logger.info(f"✅ Seraj Meta-Agent initialized with {len(self.agent_capabilities)} agents")
+
+    def get_handoffs(self) -> List[Dict[str, Any]]:
+        """استرجاع سجل تسليم المهام بين الوكلاء."""
+        return [
+            {
+                "handoff_id": h.handoff_id,
+                "from_agent": h.from_agent,
+                "to_agent": h.to_agent,
+                "intent": h.intent,
+                "context_summary": h.context_summary,
+                "timestamp": h.timestamp,
+                "payload": h.payload,
+            }
+            for h in self.handoffs
+        ]
+
+    def get_checkpoints(self) -> List[Dict[str, Any]]:
+        """استرجاع نقاط التفتيش والحفظ المسجلة لخط الأنابيب."""
+        return [
+            {
+                "checkpoint_id": cp.checkpoint_id,
+                "phase": cp.phase,
+                "agent": cp.agent,
+                "status": cp.status,
+                "timestamp": cp.timestamp,
+                "artifacts": cp.artifacts,
+            }
+            for cp in self.checkpoints
+        ]
 
     # ============================================================================
     # Agent Capabilities Knowledge Base
@@ -708,14 +764,73 @@ class SerajMetaAgent(BaseAgent):
             objective=json.dumps(goal_payload, ensure_ascii=False, default=str),
             constraints=["Return structured result", "Do not mutate Odoo without explicit approval"],
         )
+
+        # 1. توثيق عملية تسليم المهام (Agent Handoff) وبث الحدث
+        handoff_id = f"ho_{int(datetime.now().timestamp() * 1000)}"
+        op_id = (
+            agent_context.get("operation_id")
+            or perception.get("context", {}).get("operation_id")
+            or handoff_id
+        )
+        handoff = AgentHandoff(
+            handoff_id=handoff_id,
+            from_agent="seraj",
+            to_agent=agent_type.value,
+            intent=str(perception.get("intent", "task")),
+            context_summary=str(perception.get("query", ""))[:70],
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            payload={"operation_id": op_id},
+        )
+        self.handoffs.append(handoff)
+        try:
+            from agents.agent_events_service import emit_agent_event
+            emit_agent_event(
+                operation_id=op_id,
+                agent=f"seraj ➔ {agent_type.value}",
+                action="handoff",
+                decision=f"تفويض المهمة إلى الوكيل «{agent_type.value}»",
+                reasoning=str(perception.get("query", ""))[:120],
+                status="in_progress",
+            )
+        except Exception:
+            pass
+
         run = agent.run(goal, context=agent_context)
+
+        # 2. توثيق نقطة التفتيش والحفظ (Pipeline Checkpoint)
+        cp_id = f"cp_{agent_type.value}_{int(datetime.now().timestamp() * 1000)}"
+        run_ok = run.get("status") == "success"
+        checkpoint = PipelineCheckpoint(
+            checkpoint_id=cp_id,
+            phase=f"{agent_type.value}_execution",
+            agent=agent_type.value,
+            status="success" if run_ok else "failed",
+            timestamp=datetime.now(timezone.utc).isoformat(),
+            artifacts={"iterations": run.get("iterations", 1)},
+        )
+        self.checkpoints.append(checkpoint)
+        try:
+            from agents.agent_events_service import emit_agent_event
+            emit_agent_event(
+                operation_id=op_id,
+                agent=agent_type.value,
+                action="checkpoint",
+                decision=f"اكتمال مرحلة تنفيذ «{agent_type.value}»",
+                reasoning=f"حالة التنفيذ: {run.get('status', 'done')}",
+                status="success" if run_ok else "failed",
+            )
+        except Exception:
+            pass
+
         return {
             "agent": agent_type.value,
-            "success": run.get("status") == "success",
+            "success": run_ok,
             "status": run.get("status"),
             "data": run.get("result", run),
             "reflection": run.get("reflection"),
             "iterations": run.get("iterations"),
+            "handoff_id": handoff_id,
+            "checkpoint_id": cp_id,
         }
 
     def _determine_fallback(self, perception: Dict[str, Any]) -> Optional[str]:

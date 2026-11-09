@@ -171,6 +171,7 @@ class BaseAgent(ABC):
         
         # Observability
         self.trace_log: List[Dict[str, Any]] = []
+        self.system_prompt: str = self.get_system_prompt()
 
     def recall_similar_episodes(self, query: str, limit: int = 3) -> List[Any]:
         """استرجاع حلقات تفاعل سابقة مشابهة من الذاكرة المركزية الموحدة"""
@@ -428,8 +429,12 @@ class BaseAgent(ABC):
         """
         from agents.llm_provider import get_llm_provider
         
+        call_messages = list(messages)
+        if not any(m.get("role") == "system" for m in call_messages):
+            call_messages.insert(0, {"role": "system", "content": self.system_prompt})
+
         provider = get_llm_provider()
-        return provider.call(messages, tools, temperature)
+        return provider.call(call_messages, tools, temperature)
     
     def _use_tool(self, tool_name: str, args: Dict[str, Any]) -> Any:
         """استدعاء أداة"""
@@ -459,9 +464,13 @@ class BaseAgent(ABC):
             "data": data,
         })
     
-    def get_system_prompt(self) -> str:
-        """الحصول على system prompt للوكيل"""
-        return f"""أنت {self.name}، وكيل ذكي متخصص في {self.role}.
+    def get_system_prompt(self, context: Optional[Dict[str, Any]] = None) -> str:
+        """الحصول على system prompt للوكيل من سجل الأوامر المعياري"""
+        try:
+            from agents.prompts import get_agent_system_prompt
+            return get_agent_system_prompt(self.name, context=context)
+        except Exception:
+            return f"""أنت {self.name}، وكيل ذكي متخصص في {self.role}.
 
 مسؤولياتك:
 - فهم الأهداف المطلوبة وتحليل السياق

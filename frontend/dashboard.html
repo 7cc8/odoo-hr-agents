@@ -377,6 +377,15 @@
                 <span class="status-indicator-ping" style="width: 5px; height: 5px"></span>
                 <span>جاهز للأوامر</span>
               </div>
+              <div class="chat-session-switcher-wrap" style="position: relative; display: inline-flex; align-items: center;">
+                <select id="chatSessionSelector" class="btn-chat-header session-history-select"
+                  onchange="switchChatSession(this.value)"
+                  title="سجل المحادثات والجلسات السابقة"
+                  aria-label="سجل الجلسات السابقة"
+                  style="max-width: 180px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; cursor: pointer; padding: 5px 10px; font-size: 12px; font-weight: 500; background: var(--color-ash); border: 1px solid var(--color-slate); color: var(--color-snow); border-radius: var(--radius-sm); font-family: var(--font-arabic);">
+                  <option value="" disabled selected>سجل الجلسات...</option>
+                </select>
+              </div>
               <button type="button" class="btn-chat-header" onclick="startNewChatSession()"
                 title="بدء محادثة جديدة وتصفير الجلسة" aria-label="جلسة جديدة">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -399,29 +408,59 @@
             </div>
           </div>
 
-          <!-- 21st.dev Suggestion Chips -->
-          <div class="suggestion-chips-bar">
-            <span class="suggestion-label">اقتراحات سريعة:</span>
-            <button type="button" class="chip-btn" onclick="
-                  fillPrompt(
-                    'ما هي ضوابط إنهاء العقد لسبب غير مشروع بموجب المادة 77 من نظام العمل السعودي؟',
-                  )
-                ">
-              تعويض المادة 77
+          <!-- Categorized Quick Action Chips -->
+          <div class="suggestion-chips-bar" id="quickActionChipsBar">
+            <span class="suggestion-label">إجراءات سريعة:</span>
+            <!-- ➕ إضافة -->
+            <button type="button" class="chip-btn" onclick="fillPrompt('أضف موظف جديد باسم ')" title="إضافة موظف جديد وتجهيز خطة الاعتماد">
+              ➕ إضافة موظف
             </button>
-            <button type="button" class="chip-btn" onclick="
-                  fillPrompt(
-                    'استعلم عن عدد الموظفين النشطين في Odoo وقسم الموارد البشرية',
-                  )
-                ">
-              استعلام موظفي Odoo
+            <button type="button" class="chip-btn" onclick="fillPrompt('أضف قسماً جديداً باسم ')" title="إضافة قسم جديد في الهيكل التنظيمي">
+              🏢 إضافة قسم
             </button>
-            <button type="button" class="chip-btn" onclick="
-                  fillPrompt(
-                    'فحص وتدقيق كشف الرواتب الشهري الجديد للتأكد من مطابقة الأجور',
-                  )
-                ">
-              فحص كشف الرواتب
+            <button type="button" class="chip-btn" onclick="fillPrompt('أضف وظيفة جديدة باسم ')" title="إضافة مسمى وظيفي جديد">
+              💼 إضافة وظيفة
+            </button>
+            <!-- ✏️ تعديل -->
+            <button type="button" class="chip-btn" onclick="fillPrompt('عدل راتب الموظف ')" title="تعديل الراتب الأساسي لموظف">
+              💰 تعديل راتب
+            </button>
+            <button type="button" class="chip-btn" onclick="fillPrompt('عدل مسمى الموظف ')" title="تعديل المسمى الوظيفي لموظف">
+              ✏️ تعديل مسمى
+            </button>
+            <button type="button" class="chip-btn" onclick="fillPrompt('انقل الموظف ')" title="نقل موظف إلى قسم آخر">
+              🔄 نقل قسم
+            </button>
+            <!-- 📦 أرشفة / استعادة -->
+            <button type="button" class="chip-btn" onclick="fillPrompt('أرشف الموظف رقم ')" title="أرشفة سجل موظف (active=False)">
+              📦 أرشفة موظف
+            </button>
+            <button type="button" class="chip-btn" onclick="fillPrompt('استرجع الموظف رقم ')" title="استرجاع موظف من الأرشيف (active=True)">
+              ♻️ استعادة موظف
+            </button>
+            <!-- 🗑️ حذف محكوم -->
+            <button type="button" class="chip-btn" onclick="fillPrompt('حذف نهائي للموظف رقم ')" title="حذف نهائي محكوم عبر بوابة كاتب المعزولة">
+              🗑️ حذف محكوم
+            </button>
+            <!-- ⚖️ خدمات الموارد البشرية -->
+            <button type="button" class="chip-btn" onclick="fillPrompt('احسب مكافأة نهاية الخدمة لموظف راتب 10000 خدمة 5 سنوات')" title="احتساب مكافأة نهاية الخدمة وفق المواد 84 و 85">
+              ⚖️ مكافأة ن/خدمة
+            </button>
+            <button type="button" class="chip-btn" onclick="fillPrompt('احسب استقطاع التأمينات الاجتماعية GOSI لراتب 8000')" title="احتساب التأمينات وساند">
+              🛡️ تأمينات GOSI
+            </button>
+            <button type="button" class="chip-btn" onclick="fillPrompt('احسب أجر العمل الإضافي 10 ساعات لراتب 6000')" title="احتساب أجر الساعات الإضافية م/107">
+              ⏱️ عمل إضافي
+            </button>
+            <button type="button" class="chip-btn" onclick="fillPrompt('كم رصيد الإجازة السنوية لموظف خدمته 6 سنوات؟')" title="استحقاق الإجازة السنوية م/109">
+              🏖️ رصيد إجازات
+            </button>
+            <!-- 🔍 استعلام Odoo -->
+            <button type="button" class="chip-btn" onclick="fillPrompt('كم عدد الموظفين النشطين في المنشأة الحالية؟')" title="استعلام عدد الموظفين عبر فاحص">
+              🔍 عدد الموظفين
+            </button>
+            <button type="button" class="chip-btn" onclick="fillPrompt('استعرض قائمة الأقسام المعتمدة في Odoo')" title="استعراض الأقسام عبر فاحص">
+              📂 الأقسام المعتمدة
             </button>
           </div>
 
@@ -1290,7 +1329,7 @@
       <!-- Integrated Template Generation Section -->
       <div style="margin-top: 10px">
         <!-- ==================== TEMPLATE GENERATION SECTION ==================== -->
-        <section class="template-section" style="max-width: 1400px; margin: 20px auto; padding: 0 20px">
+        <div class="template-section" style="max-width: 1400px; margin: 20px auto; padding: 0 20px">
           <div class="panel-card">
             <div class="panel-header">
               <div class="panel-title-group">
@@ -1422,8 +1461,9 @@
                           font-family: var(--font-arabic);
                           font-size: 14px;
                         ">
-                      <option value="ar">اللغة العربية</option>
-                      <option value="en">اللغة الإنجليزية</option>
+                      <option value="bilingual" selected>ثنائي اللغة (Bilingual AR / EN)</option>
+                      <option value="ar">اللغة العربية (Arabic)</option>
+                      <option value="en">اللغة الإنجليزية (English)</option>
                     </select>
                     <div style="margin-top: 10px">
                       <label style="
@@ -1528,7 +1568,7 @@
               </div>
             </div>
           </div>
-        </section>
+        </div>
         <!-- ==================== END TEMPLATE GENERATION SECTION ==================== -->
       </div>
     </section>
@@ -1639,7 +1679,7 @@
               Odoo (سجل إحصائي تحريري دقيق)
             </div>
           </div>
-          <span class="badge badge-success" style="font-size: 12px; padding: 4px 10px">5 منشآت مسجلة</span>
+          <span id="companiesOverviewBadge" class="badge badge-neutral" style="font-size: 12px; padding: 4px 10px">جاري الفحص...</span>
         </div>
 
         <div style="
@@ -1669,276 +1709,16 @@
             <div style="text-align: center">التعداد الموثق</div>
           </div>
 
-          <!-- Rows List -->
-          <div style="
+          <!-- Dynamic Rows List -->
+          <div id="companiesOverviewList" style="
                 display: flex;
                 flex-direction: column;
                 gap: 8px;
                 margin-top: 8px;
                 min-width: 640px;
               ">
-            <!-- Row 1: edu-training1555 (Active Focal Row) -->
-            <div style="
-                  display: grid;
-                  grid-template-columns: 70px 2fr 1.5fr 110px;
-                  gap: 16px;
-                  align-items: center;
-                  padding: 12px 16px;
-                  background: rgba(var(--ok-rgb),0.05);
-                  border: 1px solid rgba(var(--ok-rgb),0.3);
-                  border-radius: 8px;
-                ">
-              <div style="text-align: center">
-                <span class="mono" style="
-                      background: rgba(var(--ok-rgb),0.15);
-                      color: var(--color-phosphor-green);
-                      padding: 3px 8px;
-                      border-radius: 4px;
-                      font-size: 12px;
-                      font-weight: 700;
-                    ">#1</span>
-              </div>
-              <div>
-                <div style="font-weight: 700; color: var(--ink); font-size: 13.5px">
-                  edu-training1555
-                </div>
-                <div style="
-                      font-size: 12px;
-                      color: var(--color-phosphor-green);
-                      margin-top: 2px;
-                    ">
-                  المنشأة الرئيسية النشطة • قاعدة البيانات الأساسية
-                </div>
-              </div>
-              <div>
-                <div style="
-                      width: 100%;
-                      height: 10px;
-                      background: rgba(var(--ink-rgb),0.06);
-                      border-radius: 5px;
-                      overflow: hidden;
-                    ">
-                  <div style="
-                        width: 100%;
-                        height: 100%;
-                        background: var(--color-phosphor-green);
-                        border-radius: 5px;
-                      "></div>
-                </div>
-              </div>
-              <div style="text-align: center">
-                <span class="badge badge-success" style="
-                      font-size: 12px;
-                      padding: 4px 10px;
-                      display: inline-flex;
-                      align-items: center;
-                      gap: 6px;
-                    ">
-                  <span style="
-                        width: 6px;
-                        height: 6px;
-                        border-radius: 50%;
-                        background: var(--color-phosphor-green);
-                      "></span>
-                  <span style="font-weight: 700">1 موظف</span>
-                </span>
-              </div>
-            </div>
-
-            <!-- Row 2: القهوة السرايا -->
-            <div style="
-                  display: grid;
-                  grid-template-columns: 70px 2fr 1.5fr 110px;
-                  gap: 16px;
-                  align-items: center;
-                  padding: 10px 16px;
-                  background: rgba(var(--ink-rgb),0.015);
-                  border: 1px solid rgba(var(--ink-rgb),0.05);
-                  border-radius: 8px;
-                ">
-              <div style="text-align: center">
-                <span class="mono" style="
-                      background: rgba(var(--ink-rgb),0.05);
-                      color: var(--color-silver-mist);
-                      padding: 3px 8px;
-                      border-radius: 4px;
-                      font-size: 12px;
-                    ">#2</span>
-              </div>
-              <div>
-                <div style="
-                      font-weight: 600;
-                      color: var(--color-snow);
-                      font-size: 13px;
-                    ">
-                  القهوة السرايا
-                </div>
-                <div style="
-                      font-size: 12px;
-                      color: var(--color-smoke);
-                      margin-top: 2px;
-                    ">
-                  فرع تجاري مسجل
-                </div>
-              </div>
-              <div>
-                <div style="
-                      width: 100%;
-                      height: 8px;
-                      background: rgba(var(--ink-rgb),0.04);
-                      border-radius: 4px;
-                    "></div>
-              </div>
-              <div style="text-align: center">
-                <span style="font-size: 12px; color: var(--color-smoke)">0 موظفين</span>
-              </div>
-            </div>
-
-            <!-- Row 3: فرع حراء -->
-            <div style="
-                  display: grid;
-                  grid-template-columns: 70px 2fr 1.5fr 110px;
-                  gap: 16px;
-                  align-items: center;
-                  padding: 10px 16px;
-                  background: rgba(var(--ink-rgb),0.015);
-                  border: 1px solid rgba(var(--ink-rgb),0.05);
-                  border-radius: 8px;
-                ">
-              <div style="text-align: center">
-                <span class="mono" style="
-                      background: rgba(var(--ink-rgb),0.05);
-                      color: var(--color-silver-mist);
-                      padding: 3px 8px;
-                      border-radius: 4px;
-                      font-size: 12px;
-                    ">#3</span>
-              </div>
-              <div>
-                <div style="
-                      font-weight: 600;
-                      color: var(--color-snow);
-                      font-size: 13px;
-                    ">
-                  فرع حراء
-                </div>
-                <div style="
-                      font-size: 12px;
-                      color: var(--color-smoke);
-                      margin-top: 2px;
-                    ">
-                  فرع تجاري مسجل
-                </div>
-              </div>
-              <div>
-                <div style="
-                      width: 100%;
-                      height: 8px;
-                      background: rgba(var(--ink-rgb),0.04);
-                      border-radius: 4px;
-                    "></div>
-              </div>
-              <div style="text-align: center">
-                <span style="font-size: 12px; color: var(--color-smoke)">0 موظفين</span>
-              </div>
-            </div>
-
-            <!-- Row 4: فرع الروضة -->
-            <div style="
-                  display: grid;
-                  grid-template-columns: 70px 2fr 1.5fr 110px;
-                  gap: 16px;
-                  align-items: center;
-                  padding: 10px 16px;
-                  background: rgba(var(--ink-rgb),0.015);
-                  border: 1px solid rgba(var(--ink-rgb),0.05);
-                  border-radius: 8px;
-                ">
-              <div style="text-align: center">
-                <span class="mono" style="
-                      background: rgba(var(--ink-rgb),0.05);
-                      color: var(--color-silver-mist);
-                      padding: 3px 8px;
-                      border-radius: 4px;
-                      font-size: 12px;
-                    ">#4</span>
-              </div>
-              <div>
-                <div style="
-                      font-weight: 600;
-                      color: var(--color-snow);
-                      font-size: 13px;
-                    ">
-                  فرع الروضة
-                </div>
-                <div style="
-                      font-size: 12px;
-                      color: var(--color-smoke);
-                      margin-top: 2px;
-                    ">
-                  فرع تجاري مسجل
-                </div>
-              </div>
-              <div>
-                <div style="
-                      width: 100%;
-                      height: 8px;
-                      background: rgba(var(--ink-rgb),0.04);
-                      border-radius: 4px;
-                    "></div>
-              </div>
-              <div style="text-align: center">
-                <span style="font-size: 12px; color: var(--color-smoke)">0 موظفين</span>
-              </div>
-            </div>
-
-            <!-- Row 5: فرع الرياض -->
-            <div style="
-                  display: grid;
-                  grid-template-columns: 70px 2fr 1.5fr 110px;
-                  gap: 16px;
-                  align-items: center;
-                  padding: 10px 16px;
-                  background: rgba(var(--ink-rgb),0.015);
-                  border: 1px solid rgba(var(--ink-rgb),0.05);
-                  border-radius: 8px;
-                ">
-              <div style="text-align: center">
-                <span class="mono" style="
-                      background: rgba(var(--ink-rgb),0.05);
-                      color: var(--color-silver-mist);
-                      padding: 3px 8px;
-                      border-radius: 4px;
-                      font-size: 12px;
-                    ">#5</span>
-              </div>
-              <div>
-                <div style="
-                      font-weight: 600;
-                      color: var(--color-snow);
-                      font-size: 13px;
-                    ">
-                  فرع الرياض
-                </div>
-                <div style="
-                      font-size: 12px;
-                      color: var(--color-smoke);
-                      margin-top: 2px;
-                    ">
-                  فرع إداري مسجل
-                </div>
-              </div>
-              <div>
-                <div style="
-                      width: 100%;
-                      height: 8px;
-                      background: rgba(var(--ink-rgb),0.04);
-                      border-radius: 4px;
-                    "></div>
-              </div>
-              <div style="text-align: center">
-                <span style="font-size: 12px; color: var(--color-smoke)">0 موظفين</span>
-              </div>
+            <div style="text-align: center; padding: 30px; color: var(--color-silver-mist); font-size: 13px;">
+              جاري فحص واسترجاع المنشآت المصرح بها من Odoo...
             </div>
           </div>
 

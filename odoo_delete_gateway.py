@@ -19,7 +19,14 @@ from environment_policy import ALLOWED_TEST_DBS, ALLOWED_DEV_DBS
 
 logger = logging.getLogger("odoo_delete_gateway")
 
-ALLOWED_DELETE_MODELS = frozenset({"hr.employee"})
+ALLOWED_DELETE_MODELS = frozenset({
+    "hr.employee",
+    "hr.department",
+    "hr.job",
+    "hr.contract",
+    "hr.leave",
+    "hr.attendance",
+})
 
 
 class DeleteGatewayError(RuntimeError):

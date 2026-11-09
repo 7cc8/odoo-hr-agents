@@ -349,9 +349,14 @@ def build_full_report(input_xlsx_path: str | Path) -> Dict[str, Any]:
             or any(s.startswith(("1_", "2_", "3_", "4_", "5_", "6_", "7_", "8_", "9_", "10_", "11_", "12_", "13_")) for s in sheetnames)
             or any(k in Path(input_xlsx_path).name.lower() for k in ["template_", "master_", "attendance", "contract", "payroll", "timeoff", "loan", "overtime", "disciplinary", "appraisal", "recruitment"])
         )
-        if is_template and _detect_template_domain(input_xlsx_path) != "employee":
-            # Other HR domains (contracts, leave, payroll, ...) keep the template validator.
-            # Employee templates fall through to the strict pipeline below.
+        is_modular_catalog_template = (
+            "templates/modular" in str(input_xlsx_path).replace("\\", "/").lower()
+            or "template_employees" in Path(input_xlsx_path).name.lower()
+            or "master_" in Path(input_xlsx_path).name.lower()
+        )
+        if is_template and (is_modular_catalog_template or _detect_template_domain(input_xlsx_path) != "employee"):
+            # Other HR domains and modular catalog templates keep the template validator.
+            # Filled official employee import templates fall through to the strict pipeline below.
             return validate_template_workbook(str(input_xlsx_path), repo=repository)
     except Exception:
         pass
