@@ -84,6 +84,14 @@
 
       <!-- Global Controls: Company Selection & Live Telemetry Cluster -->
       <div class="nav-controls">
+        <!-- Interactive Agent HQ Portal Link -->
+        <a href="/hq" target="_blank" rel="noopener noreferrer" class="hq-portal-btn" id="btnTopNavHq"
+          title="فتح مقر شركة سراج الذكي ومحاكاة الوكلاء ثنائية الأبعاد (2D HQ Simulation)">
+          <span class="hq-portal-icon" aria-hidden="true">🏢</span>
+          <span>مقر الوكلاء التفاعلي</span>
+          <span class="hq-portal-badge">HQ</span>
+        </a>
+
         <div class="scope-pill" title="المنشأة المحددة للعمليات">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path d="M3 21h18"></path>
@@ -732,16 +740,33 @@
                 توسيع عرض الجدول
               </button>
             </div>
+
+            <!-- Rejection Summary Bar (Phase 7.2) -->
+            <div id="rejectionSummaryBar" class="rejection-summary-bar">
+              <div class="summary-chip">
+                <span style="color: var(--color-silver-mist);">إجمالي الصفوف المرفوضة:</span>
+                <span id="rejectionTotalCount" class="mono" style="font-weight: 700; color: var(--color-coral);">0</span>
+              </div>
+              <div class="summary-chip">
+                <span style="color: var(--color-silver-mist);">قابلة للتصحيح التلقائي («مصلح»):</span>
+                <span id="rejectionFixableCount" class="mono" style="font-weight: 700; color: var(--color-amber);">0</span>
+              </div>
+              <div class="summary-chip">
+                <span style="color: var(--color-silver-mist);">تتطلب مراجعة يدوية:</span>
+                <span id="rejectionManualCount" class="mono" style="font-weight: 700; color: var(--color-snow);">0</span>
+              </div>
+            </div>
+
             <div class="table-responsive" style="max-height: 400px; overflow-y: auto">
               <table class="data-table rejection-details-table" style="width: 100%">
                 <thead>
                   <tr>
-                    <th>رقم الصف</th>
+                    <th>رقم الصف (Row #)</th>
                     <th>اسم الموظف</th>
-                    <th>سبب عدم المطابقة</th>
+                    <th>سبب عدم المطابقة (Reason)</th>
                     <th>الحقل</th>
                     <th>القيمة</th>
-                    <th>الإجراء المقترح</th>
+                    <th>الإجراء المقترح (Suggested Fix)</th>
                     <th>تصحيح آلي</th>
                   </tr>
                 </thead>
@@ -955,6 +980,39 @@
               <span>الانتقال إلى المحادثة مع سراج</span>
             </button>
           </div>
+        </div>
+      </div>
+
+      <!-- HR Domains 13-Module Catalog Strip (Phase 7.1) -->
+      <div class="panel-card hr-domain-selector-card">
+        <div class="panel-header" style="margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <div class="panel-title" style="font-size: 16px; display: flex; align-items: center; gap: 8px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-phosphor-green)" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+              <span>دليل مجالات الموارد البشرية الـ 13 وقوالبها التخصصية المعتمدة</span>
+            </div>
+            <div style="font-size: 12px; color: var(--color-silver-mist); margin-top: 4px;">
+              اختر المجال لتجهيز بيئة التدقيق والفحص، أو حمّل القالب النموذجي المعتمد مباشرة للبدء في تعبئة البيانات
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <a href="/api/template/download/master:all" class="btn btn-sm btn-outline" title="تحميل القالب النموذجي الشامل لكافة الأقسام" style="font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span>القالب الشامل (Master)</span>
+            </a>
+          </div>
+        </div>
+        <div class="hr-domains-grid" id="hrDomainsGrid">
+          <!-- Populated dynamically via JS with fallback cards -->
         </div>
       </div>
 
@@ -1324,8 +1382,22 @@
                           font-family: var(--font-arabic);
                           font-size: 14px;
                         ">
-                      <option value="employee">بيانات الموظفين</option>
-                      <option value="contract">عقود العمل</option>
+                      <option value="employees" selected>1. بيانات الموظفين الأساسية (Employees)</option>
+                      <option value="contracts_allowances">2. عقود العمل والبدلات (Contracts & Allowances)</option>
+                      <option value="attendance">3. سجلات الحضور والانصراف (Attendance)</option>
+                      <option value="timeoff">4. الإجازات والمغادرات (Time Off)</option>
+                      <option value="payroll_gosi">5. مسيرات الرواتب والتأمينات (Payroll & GOSI)</option>
+                      <option value="overtime">6. ساعات العمل الإضافي (Overtime)</option>
+                      <option value="loans_installments">7. السلف والأقساط الشهرية (Loans & Installments)</option>
+                      <option value="end_of_service">8. مستحقات نهاية الخدمة (End of Service)</option>
+                      <option value="disciplinary">9. الجزاءات والمخالفات الإدارية (Disciplinary)</option>
+                      <option value="appraisals">10. تقييمات الأداء الدورية (Appraisals)</option>
+                      <option value="recruitment">11. طلبات التوظيف والمتقدمين (Recruitment)</option>
+                      <option value="gr_transactions">12. المعاملات الحكومية (GR & Government)</option>
+                      <option value="company_setup">13. إعداد المنشآت والهيكل (Company Setup)</option>
+                      <option value="master">14. القالب الشامل لجميع الأقسام (Master Template)</option>
+                      <option value="employee" style="display:none">بيانات الموظفين (توافقية)</option>
+                      <option value="contract" style="display:none">عقود العمل (توافقية)</option>
                     </select>
                   </div>
 
@@ -1381,7 +1453,7 @@
                         border: none;
                         cursor: pointer;
                         font-family: var(--font-arabic);
-                        transition: all 0.2s;
+                        transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
                         display: flex;
                         align-items: center;
                         gap: 8px;
@@ -1447,7 +1519,7 @@
                           font-weight: 600;
                           text-decoration: none;
                           font-size: 13px;
-                          transition: all 0.2s;
+                          transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
                         ">
                       تحميل ملف القالب
                     </a>
@@ -1918,17 +1990,33 @@
     <!-- ==================== VIEW 3: الوكلاء (Agents Directory) ==================== -->
     <section id="view-agents" class="view-section" role="tabpanel" aria-labelledby="tab-agents">
       <div class="panel-card" style="margin-bottom: 20px">
-        <div class="panel-title" style="font-size: 17px; margin-bottom: 6px">
-          دليل أدوار وصلاحيات وكلاء المنظومة
-        </div>
-        <div style="
-              font-size: 13px;
-              color: var(--color-silver-mist);
-              line-height: 1.6;
-            ">
-          تعمل المنظومة وفق مبدأ الفصل المعماري والرقابة المتبادلة . لا يملك
-          أي وكيل سلطة منفردة للدمج أو التعديل، وتمر كافة الكتابات عبر بوابة
-          «كاتب» المعتمدة وتُوثق في «سجل».
+        <div class="panel-header" style="margin-bottom: 8px;">
+          <div>
+            <h2 class="panel-title" style="font-size: 17px; margin-bottom: 6px">
+              دليل أدوار وصلاحيات وكلاء المنظومة
+            </h2>
+            <div style="
+                  font-size: 13px;
+                  color: var(--color-silver-mist);
+                  line-height: 1.6;
+                ">
+              تعمل المنظومة وفق مبدأ الفصل المعماري والرقابة المتبادلة. لا يملك
+              أي وكيل سلطة منفردة للدمج أو التعديل، وتمر كافة الكتابات عبر بوابة
+              «كاتب» المعتمدة وتُوثق في «سجل».
+            </div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <a href="/hq" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; text-decoration: none;" title="محاكاة مقر الوكلاء التفاعلي">
+              <span>مقر الوكلاء التفاعلي 🏢</span>
+            </a>
+            <button type="button" class="btn btn-sm btn-subtle" onclick="loadAgentsOverview()" style="display: inline-flex; align-items: center; gap: 5px;" title="تحديث الحالة اللحظية لجميع الوكلاء">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="13" height="13">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              <span>تحديث الحالة اللحظية</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -2312,7 +2400,7 @@
                     border: 2px solid var(--color-phosphor-green);
                     border-radius: 10px;
                     cursor: pointer;
-                    transition: all 0.2s;
+                    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
                   ">
                 <div style="
                       display: flex;
@@ -2351,7 +2439,7 @@
                     border: 1px solid var(--color-charcoal);
                     border-radius: 10px;
                     cursor: pointer;
-                    transition: all 0.2s;
+                    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
                   ">
                 <div style="
                       display: flex;
@@ -2413,7 +2501,7 @@
                     color: var(--color-silver-mist);
                     font-weight: 700;
                     cursor: pointer;
-                    transition: all 0.2s;
+                    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
                   ">
                 المشغل السحابي المعتمد
               </button>
@@ -2426,7 +2514,7 @@
                     color: var(--color-snow);
                     font-weight: 700;
                     cursor: pointer;
-                    transition: all 0.2s;
+                    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
                   ">
                 المحرك المحلي (Ollama)
               </button>

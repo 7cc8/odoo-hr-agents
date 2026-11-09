@@ -360,8 +360,6 @@ def get_user_guide_page() -> str:
 
 
 DASHBOARD_FILE = Path(__file__).parent / "frontend" / "dashboard.html"
-if not DASHBOARD_FILE.exists():
-    DASHBOARD_FILE = Path(__file__).parent / "templates" / "dashboard.html"
 if DASHBOARD_FILE.exists():
     DASHBOARD_HTML_PAGE = DASHBOARD_FILE.read_text(encoding="utf-8")
 else:

@@ -290,11 +290,28 @@ async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
 
     template_id = str(uuid.uuid4())
     generation_dir = TEMPLATE_DIR / template_id
-    if template_type.lower() in {"master", "modular"}:
+    known_modular = {t.module for t in list_templates() if t.template_type == "modular"}
+    tt_lower = template_type.lower()
+
+    if tt_lower in {"master", "modular"}:
         try:
             definition = get_template(template_type, module)
         except KeyError as exc:
             raise HTTPException(status_code=400, detail=f"اختيار القالب غير مدعوم: {exc}")
+        generation_dir.mkdir(parents=True, exist_ok=True)
+        template_path = generation_dir / definition.filename
+        shutil.copy2(definition.path, template_path)
+        selected_module = definition.module
+        selected_template_id = definition.template_id
+    elif tt_lower in known_modular:
+        definition = get_template("modular", tt_lower)
+        generation_dir.mkdir(parents=True, exist_ok=True)
+        template_path = generation_dir / definition.filename
+        shutil.copy2(definition.path, template_path)
+        selected_module = definition.module
+        selected_template_id = definition.template_id
+    elif tt_lower == "contract" and "contracts_allowances" in known_modular:
+        definition = get_template("modular", "contracts_allowances")
         generation_dir.mkdir(parents=True, exist_ok=True)
         template_path = generation_dir / definition.filename
         shutil.copy2(definition.path, template_path)
@@ -329,24 +346,39 @@ async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
     }
 
 
-@router.get("/api/template/download/{template_id}")
+@router.get("/api/template/download/{template_id:path}")
+@router.get("/api/templates/download/{template_id:path}")
 def download_template_endpoint(template_id: str, request: Request) -> FileResponse:
-    """Downloads generated employee template file."""
+    """Downloads generated employee template file or allowlisted catalog template."""
     audit_log_access(f"/api/template/download/{template_id}", request)
     template_dir = TEMPLATE_DIR / template_id
-    if not template_dir.exists():
-        raise HTTPException(status_code=404, detail="البيانات غير متوفرة في تقرير التدقيق.")
+    if template_dir.exists():
+        xlsx_files = list(template_dir.glob("*.xlsx"))
+        if xlsx_files:
+            template_file = xlsx_files[0]
+            return FileResponse(
+                path=str(template_file),
+                filename=template_file.name,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
 
-    xlsx_files = list(template_dir.glob("*.xlsx"))
-    if not xlsx_files:
-        raise HTTPException(status_code=404, detail="ملف التقرير غير موجود.")
+    # Check allowlisted catalog templates (e.g. modular:employees or master:all)
+    try:
+        parts = template_id.split(":", 1)
+        if len(parts) == 2:
+            tmpl = get_template(parts[0], parts[1])
+        else:
+            tmpl = get_template("modular", template_id)
+        if tmpl and Path(tmpl.path).exists():
+            return FileResponse(
+                path=tmpl.path,
+                filename=tmpl.filename,
+                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+    except Exception:
+        pass
 
-    template_file = xlsx_files[0]
-    return FileResponse(
-        path=str(template_file),
-        filename=template_file.name,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    )
+    raise HTTPException(status_code=404, detail="البيانات غير متوفرة في تقرير التدقيق.")
 
 
 @router.get("/api/reference/hr-options")

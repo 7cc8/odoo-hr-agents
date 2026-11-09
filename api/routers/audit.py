@@ -99,8 +99,6 @@ def _get_dashboard_html() -> str:
     except Exception:
         pass
     dashboard_file = Path(__file__).resolve().parent.parent.parent / "frontend" / "dashboard.html"
-    if not dashboard_file.exists():
-        dashboard_file = Path(__file__).resolve().parent.parent.parent / "templates" / "dashboard.html"
     if dashboard_file.exists():
         return dashboard_file.read_text(encoding="utf-8")
     return "<h1>بوابة أتمتة إدخال الموظفين في Odoo</h1>"

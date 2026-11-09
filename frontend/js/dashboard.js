@@ -477,6 +477,7 @@
         initDedicatedUploadEvents();
       }
       if (viewId === "view-operations") loadOperationsList();
+      if (viewId === "view-agents") loadAgentsOverview();
       if (viewId === "view-sijil") loadRecentAuditMetrics();
       if (viewId === "view-settings") {
         syncSettingsTokenInput();
@@ -1916,6 +1917,39 @@
       });
     }
 
+    function directInquiryToAgent(agentId, event) {
+      if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+      }
+      switchView("view-cockpit");
+      const meta = AGENTS_META[agentId] || {};
+      const defaultPrompts = {
+        seraj: "مرحباً سراج، أحتاج مساعدتك في تنسيق ومتابعة عمليات الموارد البشرية عبر الوكلاء.",
+        fahas: "أهلاً فاحص، أحتاج الاستعلام والتحقق من سجلات Odoo الحية للموظفين والعقود.",
+        modaqeq: "أهلاً مدقق، أرجو مطابقة بيانات الرواتب وساعات العمل مع مواد نظام العمل السعودي.",
+        mowafaq: "أهلاً موفق، أحتاج مطابقة وتوفيق مسميات الوظائف والأقسام غير المتطابقة مع Odoo.",
+        musleh: "أهلاً مصلح، أرجو فحص الأخطاء وتشخيص السجلات المرفوضة وتقديم مقترحات التصحيح.",
+        hares: "أهلاً حارس، أحتاج فحص سرية البيانات وحماية المعلومات الحساسة ومراجعة حدود الصلاحيات.",
+        katib: "أهلاً كاتب، أحتاج مراجعة جاهزية خطة القيد والإنشاء قبل الترحيل إلى Odoo.",
+        sijil: "أهلاً سجل، أرجو استعراض سجلات التدقيق اللاتراجعي وشهادات التحقق الراجع (Readback)."
+      };
+      const promptText = defaultPrompts[agentId] || `أهلاً ${meta.name_ar || agentId}، أحتاج استشارتك في مهام الموارد البشرية.`;
+
+      setTimeout(() => {
+        const input = document.getElementById("chatInput");
+        if (input) {
+          input.value = promptText;
+          if (typeof autoResizeTextarea === "function") autoResizeTextarea(input);
+          input.focus();
+          try {
+            input.setSelectionRange(input.value.length, input.value.length);
+          } catch (_) { }
+        }
+      }, 50);
+    }
+    window.directInquiryToAgent = directInquiryToAgent;
+
     function renderAgentsFullGrid(agents) {
       const grid = document.getElementById("agentsFullGrid");
       if (!grid) return;
@@ -1930,6 +1964,25 @@
         card.className = "agent-full-card";
         card.onclick = () => openAgentDetails(a.id);
         card.style.cursor = "pointer";
+
+        // Map status code to appropriate badge and icon
+        let badgeClass = "badge-neutral";
+        let statusDot = "🟢";
+        if (a.status_code === "ready" || a.status_code === "idle") {
+          badgeClass = "badge-success";
+          statusDot = "🟢";
+        } else if (a.status_code === "processing" || a.status_code === "busy" || a.status_code === "analyzing_request") {
+          badgeClass = "badge-warning";
+          statusDot = "⚙️";
+        } else if (a.status_code === "online") {
+          badgeClass = "badge-success";
+          statusDot = "⚡";
+        } else if (a.status_code === "failed") {
+          badgeClass = "badge-danger";
+          statusDot = "⚠️";
+        }
+        const statusLabel = a.status_label || STATUS_MAP_AR[a.status_code] || "جاهز";
+
         card.innerHTML = `
           <div class="agent-full-card-header">
             <div class="agent-avatar-wrap" style="border-color: ${meta.color}; width: 48px; height: 48px;">
@@ -1939,19 +1992,35 @@
               </div>
             </div>
             <div>
-              <div style="font-size: 16px; font-weight: 700; color: var(--color-snow);">${a.name_ar}</div>
-              <div style="font-size: 12px; color: var(--color-silver-mist);">${a.title_ar || meta.role}</div>
+              <div style="font-size: 16px; font-weight: 700; color: var(--color-snow);">${escapeHtml(a.name_ar)}</div>
+              <div style="font-size: 12px; color: var(--color-silver-mist);">${escapeHtml(a.title_ar || meta.role)}</div>
             </div>
-            <span class="badge ${a.status_code === "ready" ? "badge-neutral" : "badge-success"}" style="margin-right: auto;">
-              ${a.status_label || STATUS_MAP_AR[a.status_code] || "جاهز"}
+            <span class="badge ${badgeClass}" style="margin-right: auto; display: inline-flex; align-items: center; gap: 4px;">
+              <span>${statusLabel}</span>
+              <span aria-hidden="true">${statusDot}</span>
             </span>
           </div>
-          <div style="font-size: 12.5px; color: var(--color-silver-mist); line-height: 1.5;">${a.description_short || meta.role}</div>
+          <div style="font-size: 12.5px; color: var(--color-silver-mist); line-height: 1.5;">${escapeHtml(a.description_short || meta.role)}</div>
           <ul class="agent-capabilities">${(a.capabilities || []).map((c) => `<li>${escapeHtml(c)}</li>`).join("")}</ul>
-          <div class="agent-stats"><span>${a.operation_count || 0} عملية</span><span>${a.event_count || 0} حدث</span><span>آخر نشاط: ${escapeHtml(a.last_active_at?.slice(0, 19).replace("T", " ") || "لا يوجد")}</span></div>
+          <div class="agent-stats">
+            <span><strong class="tabular-nums font-mono">${a.operation_count || 0}</strong> عملية</span>
+            <span><strong class="tabular-nums font-mono">${a.event_count || 0}</strong> حدث</span>
+            <span>آخر نشاط: <strong class="tabular-nums">${escapeHtml(a.last_active_at?.slice(0, 19).replace("T", " ") || "لا يوجد")}</strong></span>
+          </div>
           <div style="font-size: 12.5px; background: var(--paper-2); padding: 8px 12px; border-radius: 8px; border: 1px solid var(--color-charcoal);">
             <span style="color: var(--color-smoke);">آخر مهمة:</span>
             <span style="color: var(--color-snow); font-weight: 500;"> ${escapeHtml(a.last_task || "في انتظار المهام")}</span>
+          </div>
+          <div class="agent-card-actions" style="margin-top: 14px; display: flex; gap: 8px;">
+            <button type="button" class="btn btn-sm btn-outline-primary agent-inquiry-btn" style="flex: 1; justify-content: center; font-size: 12px; padding: 7px 12px;" onclick="directInquiryToAgent('${a.id}', event)" title="بدء محادثة فورية وتوجيه استفسار لسراج والوكيل">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" width="13" height="13" style="margin-left: 4px;">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>توجيه استفسار مباشر 💬</span>
+            </button>
+            <button type="button" class="btn btn-sm btn-subtle" style="padding: 7px 12px; font-size: 12px;" onclick="openAgentDetails('${a.id}'); event.stopPropagation();" title="عرض بطاقة الصلاحيات والمهام">
+              <span>التفاصيل</span>
+            </button>
           </div>
         `;
         grid.appendChild(card);
@@ -5628,8 +5697,21 @@
         if (tbody) tbody.innerHTML = "";
 
         if (rejectedRows && rejectedRows.length > 0) {
+          // Update Rejection Summary Bar counters
+          const totalCount = rejectedRows.length;
+          const fixableCount = rejectedRows.filter((r) => r.can_auto_fix).length;
+          const manualCount = totalCount - fixableCount;
+
+          const totalEl = document.getElementById("rejectionTotalCount");
+          const fixableEl = document.getElementById("rejectionFixableCount");
+          const manualEl = document.getElementById("rejectionManualCount");
+
+          if (totalEl) totalEl.textContent = String(totalCount);
+          if (fixableEl) fixableEl.textContent = String(fixableCount);
+          if (manualEl) manualEl.textContent = String(manualCount);
+
           if (tbody) {
-            rejectedRows.forEach((row) => {
+            rejectedRows.forEach((row, idx) => {
               const tr = document.createElement("tr");
               const rowNum = row.row_number || row.excel_row_number || "—";
               const empName = row.name || row.employee_name || "غير محدد";
@@ -5637,9 +5719,20 @@
               const field = row.field || "—";
               const val = row.value !== undefined ? String(row.value) : "—";
               const suggestion = row.suggestion || "يرجى مراجعة القيمة";
-              const canFix = row.can_auto_fix
-                ? `<span class="badge badge-success">متاح</span>`
-                : `<span class="badge badge-neutral">—</span>`;
+
+              // Phase 7.2: Interactive Musleh Quick-Fix Button
+              let canFix = `<span class="badge badge-neutral">—</span>`;
+              if (row.can_auto_fix) {
+                const rowJsonStr = escapeHtml(JSON.stringify(row));
+                canFix = `
+                  <div style="display:inline-flex; align-items:center; gap:6px;">
+                    <span class="badge badge-success">متاح</span>
+                    <button type="button" class="musleh-fix-btn" data-row-idx="${idx}" data-row-num="${escapeHtml(String(rowNum))}" onclick="handleMuslehRowFix(this, ${rowJsonStr})" style="padding: 4px 10px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                      <span>إصلاح فوري ⚡</span>
+                    </button>
+                  </div>
+                `;
+              }
 
               tr.innerHTML = `
               <td><span class="mono">${escapeHtml(String(rowNum))}</span></td>
@@ -5663,9 +5756,67 @@
           containerElement.innerHTML = `
           <div class="panel-card" style="margin-top:10px;">
             <div style="font-weight:700; color:var(--color-coral); margin-bottom:8px;">تفاصيل الصفوف المرفوضة (${rejectedRows.length})</div>
-            <div style="font-size:12px; color:var(--color-snow);">تم رصد أخطاء في البيانات. يمكنك مراجعتها في جدول تفاصيل الرفض في اللوحة اليسرى.</div>
+            <div style="font-size:12px; color:var(--color-snow);">تم رصد أخطاء في البيانات. يمكنك مراجعتها وتصحيحها فورياً في جدول تفاصيل الرفض في اللوحة اليسرى.</div>
           </div>
         `;
+        }
+      }
+
+      async function handleMuslehRowFix(btn, rowData) {
+        if (!btn || btn.disabled) return;
+        const origContent = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = `<span>جاري الإصلاح...</span>`;
+
+        try {
+          const payload = {
+            row: {
+              name: rowData.name || "",
+              field: rowData.field || "",
+              value: rowData.value !== undefined ? rowData.value : "",
+              row_number: rowData.row_number || 0,
+            },
+            validation_result: {
+              is_valid: false,
+              errors: [rowData.reason_ar || rowData.error_reason_ar || "خطأ في البيانات"],
+            },
+            auto_repair: true,
+          };
+
+          const res = await apiFetch("/api/musleh/diagnose-row", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          if (!res.ok) {
+            throw new Error("تعذر إكمال تشخيص مصلح");
+          }
+
+          const data = await res.json();
+          btn.classList.add("is-fixed");
+          btn.innerHTML = `<span style="color:var(--color-phosphor-green); font-weight:700;">✓ تم التصحيح</span>`;
+
+          const tr = btn.closest("tr");
+          if (tr) {
+            tr.style.backgroundColor = "rgba(16, 185, 129, 0.08)";
+            tr.style.transition = "background-color 0.3s ease";
+          }
+
+          const fixableEl = document.getElementById("rejectionFixableCount");
+          if (fixableEl) {
+            const current = parseInt(fixableEl.textContent, 10) || 0;
+            if (current > 0) fixableEl.textContent = String(current - 1);
+          }
+
+          if (typeof appendSerajMessage === "function") {
+            const repairedVal = data.result && data.result.repaired_value !== undefined ? `«${data.result.repaired_value}»` : "";
+            appendSerajMessage(`🔧 قام الوكيل **«مصلح»** بتصحيح الصف ${rowData.row_number || ""} (${rowData.name || ""}): ${repairedVal}`);
+          }
+        } catch (err) {
+          btn.disabled = false;
+          btn.innerHTML = origContent;
+          alert("فشل التصحيح التلقائي للصف: " + err.message);
         }
       }
 
@@ -5992,6 +6143,19 @@
           }
         }
 
+        // FLICKER-FREE: Check if events or opStatus changed before touching DOM
+        const currentSig = `${opStatus}:${evtList.length}:${evtList
+          .map(
+            (e) =>
+              `${e.agent || ""}_${e.status || ""}_${e.sequence || ""}_${e.timestamp || ""}_${e.action || ""}`,
+          )
+          .join("|")}`;
+
+        if (container._lastRenderedSig === currentSig) {
+          return; // No mutation needed; preserves scroll position & prevents flicker
+        }
+        container._lastRenderedSig = currentSig;
+
         container.innerHTML = "";
         evtList.forEach((evt, idx) => {
           const div = document.createElement("div");
@@ -6024,6 +6188,18 @@
             }
           } else {
             exactTimeStr = "--:--:--";
+          }
+
+          // Format execution time in ms if available
+          let execTimeHtml = "";
+          const execMs =
+            evt.execution_time_ms !== undefined && evt.execution_time_ms !== null
+              ? evt.execution_time_ms
+              : evt.metadata && evt.metadata.execution_time_ms !== undefined
+                ? evt.metadata.execution_time_ms
+                : null;
+          if (execMs !== null && execMs !== undefined) {
+            execTimeHtml = `<span class="mono timeline-exec-ms" style="font-size:11px; color:var(--color-phosphor-green); font-variant-numeric:tabular-nums; margin-inline-start:4px;" title="زمن التنفيذ">⚡ ${Math.round(execMs)}ms</span>`;
           }
 
           const isSuccess =
@@ -6079,6 +6255,7 @@
             </div>
             <div class="timeline-header-left">
               <span class="mono timeline-seq">#${evt.sequence || idx + 1}</span>
+              ${execTimeHtml}
               <span class="timestamp timeline-time-mono" title="التوقيت الزمني الدقيق">${exactTimeStr}</span>
               <span class="status-icon timeline-status-chip ${statusBadgeClass}">
                 <span class="timeline-status-dot"></span>
@@ -6156,8 +6333,97 @@
         }
       }
 
+      // =========================================================================
+      // HR DOMAINS CATALOG & DOMAIN SELECTOR (PHASE 7.1)
+      // =========================================================================
+      const HR_DOMAINS = [
+        { id: "employees", name_ar: "بيانات الموظفين الأساسية", sub_ar: "الملفات الشخصية والوظيفية", count: "10 أعمدة", template: "modular:employees" },
+        { id: "contracts_allowances", name_ar: "عقود العمل والبدلات", sub_ar: "البنود والرواتب والبدلات", count: "9 أعمدة", template: "modular:contracts_allowances" },
+        { id: "attendance", name_ar: "سجلات الحضور والانصراف", sub_ar: "البصمات وساعات الدوام", count: "8 أعمدة", template: "modular:attendance" },
+        { id: "timeoff", name_ar: "الإجازات والمغادرات", sub_ar: "الأرصدة والطلبات السنوية", count: "8 أعمدة", template: "modular:timeoff" },
+        { id: "payroll_gosi", name_ar: "الرواتب والتأمينات (GOSI)", sub_ar: "مسيرات الرواتب ونسب التأمينات", count: "11 عموداً", template: "modular:payroll_gosi" },
+        { id: "overtime", name_ar: "ساعات العمل الإضافي", sub_ar: "التكليفات والتعويضات", count: "7 أعمدة", template: "modular:overtime" },
+        { id: "loans_installments", name_ar: "السلف والأقساط الشهرية", sub_ar: "القروض والخصومات المجدولة", count: "8 أعمدة", template: "modular:loans_installments" },
+        { id: "end_of_service", name_ar: "مكافأة نهاية الخدمة", sub_ar: "المخالصات وحساب المستحقات", count: "9 أعمدة", template: "modular:end_of_service" },
+        { id: "disciplinary", name_ar: "الجزاءات والمخالفات", sub_ar: "لائحة الجزاءات ونظام العمل", count: "8 أعمدة", template: "modular:disciplinary" },
+        { id: "appraisals", name_ar: "تقييمات الأداء الدورية", sub_ar: "الأهداف ومؤشرات KPI", count: "7 أعمدة", template: "modular:appraisals" },
+        { id: "recruitment", name_ar: "التوظيف والمقابلات", sub_ar: "الوظائف الشاغرة والمتقدمون", count: "10 أعمدة", template: "modular:recruitment" },
+        { id: "gr_transactions", name_ar: "المعاملات الحكومية", sub_ar: "مقيم وقوى والتأشيرات", count: "8 أعمدة", template: "modular:gr_transactions" },
+        { id: "company_setup", name_ar: "إعداد المنشآت والهيكل", sub_ar: "الفروع والهياكل الإدارية", count: "9 أعمدة", template: "modular:company_setup" },
+      ];
+
+      function selectHrDomain(domainId) {
+        window.selectedHrDomain = domainId;
+        const cards = document.querySelectorAll(".hr-domain-card");
+        cards.forEach((card) => {
+          if (card.dataset.domain === domainId) {
+            card.classList.add("is-active");
+          } else {
+            card.classList.remove("is-active");
+          }
+        });
+
+        const templateSelect = document.getElementById("templateType");
+        if (templateSelect) {
+          templateSelect.value = domainId;
+        }
+
+        const dropZone = document.getElementById("dedicatedDropZone");
+        const domainObj = HR_DOMAINS.find((d) => d.id === domainId);
+        if (dropZone && domainObj) {
+          const titleEl = dropZone.querySelector("div[style*='font-weight: 600']");
+          if (titleEl) {
+            titleEl.textContent = `اسحب وأفلت ملف Excel لـ «${domainObj.name_ar}» هنا، أو انقر للاختيار`;
+          }
+        }
+      }
+
+      function initHrDomains() {
+        const grid = document.getElementById("hrDomainsGrid");
+        if (!grid) return;
+        grid.innerHTML = "";
+
+        HR_DOMAINS.forEach((domain, idx) => {
+          const card = document.createElement("div");
+          card.className = `hr-domain-card ${idx === 0 ? "is-active" : ""}`;
+          card.dataset.domain = domain.id;
+          card.onclick = (e) => {
+            if (e.target.closest(".hr-domain-dl-link")) return;
+            selectHrDomain(domain.id);
+          };
+
+          card.innerHTML = `
+            <div class="hr-domain-card-header">
+              <div class="hr-domain-card-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+              </div>
+              <div>
+                <div class="hr-domain-card-title">${escapeHtml(domain.name_ar)}</div>
+                <div class="hr-domain-card-sub">${escapeHtml(domain.sub_ar)}</div>
+              </div>
+            </div>
+            <div class="hr-domain-card-footer">
+              <span class="hr-domain-badge">${escapeHtml(domain.count)}</span>
+              <a href="/api/template/download/${escapeHtml(domain.template)}" class="hr-domain-dl-link" title="تحميل قالب ${escapeHtml(domain.name_ar)} المعتمد">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                <span>تحميل القالب</span>
+              </a>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      }
+
       // Attach Template Form listener
       document.addEventListener("DOMContentLoaded", function () {
+        initHrDomains();
         const tForm = document.getElementById("templateForm");
         if (tForm) {
           tForm.addEventListener("submit", async function (e) {

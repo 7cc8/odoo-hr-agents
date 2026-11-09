@@ -663,6 +663,17 @@ class AgentEventsService:
                 item["active_operation_id"] = st.get("active_operation_id")
                 item["last_active_at"] = st.get("last_active_at")
                 item["last_task"] = st.get("last_task", "في انتظار المهام")
+                # حساب عدد الأحداث والعمليات الفعلية المرتبطة بهذا الوكيل
+                agent_event_count = sum(
+                    1 for ev_list in self.operation_events.values()
+                    for ev in ev_list if ev.get("agent") == a_id
+                )
+                agent_op_count = sum(
+                    1 for ev_list in self.operation_events.values()
+                    if any(ev.get("agent") == a_id for ev in ev_list)
+                )
+                item["operation_count"] = max(st.get("operation_count", 0), agent_op_count)
+                item["event_count"] = max(st.get("event_count", 0), agent_event_count)
                 result.append(item)
             return result
 
