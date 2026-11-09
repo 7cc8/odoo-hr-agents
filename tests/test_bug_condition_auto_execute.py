@@ -32,6 +32,7 @@ from unittest.mock import Mock, patch, MagicMock
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
+pytest.importorskip("graph.state")
 from graph.state import SerajState
 
 

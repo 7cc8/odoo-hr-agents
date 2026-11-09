@@ -8,20 +8,47 @@ block the primary Odoo writer or dry-run execution.
 from __future__ import annotations
 
 import os
+import sys
 import json
 import ssl
 import urllib.request
 import urllib.error
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-try:
-    import certifi
-    _DEFAULT_SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
-except Exception:
+def _build_ssl_context() -> ssl.SSLContext:
+    """Builds a verified SSL context using custom CA bundle if configured, or certifi/system default.
+    Warns if TELEGRAM_CA_BUNDLE or SSL_CERT_FILE is set but the specified file does not exist.
+    """
+    custom_ca = os.environ.get("TELEGRAM_CA_BUNDLE") or os.environ.get("SSL_CERT_FILE")
+    if custom_ca:
+        ca_path = Path(custom_ca)
+        if not ca_path.is_file():
+            sys.stderr.write(
+                f"WARNING: SSL certificate bundle configured in TELEGRAM_CA_BUNDLE/SSL_CERT_FILE was not found: '{custom_ca}'. Falling back to default CA store.\n"
+            )
+        else:
+            return ssl.create_default_context(cafile=str(ca_path))
+
     try:
-        _DEFAULT_SSL_CONTEXT = ssl.create_default_context()
+        import certifi
+        return ssl.create_default_context(cafile=certifi.where())
     except Exception:
-        _DEFAULT_SSL_CONTEXT = None
+        return ssl.create_default_context()
+
+
+_CACHED_SSL_CONTEXT: Optional[ssl.SSLContext] = None
+
+
+def get_ssl_context() -> ssl.SSLContext:
+    """Returns the cached verified SSL context, building it once on first call."""
+    global _CACHED_SSL_CONTEXT
+    if _CACHED_SSL_CONTEXT is None:
+        _CACHED_SSL_CONTEXT = _build_ssl_context()
+    return _CACHED_SSL_CONTEXT
+
+
+_DEFAULT_SSL_CONTEXT = get_ssl_context()
 
 
 def is_telegram_configured(token: Optional[str] = None, chat_id: Optional[str] = None) -> bool:
@@ -69,17 +96,7 @@ def send_telegram_notification(
     )
 
     try:
-        try:
-            resp_ctx = urllib.request.urlopen(req, timeout=timeout, context=_DEFAULT_SSL_CONTEXT)
-        except urllib.error.URLError as ssl_err:
-            if "CERTIFICATE_VERIFY_FAILED" in str(ssl_err):
-                # Fallback for systems with corporate antivirus/proxy certificate injection
-                unverified_ctx = ssl._create_unverified_context()
-                resp_ctx = urllib.request.urlopen(req, timeout=timeout, context=unverified_ctx)
-            else:
-                raise ssl_err
-
-        with resp_ctx as resp:
+        with urllib.request.urlopen(req, timeout=timeout, context=get_ssl_context()) as resp:
             body = resp.read().decode("utf-8")
             data = json.loads(body)
             if data.get("ok"):

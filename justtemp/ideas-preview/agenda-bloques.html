@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المُنَظِّم — جدول الورديات ورفع الشرائح</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #161f30;
+      --border: #24324a;
+      --text: #f8fafc;
+      --primary: #38bdf8;
+      --pin-gold: #fbbf24;
+      --spring: cubic-bezier(0.28, 1.4, 0.48, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: clip;
+    }
+    .planner-card {
+      width: 100%;
+      max-width: 580px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.4);
+      position: relative;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .header h2 { font-size: 1.1rem; }
+    .density-toggle {
+      background: #0f172a;
+      border: 1px solid var(--border);
+      color: #94a3b8;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 150ms ease, color 150ms ease;
+    }
+    .density-toggle:hover { color: #fff; }
+
+    /* Shifts List */
+    .shifts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+    }
+    .shift-block {
+      background: #0d1522;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: grab;
+      user-select: none;
+      transition: transform 260ms var(--spring), box-shadow 260ms ease, padding 200ms ease;
+      position: relative;
+    }
+    .shift-block:active { cursor: grabbing; }
+    .shift-block.lifted {
+      transform: translateY(-4px) rotate(1.2deg) scale(1.02);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5), 0 0 16px rgba(56, 189, 248, 0.2);
+      border-color: var(--primary);
+      z-index: 10;
+    }
+    .shift-block.pinned {
+      border-right: 4px solid var(--pin-gold);
+    }
+
+    /* Compact density mode */
+    .planner-card.compact .shift-block {
+      padding: 8px 12px;
+    }
+
+    .shift-info { display: flex; flex-direction: column; gap: 3px; }
+    .shift-title { font-weight: 600; font-size: 0.9rem; }
+    .shift-time { font-size: 0.78rem; color: #94a3b8; font-variant-numeric: tabular-nums; }
+
+    .pin-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      cursor: pointer;
+      opacity: 0.4;
+      transition: transform 200ms var(--spring), opacity 150ms ease;
+      padding: 4px;
+    }
+    .pin-btn:hover { opacity: 0.8; transform: scale(1.15); }
+    .shift-block.pinned .pin-btn {
+      opacity: 1;
+      transform: rotate(-15deg);
+    }
+
+    /* Live Guideline */
+    .live-guideline {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--primary);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 20;
+      box-shadow: 0 0 8px var(--primary);
+      transition: opacity 150ms ease;
+    }
+    .guideline-badge {
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary);
+      color: #0b0f19;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="planner-card" id="planner-card">
+    <div class="header">
+      <h2>المُنَظِّم — جدول توزيع الورديات</h2>
+      <button class="density-toggle" id="density-btn">تبديل كثافة العرض</button>
+    </div>
+
+    <div class="shifts-list" id="shifts-container">
+      <div class="live-guideline" id="guideline">
+        <span class="guideline-badge" id="badge-time">08:00 ص</span>
+      </div>
+
+      <div class="shift-block" draggable="true" data-id="1">
+        <div class="shift-info">
+          <span class="shift-title">وردية الصباح — هندسة النظم</span>
+          <span class="shift-time">08:00 ص — 04:00 م (8 ساعات)</span>
+        </div>
+        <button class="pin-btn" title="تثبيت الوردية">📌</button>
+      </div>
+
+      <div class="shift-block" draggable="true" data-id="2">
+        <div class="shift-info">
+          <span class="shift-title">وردية المساء — الدعم التشغيلي</span>
+          <span class="shift-time">04:00 م — 12:00 م (8 ساعات)</span>
+        </div>
+        <button class="pin-btn" title="تثبيت الوردية">📌</button>
+      </div>
+
+      <div class="shift-block" draggable="true" data-id="3">
+        <div class="shift-info">
+          <span class="shift-title">وردية الطوارئ — الأمن السيبراني</span>
+          <span class="shift-time">12:00 م — 08:00 ص (8 ساعات)</span>
+        </div>
+        <button class="pin-btn" title="تثبيت الوردية">📌</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const plannerCard = document.getElementById('planner-card');
+    const densityBtn = document.getElementById('density-btn');
+    const shiftsContainer = document.getElementById('shifts-container');
+    const blocks = document.querySelectorAll('.shift-block');
+    const guideline = document.getElementById('guideline');
+    const badgeTime = document.getElementById('badge-time');
+
+    // Density toggle
+    densityBtn.addEventListener('click', () => {
+      plannerCard.classList.toggle('compact');
+    });
+
+    // Pinning mechanism
+    blocks.forEach(block => {
+      const pinBtn = block.querySelector('.pin-btn');
+      pinBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        block.classList.toggle('pinned');
+      });
+
+      // Lift interaction simulation
+      block.addEventListener('mousedown', (e) => {
+        if (e.target.classList.contains('pin-btn')) return;
+        block.classList.add('lifted');
+        guideline.style.opacity = '1';
+        updateGuideline(e);
+      });
+
+      window.addEventListener('mouseup', () => {
+        block.classList.remove('lifted');
+        guideline.style.opacity = '0';
+      });
+    });
+
+    function updateGuideline(e) {
+      const rect = shiftsContainer.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      guideline.style.left = `${Math.max(10, Math.min(x, rect.width - 10))}px`;
+      const ratio = Math.max(0, Math.min(1, x / rect.width));
+      const hours = Math.floor(ratio * 24);
+      badgeTime.textContent = `${hours.toString().padStart(2, '0')}:00`;
+    }
+
+    shiftsContainer.addEventListener('mousemove', (e) => {
+      if (document.querySelector('.shift-block.lifted')) {
+        updateGuideline(e);
+      }
+    });
+  </script>
+</body>
+</html>
+

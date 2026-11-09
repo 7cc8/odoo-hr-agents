@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mirador · Moxen</title>
+<!-- una hoja por familia: si van juntas, a veces solo llega la primera -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=tabular@400,500&display=swap">
+<link rel="stylesheet" href="mirador.css">
+<!-- ?tema=oscuro: la misma tabla en petróleo oscuro, con el azul aclarado y el ámbar de «modificada» -->
+<script>if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro';</script>
+</head>
+<body>
+  <!-- mirador.js construye las pestañas, los chips y las filas. Aquí están los marcos fijos:
+       [data-tabs] son las vistas, [data-chips] los filtros de la vista, [data-acciones] lo que aparece al
+       modificarla y [data-cuerpo] las filas de la tabla. -->
+  <main class="mi-escena" data-mirador>
+    <div class="mi-fondo" aria-hidden="true"><i class="mi-halo mi-h1"></i><i class="mi-halo mi-h2"></i></div>
+    <div class="mi-grano" aria-hidden="true"></div>
+
+    <div class="mi-ventana" data-ventana>
+      <header class="mi-cab">
+        <div>
+          <h1>Tareas</h1>
+          <p>Vistas guardadas de la tabla</p>
+        </div>
+        <button class="mi-reset" type="button" data-restablece>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 12a7.2 7.2 0 1 0 2.2-5.2M4.8 4.6v3.6h3.6"/></svg>
+          <span>Restablecer vistas</span>
+        </button>
+      </header>
+
+      <div class="mi-tabs-caja">
+        <div class="mi-tabs" role="tablist" aria-label="Vistas guardadas" data-tabs></div>
+        <i class="mi-indicador" data-indicador aria-hidden="true"></i>
+      </div>
+
+      <div class="mi-filtros">
+        <div class="mi-chips" data-chips role="group" aria-label="Filtros de la vista">
+          <button class="mi-mas" type="button" data-mas aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg><span>Filtro</span></button>
+        </div>
+
+        <div class="mi-acciones" data-acciones aria-hidden="true">
+          <div class="mi-acc-normal">
+            <button class="mi-b mi-b-suave" type="button" data-descartar tabindex="-1">Descartar</button>
+            <button class="mi-b mi-b-linea" type="button" data-nueva tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg>Guardar como nueva</button>
+            <button class="mi-b mi-b-primario" type="button" data-guardar tabindex="-1">Guardar</button>
+          </div>
+          <div class="mi-cinta" data-cinta aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M11.5 6.6 5 12l6.5 5.4zM19 6.6 12.5 12l6.5 5.4z"/></svg>
+            <span>Rebobinando</span>
+            <div class="mi-cinta-pista"><i class="mi-cinta-marcas" data-cinta-marcas></i><i class="mi-cinta-cabeza" data-cinta-cabeza></i></div>
+            <b data-pasos>0</b>
+          </div>
+        </div>
+      </div>
+
+      <section class="mi-tabla" aria-label="Tareas de la vista">
+        <div class="mi-fila mi-th" role="row">
+          <span role="columnheader">Tarea</span><span role="columnheader">Responsable</span><span role="columnheader">Estado</span><span role="columnheader">Prioridad</span><span role="columnheader" class="mi-d">Vence</span>
+        </div>
+        <div class="mi-cuerpo" data-cuerpo role="rowgroup"></div>
+        <div class="mi-vacio" data-vacio hidden>Ninguna tarea cumple estos filtros.</div>
+        <footer class="mi-pie"><span data-resumen>18 tareas</span><span class="mi-pie-v" data-pie-vista></span></footer>
+      </section>
+
+      <div class="mi-menu" data-menu role="menu" hidden></div>
+    </div>
+    <p class="mi-vivo" role="status" aria-live="polite" data-vivo></p>
+  </main>
+
+  <script src="mirador.js"></script>
+  <script>Mirador(document.querySelector('[data-mirador]'));</script>
+</body>
+</html>

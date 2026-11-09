@@ -1,0 +1,200 @@
+/* Cavila · Moxen — los estilos del efecto y de la demostración. */
+:root {
+  --cv-fondo: #0a0a0a;
+  --cv-texto: #f4f4f4;
+  --cv-suave: rgba(255, 255, 255, .5);
+  --cv-tenue: rgba(255, 255, 255, .32);
+  --cv-linea: rgba(255, 255, 255, .08);
+  /* el panel: una lámina oscura con canto de luz arriba */
+  --cv-panel-a: #151515;
+  --cv-panel-b: #0d0d0d;
+  --cv-panel-filo: rgba(255, 255, 255, .09);
+  --cv-panel-sombra: 0 50px 100px -30px rgba(0, 0, 0, .8), 0 16px 32px rgba(0, 0, 0, .35);
+  /* la burbuja de quien pregunta */
+  --cv-burbuja: #f4f4f4;
+  --cv-burbuja-texto: #0a0a0a;
+  /* el texto de la respuesta y el código */
+  --cv-respuesta: rgba(255, 255, 255, .88);
+  --cv-codigo-fondo: rgba(255, 255, 255, .07);
+  --cv-codigo-borde: rgba(255, 255, 255, .1);
+  /* el barrido de «Pensando…»: gris, una franja de luz y gris otra vez */
+  --cv-brillo-base: rgba(255, 255, 255, .38);
+  --cv-brillo-luz: #ffffff;
+  /* la caja de escribir */
+  --cv-caja: rgba(255, 255, 255, .04);
+  --cv-caja-borde: rgba(255, 255, 255, .1);
+  --cv-boton: #f4f4f4;
+  --cv-boton-texto: #0a0a0a;
+  --cv-ancho: 760px;
+  --cv-alto: 580px;
+  --cv-curva: cubic-bezier(.22, 1, .36, 1);
+  --cv-resorte: cubic-bezier(.34, 1.4, .64, 1);
+}
+:root[data-tema="claro"] {
+  --cv-fondo: #eeeeee;
+  --cv-texto: #0a0a0a;
+  --cv-suave: rgba(0, 0, 0, .55);
+  --cv-tenue: rgba(0, 0, 0, .35);
+  --cv-linea: rgba(0, 0, 0, .08);
+  --cv-panel-a: #ffffff;
+  --cv-panel-b: #f9f9f9;
+  --cv-panel-filo: rgba(255, 255, 255, 1);
+  --cv-panel-sombra: 0 50px 90px -34px rgba(0, 0, 0, .28), 0 12px 26px rgba(0, 0, 0, .08);
+  --cv-burbuja: #0a0a0a;
+  --cv-burbuja-texto: #f4f4f4;
+  --cv-respuesta: rgba(0, 0, 0, .84);
+  --cv-codigo-fondo: rgba(0, 0, 0, .05);
+  --cv-codigo-borde: rgba(0, 0, 0, .08);
+  --cv-brillo-base: rgba(0, 0, 0, .35);
+  --cv-brillo-luz: #000000;
+  --cv-caja: rgba(0, 0, 0, .03);
+  --cv-caja-borde: rgba(0, 0, 0, .1);
+  --cv-boton: #0a0a0a;
+  --cv-boton-texto: #f4f4f4;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--cv-fondo); color: var(--cv-texto); }
+body { font-family: "Instrument Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+
+/* ── el efecto ─────────────────────────────────────────────────────── */
+/* «Pensando…»: el texto lleva un degradado inclinado recortado a sus
+   letras, el doble de ancho que la etiqueta; al correr el fondo, una
+   franja de luz cruza las letras una y otra vez. */
+.cv-pensando {
+  background: linear-gradient(105deg, var(--cv-brillo-base) 35%, var(--cv-brillo-luz) 50%, var(--cv-brillo-base) 65%) 0 0 / 250% 100%;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: cv-barrido 1.6s linear infinite;
+}
+@keyframes cv-barrido { from { background-position: 100% 0; } to { background-position: -150% 0; } }
+/* la chispa piensa: gira y late mientras dura */
+.cv-turno.is-pensando .cv-avatar svg { animation: cv-late 1.2s var(--cv-curva) infinite; }
+@keyframes cv-late { 0% { transform: rotate(0) scale(1); } 50% { transform: rotate(45deg) scale(.82); } 100% { transform: rotate(90deg) scale(1); } }
+
+/* La etiqueta cambia de cara: «Pensando…» sube y se va, «Pensó n s ▸»
+   entra desde abajo. Las dos ocupan la misma celda. */
+.cv-etiqueta {
+  display: inline-grid; align-items: center; height: 28px; margin: 0 0 .5rem -8px; padding: 0 8px; border: 0; border-radius: 8px;
+  background: none; cursor: default; font-size: 1.02rem; font-weight: 500; color: var(--cv-suave); text-align: left;
+}
+.cv-etiqueta > span { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: .4rem; transition: opacity .3s, transform .5s var(--cv-curva), filter .3s; }
+.cv-etiqueta .cv-penso { opacity: 0; transform: translateY(10px); filter: blur(4px); }
+.cv-turno.is-pensado .cv-etiqueta { cursor: pointer; }
+.cv-turno.is-pensado .cv-etiqueta:hover { background: var(--cv-linea); }
+.cv-turno.is-pensado .cv-pensando { opacity: 0; transform: translateY(-10px); filter: blur(4px); animation: none; color: var(--cv-suave); }
+.cv-turno.is-pensado .cv-penso { opacity: 1; transform: none; filter: none; }
+.cv-etiqueta:focus-visible { outline: 2px solid var(--cv-suave); outline-offset: 1px; }
+.cv-flecha { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .45s var(--cv-resorte); }
+.cv-etiqueta[aria-expanded="true"] .cv-flecha { transform: rotate(90deg); }
+.cv-penso small { font-family: "Geist Mono", ui-monospace, monospace; font-size: .8rem; opacity: .8; }
+
+/* Los pasos del razonamiento: la caja crece con su alto real (lo pone el
+   JS) y cada paso entra escalonado sobre una línea de tiempo. */
+.cv-pasos { height: 0; overflow: hidden; transition: height .55s var(--cv-curva); }
+.cv-pasos ol { margin: 0; padding: .2rem 0 .9rem 1.1rem; list-style: none; border-left: 1px solid var(--cv-linea); margin-left: 6px; }
+.cv-pasos li {
+  position: relative; display: flex; justify-content: space-between; gap: 1rem; padding: .28rem 0 .28rem .2rem;
+  font-size: .96rem; color: var(--cv-suave); opacity: 0; transform: translateY(-6px); transition: opacity .3s, transform .45s var(--cv-curva);
+  transition-delay: calc(var(--i) * 70ms);
+}
+.cv-pasos li::before { content: ""; position: absolute; left: calc(-1.1rem - 3.5px); top: .78rem; width: 6px; height: 6px; border-radius: 50%; background: var(--cv-tenue); }
+.cv-pasos li small { font-family: "Geist Mono", ui-monospace, monospace; font-size: .75rem; color: var(--cv-tenue); white-space: nowrap; }
+.cv-pasos.is-abierto li { opacity: 1; transform: none; }
+
+/* La respuesta entra palabra por palabra: cada una de 6 px de desenfoque
+   a nítida, subiendo 4 px. Van en línea, así que las líneas de arriba no
+   se mueven: solo crece la última. */
+.cv-respuesta { margin: 0; font-size: 1.22rem; line-height: 1.6; color: var(--cv-respuesta); max-width: 60ch; }
+.cv-palabra { display: inline-block; animation: cv-aparece .42s var(--cv-curva) both; }
+@keyframes cv-aparece { from { opacity: 0; filter: blur(6px); transform: translateY(4px); } }
+.cv-respuesta code {
+  font-family: "Geist Mono", ui-monospace, monospace; font-size: .86em; padding: .08em .4em; border-radius: 6px;
+  background: var(--cv-codigo-fondo); box-shadow: inset 0 0 0 1px var(--cv-codigo-borde);
+}
+/* el cursor de bloque al final de lo escrito */
+.cv-cursor { display: inline-block; width: .5em; height: 1.05em; margin-left: .15em; vertical-align: -.16em; border-radius: 2px; background: currentColor; transition: opacity .3s; }
+.cv-turno.is-pensando .cv-cursor, .cv-turno.is-listo .cv-cursor { opacity: 0; }
+
+/* ── el chat ───────────────────────────────────────────────────────── */
+.cv-panel {
+  position: relative; display: flex; flex-direction: column; width: var(--cv-ancho); height: var(--cv-alto); border-radius: 24px; overflow: hidden;
+  background: linear-gradient(180deg, var(--cv-panel-a), var(--cv-panel-b)); box-shadow: inset 0 1px 0 var(--cv-panel-filo), 0 0 0 1px var(--cv-linea), var(--cv-panel-sombra);
+}
+.cv-cabeza { display: flex; align-items: center; justify-content: space-between; height: 58px; padding: 0 14px 0 20px; border-bottom: 1px solid var(--cv-linea); }
+.cv-marca { display: flex; align-items: center; gap: .55rem; margin: 0; font-size: .95rem; }
+.cv-marca small { font-family: "Geist Mono", ui-monospace, monospace; font-size: .72rem; color: var(--cv-tenue); padding: .15rem .45rem; border: 1px solid var(--cv-linea); border-radius: 6px; }
+.cv-chispa { width: 18px; height: 18px; fill: currentColor; }
+.cv-nueva {
+  display: inline-flex; align-items: center; gap: .35rem; height: 34px; padding: 0 .8rem 0 .6rem; border: 0; border-radius: 10px;
+  background: none; color: var(--cv-suave); font-size: .85rem; cursor: pointer; transition: background-color .2s, color .2s;
+}
+.cv-nueva svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+.cv-nueva:hover { background: var(--cv-linea); color: var(--cv-texto); }
+.cv-nueva:focus-visible, .cv-sugerencias button:focus-visible { outline: 2px solid var(--cv-suave); outline-offset: 2px; }
+
+.cv-hilo { position: relative; flex: 1; overflow: hidden; padding: 26px 32px 10px; }
+/* el saludo del principio, centrado; se va hacia arriba al preguntar */
+.cv-inicio {
+  position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4rem; padding: 0 24px;
+  transition: opacity .35s, transform .6s var(--cv-curva), filter .35s;
+}
+.cv-inicio h1 { margin: 0; font-size: 2.6rem; font-weight: 600; letter-spacing: -.035em; }
+.cv-sugerencias { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; }
+.cv-sugerencias button {
+  height: 34px; padding: 0 .9rem; border: 1px solid var(--cv-linea); border-radius: 99px; background: var(--cv-caja);
+  color: var(--cv-suave); font-size: .86rem; cursor: pointer; transition: background-color .2s, color .2s;
+}
+.cv-sugerencias button:hover { color: var(--cv-texto); background: var(--cv-linea); }
+.cv-panel.is-charla .cv-inicio { opacity: 0; transform: translateY(-26px) scale(.98); filter: blur(4px); pointer-events: none; }
+.cv-panel.is-charla .cv-inicio button { visibility: hidden; transition: visibility 0s .4s; }
+
+/* un turno: la pregunta a la derecha y la respuesta con su chispa */
+.cv-turno { display: flex; flex-direction: column; gap: 1.2rem; transition: opacity .35s, transform .5s var(--cv-curva), filter .35s; }
+.cv-turno.is-ida { opacity: 0; transform: translateY(-18px); filter: blur(4px); }
+.cv-pregunta {
+  align-self: flex-end; max-width: 72%; margin: 0; padding: .7rem 1.05rem; border-radius: 20px 20px 6px 20px;
+  background: var(--cv-burbuja); color: var(--cv-burbuja-texto); font-size: 1.1rem; line-height: 1.4; transform-origin: 100% 100%;
+}
+.cv-asistente { display: grid; grid-template-columns: 30px 1fr; gap: .8rem; }
+.cv-avatar { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1px var(--cv-linea); }
+.cv-avatar svg { width: 16px; height: 16px; fill: currentColor; }
+.cv-cuerpo { padding-top: 1px; }
+.cv-asistente { animation: cv-entra .5s var(--cv-curva) both .12s; }
+@keyframes cv-entra { from { opacity: 0; transform: translateY(8px); } }
+
+.cv-caja {
+  display: flex; align-items: center; gap: .6rem; margin: 10px 18px 18px; height: 58px; padding: 0 9px 0 18px; border-radius: 18px;
+  background: var(--cv-caja); box-shadow: inset 0 0 0 1px var(--cv-caja-borde); transition: box-shadow .25s;
+}
+.cv-caja:focus-within { box-shadow: inset 0 0 0 1px var(--cv-tenue); }
+.cv-caja input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none; color: var(--cv-texto); font: inherit; font-size: 1rem; }
+.cv-caja input::placeholder { color: var(--cv-tenue); }
+.cv-enviar {
+  display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 12px; background: var(--cv-boton); color: var(--cv-boton-texto);
+  cursor: pointer; transition: opacity .2s, transform .35s var(--cv-resorte);
+}
+.cv-enviar svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.cv-enviar:disabled { opacity: .25; cursor: default; }
+.cv-enviar:not(:disabled):active { transform: scale(.9); }
+.cv-enviar:focus-visible { outline: 2px solid var(--cv-suave); outline-offset: 2px; }
+
+/* ── la demostración ───────────────────────────────────────────────── */
+.cv-escena { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px 16px; }
+
+@media (max-width: 800px) {
+  :root { --cv-ancho: 100%; --cv-alto: min(640px, calc(100vh - 48px)); }
+  .cv-hilo { padding: 20px 16px 8px; }
+  .cv-inicio h1 { font-size: 1.8rem; }
+  .cv-marca small { display: none; }
+  .cv-nueva { font-size: 0; gap: 0; padding: 0 .55rem; }
+  .cv-nueva svg { width: 18px; height: 18px; }
+  .cv-respuesta { font-size: 1rem; }
+  .cv-pregunta { max-width: 86%; }
+  .cv-caja { margin: 8px 12px 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cv-pensando, .cv-turno.is-pensando .cv-avatar svg, .cv-palabra, .cv-asistente { animation: none; }
+  .cv-pensando { color: var(--cv-suave); }
+  .cv-etiqueta > span, .cv-pasos, .cv-pasos li, .cv-inicio, .cv-turno, .cv-flecha { transition: none; }
+}

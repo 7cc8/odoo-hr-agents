@@ -552,3 +552,65 @@ def create_musleh_diagnostic_goal(
         max_iterations=5,
         timeout_seconds=60,
     )
+
+
+# ═══════════════════════════════════════════════════════════════
+# Translation and Suggestion Utilities
+# ═══════════════════════════════════════════════════════════════
+
+def _translate_to_arabic(message: str) -> str:
+    """Translate error message to Arabic."""
+    translations = {
+        "Department not found": "القسم غير موجود",
+        "Job not found": "المسمى الوظيفي غير موجود",
+        "Invalid email": "البريد الإلكتروني غير صالح",
+        "Invalid email format": "تنسيق البريد الإلكتروني غير صحيح",
+        "Invalid date format": "تنسيق التاريخ غير صحيح",
+        "Missing required field": "حقل مطلوب مفقود",
+        "Invalid phone number": "رقم الهاتف غير صالح",
+        "Employee already exists": "الموظف موجود مسبقاً",
+        "Contract not found": "العقد غير موجود",
+        "Duplicate entry": "إدخال مكرر",
+        "Invalid value": "قيمة غير صالحة",
+        "Field too long": "الحقل طويل جداً",
+        "Field required": "الحقل مطلوب",
+    }
+    return translations.get(message, message)
+
+
+def _generate_suggestion(error: Dict[str, Any], row_data: Dict[str, Any]) -> str:
+    """Generate fix suggestion based on error type."""
+    field = error.get("field", "")
+    message = error.get("message", "")
+    
+    if field == "department":
+        return "استخدم أحد الأقسام الموجودة مثل 'المبيعات' أو 'الموارد البشرية'"
+    elif field == "job_id":
+        return "تحقق من صحة المسمى الوظيفي أو استخدم رمز الوظيفة الصحيح"
+    elif "email" in field.lower():
+        return "تأكد من صحة تنسيق البريد الإلكتروني (example@domain.com)"
+    elif "date" in field.lower():
+        return "استخدم تنسيق التاريخ الصحيح (YYYY-MM-DD)"
+    elif "phone" in field.lower():
+        return "تحقق من رقم الهاتف (يجب أن يحتوي على أرقام فقط)"
+    else:
+        return "يرجى مراجعة وتصحيح القيمة"
+
+
+def _is_auto_fixable(error: Dict[str, Any]) -> bool:
+    """Determine if error can be auto-fixed by Musleh agent."""
+    field = error.get("field", "")
+    message = error.get("message", "").lower()
+    
+    fixable_fields = ["department", "job_id", "date_format"]
+    fixable_messages = ["not found", "format", "missing"]
+    
+    if field in fixable_fields:
+        return True
+    
+    for fixable_msg in fixable_messages:
+        if fixable_msg in message:
+            return True
+    
+    return False
+

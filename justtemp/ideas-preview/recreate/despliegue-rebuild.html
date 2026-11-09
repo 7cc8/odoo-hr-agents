@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>إعادة بناء: فتح البطاقة وتراجع الجيران (مستوحى من تقرير despliegue)</title>
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: #141c2e;
+      --card-border: #23314d;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #6366f1;
+      --radius: 16px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: clip;
+    }
+    .scene {
+      width: 100%;
+      max-width: 840px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      position: relative;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 { font-size: 1.25rem; font-weight: 700; color: #fff; }
+    .header p { font-size: 0.85rem; color: var(--muted); }
+
+    /* Grid of Cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      position: relative;
+    }
+    .card-slot {
+      height: 180px;
+      border: 1px dashed rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius);
+      position: relative;
+    }
+    .card {
+      width: 100%;
+      height: 100%;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 450ms cubic-bezier(0.2, 1, 0.3, 1), opacity 350ms ease, box-shadow 250ms ease;
+      will-change: transform, opacity;
+    }
+    .card:hover {
+      border-color: #4f46e5;
+      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+    }
+    .card-orb {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+    }
+    .card-num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      font-family: monospace;
+    }
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    /* Sinking Siblings based on Distance Stagger */
+    .grid.is-inspecting .card:not(.selected) {
+      transform: scale(0.88) translateY(16px);
+      opacity: 0.22;
+      pointer-events: none;
+      transition-delay: calc(var(--d, 0) * 45ms);
+    }
+
+    /* Fullscreen/Modal Inspection Overlay */
+    .detail-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 300ms ease;
+    }
+    .detail-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .detail-panel {
+      width: 90%;
+      max-width: 520px;
+      min-height: 340px;
+      background: #141c2e;
+      border: 1px solid #4f46e5;
+      border-radius: 20px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+    .detail-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .btn-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #fff;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 150ms ease, transform 150ms ease;
+    }
+    .btn-close:hover { background: rgba(255, 255, 255, 0.16); }
+    .btn-close:active { transform: scale(0.92); }
+    .detail-body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      flex-grow: 1;
+    }
+    .detail-desc {
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: #cbd5e1;
+    }
+    .detail-stats {
+      margin-top: auto;
+      border-top: 1px solid var(--card-border);
+      padding-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="scene">
+    <div class="header">
+      <div>
+        <h1>المُستَعرِض (إعادة بناء من التقرير)</h1>
+        <p>انقر على أي بطاقة لمشاهدة نقل الـ DOM الحقيقي وتراجع البطاقات المجاورة بالمسافة</p>
+      </div>
+      <span style="font-size:0.8rem; color:var(--accent); font-family:monospace;">k: 140, c: 18</span>
+    </div>
+
+    <div class="grid" id="grid">
+      <!-- Card 0 -->
+      <div class="card-slot">
+        <div class="card" data-idx="0" data-num="#01" data-title="المصفوفة الحسابية" data-desc="معالجة البيانات الشبكية وتوزيع أحمال العمليات المتزامنة عبر خوادم الحوسبة السحابية.">
+          <div class="card-orb" data-pieza="orb">⚡</div>
+          <span class="card-num" data-pieza="num">#01</span>
+          <span class="card-title" data-pieza="title">المصفوفة الحسابية</span>
+        </div>
+      </div>
+
+      <!-- Card 1 -->
+      <div class="card-slot">
+        <div class="card" data-idx="1" data-num="#02" data-title="العزل الأمني" data-desc="تطبيق جدران الحماية متعددة الطبقات وفحص حزم الاتصال الواردة لحظياً ضد هجمات الحقن.">
+          <div class="card-orb" data-pieza="orb" style="background:linear-gradient(135deg, #10b981, #0284c7);">🛡️</div>
+          <span class="card-num" data-pieza="num">#02</span>
+          <span class="card-title" data-pieza="title">العزل الأمني</span>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="card-slot">
+        <div class="card" data-idx="2" data-num="#03" data-title="قاعدة القيود" data-desc="سجل متصل غير قابل للتعديل يوثق كل حركات النظام بتوقيع رقمي معياري معتمد.">
+          <div class="card-orb" data-pieza="orb" style="background:linear-gradient(135deg, #f59e0b, #ec4899);">📦</div>
+          <span class="card-num" data-pieza="num">#03</span>
+          <span class="card-title" data-pieza="title">قاعدة القيود</span>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="card-slot">
+        <div class="card" data-idx="3" data-num="#04" data-title="مستشعر القياس" data-desc="رصد معدلات استهلاك الذاكرة وتدفق الشبكة وزمن الاستجابة بدقة متناهية.">
+          <div class="card-orb" data-pieza="orb" style="background:linear-gradient(135deg, #8b5cf6, #3b82f6);">📊</div>
+          <span class="card-num" data-pieza="num">#04</span>
+          <span class="card-title" data-pieza="title">مستشعر القياس</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal Panel -->
+  <div class="detail-overlay" id="detail-overlay">
+    <div class="detail-panel" id="detail-panel">
+      <div class="detail-top">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div id="slot-modal-orb"></div>
+          <div>
+            <div id="slot-modal-num"></div>
+            <h2 id="slot-modal-title" style="font-size:1.15rem; color:#fff;"></h2>
+          </div>
+        </div>
+        <button class="btn-close" id="btn-close" aria-label="إغلاق">✕</button>
+      </div>
+
+      <div class="detail-body">
+        <p class="detail-desc" id="detail-desc"></p>
+      </div>
+
+      <div class="detail-stats">
+        <span>الحالة: قيد التشغيل المستمر</span>
+        <span>الاعتماد: متطابق مع التقرير</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* 1. Spring solver for k=140, c=18 (from report) */
+    function solveSpring(k = 140, c = 18) {
+      let x = 0, v = 0, dt = 1 / 120, pts = [0];
+      for (let i = 0; i < 480; i++) {
+        v += (k * (1 - x) - c * v) * dt;
+        x += v * dt;
+        if (i % 4 === 0) pts.push(x.toFixed(4));
+        if (Math.abs(1 - x) < 0.0015 && Math.abs(v) < 0.01) break;
+      }
+      pts[pts.length - 1] = '1';
+      return { easing: `linear(${pts.join(', ')})`, duration: 750 };
+    }
+    const springProfile = solveSpring(140, 18);
+
+    const grid = document.getElementById('grid');
+    const cards = Array.from(document.querySelectorAll('.card'));
+    const overlay = document.getElementById('detail-overlay');
+    const panel = document.getElementById('detail-panel');
+    const btnClose = document.getElementById('btn-close');
+    const detailDesc = document.getElementById('detail-desc');
+
+    const modalSlots = {
+      orb: document.getElementById('slot-modal-orb'),
+      num: document.getElementById('slot-modal-num'),
+      title: document.getElementById('slot-modal-title')
+    };
+
+    let activeCard = null;
+    let savedPiecesLocations = [];
+
+    cards.forEach((card, clickedIdx) => {
+      card.addEventListener('click', () => {
+        if (activeCard) return;
+        activeCard = card;
+
+        // First: Measure positions
+        const cardBox = card.getBoundingClientRect();
+        const cardRadius = parseFloat(getComputedStyle(card).borderRadius) || 16;
+        const piezas = Array.from(card.querySelectorAll('[data-pieza]'));
+        const beforeRects = piezas.map(p => p.getBoundingClientRect());
+
+        // Distance stagger on siblings
+        const targetCenterX = cardBox.left + cardBox.width / 2;
+        cards.forEach(c => {
+          const r = c.getBoundingClientRect();
+          const cx = r.left + r.width / 2;
+          const dist = Math.round(Math.abs(cx - targetCenterX) / r.width);
+          c.style.setProperty('--d', dist);
+        });
+
+        // Last: Reparent pieces into modal slots
+        savedPiecesLocations = piezas.map(p => [p, p.parentNode, p.nextSibling]);
+        piezas.forEach(p => {
+          const slotType = p.dataset.pieza;
+          modalSlots[slotType].appendChild(p);
+        });
+        detailDesc.textContent = card.dataset.desc;
+
+        grid.classList.add('is-inspecting');
+        card.classList.add('selected');
+        overlay.classList.add('active');
+
+        // Clip-path expansion calculation:
+        // inset(top right bottom left round radius) to inset(0 round 0)
+        const panelBox = panel.getBoundingClientRect();
+        const topInset = cardBox.top - panelBox.top;
+        const rightInset = panelBox.right - cardBox.right;
+        const bottomInset = panelBox.bottom - cardBox.bottom;
+        const leftInset = cardBox.left - panelBox.left;
+
+        panel.animate([
+          { clipPath: `inset(${topInset}px ${rightInset}px ${bottomInset}px ${leftInset}px round ${cardRadius}px)` },
+          { clipPath: 'inset(0px 0px 0px 0px round 20px)' }
+        ], { duration: springProfile.duration, easing: springProfile.easing });
+
+        // Invert & Play on reparented pieces
+        piezas.forEach((p, idx) => {
+          const afterRect = p.getBoundingClientRect();
+          const dx = beforeRects[idx].left - afterRect.left;
+          const dy = beforeRects[idx].top - afterRect.top;
+          const sw = beforeRects[idx].width / afterRect.width;
+          const sh = beforeRects[idx].height / afterRect.height;
+
+          p.animate([
+            { transform: `translate(${dx}px, ${dy}px) scale(${sw}, ${sh})` },
+            { transform: 'none' }
+          ], { duration: springProfile.duration, easing: springProfile.easing });
+        });
+
+        setTimeout(() => btnClose.focus(), 350);
+      });
+    });
+
+    function closeInspector() {
+      if (!activeCard) return;
+
+      const card = activeCard;
+      const piezas = savedPiecesLocations.map(s => s[0]);
+      const beforeRects = piezas.map(p => p.getBoundingClientRect());
+
+      overlay.classList.remove('active');
+      grid.classList.remove('is-inspecting');
+
+      // Return pieces back to original parent in reverse order
+      savedPiecesLocations.slice().reverse().forEach(([p, parent, nextSibling]) => {
+        parent.insertBefore(p, nextSibling);
+      });
+
+      // Animate pieces back to their card slots
+      piezas.forEach((p, idx) => {
+        const afterRect = p.getBoundingClientRect();
+        const dx = beforeRects[idx].left - afterRect.left;
+        const dy = beforeRects[idx].top - afterRect.top;
+        const sw = beforeRects[idx].width / afterRect.width;
+        const sh = beforeRects[idx].height / afterRect.height;
+
+        p.animate([
+          { transform: `translate(${dx}px, ${dy}px) scale(${sw}, ${sh})` },
+          { transform: 'none' }
+        ], { duration: 420, easing: springProfile.easing });
+      });
+
+      card.classList.remove('selected');
+      activeCard = null;
+    }
+
+    btnClose.addEventListener('click', closeInspector);
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) closeInspector();
+    });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeInspector();
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,293 @@
+/* Pilar · Moxen — los estilos de la demostración y del componente.
+   Todos los colores están aquí arriba. La paleta es de hoja de cálculo: BLANCO (la tabla), GRAFITO (el texto y lo
+   «devuelto»), AZUL CELESTE (todo lo que agarras y lo que se completa: la guía del ancho, la columna fijada, las casillas,
+   el foco, el ✓ de «Restablecido») y dos GRISES fríos para encabezados y líneas. Las sombras son largas y van tintadas de
+   azul noche, no de negro. No hay verde: lo completo es azul con su ✓. ?tema=oscuro redefine todo en grafito oscuro,
+   con el azul aclarado cuando hace de texto (--pi-azul-tx). */
+:root {
+  --pi-lienzo: #eef1f6;               /* la escena detrás de la tabla */
+  --pi-blanco: #ffffff;               /* la tabla */
+  --pi-cab: #f6f8fb;                  /* la fila de encabezados */
+  --pi-hoja-fija: #fbfcfe;            /* una columna fijada (un punto más fría que la tabla) */
+  --pi-hover: #f3f6fc;                /* la fila bajo el cursor */
+  --pi-grafito: #1d2026;
+  --pi-cab-tx: #3a4150;               /* texto de encabezados (AA sobre la fila de encabezados) */
+  --pi-suave: #5d6574;                /* texto secundario (AA sobre blanco) */
+  --pi-tenue: #8c94a3;                /* iconos en reposo, guion de «sin descuento» */
+  --pi-azul: #3f7be0;                 /* relleno: guía, casillas, columna fijada */
+  --pi-azul-tx: #2b62c6;              /* el azul cuando es texto o trazo fino (AA) */
+  --pi-azul-fuerte: #2f69d6;          /* el azul de un botón con texto blanco (AA) */
+  --pi-azul-suave: #e6eefc;
+  --pi-azul-rgb: 63, 123, 224;
+  --pi-sobre-azul: #ffffff;
+  --pi-gris: #e9edf3;                 /* píldoras, pista del selector, bordes de botones */
+  --pi-gris-2: #d7dde7;
+  --pi-linea: rgba(29, 32, 38, .09);
+  --pi-sombra: 36, 58, 104;           /* r, g, b de las sombras largas */
+  --pi-halo: rgba(63, 123, 224, .13);
+  --pi-puntos: rgba(29, 32, 38, .075);
+  --pi-alto: 46px;                    /* el alto de una fila: cambia con la densidad */
+  --pi-alto-cab: 46px;
+  --pi-curva: cubic-bezier(.22, 1, .36, 1);
+  --pi-muelle: cubic-bezier(.34, 1.4, .64, 1);           /* pilar.js lo cambia por un resorte */
+  --pi-ola: cubic-bezier(.34, 1.25, .64, 1);
+  --pi-sans: "Onest", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pi-mono: "Reddit Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+:root[data-tema="oscuro"] {
+  --pi-lienzo: #0f1217;
+  --pi-blanco: #171b22;
+  --pi-cab: #1c212a;
+  --pi-hoja-fija: #1a1f27;
+  --pi-hover: #1e2430;
+  --pi-grafito: #e8ebf1;
+  --pi-cab-tx: #c3c9d6;
+  --pi-suave: #9aa2b2;
+  --pi-tenue: #6f778a;
+  --pi-azul: #4f8cf0;
+  --pi-azul-tx: #8db6fb;
+  --pi-azul-fuerte: #3f7be0;
+  --pi-azul-suave: rgba(79, 140, 240, .16);
+  --pi-azul-rgb: 79, 140, 240;
+  --pi-gris: #262c37;
+  --pi-gris-2: #333b49;
+  --pi-linea: rgba(232, 235, 241, .09);
+  --pi-sombra: 0, 0, 0;
+  --pi-halo: rgba(79, 140, 240, .1);
+  --pi-puntos: rgba(232, 235, 241, .06);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--pi-lienzo); color: var(--pi-grafito); }
+body { font-family: var(--pi-sans); -webkit-font-smoothing: antialiased; transition: background-color .5s; }
+::selection { background: var(--pi-azul); color: var(--pi-sobre-azul); }
+button { font: inherit; color: inherit; cursor: pointer; padding: 0; border: 0; background: none; }
+h1, h2, p, ul { margin: 0; padding: 0; }
+ul { list-style: none; }
+svg { display: block; }
+:focus { outline: none; }
+:focus-visible { outline: 2.5px solid var(--pi-azul); outline-offset: 2px; }
+[hidden] { display: none !important; }
+kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; margin: 0 1px; border-radius: 6px; border: 1px solid var(--pi-gris-2); background: var(--pi-blanco); font: 400 11px/1 var(--pi-mono); color: var(--pi-suave); }
+.pi-vivo { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ── la escena: hoja de cuadernillo con una luz arriba ─────────────── */
+.pi-escena { position: relative; isolation: isolate; display: grid; place-items: center; min-height: 100vh; min-height: 100svh; padding: 28px 40px; overflow: hidden; background: var(--pi-lienzo); transition: background-color .5s; }
+.pi-fondo { position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-image: radial-gradient(ellipse 60% 55% at 14% -6%, var(--pi-halo), transparent), radial-gradient(ellipse 45% 50% at 100% 100%, var(--pi-halo), transparent), radial-gradient(circle, var(--pi-puntos) 1px, transparent 1.4px);
+  background-size: auto, auto, 22px 22px; }
+
+.pi-app { position: relative; display: flex; flex-direction: column; width: min(100%, 1180px); height: min(744px, calc(100svh - 56px)); border-radius: 22px; background: var(--pi-blanco); border: 1px solid var(--pi-linea);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 56px 80px -50px rgba(var(--pi-sombra), .5), 0 12px 28px -14px rgba(var(--pi-sombra), .16); transition: background-color .5s; }
+:root[data-tema="oscuro"] .pi-app { box-shadow: 0 1px 0 rgba(255, 255, 255, .05) inset, 0 56px 80px -50px rgba(0, 0, 0, .9), 0 12px 28px -14px rgba(0, 0, 0, .5); }
+
+/* ── la cabecera: título a la izquierda, ajustes a la derecha ──────── */
+.pi-cab { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex: none; padding: 20px 32px 16px; }
+.pi-etq { font: 600 12px/1 var(--pi-sans); letter-spacing: .14em; text-transform: uppercase; color: var(--pi-azul-tx); }
+.pi-etq span { margin: 0 4px; opacity: .55; }
+.pi-titulos h1 { margin-top: 10px; font: 600 30px/1.05 var(--pi-sans); letter-spacing: -.028em; }
+.pi-barra { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+.pi-btn { position: relative; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 11px; border: 1px solid var(--pi-gris-2); background: var(--pi-blanco); font: 500 14px/1 var(--pi-sans); white-space: nowrap;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 6px 12px -8px rgba(var(--pi-sombra), .3); transition: background-color .2s, border-color .2s, color .2s, box-shadow .3s, transform .45s var(--pi-muelle), opacity .25s; }
+.pi-btn svg { width: 19px; height: 19px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+@media (hover: hover) { .pi-btn:not(:disabled):hover { border-color: rgba(var(--pi-azul-rgb), .6); transform: translateY(-1px); } }
+.pi-btn:not(:disabled):active { transform: scale(.97); }
+.pi-btn[aria-expanded="true"] { border-color: var(--pi-azul); background: var(--pi-azul-suave); color: var(--pi-azul-tx); }
+.pi-btn-col svg:first-child { color: var(--pi-azul-tx); }
+.pi-caret { width: 16px !important; height: 16px !important; margin-left: -2px; transition: transform .35s var(--pi-muelle); opacity: .7; }
+.pi-btn[aria-expanded="true"] .pi-caret { transform: rotate(180deg); }
+.pi-cuenta { min-width: 38px; padding: 4px 7px; border-radius: 8px; background: var(--pi-gris); color: var(--pi-suave); font: 400 12px/1 var(--pi-mono); text-align: center; font-variant-numeric: tabular-nums; transition: background-color .25s, color .25s; }
+.pi-cuenta[data-parcial] { background: var(--pi-azul-suave); color: var(--pi-azul-tx); }
+.pi-btn[aria-expanded="true"] .pi-cuenta { background: var(--pi-blanco); }
+
+/* el selector de densidad: tres filas de distinto alto y un pulgar que se desliza */
+.pi-seg { --pos: 1; position: relative; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 252px; height: 40px; padding: 4px; border-radius: 12px; background: var(--pi-gris); isolation: isolate; }
+.pi-seg-pulgar { position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 3); border-radius: 9px; background: var(--pi-blanco); box-shadow: 0 1px 0 rgba(255, 255, 255, .7) inset, 0 6px 12px -6px rgba(var(--pi-sombra), .35), 0 0 0 1px var(--pi-linea);
+  transform: translateX(calc(var(--pos) * 100%)); transition: transform .55s var(--pi-muelle); }
+:root[data-tema="oscuro"] .pi-seg-pulgar { background: var(--pi-gris-2); box-shadow: 0 6px 12px -6px rgba(0, 0, 0, .6); }
+.pi-seg button { position: relative; display: grid; place-items: center; border-radius: 9px; font: 500 13.5px/1 var(--pi-sans); color: var(--pi-suave); transition: color .25s; }
+.pi-seg button[aria-checked="true"] { color: var(--pi-azul-tx); font-weight: 600; }
+@media (hover: hover) { .pi-seg button[aria-checked="false"]:hover { color: var(--pi-grafito); } }
+.pi-seg button:focus-visible { outline-offset: 0; }
+
+/* «Restablecer»: gris mientras no hay nada que deshacer, con un punto azul cuando sí y un ✓ al terminar */
+.pi-rest { min-width: 150px; justify-content: center; overflow: hidden; }
+.pi-rest-a, .pi-rest-b { display: inline-flex; align-items: center; gap: 8px; }
+.pi-rest-b { display: none; color: var(--pi-sobre-azul); }
+.pi-rest-b span { font-weight: 600; }
+.pi-rest-b svg { width: 22px; height: 22px; padding: 3px; border-radius: 50%; background: var(--pi-sobre-azul); stroke: var(--pi-azul-fuerte); stroke-width: 3; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .5s var(--pi-curva) .15s; }
+.pi-rest:disabled { opacity: .5; cursor: default; box-shadow: none; }
+.pi-punto { width: 7px; height: 7px; margin-left: 1px; border-radius: 50%; background: var(--pi-azul); transform: scale(0); transition: transform .45s var(--pi-muelle); }
+.pi-rest:not(:disabled) .pi-punto { transform: scale(1); }
+.pi-rest[data-e="listo"] { background: var(--pi-azul-fuerte); border-color: transparent; color: var(--pi-sobre-azul); cursor: default;
+  box-shadow: 0 14px 22px -12px rgba(var(--pi-azul-rgb), .85), inset 0 1px 0 rgba(255, 255, 255, .26); }
+.pi-rest[data-e="listo"] .pi-rest-a { display: none; }
+.pi-rest[data-e="listo"] .pi-rest-b { display: inline-flex; animation: pi-sube .5s var(--pi-muelle) backwards; }
+.pi-rest[data-e="listo"] .pi-rest-b svg { stroke-dashoffset: 0; }
+.pi-rest.is-bota { animation: pi-bota .45s var(--pi-muelle); }
+@keyframes pi-bota { 30% { scale: 1.07; } 100% { scale: 1; } }
+@keyframes pi-sube { from { opacity: 0; translate: 0 8px; } to { opacity: 1; translate: 0 0; } }
+
+/* ── el menú de columnas ──────────────────────────────────────────── */
+.pi-menu-env { position: relative; }
+.pi-menu { position: absolute; z-index: 30; top: calc(100% + 10px); right: 0; width: 300px; padding: 8px; border-radius: 16px; background: var(--pi-blanco); border: 1px solid var(--pi-linea);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, .8) inset, 0 40px 56px -26px rgba(var(--pi-sombra), .55), 0 12px 24px -12px rgba(var(--pi-sombra), .25);
+  transform-origin: 90% -8px; opacity: 0; transform: translateY(-8px) scale(.94); visibility: hidden; transition: opacity .18s, transform .5s var(--pi-muelle), visibility 0s .5s; }
+.pi-menu[data-abierto] { opacity: 1; transform: none; visibility: visible; transition: opacity .18s, transform .5s var(--pi-muelle), visibility 0s; }
+.pi-menu-lista { display: grid; gap: 1px; max-height: 372px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--pi-gris-2) transparent; }
+.pi-item { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; height: 40px; padding: 0 10px; border-radius: 10px; text-align: left; font: 500 14.5px/1 var(--pi-sans); transition: background-color .15s, opacity .25s; }
+@media (hover: hover) { .pi-item:not([aria-disabled="true"]):hover { background: var(--pi-hover); } }
+.pi-item:focus-visible { outline-offset: -2px; background: var(--pi-hover); }
+.pi-caja { position: relative; display: grid; place-items: center; width: 20px; height: 20px; border-radius: 6px; border: 1.6px solid var(--pi-gris-2); background: var(--pi-blanco); transition: background-color .2s, border-color .2s, transform .45s var(--pi-muelle); }
+.pi-caja svg { width: 14px; height: 14px; fill: none; stroke: var(--pi-sobre-azul); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .35s var(--pi-curva); }
+.pi-item[aria-checked="true"] .pi-caja { background: var(--pi-azul); border-color: var(--pi-azul); }
+.pi-item[aria-checked="true"] .pi-caja svg { stroke-dashoffset: 0; }
+.pi-item:active .pi-caja { transform: scale(.88); }
+.pi-item-nom { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.pi-item-nom svg { width: 14px; height: 14px; flex: none; fill: var(--pi-azul); stroke: var(--pi-azul); stroke-width: 1.8; stroke-linejoin: round; stroke-linecap: round; opacity: 0; transform: scale(.4); transition: opacity .25s, transform .45s var(--pi-muelle); }
+.pi-item[data-fija] .pi-item-nom svg { opacity: 1; transform: none; }
+.pi-item-w { font: 400 12px/1 var(--pi-mono); color: var(--pi-tenue); font-variant-numeric: tabular-nums; }
+.pi-item[aria-checked="false"] { color: var(--pi-suave); }
+.pi-item[aria-disabled="true"] { cursor: default; }
+.pi-item.is-no { animation: pi-no .38s var(--pi-curva); }
+@keyframes pi-no { 20% { translate: -5px 0; } 45% { translate: 5px 0; } 70% { translate: -3px 0; } 100% { translate: 0 0; } }
+.pi-menu-pie { display: flex; align-items: center; justify-content: space-between; margin: 6px 2px 0; padding: 10px 8px 4px; border-top: 1px solid var(--pi-linea); font: 400 13px/1 var(--pi-sans); color: var(--pi-suave); }
+.pi-menu-todas { padding: 6px 8px; margin: -6px -4px -6px 0; border-radius: 8px; font: 600 13px/1 var(--pi-sans); color: var(--pi-azul-tx); transition: background-color .15s, opacity .25s; }
+.pi-menu-todas:disabled { opacity: .4; cursor: default; }
+@media (hover: hover) { .pi-menu-todas:not(:disabled):hover { background: var(--pi-azul-suave); } }
+
+/* ── la tabla ─────────────────────────────────────────────────────── */
+.pi-cuerpo { position: relative; flex: 1; min-height: 0; border-top: 1px solid var(--pi-linea); }
+.pi-scroll { position: absolute; inset: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--pi-gris-2) transparent; overscroll-behavior: contain; }
+.pi-tabla { position: relative; width: var(--pi-total, 100%); min-width: 100%; user-select: none; -webkit-user-select: none; }
+.pi-fila { display: flex; width: 100%; height: var(--pi-alto); font-size: var(--pi-fs, 14px);
+  transition: height .6s var(--pi-ola) calc(var(--i, 0) * 32ms); animation: pi-entra .6s var(--pi-curva) calc(var(--i, 0) * 38ms + .1s) backwards; }
+.pi-fila { position: relative; background: var(--pi-blanco); }
+.pi-fila::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--pi-linea); pointer-events: none; }
+@media (hover: hover) { .pi-fila:not(.pi-fila--cab):hover { background: var(--pi-hover); } }
+.pi-fila--cab { position: sticky; top: 0; z-index: 5; height: var(--pi-alto-cab); background: var(--pi-cab); transition: none; animation: none; }
+@keyframes pi-entra { from { opacity: 0; translate: 0 10px; } to { opacity: 1; translate: 0 0; } }
+
+/* una celda: su ancho y su sitio vienen de variables que pilar.js mueve cuadro a cuadro */
+.pi-c { position: relative; flex: none; width: var(--w); background: var(--pi-blanco); box-shadow: inset 0 -1px 0 var(--pi-linea); transition: background-color .2s, box-shadow .3s; }
+.pi-ci { display: flex; align-items: center; gap: 4px; width: 100%; height: 100%; overflow: hidden; }
+.pi-ci > * { margin-inline: 14px; }
+.pi-ci > .pi-th { margin-inline: 14px 0; }
+.pi-c.es-num .pi-ci { justify-content: flex-end; }
+@media (hover: hover) { .pi-fila:not(.pi-fila--cab):hover > .pi-c { background: var(--pi-hover); } }
+.pi-t { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 400; }
+.pi-mono { font: 400 calc(var(--pi-fs, 14px) - 1px)/1 var(--pi-mono); font-variant-numeric: tabular-nums; letter-spacing: -.01em; white-space: nowrap; }
+.pi-id { color: var(--pi-azul-tx); }
+.pi-sin { color: var(--pi-tenue); }
+.pi-chip { display: inline-flex; align-items: center; gap: 6px; flex: none; height: var(--pi-chip, 26px); padding: 0 10px 0 9px; border-radius: 13px; font: 600 12.5px/1 var(--pi-sans); white-space: nowrap; transition: height .6s var(--pi-ola); }
+.pi-chip i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pi-chip[data-e="pagado"] { background: var(--pi-azul-suave); color: var(--pi-azul-tx); }
+.pi-chip[data-e="enviado"] { box-shadow: 0 0 0 1px rgba(var(--pi-azul-rgb), .5) inset; color: var(--pi-azul-tx); }
+.pi-chip[data-e="enviado"] i { background: none; box-shadow: 0 0 0 1.6px currentColor inset; }
+.pi-chip[data-e="pendiente"] { background: var(--pi-gris); color: var(--pi-suave); }
+.pi-chip[data-e="devuelto"] { background: var(--pi-grafito); color: var(--pi-blanco); }
+
+/* el encabezado: etiqueta, chincheta y asa de ancho */
+.pi-h { z-index: 0; background: var(--pi-cab); }
+.pi-th { flex: 1; min-width: 0; height: 100%; display: block; text-align: left; font: 600 13px/1 var(--pi-sans); letter-spacing: -.003em; color: var(--pi-cab-tx); cursor: grab; touch-action: none; border-radius: 6px; }
+.pi-c.es-num .pi-th { text-align: right; margin-inline: 0 14px; }
+.pi-th-t { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pi-th:focus-visible { outline: 2.5px solid var(--pi-azul); outline-offset: -3px; border-radius: 8px; }
+.pi-pin { display: grid; place-items: center; flex: none; width: 24px; height: 24px; margin-inline: 0 6px; border-radius: 7px; color: var(--pi-tenue); opacity: 0; transform: scale(.7) rotate(14deg); transition: opacity .2s, transform .5s var(--pi-muelle), background-color .2s, color .2s; }
+.pi-c.es-num .pi-pin { order: -1; margin-inline: 8px 0; transform: scale(.7) rotate(-14deg); }
+.pi-pin svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.pi-h:hover .pi-pin, .pi-h:focus-within .pi-pin { opacity: 1; transform: none; }
+.pi-h.es-fija .pi-pin { opacity: 1; transform: none; color: var(--pi-azul-tx); }
+.pi-h.es-fija .pi-pin svg { fill: currentColor; }
+@media (hover: hover) { .pi-pin:hover { background: var(--pi-gris); color: var(--pi-grafito); } .pi-h.es-fija .pi-pin:hover { background: var(--pi-azul-suave); color: var(--pi-azul-tx); } }
+@media (hover: none) { .pi-pin { opacity: .85; transform: none; } }
+.pi-borde { position: absolute; z-index: 2; top: 0; right: 0; bottom: 0; width: 12px; margin: 0 !important; cursor: col-resize; touch-action: none; }
+.pi-borde::before { content: ""; position: absolute; top: 28%; bottom: 28%; right: 4px; width: 2px; border-radius: 1px; background: var(--pi-gris-2); transition: top .3s var(--pi-curva), bottom .3s var(--pi-curva), background-color .2s, right .25s, width .25s; }
+@media (hover: hover) { .pi-borde:hover::before { top: 0; bottom: 0; right: 3px; width: 3px; background: var(--pi-azul); } }
+.pi-h.es-agarra .pi-borde::before { top: 0; bottom: 0; right: 3px; width: 3px; background: var(--pi-azul); }
+
+/* el cuerpo de una columna fijada: pegado a la izquierda, con una sombra que aparece al desplazarse */
+.pi-c.es-fija { position: sticky; left: var(--l); z-index: 3; background: var(--pi-hoja-fija); }
+.pi-h.es-fija { z-index: 2; background: var(--pi-cab); box-shadow: inset 0 -2px 0 var(--pi-azul); }
+.pi-pin.es-clava svg { animation: pi-clava .8s var(--pi-curva); transform-origin: 50% 90%; }
+@keyframes pi-clava { 0% { transform: translateY(-9px) scale(1.5) rotate(-22deg); } 45% { transform: translateY(1.5px) scale(.9) rotate(4deg); } 70% { transform: translateY(-1px) scale(1.06); } 100% { transform: none; } }
+@media (hover: hover) { .pi-fila:not(.pi-fila--cab):hover > .pi-c.es-fija { background: var(--pi-hover); } }
+.pi-c.es-borde::after { content: ""; position: absolute; z-index: 1; top: 0; bottom: 0; left: 100%; width: 18px; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: linear-gradient(90deg, rgba(var(--pi-sombra), .14), rgba(var(--pi-sombra), .045) 45%, transparent); }
+:root[data-tema="oscuro"] .pi-c.es-borde::after { background: linear-gradient(90deg, rgba(0, 0, 0, .5), rgba(0, 0, 0, .16) 45%, transparent); }
+.pi-c.es-borde:not(.es-plegada)::before { content: ""; position: absolute; z-index: 1; top: 0; bottom: 0; right: 0; width: 1px; background: var(--pi-linea); }
+[data-desplaza] .pi-c.es-borde::after { opacity: 1; }
+.pi-c.es-plegada { visibility: hidden; }
+
+/* una columna que se agarra o se mide se tiñe de azul */
+.pi-c.es-sel { box-shadow: inset 0 -1px 0 var(--pi-linea), inset 0 0 0 100vmax rgba(var(--pi-azul-rgb), .055); }
+.pi-c.es-vuela { z-index: 2; }
+.pi-c.es-fija.es-vuela { z-index: 4; }
+
+/* la lámina: la columna levantada, que sigue al cursor, y el hueco que deja */
+.pi-c.es-hueco { background: var(--pi-azul-suave); box-shadow: inset 1px 0 0 rgba(var(--pi-azul-rgb), .35), inset -1px 0 0 rgba(var(--pi-azul-rgb), .35), inset 0 -1px 0 rgba(var(--pi-azul-rgb), .12); }
+.pi-c.es-hueco .pi-ci { opacity: 0; }
+.pi-lamina { position: absolute; z-index: 7; top: 0; left: 0; display: flex; flex-direction: column; border-radius: 12px; background: var(--pi-blanco); pointer-events: none; overflow: clip; transform-origin: 50% 0;
+  box-shadow: 0 0 0 1.5px rgba(var(--pi-azul-rgb), .55), 0 46px 60px -22px rgba(var(--pi-sombra), .6), 0 14px 26px -10px rgba(var(--pi-sombra), .28); }
+.pi-lamina .pi-c { width: 100%; position: relative; left: auto; flex: none; z-index: auto; background: var(--pi-blanco); }
+.pi-lamina .pi-h { position: sticky; top: 0; z-index: 2; background: var(--pi-cab); }
+
+.pi-lamina .pi-borde, .pi-lamina .pi-pin { opacity: 0 !important; }
+.pi-lamina .pi-c::after, .pi-lamina .pi-c::before { display: none; }
+[data-arrastra] .pi-tabla { cursor: grabbing; }
+[data-arrastra] .pi-tabla * { cursor: grabbing !important; }
+[data-arrastra="ancho"] .pi-tabla * { cursor: col-resize !important; }
+[data-arrastra] .pi-fila:hover > .pi-c:not(.es-sel):not(.es-hueco) { background: var(--pi-blanco); }
+[data-arrastra] .pi-fila:hover > .pi-c.es-fija:not(.es-hueco) { background: var(--pi-hoja-fija); }
+[data-arrastra] .pi-fila:not(.pi-fila--cab):hover { background: var(--pi-blanco); }
+[data-arrastra] .pi-fila--cab > .pi-c { background: var(--pi-cab); }
+[data-arrastra] .pi-fila--cab > .pi-c.es-hueco { background: var(--pi-azul-suave); }
+
+/* la guía del ancho: una línea que cruza la tabla entera, con su medida, y una marca del ancho de antes */
+.pi-guia, .pi-guia-ant { position: absolute; z-index: 8; top: 0; bottom: 0; left: -2px; width: 0; pointer-events: none; opacity: 0; transition: opacity .2s; }
+.pi-guia { width: 2px; background: var(--pi-azul); box-shadow: 0 0 0 4px rgba(var(--pi-azul-rgb), .16), 0 0 26px rgba(var(--pi-azul-rgb), .5); }
+.pi-guia-ant { width: 0; border-left: 1.5px dashed rgba(var(--pi-azul-rgb), .55); }
+.pi-guia b { position: absolute; top: calc(var(--pi-alto-cab) + 12px); left: 50%; transform: translateX(-50%); padding: 7px 10px; border-radius: 9px; background: var(--pi-azul-fuerte); color: var(--pi-sobre-azul); font: 400 12px/1 var(--pi-mono); white-space: nowrap; font-variant-numeric: tabular-nums;
+  box-shadow: 0 14px 22px -10px rgba(var(--pi-azul-rgb), .9); transition: background-color .2s, transform .35s var(--pi-muelle); }
+.pi-guia[data-tope] b { background: var(--pi-grafito); color: var(--pi-blanco); transform: translateX(-50%) scale(1.06); }
+.pi-guia[data-on], .pi-guia-ant[data-on] { opacity: 1; }
+.pi-guia-ant[data-on] { opacity: .9; }
+
+/* ── el pie: el estado y las teclas ───────────────────────────────── */
+.pi-pie { display: flex; align-items: center; justify-content: space-between; gap: 18px; flex: none; min-height: 48px; padding: 8px 32px; border-top: 1px solid var(--pi-linea); font: 400 13.5px/1.35 var(--pi-sans); color: var(--pi-suave); border-radius: 0 0 22px 22px; }
+.pi-estado { white-space: nowrap; }
+.pi-estado b { font-weight: 600; color: var(--pi-grafito); font-variant-numeric: tabular-nums; }
+.pi-teclas { text-align: right; font-size: 12.5px; }
+.pi-teclas i { font-style: normal; margin: 0 4px; opacity: .5; }
+.pi-teclas span { margin-right: 4px; }
+
+/* ── la densidad: tres alturas de fila (la ola la dan los retardos de .pi-fila) ─ */
+[data-densidad-act="comoda"] { --pi-alto: 60px; --pi-chip: 28px; --pi-fs: 15px; }
+[data-densidad-act="normal"] { --pi-alto: 46px; --pi-chip: 26px; --pi-fs: 14px; }
+[data-densidad-act="compacta"] { --pi-alto: 34px; --pi-chip: 22px; --pi-fs: 13px; }
+
+/* ── pantallas estrechas ──────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .pi-escena { padding: 16px; }
+  .pi-cab { flex-direction: column; align-items: stretch; padding: 20px 20px 16px; }
+  .pi-barra { justify-content: flex-start; }
+  .pi-titulos h1 { font-size: 26px; }
+  .pi-pie { padding: 8px 20px; }
+  .pi-teclas { display: none; }
+  .pi-menu { right: auto; left: 0; transform-origin: 10% -8px; }
+}
+@media (max-width: 600px) {
+  .pi-escena { padding: 10px; place-items: start center; }
+  .pi-app { height: calc(100svh - 20px); min-height: 520px; border-radius: 18px; }
+  .pi-seg { width: 100%; order: 3; }
+  .pi-barra { gap: 8px; }
+  .pi-rest { min-width: 0; flex: 1 1 140px; padding: 0 12px; }
+  .pi-btn-col { flex: 1 1 140px; justify-content: center; padding: 0 12px; }
+  .pi-menu { width: min(300px, calc(100vw - 52px)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pi-fila, .pi-chip, .pi-seg-pulgar, .pi-menu, .pi-caja, .pi-caja svg, .pi-pin, .pi-borde::before, .pi-guia b, .pi-punto { transition: none !important; animation: none !important; }
+  .pi-rest-b, .pi-rest.is-bota, .pi-item.is-no { animation: none !important; }
+}

@@ -1,0 +1,37 @@
+{
+  "episode_id": "ep_7d4d5810190a",
+  "timestamp": "2026-11-09T00:58:13.424542",
+  "agent": "fahas",
+  "agents_involved": [
+    "fahas"
+  ],
+  "user_query": "Test 6",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "steps_executed": [
+      {
+        "step": 0,
+        "action": "query",
+        "status": "success"
+      }
+    ],
+    "data": [
+      {
+        "id": 1,
+        "name": "Test Employee"
+      }
+    ],
+    "status": "success",
+    "consistency_check": null
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

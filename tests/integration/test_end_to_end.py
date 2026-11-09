@@ -8,7 +8,7 @@ import tempfile
 import shutil
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
-import pandas as pd
+pd = pytest.importorskip("pandas")
 from openpyxl import Workbook
 from datetime import datetime, timedelta
 

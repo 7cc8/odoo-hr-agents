@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_ae383334f762",
+  "timestamp": "2026-11-09T02:44:12.522185",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "ابحث عن موظف اسمه أحمد",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "test_chat_999",
+    "company_id": null,
+    "connection_id": "default",
+    "operation_id": null
+  },
+  "result": {
+    "response": "تم العثور على الموظف «أحمد محمود» (معرف 101)، يعمل بمسمى مهندس نظم."
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": "test_chat_999"
+}

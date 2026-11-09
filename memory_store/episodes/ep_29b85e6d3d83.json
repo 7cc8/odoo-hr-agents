@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_29b85e6d3d83",
+  "timestamp": "2026-11-09T02:52:02.946776",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "هل يوجد موظف بأسم ناصر ؟",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "web_abca3d7c-c4f7-4b4b-bba5-f376c4477742",
+    "company_id": 1,
+    "connection_id": "default",
+    "operation_id": "op_1794181911_255000"
+  },
+  "result": {
+    "response": "نعم، يوجد موظف باسم **ناصر الزهراني** في النظام. وقد تم العثور على 15 سجلاً يحملون هذا الاسم (مع وجود اختلافات طفيفة في الأسم"
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": 1,
+  "user_id": "web_abca3d7c-c4f7-4b4b-bba5-f376c4477742"
+}

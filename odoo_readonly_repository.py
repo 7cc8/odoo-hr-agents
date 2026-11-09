@@ -16,7 +16,7 @@ class OdooReadonlyRepositoryError(Exception):
 
 
 class OdooReadonlyRepository:
-    def __init__(self, url=None, db=None, username=None, api_key=None, timeout=30):
+    def __init__(self, url=None, db=None, username=None, api_key=None, timeout=30, password=None):
         active_cfg: Dict[str, str] = {}
         try:
             from odoo_config_manager import get_active_odoo_config
@@ -27,7 +27,7 @@ class OdooReadonlyRepository:
         self.url = (url or active_cfg.get("url") or os.environ.get("ODOO_URL", "")).rstrip("/")
         self.db = db or active_cfg.get("db") or os.environ.get("ODOO_DB", "")
         self.username = username or active_cfg.get("username") or os.environ.get("ODOO_USER") or os.environ.get("ODOO_USERNAME", "")
-        self.api_key = api_key or active_cfg.get("api_key") or os.environ.get("ODOO_API_KEY", "")
+        self.api_key = api_key or password or active_cfg.get("api_key") or active_cfg.get("password") or os.environ.get("ODOO_API_KEY", "") or os.environ.get("ODOO_PASSWORD", "")
         self.timeout = timeout
 
         if not self.url or not self.db or not self.username or not self.api_key:

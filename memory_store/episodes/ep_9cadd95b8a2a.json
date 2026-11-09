@@ -1,0 +1,45 @@
+{
+  "episode_id": "ep_9cadd95b8a2a",
+  "timestamp": "2026-11-08T22:09:00.499371",
+  "agent": "Hares",
+  "agents_involved": [
+    "Hares"
+  ],
+  "user_query": "{\"query\": \"أنشئ موظف جديد\", \"context\": {}}",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "decision": "DENY",
+    "risk_level": "medium",
+    "violations": [
+      null
+    ],
+    "requirements": [],
+    "environment_check": {
+      "is_authorized": false,
+      "violation": null
+    },
+    "risk_assessment": {
+      "level": "medium",
+      "factors": [
+        "write_operation",
+        "employee_data"
+      ]
+    },
+    "policy_check": {
+      "violations": [],
+      "requirements": []
+    },
+    "reason": "1 security violations",
+    "rationale": "Security policy violations must be resolved"
+  },
+  "success": true,
+  "confidence": 0.5,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

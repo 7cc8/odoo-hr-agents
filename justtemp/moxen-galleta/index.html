@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galleta · Moxen</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=general-sans@400,500,600&display=swap">
+<link rel="stylesheet" href="galleta.css">
+<!-- ?tema=claro para verla sobre fondo claro -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <!-- Un sitio de ejemplo detrás del aviso: tenue, desenfocado e inerte -->
+  <div class="gt-sitio" aria-hidden="true" inert>
+    <header class="gt-cabecera">
+      <span class="gt-logo"><i></i>Estudio web</span>
+      <nav><span>Inicio</span><span>Servicios</span><span>Trabajos</span><span>Contacto</span></nav>
+      <span class="gt-cta">Escríbenos</span>
+    </header>
+    <section class="gt-portada">
+      <p class="gt-antetitulo">Página de ejemplo</p>
+      <h1>Sitios que se sienten bien desde el primer clic.</h1>
+      <p>Diseño y desarrollo a medida, rápidos y claros, sin plantillas ni relleno.</p>
+      <div><span class="gt-cta">Ver trabajos</span><span class="gt-cta is-linea">Conversemos</span></div>
+    </section>
+  </div>
+
+  <!-- data-galleta: el aviso de cookies. galleta.js arma las categorías,
+       la superficie que se transforma y el botón flotante con la galleta -->
+  <div class="gt-galleta" data-galleta>
+    <section class="gt-aviso" role="dialog" aria-modal="false" aria-labelledby="gt-titulo" aria-describedby="gt-texto">
+      <div class="gt-cabeza">
+        <span class="gt-icono" aria-hidden="true"></span>
+        <h2 id="gt-titulo">Usamos cookies</h2>
+        <p id="gt-texto">Las necesarias hacen que el sitio funcione. Las demás, solo si tú quieres. <a href="#politica">Política de cookies</a></p>
+      </div>
+      <!-- aquí van las categorías: un nombre que abre su descripción y un interruptor -->
+      <div class="gt-detalle" role="group" aria-label="Categorías de cookies"></div>
+      <div class="gt-pie">
+        <!-- los tres con el mismo peso: rechazar es tan fácil como aceptar -->
+        <div class="gt-fila" data-vista="simple">
+          <button type="button" data-galleta-accion="rechaza">Rechazar</button>
+          <button type="button" data-galleta-accion="personaliza" aria-expanded="false">Personalizar</button>
+          <button type="button" data-galleta-accion="acepta">Aceptar todas</button>
+        </div>
+        <div class="gt-fila" data-vista="detalle">
+          <button type="button" data-galleta-accion="guarda">Guardar selección</button>
+          <button type="button" data-galleta-accion="acepta">Aceptar todas</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="galleta.js"></script>
+  <script>
+    Galleta(document.querySelector('[data-galleta]'), {
+      recordar: false,          // en la demo pregunta siempre; en tu sitio, true
+      clave: 'mx-cookies',
+      categorias: [
+        { id: 'necesarias', nombre: 'Necesarias', fija: true,
+          texto: 'Mantienen tu sesión, el carrito y la seguridad del sitio. Sin ellas, nada funciona.' },
+        { id: 'preferencias', nombre: 'Preferencias',
+          texto: 'Recuerdan lo que elegiste, como el idioma o el tema, para tu próxima visita.' },
+        { id: 'estadistica', nombre: 'Estadística',
+          texto: 'Cuentan visitas y clics de forma anónima para saber qué mejorar.' },
+        { id: 'publicidad', nombre: 'Publicidad',
+          texto: 'Muestran anuncios según lo que te interesa, aquí y en otros sitios.' },
+      ],
+      // aquí cargarías los scripts de cada categoría aceptada
+      alGuardar: prefs => { document.documentElement.dataset.cookies = Object.keys(prefs).filter(k => prefs[k]).join(' '); },
+    });
+    // en la demo el enlace no lleva a ninguna parte
+    document.querySelector('.gt-cabeza a').addEventListener('click', e => e.preventDefault());
+  </script>
+</body>
+</html>

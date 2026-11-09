@@ -1,0 +1,28 @@
+{
+  "episode_id": "ep_643fe9b1af90",
+  "timestamp": "2026-11-08T22:06:35.003924",
+  "agent": "muwaffaq",
+  "agents_involved": [
+    "muwaffaq"
+  ],
+  "user_query": "{\"query\": \"أصلح البيانات غير المتطابقة في قسم المبيعات\", \"context\": {}}",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "matched_candidates": [],
+    "best_match": null,
+    "confidence": 0.0,
+    "strategy_used": null,
+    "timestamp": "2026-11-08T19:06:35.003924+00:00",
+    "status": "no_match"
+  },
+  "success": true,
+  "confidence": 0.9,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

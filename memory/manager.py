@@ -35,6 +35,24 @@ class MemoryManager:
     5. Semantic search (بدون Vector DB في البداية، ثم مع Chroma)
     """
     
+    _instance: Optional["MemoryManager"] = None
+
+    @classmethod
+    def get_instance(
+        cls,
+        storage_dir: Optional[Path] = None,
+        use_vector_db: bool = False,
+        vector_db_type: str = "chroma",
+    ) -> "MemoryManager":
+        """Singleton accessor for shared memory across all agents and sessions."""
+        if cls._instance is None:
+            cls._instance = cls(
+                storage_dir=storage_dir,
+                use_vector_db=use_vector_db,
+                vector_db_type=vector_db_type,
+            )
+        return cls._instance
+
     def __init__(
         self,
         storage_dir: Optional[Path] = None,
@@ -138,10 +156,14 @@ class MemoryManager:
             user_id=user_id,
         )
         
-        # حفظ في ملف
+        # حفظ في ملف بشكل ذري وآمن
         episode_file = self.episodes_dir / f"{episode_id}.json"
-        with open(episode_file, "w", encoding="utf-8") as f:
-            json.dump(episode.to_dict(), f, ensure_ascii=False, indent=2)
+        try:
+            payload_str = json.dumps(episode.to_dict(), ensure_ascii=False, indent=2, default=str)
+            with open(episode_file, "w", encoding="utf-8") as f:
+                f.write(payload_str)
+        except Exception as write_err:
+            logger.warning(f"Failed to write episode {episode_id}: {write_err}")
         
         # إضافة إلى Vector DB (إذا مفعّل)
         if self.use_vector_db and self._vector_db:
@@ -196,14 +218,22 @@ class MemoryManager:
                 "company_id": company_id,
             }, limit=limit)
         
-        # وإلا، بحث تقليدي
+        # وإلا، بحث تقليدي مع فرز زمني سريع للأحدث
         episodes = []
+        files = sorted(self.episodes_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+        cutoff_ts = time_range[0].timestamp() if time_range else None
         
-        for episode_file in self.episodes_dir.glob("*.json"):
-            with open(episode_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            
-            episode = Episode.from_dict(data)
+        for episode_file in files:
+            # تخطي سريع للملفات الأقدم من النطاق الزمني المحدد
+            if cutoff_ts and episode_file.stat().st_mtime < (cutoff_ts - 3600):
+                break
+
+            try:
+                with open(episode_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                episode = Episode.from_dict(data)
+            except Exception:
+                continue
             
             # التصفية
             if agent and episode.agent != agent:

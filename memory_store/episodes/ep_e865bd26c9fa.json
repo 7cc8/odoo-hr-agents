@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_e865bd26c9fa",
+  "timestamp": "2026-11-09T01:03:02.282423",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "استعلم عن الموظفة سارة في Odoo",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "test_user_scen_3",
+    "company_id": 15,
+    "connection_id": "default",
+    "operation_id": "op_1794175361_f9a504"
+  },
+  "result": {
+    "response": "يبدو أن هناك خطأً تقنياً في الاتصال بقاعدة بيانات Odoo حالياً. يظهر النظام رسالة \"خطأ في الاتصال بقاعدة البيانات: 'ToolRegistry' object has no attribute 'has_tool'\"، مما يعني أن النظام لا يستطيع الوصول إلى قاعدة البيانات في الوقت الحالي.\n\n**الحالة الحالية:**\n- ❌ اتصال قاعدة البيانات غير متوفر\n- ⚠️ لا يمكن استعلام عن موظفة سارة أو أي بيانات أخرى\n\n**الخطوات المقترحة:**\n1. يرجى الانتظار قليلاً ثم إعادة المحاولة لاحقاً\n2. إذا كنت تعرف رقم الموظف (ID) بدلاً من الاسم، يمكننا محاولة البحث به\n3. يمكنك التحقق من اتصال Odoo مرة أخرى في وقت لاحق\n\nهل تريد أن أجرب البحث مرة أخرى بعد قليل؟ أو هل لديك معلومات إضافية عن الموظفة (مثل معرفها ID) قد تساعد في البحث؟"
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": 15,
+  "user_id": "test_user_scen_3"
+}

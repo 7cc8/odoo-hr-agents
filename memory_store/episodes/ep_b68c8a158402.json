@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_b68c8a158402",
+  "timestamp": "2026-11-09T01:01:35.996910",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "استعلم عن الموظفة سارة في Odoo",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "test_user_scen_3",
+    "company_id": 15,
+    "connection_id": "default",
+    "operation_id": "op_1794175273_7b7446"
+  },
+  "result": {
+    "response": "عذراً، يواجه النظام حالياً خطأً تقنياً يمنع الاتصال بقاعدة بيانات Odoo. لا يمكنني استرجاع معلومات الموظفة \"سارة\" في هذه اللحظة بسبب هذا العطل.\n\n**تفاصيل الخطأ:**\n- هناك مشكلة تقنية في نظام الاتصالات مع قاعدة البيانات\n- لا يمكن تنفيذ عمليات الاستعلام أو القراءة حتى يتم إصلاح هذا الخطأ\n\n**الخطوات المقترحة:**\n1. يرجى الانتظار قليلاً ثم إعادة الطلب\n2. إذا استمر الخطأ، قد تحتاج إلى التواصل مع فريق الدعم التقني للنظام\n3. عند عودة النظام للعمل، سأتمكن من البحث عن معلومات الموظفة سارة فوراً\n\nهل تريد أن أقوم بمحاولة أخرى بعد قليل؟"
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": 15,
+  "user_id": "test_user_scen_3"
+}

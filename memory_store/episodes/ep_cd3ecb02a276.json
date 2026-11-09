@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_cd3ecb02a276",
+  "timestamp": "2026-11-09T01:57:03.499733",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "تم",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "pending-confirmation-test",
+    "company_id": null,
+    "connection_id": "default",
+    "operation_id": null
+  },
+  "result": {
+    "response": "أهلاً بك يا سيدي/سيدي.\n\nيبدو أنك كتبت \"تم\" ولكن لا يوجد سياق واضح لطلب سابق في هذه الجلسة.\n\nهل تقصد:\n- تأكيد إتمام عملية معينة؟\n- أو لديك طلب جديد تريد تنفيذه؟\n- أم تريد استعراض معلومات عن نظام الموارد البشرية لدينا؟\n\nيرجى توضيح ما تحتاجه بالضبط لأتمكن من مساعدتك بشكل أفضل."
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": "pending-confirmation-test"
+}

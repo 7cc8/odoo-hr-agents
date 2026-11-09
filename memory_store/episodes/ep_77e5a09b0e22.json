@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_77e5a09b0e22",
+  "timestamp": "2026-11-09T02:30:06.596939",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "إلغاء",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "web_upload_d615d08c-ae58-4464-b4ca-e63f8c623a1d",
+    "company_id": null,
+    "connection_id": "default",
+    "operation_id": "op_1794180584_9ebef6"
+  },
+  "result": {
+    "response": "أهلاً بك يا سراج.\n\nيبدو أنك تود إلغاء أمر أو عملية معينة، لكن لا يوجد سياق محدد في المحادثة يشير إلى أي إجراء تم تنفيذه سابقاً يحتاج للإلغاء.\n\nهل تقصد:\n- إلغاء استعلام معين؟\n- إنهاء جلسة البحث الحالية؟\n- أم هناك أمر آخر تريد التوضيح بشأنه؟\n\nأنا جاهز للمساعدة في أي استعلام أو مهمة تتعلق بإدارة الموارد البشرية، فقط يرجى توضيح ما تحتاجه بالضبط."
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": "web_upload_d615d08c-ae58-4464-b4ca-e63f8c623a1d"
+}

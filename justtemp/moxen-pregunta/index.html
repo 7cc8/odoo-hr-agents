@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pregunta · Moxen</title>
+<!-- una familia por enlace: Fontshare puede devolver solo la primera si se piden varias juntas -->
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=zodiak@400&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=satoshi@400,500,700&display=swap">
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=azeret-mono@400,500&display=swap">
+<link rel="stylesheet" href="pregunta.css">
+<!-- ?tema=claro (la pieza ya es clara) o ?tema=oscuro para la variante de tinta cálida -->
+<script>if (/[?&]tema=(claro|oscuro)/.test(location.search)) document.documentElement.dataset.tema = RegExp.$1;</script>
+</head>
+<body>
+  <svg class="pr-defs" width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <!-- la marca: un sol de ocho rayos -->
+      <symbol id="pr-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1" fill="currentColor" stroke="none"/><path d="M12 2.8v3.4M12 17.8v3.4M2.8 12h3.4M17.8 12h3.4M5.5 5.5l2.4 2.4M16.1 16.1l2.4 2.4M5.5 18.5l2.4-2.4M16.1 7.9l2.4-2.4"/></symbol>
+    </defs>
+  </svg>
+
+  <main class="pr-escena" data-pregunta data-fase="inicio">
+    <div class="pr-fondo" aria-hidden="true"><i class="pr-luz"></i><i class="pr-grano"></i></div>
+
+    <header class="pr-bar">
+      <a class="pr-marca" href="#" aria-label="Pregunta, inicio"><svg class="pr-sol" aria-hidden="true"><use href="#pr-sol"/></svg><span>Pregunta</span></a>
+      <button type="button" class="pr-nueva" data-nueva aria-label="Nueva consulta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Nueva consulta</span></button>
+    </header>
+
+    <div class="pr-col">
+      <!-- el saludo -->
+      <div class="pr-inicio" data-inicio>
+        <svg class="pr-sol pr-sol-grande" aria-hidden="true"><use href="#pr-sol"/></svg>
+        <h1 class="pr-saludo"><span class="pr-linea-1">Buenas tardes,</span><br><span class="pr-linea-2">¿qué quieres <em>saber<svg viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 7c9-6 15 5 24 0s15-5 24 0 15 5 24 0 15-5 24 0 12 3 20 0"/></svg></em>?</span></h1>
+      </div>
+
+      <!-- la conversación (aparece al enviar) -->
+      <section class="pr-hilo" data-hilo role="log" aria-label="Conversación" aria-live="off" tabindex="0"></section>
+
+      <!-- la caja de pedido -->
+      <form class="pr-caja" data-caja autocomplete="off">
+        <div class="pr-adjuntos" data-adjuntos aria-label="Archivos adjuntos"><div class="pr-adjuntos-fila" data-adjuntos-fila></div></div>
+        <label class="pr-oculto" for="pr-campo">Escribe tu pregunta</label>
+        <textarea id="pr-campo" class="pr-campo" data-campo rows="1" placeholder="Pregúntame lo que quieras…" spellcheck="false"></textarea>
+        <div class="pr-barra">
+          <button type="button" class="pr-icono" data-adjuntar aria-label="Adjuntar un archivo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 11-8 8a4.5 4.5 0 0 1-6.4-6.4l8-8a3 3 0 0 1 4.3 4.3l-8 8a1.5 1.5 0 0 1-2.1-2.1l7.3-7.3"/></svg>
+          </button>
+          <div class="pr-selector">
+            <button type="button" class="pr-modelo" data-modelo aria-haspopup="listbox" aria-expanded="false" aria-controls="pr-menu" aria-label="Elegir modelo">
+              <i class="pr-punto" aria-hidden="true"></i><span data-modelo-txt>Equilibrado</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+            </button>
+            <div class="pr-menu" id="pr-menu" data-menu role="listbox" tabindex="-1" aria-label="Modelo"></div>
+          </div>
+          <span class="pr-espacio"></span>
+          <span class="pr-atajo" aria-hidden="true"><kbd>↵</kbd> envía <kbd>⇧</kbd><kbd>↵</kbd> salta</span>
+          <button type="submit" class="pr-enviar" data-enviar aria-label="Enviar" disabled>
+            <svg class="pr-i-envia" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+            <svg class="pr-i-alto" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2.4"/></svg>
+          </button>
+        </div>
+      </form>
+
+      <!-- las sugerencias (las pinta pregunta.js) -->
+      <div class="pr-sug" data-sug role="group" aria-label="Sugerencias"></div>
+      <p class="pr-nota">Las respuestas de este ejemplo son simuladas. Revisa siempre lo importante.</p>
+    </div>
+
+    <p class="pr-oculto" role="status" aria-live="polite" data-vivo></p>
+  </main>
+  <script src="pregunta.js"></script>
+  <script>var pregunta = Pregunta(document.querySelector('[data-pregunta]'));</script>
+</body>
+</html>

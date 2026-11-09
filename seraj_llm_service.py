@@ -42,7 +42,7 @@ from deletion_policy import (
     resolve_model_from_query,
 )
 from agent_runtime import AgentSpec, ToolOutcome, run_agent
-from fahas_service import FahasAgent, get_fahas_agent
+from fahas_service import FahasService, FahasService as FahasAgent, get_fahas_agent
 from katib_service import KatibAgent, get_katib_agent, KatibSecurityError, KatibExecutionError
 from odoo_agent_tools import (
     SERAJ_ODOO_TOOLS_SCHEMA,
@@ -158,6 +158,7 @@ class SerajLLMService:
         self.timeout = timeout
         self.session_manager = SerajSessionManager.get_instance()
         self.fahas = fahas_agent or get_fahas_agent()
+        self.has_custom_fahas = fahas_agent is not None
         self.katib = katib_agent or get_katib_agent()
         self.last_provider_used: Optional[str] = None
         self.last_model_used: Optional[str] = None
@@ -238,6 +239,40 @@ class SerajLLMService:
             )
         except Exception as exc:
             logger.debug("Failed to emit agent event: %s", exc)
+
+    def _save_chat_turn_episode(
+        self,
+        query: str,
+        response_text: str,
+        session: ConversationSession,
+        operation_id: Optional[str] = None,
+        success: bool = True,
+    ) -> None:
+        """حفظ حلقة تفاعل في MemoryManager بطريقة آمنة تماماً."""
+        try:
+            from memory.manager import MemoryManager
+            MemoryManager.get_instance().save_episode(
+                agent="seraj",
+                agents_involved=["seraj", "fahas"],
+                user_query=query,
+                intent="conversation",
+                context={
+                    "chat_id": session.chat_id,
+                    "company_id": session.company_id,
+                    "connection_id": session.connection_id,
+                    "operation_id": operation_id,
+                },
+                result={"response": response_text},
+                success=success,
+                confidence=0.95,
+                decision_path=["chat_turn"],
+                strategies_used=["conversational_orchestration"],
+                duration_ms=0,
+                company_id=session.company_id,
+                user_id=str(session.chat_id),
+            )
+        except Exception as exc:
+            logger.debug("Failed to save episode to MemoryManager: %s", exc)
 
     def chat_turn(
         self,
@@ -908,7 +943,7 @@ class SerajLLMService:
             # مسار التعديل (Update)
             is_update = any(kw in clean_query for kw in ["عدل", "تعديل", "غير", "تغيير"])
             if is_update:
-                m = re.search(r'(?:عدل|تعديل|غير|تغيير)\s+(?:مسمى\s+)?(?:الموظف\s+|الموظفة\s+)?(.+?)\s+(?:إلى|الى|ليصبح)\s+(.+)', clean_query)
+                m = re.search(r'(?:عدل|تعديل|غير|تغيير)\s+(?:مسمى\s+)(?:الموظف\s+|الموظفة\s+)?(.+?)\s+(?:إلى|الى|ليصبح)\s+(.+)', clean_query)
                 if m:
                     emp_name = m.group(1).strip()
                     new_val = m.group(2).strip()
@@ -1287,6 +1322,7 @@ class SerajLLMService:
                         status="completed",
                         description_ar="سراج يشرح النتيجة للمستخدم بلغة عربية دقيقة",
                     )
+                    self._save_chat_turn_episode(clean_query, cleaned_answer, session, operation_id=operation_id, success=True)
                     return cleaned_answer
                 # في حال تعذر المرشحين بالكامل عبر _call_llm، ننتقل مباشرة للوضع الاحترازي
                 break
@@ -1308,6 +1344,7 @@ class SerajLLMService:
             status="completed",
             description_ar="سراج يستجيب بنجاح عبر محرك الحوكمة والقواعد الاحترازية",
         )
+        self._save_chat_turn_episode(clean_query, fallback_reply, session, operation_id=operation_id, success=True)
         return fallback_reply
 
     def _agent_event_sink(self, operation_id: Optional[str]):
@@ -1368,10 +1405,25 @@ class SerajLLMService:
             if session.company_id and "company_id" in args and args["company_id"] is None:
                 args["company_id"] = session.company_id
 
-            # تفويض المهمة حصرياً إلى وكيل فاحص بأمان تام
+            # تفويض المهمة عبر سجل الأدوات الموحد مع مسار احتياطي لخدمة فاحص
             try:
-                logger.debug("سراج يفوّض مهمة الاستعلام «%s» إلى وكيل فاحص مع المعاملات: %s", fn_name, args)
-                tool_result = self.fahas.execute_query_task(fn_name, args)
+                tool_result = None
+                if getattr(self, "has_custom_fahas", False):
+                    tool_result = self.fahas.execute_query_task(fn_name, args)
+                else:
+                    from agents.tool_registry import ToolRegistry
+                    registry = ToolRegistry.get_instance()
+                    logger.debug("سراج يفوّض مهمة الاستعلام «%s» مع المعاملات: %s", fn_name, args)
+                    if registry.has_tool(fn_name):
+                        try:
+                            tool_result = registry.execute_tool(tool_name=fn_name, agent_name="seraj", args=args)
+                        except Exception as reg_err:
+                            logger.debug("ToolRegistry error for %s, trying fallback: %s", fn_name, reg_err)
+                            tool_result = None
+
+                    if tool_result is None:
+                        tool_result = self.fahas.execute_query_task(fn_name, args)
+
                 # حفظ الشركات المعلقة في الجلسة إذا استعلم النموذج عن الشركات
                 if fn_name == "list_companies" and isinstance(tool_result, list):
                     session.pending_clarification = {
@@ -1379,7 +1431,7 @@ class SerajLLMService:
                         "original_query": original_user_text,
                         "companies": tool_result,
                     }
-                return ToolOutcome(json.dumps(tool_result, ensure_ascii=False))
+                return ToolOutcome(json.dumps(tool_result, ensure_ascii=False, default=str))
             except OdooToolSecurityError as sec_err:
                 return ToolOutcome(
                     json.dumps({"status": "security_rejected", "error": str(sec_err)}, ensure_ascii=False),
@@ -1404,8 +1456,11 @@ class SerajLLMService:
                 return f"⚠️ تعذر إتمام الاستعلام بسبب {last_tool_error}. يرجى مراجعة حالة الاتصال بـ Odoo والصلاحيات."
             return None
 
+        from agents.tool_registry import ToolRegistry
+        active_tools_schema = ToolRegistry.get_instance().get_tools_schema("seraj") or SERAJ_ODOO_TOOLS_SCHEMA
+
         run = run_agent(
-            AgentSpec(name="seraj", tools_schema=SERAJ_ODOO_TOOLS_SCHEMA, max_turns=5),
+            AgentSpec(name="seraj", tools_schema=active_tools_schema, max_turns=5),
             messages,
             call_llm=call_llm,
             execute_tool=execute_tool,
@@ -1562,9 +1617,11 @@ class SerajLLMService:
                 logger.warning("Fallback list_companies failed: %s", e)
 
         # 4. البحث عن موظف بالاسم
-        search_m = re.search(r'(?:ابحث عن|بحث عن|من هو|الموظف|موظف باسم|موظف اسمه)\s+([^\s]+(?:\s+[^\s]+)?)', query)
+        search_m = re.search(r'(?:ابحث عن|بحث عن|من هو|استعلم عن|استعلام عن|الموظفة|الموظف|موظف باسم|موظف اسمه)\s+([^\s]+(?:\s+[^\s]+)?)', query)
         if search_m:
             target_name = search_m.group(1).strip()
+            target_name = re.sub(r'^(?:الموظف|الموظفة)\s+', '', target_name).strip()
+            target_name = re.sub(r'\s+في\s+(?:Odoo|أودو).*$', '', target_name, flags=re.IGNORECASE).strip()
             if target_name and target_name not in ["الموظفين", "الشركات"]:
                 try:
                     self._emit_evt(
@@ -1737,6 +1794,14 @@ class SerajLLMService:
 
         loc_model = loc_cfg.get("model") or os.environ.get("OLLAMA_MODEL") or os.environ.get("LLM_MODEL") or "qwen3.5:9b"
 
+        env_llm_url = os.environ.get("LLM_BASE_URL")
+        loc_base_url = env_llm_url or loc_cfg.get("base_url", "http://localhost:11434/v1")
+        if env_llm_url:
+            from urllib.parse import urlparse
+            parsed_host = (urlparse(env_llm_url).hostname or "").lower()
+            if parsed_host not in ("localhost", "127.0.0.1", "::1") and os.environ.get("LLM_ALLOW_REMOTE") != "1":
+                raise ValueError(f"خادم خارجي ({parsed_host}) مرفوض بدون ضبط LLM_ALLOW_REMOTE=1 للأمان")
+
         # إذا تم تمرير model_name وكان ينتمي لـ OpenRouter بينما المزود غير OpenRouter، نعتمد نموذج الإعدادات
         if model_name and not ("openrouter" not in cld_provider and ("openrouter" in model_name or ":free" in model_name)):
             cld_model = model_name
@@ -1745,7 +1810,7 @@ class SerajLLMService:
 
         loc_tuple = (
             "local",
-            loc_cfg.get("base_url", "http://localhost:11434/v1"),
+            loc_base_url,
             loc_model,
             os.environ.get("LLM_API_KEY") or None,
             int(loc_cfg.get("timeout", 120)),

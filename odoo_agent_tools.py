@@ -333,6 +333,19 @@ SERAJ_ODOO_TOOLS_SCHEMA: List[Dict[str, Any]] = [
 ]
 
 
+def consult_mudaqqiq_labor_law(
+    topic: str = "",
+    article_number: Optional[int] = None,
+    query: Optional[str] = None,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """استشارة وكيل التدقيق وامتثال نظام العمل السعودي (مدقق)."""
+    from agents.mudaqqiq_agent import get_mudaqqiq_agent
+    mudaqqiq = get_mudaqqiq_agent()
+    effective_topic = topic or query or kwargs.get("subject", "")
+    return mudaqqiq.consult_labor_law(query=effective_topic, article_number=article_number)
+
+
 def execute_tool_call(tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
     """
     تنفيذ استدعاء الأداة وتوجيهه للوكيل المختص:

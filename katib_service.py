@@ -43,8 +43,8 @@ class KatibExecutionError(Exception):
     """خطأ تنفيذي أثناء الكتابة في قاعدة بيانات Odoo."""
 
 
-class KatibAgent:
-    """وكيل الكتابة المعتمد والمنفذ الحصري لعمليات الإنشاء والتعديل في Odoo."""
+class KatibService:
+    """خدمة الكتابة المعتمدة والمنفذ الإجرائي لعمليات الإنشاء والتعديل في Odoo."""
 
     def __init__(
         self,
@@ -365,12 +365,18 @@ class KatibAgent:
         raise KatibExecutionError(f"نوع العملية «{action_type}» غير مدعوم لدى كاتب.")
 
 
-_GLOBAL_KATIB: Optional[KatibAgent] = None
+# التوافقية العكسية: خدمة كاتب الإجرائية مقابل وكيل كاتب الذكي (agents.katib_agent.KatibAgent)
+KatibAgent = KatibService
+
+_GLOBAL_KATIB: Optional[KatibService] = None
 
 
-def get_katib_agent() -> KatibAgent:
-    """الحصول على كائن وكيل كاتب المفرد (Singleton)."""
+def get_katib_service() -> KatibService:
+    """الحصول على كائن خدمة كاتب المفرد (Singleton)."""
     global _GLOBAL_KATIB
     if _GLOBAL_KATIB is None:
-        _GLOBAL_KATIB = KatibAgent()
+        _GLOBAL_KATIB = KatibService()
     return _GLOBAL_KATIB
+
+
+get_katib_agent = get_katib_service

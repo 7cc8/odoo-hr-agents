@@ -1,0 +1,233 @@
+/* Faena · Moxen — los estilos del efecto y de la demostración. */
+:root {
+  --fa-fondo: #0a0a0a;
+  --fa-texto: #f4f4f4;
+  --fa-suave: rgba(255, 255, 255, .58);
+  --fa-tenue: rgba(255, 255, 255, .34);
+  --fa-linea: rgba(255, 255, 255, .08);
+  --fa-hilo: rgba(255, 255, 255, .14);           /* la línea que une los pasos */
+  --fa-panel: #121212;                           /* opaco: las tres piezas del fondo se solapan */
+  --fa-borde: #242424;
+  --fa-hundido: rgba(255, 255, 255, .035);
+  --fa-hundido-borde: rgba(255, 255, 255, .075);
+  --fa-hover: rgba(255, 255, 255, .045);
+  --fa-boton: #f4f4f4;
+  --fa-boton-tinta: #0a0a0a;
+  --fa-bien: #2fbf71;
+  --fa-mal: #f05252;
+  --fa-luz: rgba(255, 255, 255, .05);
+  --fa-sombra-1: rgba(0, 0, 0, .5);
+  --fa-sombra-2: rgba(0, 0, 0, .65);
+  --fa-ancho: 680px;
+  --fa-centra: 1;                                /* 1: el panel crece hacia los dos lados y queda centrado */
+  --fa-radio: 20px;
+  --fa-resorte: cubic-bezier(.34, 1.56, .64, 1);
+  --fa-curva: cubic-bezier(.22, 1, .36, 1);
+}
+:root[data-tema="claro"] {
+  --fa-fondo: #eeeeee;
+  --fa-texto: #0a0a0a;
+  --fa-suave: rgba(0, 0, 0, .56);
+  --fa-tenue: rgba(0, 0, 0, .34);
+  --fa-linea: rgba(0, 0, 0, .08);
+  --fa-hilo: rgba(0, 0, 0, .14);
+  --fa-panel: #ffffff;
+  --fa-borde: #dcdcdc;
+  --fa-hundido: rgba(0, 0, 0, .03);
+  --fa-hundido-borde: rgba(0, 0, 0, .07);
+  --fa-hover: rgba(0, 0, 0, .035);
+  --fa-boton: #0a0a0a;
+  --fa-boton-tinta: #f4f4f4;
+  --fa-bien: #1f9d5a;
+  --fa-mal: #d93636;
+  --fa-luz: rgba(255, 255, 255, .9);
+  --fa-sombra-1: rgba(0, 0, 0, .06);
+  --fa-sombra-2: rgba(0, 0, 0, .12);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--fa-fondo); color: var(--fa-texto); }
+body { font-family: "Geist", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+
+/* ── el efecto ─────────────────────────────────────────────────────── */
+/* El panel crece y se pliega sin animar `height`: su fondo son tres
+   piezas (cima fija, medio que se estira con scaleY, pie que baja con
+   translateY) y los pasos van en un recorte que sube mientras su
+   contenido baja lo mismo, así el borde de abajo los tapa al pasar.
+   faena.js mueve las tres con un resorte; todo es transform. */
+.fa-agente { position: relative; width: min(var(--fa-ancho), 100%); padding-bottom: var(--fa-reserva, 0px); will-change: transform; }
+.fa-fondo { position: absolute; inset: 0 0 auto; pointer-events: none; filter: drop-shadow(0 1px 1px var(--fa-sombra-1)) drop-shadow(0 22px 34px var(--fa-sombra-2)); }
+.fa-fondo i { position: absolute; left: 0; right: 0; display: block; background: var(--fa-panel); border: 1px solid var(--fa-borde); will-change: transform; }
+.fa-cima { top: 0; height: calc(var(--fa-h0, 0px) + 1px); border-bottom: 0 !important; border-radius: var(--fa-radio) var(--fa-radio) 0 0; }
+.fa-medio { top: var(--fa-h0, 0px); height: 100px; border-top: 0 !important; border-bottom: 0 !important; transform-origin: 0 0; transform: scaleY(0); }
+.fa-pie { top: calc(var(--fa-h0, 0px) - 1px); height: var(--fa-radio); border-top: 0 !important; border-radius: 0 0 var(--fa-radio) var(--fa-radio); }
+/* el recorte sube por encima del formulario: que no le robe los clics */
+.fa-recorte { position: absolute; left: 0; right: 0; top: var(--fa-h0, 0px); height: var(--fa-alto-recorte, 0px); overflow: hidden; pointer-events: none; will-change: transform; }
+.fa-pasos { position: relative; margin: 0; padding: 0 20px; list-style: none; pointer-events: auto; will-change: transform; }
+
+/* un paso: entra desde arriba con un resorte; al plegarse se va al revés */
+.fa-paso { position: relative; padding: 8px 0; opacity: 0; transform: translateY(-8px); transition: opacity .3s, transform .55s var(--fa-resorte); }
+.fa-paso.is-visto { opacity: 1; transform: none; }
+.fa-fila { display: flex; align-items: center; gap: 12px; min-height: 26px; }
+.fa-nombre { flex: 1; min-width: 0; font-size: 16.5px; color: var(--fa-suave); transition: color .3s; }
+.fa-paso.is-activo .fa-nombre, .fa-paso.is-error .fa-nombre { color: var(--fa-texto); }
+.fa-dura { font: 13.5px "Geist Mono", ui-monospace, monospace; color: var(--fa-tenue); font-variant-numeric: tabular-nums; opacity: 0; transform: translateX(4px); transition: opacity .3s, transform .4s var(--fa-curva); }
+.fa-paso.is-hecho .fa-dura { opacity: 1; transform: none; }
+/* el hilo que baja de un paso al siguiente, dibujado al aparecer el que sigue */
+.fa-paso::after {
+  content: ""; position: absolute; left: 11.5px; top: 39px; bottom: -6px; width: 1px; background: var(--fa-hilo);
+  transform: scaleY(0); transform-origin: 0 0; transition: transform .5s var(--fa-curva);
+}
+.fa-paso:last-child::after { display: none; }
+.fa-paso.is-sigue::after { transform: none; }
+
+/* el ícono: el spinner de segmentos, el ✓ y el ✕ se turnan en el mismo sitio */
+.fa-icono { position: relative; flex: none; width: 24px; height: 24px; color: var(--fa-texto); }
+.fa-icono > * { position: absolute; inset: 0; }
+.fa-giro { opacity: 0; transform: scale(.55); transition: opacity .2s, transform .3s var(--fa-curva); }
+/* diez trazos en anillo; cada uno se enciende y se apaga en cola, con su
+   retraso, y la cola parece girar. Solo opacity: lo anima el compositor */
+.fa-giro i {
+  position: absolute; left: 11px; top: 3px; width: 2px; height: 6px; border-radius: 1px; background: currentColor;
+  transform-origin: 1px 9px; transform: rotate(calc(var(--k) * 36deg));
+  animation: fa-cola .9s linear infinite; animation-delay: calc((var(--k) - 10) * .09s); animation-play-state: paused;
+}
+@keyframes fa-cola { from { opacity: 1; } to { opacity: .12; } }
+.fa-paso.is-activo .fa-giro { opacity: 1; transform: none; }
+.fa-paso.is-activo .fa-giro i { animation-play-state: running; }
+
+.fa-icono svg { width: 24px; height: 24px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.fa-bien circle { fill: var(--fa-hundido); stroke: var(--fa-hilo); stroke-width: 1; }
+.fa-bien path { stroke: var(--fa-texto); stroke-width: 1.8; }
+.fa-mal circle { fill: none; stroke: var(--fa-mal); stroke-width: 1.5; }
+.fa-mal path { stroke: var(--fa-mal); stroke-width: 1.8; }
+.fa-bien, .fa-mal { opacity: 0; transform: scale(.4); transition: opacity .2s, transform .5s var(--fa-resorte); }
+/* el trazo empieza dentro del hueco (1.2, no 1): con 1 el remate redondo dejaría un punto */
+.fa-icono path { stroke-dasharray: 1 1.5; stroke-dashoffset: 1.2; transition: stroke-dashoffset .32s cubic-bezier(.65, 0, .35, 1) .12s; }
+.fa-paso.is-hecho .fa-bien, .fa-paso.is-error .fa-mal { opacity: 1; transform: none; }
+.fa-paso.is-hecho .fa-bien path, .fa-paso.is-error .fa-mal path { stroke-dashoffset: 0; }
+/* el ✕ se dibuja rápido, para que se lea antes del reintento */
+.fa-paso.is-error .fa-mal path { transition: stroke-dashoffset .2s cubic-bezier(.65, 0, .35, 1) .04s; }
+.fa-paso.is-error .fa-mal path + path { transition-delay: .16s; }
+/* el error niega con la cabeza: un temblor que se amortigua */
+.fa-paso.is-error .fa-fila { animation: fa-niega .5s cubic-bezier(.36, .07, .19, .97); }
+@keyframes fa-niega {
+  15% { transform: translateX(-7px); } 32% { transform: translateX(6px); } 48% { transform: translateX(-4px); }
+  64% { transform: translateX(2.5px); } 80% { transform: translateX(-1px); }
+}
+.fa-nota { margin: 3px 0 2px 36px; min-height: 19px; font-size: 14px; color: var(--fa-tenue); opacity: 0; transform: translateY(-4px); transition: opacity .3s, transform .45s var(--fa-curva), color .3s; }
+.fa-nota.is-vista { opacity: 1; transform: none; }
+.fa-nota.is-mal { color: var(--fa-mal); }
+
+/* la herramienta: una tarjeta hundida que se despliega con resorte desde
+   su esquina, y sus líneas entran escalonadas */
+.fa-herramienta {
+  margin: 10px 0 4px 36px; padding: 14px 16px 15px; border-radius: 13px; background: var(--fa-hundido); box-shadow: inset 0 0 0 1px var(--fa-hundido-borde);
+  opacity: 0; transform: translateY(-12px) scale(.96); transform-origin: 0 0; transition: opacity .25s, transform .7s var(--fa-resorte);
+}
+.fa-herramienta.is-abierta { opacity: 1; transform: none; }
+.fa-herramienta > * { opacity: 0; transform: translateY(5px); transition: opacity .3s, transform .5s var(--fa-curva); }
+.fa-herramienta.is-abierta > * { opacity: 1; transform: none; }
+.fa-herramienta.is-abierta > :nth-child(2) { transition-delay: .08s; }
+.fa-herramienta .fa-salida { opacity: 0; transform: translateY(5px); }
+.fa-herramienta.is-resuelta .fa-salida { opacity: 1; transform: none; }
+
+.fa-h-cabeza { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 13.5px; font-weight: 500; letter-spacing: .02em; color: var(--fa-suave); }
+.fa-h-cabeza > svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.fa-h-estado { display: flex; align-items: center; gap: 7px; margin-left: auto; font: 13px "Geist Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; color: var(--fa-suave); }
+/* el punto late mientras corre la llamada y se queda quieto al resolverse */
+.fa-h-estado i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: fa-late 1s ease-in-out infinite; }
+@keyframes fa-late { 50% { opacity: .25; transform: scale(.7); } }
+.fa-herramienta.is-resuelta .fa-h-estado i { animation: none; opacity: .5; }
+.fa-codigo { display: block; font: 14px/1.55 "Geist Mono", ui-monospace, monospace; color: var(--fa-tenue); }
+.fa-codigo b { font-weight: inherit; }
+.fa-fn { color: var(--fa-texto); }
+.fa-k { color: var(--fa-suave); }
+.fa-v { color: var(--fa-texto); white-space: nowrap; }
+.fa-salida { margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed var(--fa-linea); font: 14px "Geist Mono", ui-monospace, monospace; color: var(--fa-suave); transition: opacity .35s, transform .5s var(--fa-curva); }
+
+/* el resumen: el estado del agente y, al terminar, la línea que pliega todo */
+.fa-resumen {
+  position: relative; display: flex; align-items: center; gap: 12px; width: calc(100% - 16px); margin: 10px 8px 0; padding: 13px 12px; border: 0; border-radius: 12px;
+  background: transparent; text-align: left; font-size: 16.5px; font-weight: 500; cursor: pointer; transition: background-color .2s;
+}
+.fa-resumen:hover:not([aria-disabled]) { background: var(--fa-hover); }
+.fa-resumen[aria-disabled] { cursor: default; }
+.fa-resumen:focus-visible { outline: 2px solid var(--fa-suave); outline-offset: 2px; }
+.fa-estado { position: relative; flex: none; width: 24px; height: 24px; }
+.fa-estado svg { position: absolute; inset: 0; width: 24px; height: 24px; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+/* cinco arcos, uno por paso: se encienden al cumplirse, mientras el anillo gira */
+.fa-anillo { stroke: var(--fa-texto); stroke-width: 2; opacity: 0; transform: scale(.5) rotate(-90deg); transition: opacity .25s, transform .5s var(--fa-curva); }
+.fa-anillo-giro { transform-origin: 12px 12px; animation: fa-vuelta 2.4s linear infinite; }
+@keyframes fa-vuelta { to { transform: rotate(360deg); } }
+.fa-anillo path { opacity: .2; transition: opacity .3s; }
+.fa-anillo path.is-lleno { opacity: 1; }
+.is-corre .fa-anillo { opacity: 1; transform: none; }
+.fa-sello circle { fill: color-mix(in srgb, var(--fa-bien) 16%, transparent); stroke: var(--fa-bien); stroke-width: 1.5; }
+.fa-sello path { stroke: var(--fa-bien); stroke-width: 2; stroke-dasharray: 1 1.5; stroke-dashoffset: 1.2; transition: stroke-dashoffset .35s cubic-bezier(.65, 0, .35, 1) .15s; }
+.fa-sello { opacity: 0; transform: scale(.3); transition: opacity .2s, transform .6s var(--fa-resorte); }
+.is-listo .fa-sello { opacity: 1; transform: none; }
+.is-listo .fa-sello path { stroke-dashoffset: 0; }
+.fa-titulos { display: grid; flex: 1; min-width: 0; }
+/* el relevo: el título que se va sale rápido hacia arriba y el que llega entra después, desde abajo */
+.fa-titulos > span { grid-area: 1 / 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transition: opacity .3s .12s, transform .55s var(--fa-curva) .12s; }
+.fa-titulos em { font-style: normal; font-weight: 400; color: var(--fa-tenue); }
+.fa-cuenta { font-weight: inherit; font-variant-numeric: tabular-nums; }
+.fa-titulos .fa-t-listo, .is-listo .fa-t-corre { opacity: 0; transform: translateY(10px); transition-duration: .14s, .3s; transition-delay: 0s; }
+.is-listo .fa-t-listo { opacity: 1; transform: none; transition-duration: .3s, .55s; transition-delay: .12s; }
+.is-listo .fa-t-corre { transform: translateY(-10px); }
+.fa-reloj { font: 14px "Geist Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; color: var(--fa-suave); transition: opacity .15s; }
+.is-listo .fa-reloj { opacity: 0; }
+.fa-flecha { position: absolute; right: 14px; width: 20px; height: 20px; fill: none; stroke: var(--fa-suave); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; opacity: 0; transition: opacity .15s, transform .55s var(--fa-resorte); }
+.is-listo .fa-flecha { opacity: 1; transition-delay: .15s, 0s; }
+.fa-resumen[aria-expanded="true"] .fa-flecha { transform: rotate(180deg); }
+
+/* ── la demostración ───────────────────────────────────────────────── */
+.fa-escena {
+  position: relative; min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1fr); place-items: center; padding: 40px 16px 72px;
+  background: radial-gradient(46% 42% at 50% 44%, var(--fa-luz), transparent 72%);
+}
+.fa-barra { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 17px 22px 16px; border-bottom: 1px solid var(--fa-linea); }
+.fa-marca { display: flex; align-items: center; gap: 10px; white-space: nowrap; font-size: 15.5px; font-weight: 600; letter-spacing: -.01em; }
+.fa-marca svg { width: 17px; height: 17px; fill: currentColor; }
+.fa-ejemplo { padding: 4px 10px; border-radius: 99px; box-shadow: inset 0 0 0 1px var(--fa-linea); font-size: 12.5px; color: var(--fa-tenue); white-space: nowrap; }
+
+.fa-pedido {
+  position: relative; display: flex; align-items: center; gap: 8px; margin: 16px 16px 0; padding: 0 10px 0 0; height: 64px; border-radius: 16px;
+  background: var(--fa-hundido); box-shadow: inset 0 0 0 1px var(--fa-hundido-borde), inset 0 1px 2px rgba(0, 0, 0, .12); transition: box-shadow .25s;
+}
+/* el anillo solo al escribir: al pulsar enviar con el ratón no queda marcado */
+.fa-pedido:has(.fa-campo:focus) { box-shadow: inset 0 0 0 1.5px var(--fa-suave); }
+.fa-campo { flex: 1; min-width: 0; height: 100%; padding: 0 18px; border: 0; background: none; outline: none; font-size: 18px; letter-spacing: -.005em; text-overflow: ellipsis; }
+.fa-campo:read-only { color: var(--fa-suave); }
+.fa-enviar {
+  flex: none; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; overflow: hidden; cursor: pointer;
+  background: var(--fa-boton); color: var(--fa-boton-tinta); box-shadow: inset 0 -1.5px 0 rgba(0, 0, 0, .14), 0 2px 6px -2px rgba(0, 0, 0, .5);
+  transition: opacity .3s, transform .2s;
+}
+.fa-enviar:hover:not([aria-disabled]) { transform: scale(1.06); }
+.fa-enviar[aria-disabled] { opacity: .3; cursor: default; }
+.fa-enviar:focus-visible { outline: 2px solid var(--fa-suave); outline-offset: 3px; }
+.fa-enviar svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+
+.fa-voz { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); }
+.fa-pista { position: absolute; left: 0; right: 0; bottom: 28px; margin: 0; padding: 0 16px; text-align: center; font-size: 13px; color: var(--fa-tenue); }
+
+@media (max-width: 720px) {
+  :root { --fa-radio: 18px; --fa-centra: 0; }
+  .fa-escena { place-items: start center; padding-top: 28px; }
+  .fa-nombre { font-size: 15px; }
+  .fa-barra { padding: 15px 18px 14px; }
+  .fa-marca { font-size: 14px; }
+  .fa-ejemplo { font-size: 11.5px; padding: 3px 8px; }
+  .fa-campo { font-size: 16px; }
+  .fa-codigo, .fa-salida { font-size: 13px; }
+  .fa-herramienta { padding: 11px 12px 12px; }
+  .fa-pista { position: static; grid-row: 2; padding-top: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01s !important; transition-delay: 0s !important; }
+  .fa-giro i { animation: none; opacity: calc(.15 + var(--k) * .085); }
+  .fa-paso.is-error .fa-fila, .fa-h-estado i, .fa-anillo-giro { animation: none; }
+}

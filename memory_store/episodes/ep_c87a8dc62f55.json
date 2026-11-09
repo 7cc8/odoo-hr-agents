@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_c87a8dc62f55",
+  "timestamp": "2026-11-09T01:56:56.364571",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "نعمل على ذلك لاحقاً",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "pending-confirmation-test",
+    "company_id": null,
+    "connection_id": "default",
+    "operation_id": null
+  },
+  "result": {
+    "response": "أهلاً بك يا زميلي العزيز! 👋\n\nأنا «سراج» - واجهة المحادثة الخاصة بإدارة الموارد البشرية في نظام Odoo بالمملكة العربية السعودية.\n\nأرى أنك تريد تأجيل العمل على أمر ما، لكن لا يوجد سياق واضح لما كنا نعمل عليه سابقاً في هذه الجلسة الجديدة.\n\n**كيف يمكنني مساعدتك اليوم؟**\n\nيمكنني المساعدة في:\n- 📊 **إحصاء الموظفين**: حساب عدد الموظفين الحاليين أو حسب قسم معين\n- 🔍 **البحث عن موظفين**: استعلام عن موظف محدد بالاسم أو رقم التعريف\n- 🏢 **استعراض الشركات**: عرض قائمة المنشآت المتاحة في النظام\n- 👥 **تفاصيل الأقسام والوظائف**: عرض الأقسام المعتمدة والوظائف الوظيفية\n- 📋 **قراءة السجلات**: تفصيل بيانات موظفين محددين بأرقام معرّفاتهم\n\n**ما الذي تود أن نعمل عليه الآن؟**"
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": "pending-confirmation-test"
+}

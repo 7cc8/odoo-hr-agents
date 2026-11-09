@@ -1,0 +1,27 @@
+{
+  "episode_id": "ep_66afd31b12cd",
+  "timestamp": "2026-11-09T01:57:45.777952",
+  "agent": "sijil",
+  "agents_involved": [
+    "sijil"
+  ],
+  "user_query": "{\"query\": \"أنشئ موظف جديد\", \"context\": {\"previous_agent_results\": {\"mudaqqiq\": {\"agent\": \"mudaqqiq\", \"success\": true, \"status\": \"success\", \"data\": {\"status\": \"compliant\", \"decision\": \"approve\", \"violations\": [], \"warnings\": [], \"passed_checks\": 9, \"total_checks\": 9, \"timestamp\": \"2026-11-08T22:57:45.773260+00:00\"}, \"reflection\": {\"decision_rationale_ar\": [\"جميع الفحوصات (9/9) نجحت. البيانات ممتثلة للأنظمة.\"], \"legal_interpretation_ar\": \"\", \"confidence_score\": 0.95, \"lessons_learned\": [], \"should_record_precedent\": false}, \"iterations\": 1}, \"hares\": {\"agent\": \"hares\", \"success\": true, \"status\": \"success\", \"data\": {\"decision\": \"DENY\", \"risk_level\": \"medium\", \"violations\": [null], \"requirements\": [], \"environment_check\": {\"is_authorized\": false, \"violation\": null}, \"risk_assessment\": {\"level\": \"medium\", \"factors\": [\"write_operation\", \"employee_data\"]}, \"policy_check\": {\"violations\": [], \"requirements\": []}, \"reason\": \"1 security violations\", \"rationale\": \"Security policy violations must be resolved\"}, \"reflection\": \"AgentReflection(success=True, confidence=0.5, issues=['1 security violations detected'], improvements=[], should_retry=False, retry_strategy=None)\", \"iterations\": 1}, \"katib\": {\"agent\": \"katib\", \"success\": false, \"status\": \"blocked\", \"error\": \"human approval required\"}}, \"hares_result\": {\"decision\": \"DENY\", \"risk_level\": \"medium\", \"violations\": [null], \"requirements\": [], \"environment_check\": {\"is_authorized\": false, \"violation\": null}, \"risk_assessment\": {\"level\": \"medium\", \"factors\": [\"write_operation\", \"employee_data\"]}, \"policy_check\": {\"violations\": [], \"requirements\": []}, \"reason\": \"1 security violations\", \"rationale\": \"Security policy violations must be resolved\"}, \"mudaqqiq_result\": {\"status\": \"compliant\", \"decision\": \"approve\", \"violations\": [], \"warnings\": [], \"passed_checks\": 9, \"total_checks\": 9, \"timestamp\": \"2026-11-08T22:57:45.773260+00:00\"}}}",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "summary": "AuditSummary(total_operations=114, operations_by_type={'create_employee': 15, 'execution_started': 18, 'write_b': 32, 'unknown': 25, 'odoo_bulk_insert_start': 2, 'update_employee': 5, 'create': 6, 'update': 4, 'unarchive': 1, 'archive': 3, 'delete': 3}, operations_by_agent={'unknown': 27, 'katib': 87}, anomalies=[], time_range=('2026-10-08T14:41:00.549263+00:00', '2026-11-08T22:55:42.940645+00:00'), compliance_score=1.0)",
+    "anomalies": [],
+    "report": null,
+    "alerts": [],
+    "timestamp": "2026-11-08T22:57:45.776393+00:00"
+  },
+  "success": true,
+  "confidence": 0.9,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

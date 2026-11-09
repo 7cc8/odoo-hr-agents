@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>البَوّابَة — عداد الأمان والمصادقة النابضة</title>
+  <style>
+    :root {
+      --bg: #090e17;
+      --card-bg: #141c2b;
+      --border: #243047;
+      --text: #f8fafc;
+      --accent: #0ea5e9;
+      --success: #10b981;
+      --spring: cubic-bezier(0.3, 1.45, 0.45, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: clip;
+      position: relative;
+    }
+    .gate-card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 26px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
+      position: relative;
+    }
+    .header { width: 100%; text-align: center; }
+    .header h2 { font-size: 1.15rem; font-weight: 600; }
+    .header p { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
+
+    /* Circular Gauge Meter */
+    .gauge-wrapper {
+      position: relative;
+      width: 130px;
+      height: 130px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .gauge-svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+    .gauge-bg {
+      fill: none;
+      stroke: #1e293b;
+      stroke-width: 8;
+    }
+    .gauge-fill {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 345;
+      stroke-dashoffset: 230; /* ~33% */
+      transition: stroke-dashoffset 600ms var(--spring), stroke 300ms ease;
+    }
+    .gauge-text {
+      position: absolute;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-auth {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 150ms ease, transform 150ms var(--spring);
+    }
+    .btn-auth:hover { background: #0369a1; }
+    .btn-auth:active { transform: scale(0.96); }
+
+    /* Simulated Native Dialog Drop */
+    .auth-dialog {
+      width: 100%;
+      background: #0b1320;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      transform: translateY(-20px);
+      opacity: 0;
+      transition: transform 380ms var(--spring), opacity 250ms ease;
+    }
+    .auth-dialog.open {
+      display: flex;
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .dialog-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .dialog-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .dialog-btn {
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+    }
+    .btn-confirm { background: var(--success); color: #022c22; font-weight: 600; }
+    .btn-cancel { background: #334155; color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="gate-card">
+    <div class="header">
+      <h2>البَوّابَة — اعتماد الصلاحيات والحماية الحيوية</h2>
+      <p>طوق الأمان الدائري ومحاكاة التحقق النابض</p>
+    </div>
+
+    <div class="gauge-wrapper">
+      <svg class="gauge-svg" viewBox="0 0 120 120">
+        <circle class="gauge-bg" cx="60" cy="60" r="55"></circle>
+        <circle class="gauge-fill" id="gauge" cx="60" cy="60" r="55"></circle>
+      </svg>
+      <span class="gauge-text" id="gauge-label">35%</span>
+    </div>
+
+    <button class="btn-auth" id="request-auth-btn">طلب المصادقة الحيوية</button>
+
+    <div class="auth-dialog" id="auth-dialog">
+      <div class="dialog-header">
+        <span>🔐 تأكيد الوصول: التحقق البيومتري للمشرف</span>
+      </div>
+      <p style="font-size: 0.82rem; color: #94a3b8;">هل توافق على منح التصريح الأمني ورفع مستوى الثقة إلى 100%؟</p>
+      <div class="dialog-actions">
+        <button class="dialog-btn btn-confirm" id="confirm-btn">موافقة وتوثيق</button>
+        <button class="dialog-btn btn-cancel" id="cancel-btn">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const requestBtn = document.getElementById('request-auth-btn');
+    const authDialog = document.getElementById('auth-dialog');
+    const confirmBtn = document.getElementById('confirm-btn');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const gauge = document.getElementById('gauge');
+    const gaugeLabel = document.getElementById('gauge-label');
+
+    requestBtn.addEventListener('click', () => {
+      authDialog.classList.add('open');
+      requestBtn.style.display = 'none';
+    });
+
+    confirmBtn.addEventListener('click', () => {
+      // Stroke circumference = 2 * PI * 55 ≈ 345.5
+      // 100% -> dashoffset = 0
+      gauge.style.strokeDashoffset = '0';
+      gauge.style.stroke = 'var(--success)';
+      gaugeLabel.textContent = '100%';
+      gaugeLabel.style.color = 'var(--success)';
+
+      authDialog.innerHTML = `
+        <div style="color:var(--success); font-weight:600; text-align:center; padding:8px;">
+          ✓ تم منح الاعتماد الأمني وتوثيق الهوية بنجاح
+        </div>
+      `;
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      authDialog.classList.remove('open');
+      requestBtn.style.display = 'inline-block';
+    });
+  </script>
+</body>
+</html>
+

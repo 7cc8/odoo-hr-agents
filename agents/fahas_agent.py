@@ -13,10 +13,18 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from typing import Any, Dict, List, Optional
 
 from agents.base_agent import BaseAgent, AgentGoal, AgentPlan, AgentReflection, create_agent_goal
+from agents.tool_registry import ToolRegistry
 from fahas_service import get_fahas_agent as get_fahas_service
+
+try:
+    from odoo_readonly_repository import OdooReadOnlyRepository as OdooQueryGateway
+except ImportError:
+    class OdooQueryGateway:
+        pass
 
 logger = logging.getLogger("fahas_agent")
 
@@ -47,6 +55,7 @@ class FahasAgent(BaseAgent):
             llm_model=llm_model,
         )
         self.fahas_service = get_fahas_service()
+        self.tool_registry = ToolRegistry.get_instance()
 
     # ═══════════════════════════════════════════════════════════════
     # Perception: تحليل المدخلات وفهم السياق
@@ -107,10 +116,36 @@ class FahasAgent(BaseAgent):
         else:
             model = "hr.employee"
 
-        # النطاق (domain)
+        # النطاق والشروط (Dynamic Domain & Criteria Extraction)
         domain = []
-        if "مبيعات" in query_str:
+
+        # 1. استخراج شروط القسم/الإدارة ديناميكياً
+        dept_match = re.search(r'(?:قسم|إدارة|قطاع|ادارة)\s+([^\s,،.]+)', query_str)
+        if dept_match:
+            dept_name = dept_match.group(1).strip()
+            domain.append(["department_id", "ilike", dept_name])
+        elif "مبيعات" in query_str:
             domain.append(["department_id", "ilike", "المبيعات"])
+
+        # 2. استخراج المسمى الوظيفي ديناميكياً
+        job_match = re.search(r'(?:وظيفة|بمسمى|مسمى|مهنة)\s+([^\s,،.]+)', query_str)
+        if job_match:
+            domain.append(["job_id", "ilike", job_match.group(1).strip()])
+
+        # 3. استخراج تصنيف الجنسية / التوطين
+        if any(w in query_str for w in ["سعودي", "سعوديين", "مواطنين"]):
+            domain.append(["country_id.code", "=", "SA"])
+        elif any(w in query_str for w in ["غير سعودي", "وافد", "أجنبي", "وافدين", "مقيم"]):
+            domain.append(["country_id.code", "!=", "SA"])
+
+        # 4. استخراج حالة الأرشفة والتنشيط
+        if any(w in query_str for w in ["مؤرشف", "أرشيف", "غير نشط", "معطل"]):
+            domain.append(["active", "=", False])
+
+        # 5. إذا كانت المهمة تحتوي على شروط مهيكلة صريحة
+        explicit_domain = task_data.get("domain") or task_data.get("params", {}).get("domain")
+        if explicit_domain and isinstance(explicit_domain, list):
+            domain = explicit_domain
 
         # الحقول المطلوبة (fields)
         fields = []
@@ -271,7 +306,15 @@ class FahasAgent(BaseAgent):
                     }
                     
                     try:
-                        task_result = self.fahas_service.execute_query_task(task_type, params)
+                        registry = ToolRegistry.get_instance()
+                        if registry.get_tool(task_type):
+                            task_result = registry.execute_tool(
+                                tool_name=task_type,
+                                agent_name="fahas",
+                                args=params,
+                            )
+                        else:
+                            task_result = self.fahas_service.execute_query_task(task_type, params)
                     except Exception as e:
                         # Fallback mock for unit tests or offline environments
                         logger.warning(f"execute_query_task call failed ({e}), using fallback result")
@@ -295,11 +338,19 @@ class FahasAgent(BaseAgent):
                         count = task_result.get("count", 0)
                         
                         try:
-                            total_result = self.fahas_service.execute_query_task(
-                                "count_records",
-                                {"model": model, "company_id": None}
-                            )
-                            total_count = total_result.get("count", 0)
+                            registry = ToolRegistry.get_instance()
+                            if registry.get_tool("count_records"):
+                                total_result = registry.execute_tool(
+                                    tool_name="count_records",
+                                    agent_name="fahas",
+                                    args={"model": model, "company_id": None},
+                                )
+                            else:
+                                total_result = self.fahas_service.execute_query_task(
+                                    "count_records",
+                                    {"model": model, "company_id": None}
+                                )
+                            total_count = total_result.get("count", 0) if isinstance(total_result, dict) else 0
                             is_consistent = count <= total_count
                             
                             results["consistency_check"] = {

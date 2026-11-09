@@ -1,0 +1,37 @@
+{
+  "episode_id": "ep_1e63dc3f5e9b",
+  "timestamp": "2026-11-08T21:55:30.412113",
+  "agent": "agent",
+  "agents_involved": [
+    "agent"
+  ],
+  "user_query": "كم موظف عندنا؟",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "steps_executed": [
+      {
+        "step": 0,
+        "action": "query",
+        "status": "success"
+      }
+    ],
+    "data": [
+      {
+        "id": 1,
+        "name": "Test Employee"
+      }
+    ],
+    "status": "success",
+    "consistency_check": null
+  },
+  "success": true,
+  "confidence": 0.9,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

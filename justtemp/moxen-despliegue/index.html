@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Despliegue · Moxen</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=general-sans@400,500,600&display=swap">
+<link rel="stylesheet" href="despliegue.css">
+<!-- ?tema=claro para verla sobre fondo claro -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <!-- Las texturas de los planetas: ruido fractal en grises, en un mosaico
+       que empalma por los bordes (stitchTiles) para poder girar sin costura -->
+  <svg class="dp-defs" aria-hidden="true">
+    <filter id="dp-f-mercurio" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="5" seed="3" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 .5  0 0 0 0 .5  0 0 0 0 .5  1.4 1.4 0 0 -1.25"/>
+      <feComponentTransfer><feFuncA type="table" tableValues=".15 .55 .9"/></feComponentTransfer>
+    </filter>
+    <filter id="dp-f-venus" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".006 .045" numOctaves="4" seed="9" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  1.6 0 0 0 -.55"/>
+    </filter>
+    <!-- la Tierra: el ruido cortado en un nivel es la costa; la tierra
+         conserva el relieve del mismo ruido y encima pasan nubes en vetas -->
+    <filter id="dp-f-tierra" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".014" numOctaves="6" seed="12" stitchTiles="stitch" result="r"/>
+      <feColorMatrix in="r" values="1.3 0 0 0 -.34  1.3 0 0 0 -.34  1.3 0 0 0 -.34  2.4 0 0 0 -1.12" result="relieve"/>
+      <feComponentTransfer in="relieve" result="tierra"><feFuncA type="discrete" tableValues="0 1 1"/></feComponentTransfer>
+      <feTurbulence type="fractalNoise" baseFrequency=".007 .05" numOctaves="4" seed="4" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 3.2 0 0 -1.62" result="nubes"/>
+      <feMerge><feMergeNode in="tierra"/><feMergeNode in="nubes"/></feMerge>
+    </filter>
+    <filter id="dp-f-marte" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency=".02" numOctaves="5" seed="21" stitchTiles="stitch"/>
+      <feColorMatrix values="0 0 0 0 .78  0 0 0 0 .78  0 0 0 0 .78  1.8 0 0 0 -.62"/>
+    </filter>
+    <pattern id="dp-p-mercurio" width="240" height="240" patternUnits="userSpaceOnUse"><rect width="240" height="240" filter="url(#dp-f-mercurio)"/></pattern>
+    <pattern id="dp-p-venus" width="240" height="240" patternUnits="userSpaceOnUse"><rect width="240" height="240" filter="url(#dp-f-venus)"/></pattern>
+    <pattern id="dp-p-tierra" width="240" height="240" patternUnits="userSpaceOnUse"><rect width="240" height="240" filter="url(#dp-f-tierra)"/></pattern>
+    <pattern id="dp-p-marte" width="240" height="240" patternUnits="userSpaceOnUse"><rect width="240" height="240" filter="url(#dp-f-marte)"/></pattern>
+  </svg>
+
+  <main class="dp-escena">
+    <header class="dp-cabeza">
+      <p class="dp-etiqueta">Sistema solar interior</p>
+      <p class="dp-pista">Haz clic en un planeta.</p>
+    </header>
+
+    <!-- data-despliegue: la rejilla. Cada tarjeta lleva sus piezas
+         (data-pieza); al abrirla, despliegue.js las lleva a los huecos de la
+         vista completa (data-hueco) y las anima desde donde estaban -->
+    <ul class="dp-rejilla" data-despliegue>
+      <li><button class="dp-tarjeta" type="button" data-planeta="mercurio">
+        <span class="dp-numero" data-pieza="numero">01</span>
+        <span class="dp-esfera" data-pieza="esfera"><svg class="dp-superficie" viewBox="0 0 480 240" preserveAspectRatio="none" aria-hidden="true"><rect width="480" height="240" class="dp-base"/><rect width="480" height="240" fill="url(#dp-p-mercurio)"/></svg></span>
+        <span class="dp-nombre" data-pieza="nombre">Mercurio</span>
+        <span class="dp-dato">57,9 M km del Sol</span>
+      </button></li>
+      <li><button class="dp-tarjeta" type="button" data-planeta="venus">
+        <span class="dp-numero" data-pieza="numero">02</span>
+        <span class="dp-esfera" data-pieza="esfera"><svg class="dp-superficie" viewBox="0 0 480 240" preserveAspectRatio="none" aria-hidden="true"><rect width="480" height="240" class="dp-base"/><rect width="480" height="240" fill="url(#dp-p-venus)"/></svg></span>
+        <span class="dp-nombre" data-pieza="nombre">Venus</span>
+        <span class="dp-dato">108,2 M km del Sol</span>
+      </button></li>
+      <li><button class="dp-tarjeta" type="button" data-planeta="tierra">
+        <span class="dp-numero" data-pieza="numero">03</span>
+        <span class="dp-esfera" data-pieza="esfera"><svg class="dp-superficie" viewBox="0 0 480 240" preserveAspectRatio="none" aria-hidden="true"><rect width="480" height="240" class="dp-base"/><rect width="480" height="240" fill="url(#dp-p-tierra)"/></svg></span>
+        <span class="dp-nombre" data-pieza="nombre">Tierra</span>
+        <span class="dp-dato">149,6 M km del Sol</span>
+      </button></li>
+      <li><button class="dp-tarjeta" type="button" data-planeta="marte">
+        <span class="dp-numero" data-pieza="numero">04</span>
+        <span class="dp-esfera" data-pieza="esfera"><svg class="dp-superficie" viewBox="0 0 480 240" preserveAspectRatio="none" aria-hidden="true"><rect width="480" height="240" class="dp-base"/><rect width="480" height="240" fill="url(#dp-p-marte)"/></svg></span>
+        <span class="dp-nombre" data-pieza="nombre">Marte</span>
+        <span class="dp-dato">227,9 M km del Sol</span>
+      </button></li>
+    </ul>
+
+    <!-- la vista completa: el panel crece desde la tarjeta (recorte) y las
+         piezas viajan a sus huecos; lo demás (data-aparece) entra escalonado -->
+    <section class="dp-detalle" role="dialog" aria-modal="true" aria-labelledby="dp-titulo" hidden>
+      <div class="dp-panel"></div>
+      <div class="dp-cuerpo">
+        <div class="dp-texto">
+          <span class="dp-hueco-numero" data-hueco="numero"></span>
+          <h2 class="dp-hueco-nombre" id="dp-titulo" data-hueco="nombre"></h2>
+          <p class="dp-lema" data-aparece></p>
+          <dl class="dp-datos">
+            <div data-aparece><dt>Diámetro</dt><dd data-dato="diametro"></dd></div>
+            <div data-aparece><dt>Un día</dt><dd data-dato="dia"></dd></div>
+            <div data-aparece><dt>Un año</dt><dd data-dato="anio"></dd></div>
+            <div data-aparece><dt>Lunas</dt><dd data-dato="lunas"></dd></div>
+          </dl>
+        </div>
+        <div class="dp-hueco-esfera" data-hueco="esfera"></div>
+      </div>
+      <button class="dp-cerrar" type="button" data-aparece>Cerrar <span aria-hidden="true">✕</span></button>
+    </section>
+  </main>
+
+  <script src="despliegue.js"></script>
+  <script>
+    Despliegue(document.querySelector('[data-despliegue]'), {
+      datos: {
+        mercurio: { lema: 'El más pequeño y el más cercano al Sol: da una vuelta en menos de tres meses.', diametro: '4.879 km', dia: '176 días', anio: '88 días', lunas: '0' },
+        venus: { lema: 'Gira al revés que casi todos, y su día dura más que su año.', diametro: '12.104 km', dia: '243 días', anio: '225 días', lunas: '0' },
+        tierra: { lema: 'El único lugar conocido con agua líquida en la superficie.', diametro: '12.742 km', dia: '24 horas', anio: '365 días', lunas: '1' },
+        marte: { lema: 'Su polvo de óxido de hierro lo tiñe; guarda el volcán más alto que se conoce.', diametro: '6.779 km', dia: '24 h 37 min', anio: '687 días', lunas: '2' },
+      },
+    });
+  </script>
+</body>
+</html>

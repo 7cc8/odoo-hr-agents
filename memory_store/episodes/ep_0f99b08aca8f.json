@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_0f99b08aca8f",
+  "timestamp": "2026-11-09T01:57:11.050522",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "نعم",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "pending-confirmation-test",
+    "company_id": null,
+    "connection_id": "default",
+    "operation_id": null
+  },
+  "result": {
+    "response": "أهلاً بك يا سيدي/سيديتي.\n\nشكراً لتأكيدك، ولكن يبدو أن رسالتك السابقة لم تتضمن سؤالاً أو طلباً محدداً.\n\nلكي أتمكن من مساعدتك بشكل أفضل، أرجو توضيح ما تريد الاستفسار عنه؟ مثلاً:\n- هل تريد معرفة عدد الموظفين في الشركة؟\n- هل تبحث عن موظف معين؟\n- هل تريد عرض قائمة الأقسام أو الوظائف المتاحة؟\n- أم هناك استفسار آخر؟\n\nأنا هنا لمساعدتك في أي استعلامات تتعلق بإدارة الموارد البشرية."
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": "pending-confirmation-test"
+}

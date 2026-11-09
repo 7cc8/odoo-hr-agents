@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **odoo-hr-agents** (17395 symbols, 36898 relationships, 574 execution flows).
+This project is indexed by GitNexus as **odoo-hr-agents** (8787 symbols, 17499 relationships, 485 execution flows).
 
 > Index stale? Run `node .gitnexus/run.cjs analyze --index-only` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? Bootstrap with `npx`, `bunx`, or `pnpm dlx` — e.g. `bunx gitnexus@latest analyze` (npm 11 npx crash; #1939).
 
@@ -30,4 +30,33 @@ This project is indexed by GitNexus as **odoo-hr-agents** (17395 symbols, 36898 
 | `gitnexus://repo/odoo-hr-agents/processes` | All execution flows |
 | `gitnexus://repo/odoo-hr-agents/process/{name}` | Step-by-step execution trace |
 
+## CLI
+
+| Task | Read this skill file |
+| --- | --- |
+| Understand architecture / "How does X work?" | `.claude/skills/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.claude/skills/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.claude/skills/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus-cli/SKILL.md` |
+
 <!-- gitnexus:end -->
+
+## Specification-Driven Development & Code Health (Spec Kit & Desloppify)
+
+This workspace integrates **Spec Kit** (`github/spec-kit`) and **Desloppify** (`peteromallet/desloppify`) locally:
+
+- **Spec Kit**: Use `/speckit-specify`, `/speckit-plan`, `/speckit-tasks`, `/speckit-implement`, `/speckit-converge` for any feature development. Consult [.specify/memory/constitution.md](file:///d:/mjrm0/Documents/odoo-hr-agents-2/.specify/memory/constitution.md).
+- **Desloppify**: Use `.\.venv\Scripts\desloppify.exe status`, `next`, `plan` for health scanning, debt remediation, and anti-slop code refinement. Target strict score >= 85.
+- Rules reference: [.agents/rules/spec-driven-desloppify.md](file:///d:/mjrm0/Documents/odoo-hr-agents-2/.agents/rules/spec-driven-desloppify.md).
+
+## AI Skills & Knowledge Ingestion (Skill Seekers)
+
+This workspace integrates **Skill Seekers** (yusufkaraaslan/Skill_Seekers):
+
+- **CLI**: .\.venv\Scripts\skill-seekers.exe (detect, create, scan, enhance, package, install-agent, doctor, ui)
+- **MCP Server**: FastMCP server with 35+ tools (python -m skill_seekers.mcp.server_fastmcp)
+- **Skill definition**: [.agents/skills/skill-seekers/SKILL.md](file:///d:/mjrm0/Documents/odoo-hr-agents-2/.agents/skills/skill-seekers/SKILL.md)
+- **Source repository & configs**: [Skill_Seekers/](file:///d:/mjrm0/Documents/odoo-hr-agents-2/Skill_Seekers)
+

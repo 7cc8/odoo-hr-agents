@@ -1,0 +1,93 @@
+{
+  "episode_id": "ep_6da3ec96a3f7",
+  "timestamp": "2026-11-08T22:14:41.195491",
+  "agent": "seraj",
+  "agents_involved": [
+    "muwaffaq"
+  ],
+  "user_query": "طابق اسم الموظف محمد العتيبي مع قاعدة البيانات",
+  "intent": "IntentType.MATCH",
+  "context": {
+    "perception": {
+      "query": "طابق اسم الموظف محمد العتيبي مع قاعدة البيانات",
+      "intent": "match",
+      "context": {
+        "candidates": [
+          "محمد العتيبي",
+          "أحمد علي",
+          "سالم محمد"
+        ]
+      },
+      "complexity": "medium",
+      "entities": [],
+      "ambiguity_score": 0.0,
+      "raw_request": {
+        "query": "طابق اسم الموظف محمد العتيبي مع قاعدة البيانات",
+        "context": {
+          "candidates": [
+            "محمد العتيبي",
+            "أحمد علي",
+            "سالم محمد"
+          ]
+        }
+      },
+      "similar_past_interactions": [],
+      "requires_clarification": false
+    },
+    "plan": {
+      "selected_agents": [
+        "muwaffaq"
+      ],
+      "execution_order": [
+        "muwaffaq"
+      ],
+      "parallel_possible": false,
+      "reasoning": "مطابقة → موفّق",
+      "confidence": 0.7,
+      "fallback_strategy": null
+    }
+  },
+  "result": {
+    "agent_results": {
+      "muwaffaq": {
+        "agent": "muwaffaq",
+        "success": true,
+        "status": "success",
+        "data": {
+          "matched_candidates": [],
+          "best_match": null,
+          "confidence": 0.0,
+          "strategy_used": null,
+          "timestamp": "2026-11-08T19:14:41.194969+00:00",
+          "status": "no_match"
+        },
+        "reflection": {
+          "decision": "reject_no_match",
+          "confidence_assessment": "لا توجد مطابقة مناسبة",
+          "reasoning": [
+            "لم يتم العثور على مرشح مناسب"
+          ],
+          "should_learn": false,
+          "alternatives": []
+        },
+        "iterations": 1
+      }
+    },
+    "overall_success": true,
+    "errors": [],
+    "timestamp": "2026-11-08T19:14:41.194447+00:00"
+  },
+  "success": true,
+  "confidence": 0.7,
+  "decision_path": [
+    "agent_muwaffaq"
+  ],
+  "strategies_used": [
+    "multi_agent_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المُدَرِّج — معالج النشر ومزامنة السحابة</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel-bg: #161b22;
+      --border: #30363d;
+      --text: #c9d1d9;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --danger: #f85149;
+      --spring: cubic-bezier(0.3, 1.4, 0.4, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .deployer-card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--panel-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+      transition: all 400ms var(--spring);
+    }
+    .header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h2 { font-size: 1.05rem; color: #fff; }
+    .action-btn {
+      background: #238636;
+      color: #fff;
+      border: none;
+      padding: 7px 14px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 150ms ease, transform 150ms var(--spring);
+    }
+    .action-btn:hover { background: #2ea043; }
+    .action-btn:active { transform: scale(0.96); }
+    .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Task Steps List */
+    .steps-container {
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: max-height 350ms ease, opacity 250ms ease, padding 350ms ease;
+      max-height: 300px;
+      overflow: hidden;
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      transition: border-color 200ms ease, transform 200ms var(--spring);
+    }
+    .step-item.running {
+      border-color: var(--accent);
+    }
+    .step-item.success {
+      border-color: var(--success);
+    }
+    .step-item.failed {
+      border-color: var(--danger);
+      animation: shake 380ms ease;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+    }
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(88, 166, 255, 0.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Summary Bar */
+    .summary-bar {
+      display: none;
+      padding: 14px 20px;
+      background: rgba(63, 185, 80, 0.1);
+      border-top: 1px solid var(--success);
+      color: var(--success);
+      font-size: 0.9rem;
+      font-weight: 600;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .summary-bar.visible {
+      display: flex;
+      animation: foldIn 350ms var(--spring);
+    }
+    @keyframes foldIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="deployer-card" id="deployer-card">
+    <div class="header">
+      <h2>المُدَرِّج — خط مزامنة الحزم</h2>
+      <button class="action-btn" id="start-btn">بدء المزامنة</button>
+    </div>
+
+    <div class="steps-container" id="steps-container">
+      <div class="step-item" id="step-1">
+        <span>1. حزم الأصول البرمجية</span>
+        <div class="indicator" id="ind-1">⏳</div>
+      </div>
+      <div class="step-item" id="step-2">
+        <span>2. مطابقة الشهادات الرقمية</span>
+        <div class="indicator" id="ind-2">⏳</div>
+      </div>
+      <div class="step-item" id="step-3">
+        <span>3. مزامنة العقد السحابية</span>
+        <div class="indicator" id="ind-3">⏳</div>
+      </div>
+    </div>
+
+    <div class="summary-bar" id="summary-bar">
+      <span>✓ اكتملت مزامنة الحزم بنجاح (3/3)</span>
+      <span style="font-size:0.8rem; font-variant-numeric:tabular-nums;">خلال 3.4 ثانية</span>
+    </div>
+  </div>
+
+  <script>
+    const startBtn = document.getElementById('start-btn');
+    const stepsContainer = document.getElementById('steps-container');
+    const summaryBar = document.getElementById('summary-bar');
+    const step1 = document.getElementById('step-1');
+    const step2 = document.getElementById('step-2');
+    const step3 = document.getElementById('step-3');
+    const ind1 = document.getElementById('ind-1');
+    const ind2 = document.getElementById('ind-2');
+    const ind3 = document.getElementById('ind-3');
+
+    function setSpinner(el) {
+      el.innerHTML = '<div class="spinner"></div>';
+    }
+    function setDone(el) {
+      el.innerHTML = '✓';
+      el.style.color = 'var(--success)';
+    }
+    function setFail(el) {
+      el.innerHTML = '✕';
+      el.style.color = 'var(--danger)';
+    }
+
+    startBtn.addEventListener('click', () => {
+      startBtn.disabled = true;
+      summaryBar.classList.remove('visible');
+      stepsContainer.style.maxHeight = '300px';
+      stepsContainer.style.opacity = '1';
+
+      // Step 1: Run and succeed
+      step1.className = 'step-item running';
+      setSpinner(ind1);
+
+      setTimeout(() => {
+        step1.className = 'step-item success';
+        setDone(ind1);
+
+        // Step 2: Run, trigger temporary shake failure, then auto-retry
+        step2.className = 'step-item running';
+        setSpinner(ind2);
+
+        setTimeout(() => {
+          step2.className = 'step-item failed';
+          setFail(ind2);
+
+          // Retry after 500ms
+          setTimeout(() => {
+            step2.className = 'step-item running';
+            setSpinner(ind2);
+
+            setTimeout(() => {
+              step2.className = 'step-item success';
+              setDone(ind2);
+
+              // Step 3: Run and succeed
+              step3.className = 'step-item running';
+              setSpinner(ind3);
+
+              setTimeout(() => {
+                step3.className = 'step-item success';
+                setDone(ind3);
+
+                // Summary fold
+                setTimeout(() => {
+                  stepsContainer.style.maxHeight = '0px';
+                  stepsContainer.style.padding = '0 20px';
+                  stepsContainer.style.opacity = '0';
+                  summaryBar.classList.add('visible');
+                  startBtn.disabled = false;
+                  startBtn.textContent = 'إعادة التشغيل';
+                }, 400);
+              }, 700);
+            }, 600);
+          }, 500);
+        }, 700);
+      }, 700);
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script>document.documentElement.classList.add('js');</script> <!-- تمييز تفعيل الجافاسكربت لإظهار العناصر تلقائياً إذا كان معطلاً -->
+  <title>طبقة الحركة والتفاعل الاحترافية | Motion Layer</title> <!-- تحديث عنوان الصفحة -->
+  
+  <!-- خط IBM Plex Sans Arabic المعتمد للواجهات المهنية -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  
+  <!-- ملف الحركة والتفاعل المعياري -->
+  <link rel="stylesheet" href="motion.css">
+  
+  <style>
+    /* ==========================================================================
+       تنسيقات الصفحة الأساسية (Base Tokens & Layout)
+       تطبيق معايير Hallmark و Better-UI: ألوان دلالية، تباين عالي، أرقام جدولية
+       ========================================================================== */
+    :root {
+      --bg-page: #f8fafc;
+      --surface-bg: #ffffff;
+      --surface-border: #e2e8f0;
+      --surface-border-hover: #cbd5e1;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+      --accent-color: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-focus: #3b82f6;
+      --color-success: #10b981;
+      --color-danger: #ef4444;
+      --font-main: 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      overflow-x: clip;
+      box-sizing: border-box;
+    }
+
+    *, *::before, *::after {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-main);
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: clip;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* تعويض ارتفاع الهيدر الثابت عند التمرير للروابط الداخلية */
+    section[id] {
+      scroll-margin-top: 5rem;
+    }
+
+    .container {
+      width: min(100% - 2rem, 1140px);
+      margin-inline: auto;
+    }
+
+    /* --------------------------------------------------------------------------
+       الهيدر والتنقل (Header & Navigation)
+       -------------------------------------------------------------------------- */
+    .site-header {
+      padding: 0.875rem 0;
+      border-bottom: 1px solid transparent; /* جعل الحد شفافاً ليظهر فقط عند التمرير مع is-scrolled */
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      font-weight: 700;
+      font-size: 1.15rem;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .brand-badge {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.2rem 0.5rem;
+      background: #eff6ff;
+      color: var(--accent-color);
+      border-radius: 999px;
+      border: 1px solid #bfdbfe;
+    }
+
+    .desktop-nav {
+      display: none;
+      align-items: center;
+      gap: 1.75rem;
+    }
+
+    @media (min-width: 768px) {
+      .desktop-nav {
+        display: flex;
+      }
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      transition: color var(--duration-fast) var(--ease-out-fluid),
+                  background-color var(--duration-fast) var(--ease-out-fluid);
+    }
+
+    .nav-link:hover {
+      color: var(--accent-color);
+      background-color: #f1f5f9;
+    }
+
+    .nav-link:focus-visible {
+      outline: 2px solid var(--accent-focus);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    /* --------------------------------------------------------------------------
+       أنماط الأزرار الخاصة (Buttons Variations)
+       -------------------------------------------------------------------------- */
+    .btn-primary {
+      background-color: var(--accent-color);
+      color: #ffffff;
+      padding: 0.625rem 1.25rem;
+    }
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn-outline {
+      background-color: var(--surface-bg);
+      border-color: var(--surface-border);
+      color: var(--text-primary);
+      padding: 0.625rem 1.25rem;
+    }
+    .btn-outline:hover {
+      background-color: #f8fafc;
+      border-color: var(--surface-border-hover);
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+    }
+
+    /* --------------------------------------------------------------------------
+       أقسام الصفحة (Hero, Features, Form, Skeletons)
+       -------------------------------------------------------------------------- */
+    .hero-section {
+      padding: 4.5rem 0 3.5rem;
+      text-align: center;
+    }
+
+    .hero-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.85rem;
+      background-color: #e0f2fe;
+      color: #0369a1;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+
+    .hero-title {
+      font-size: clamp(1.85rem, 4vw, 2.75rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin: 0 auto 1.25rem;
+      max-width: 800px;
+      color: var(--text-primary);
+    }
+
+    .hero-desc {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin: 0 auto 2rem;
+    }
+
+    .hero-ctas {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    /* شبكة البطاقات */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 3.5rem 0;
+    }
+
+    .card-item {
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background-color: #eff6ff;
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+
+    .card-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .card-text {
+      margin: 0;
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.55;
+    }
+
+    .card-footer {
+      margin-top: auto;
+      padding-top: 1rem;
+      border-top: 1px solid var(--surface-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .timing-badge {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      background: #f1f5f9;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    /* قسم النماذج التفاعلية */
+    .demo-form-card {
+      max-width: 580px;
+      margin: 3.5rem auto;
+      padding: 2.25rem;
+      border-radius: 16px;
+    }
+
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin-bottom: 2rem;
+    }
+
+    /* قسم الهيكل الشبحي (Skeleton Loaders Demo) */
+    .skeleton-demo-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .skeleton-card {
+      padding: 1.5rem;
+      border-radius: 12px;
+      background: var(--surface-bg);
+      border: 1px solid var(--surface-border);
+    }
+
+    /* شريط الأدوات العائم لاختبار الحركة */
+    .dev-toolbar {
+      position: fixed;
+      bottom: 1.5rem;
+      inset-inline-start: 1.5rem;
+      z-index: 100;
+      display: flex;
+      gap: 0.5rem;
+      background-color: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(8px);
+      padding: 0.5rem 0.75rem;
+      border-radius: 999px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .dev-toolbar button {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background-color var(--duration-fast) var(--ease-out-fluid);
+    }
+
+    .dev-toolbar button:hover {
+      background: rgba(255, 255, 255, 0.15);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- شريط تقدم القراءة (Reading Progress Bar) بأعلى الشاشة -->
+  <div class="reading-progress-track" aria-hidden="true">
+    <div class="reading-progress-bar"></div>
+  </div>
+
+  <!-- الهيدر الذكي المتكيف مع التمرير -->
+  <header class="site-header" role="banner">
+    <div class="container nav-inner">
+      
+      <!-- شعار النظام -->
+      <a href="#" class="brand-logo" aria-label="الصفحة الرئيسية">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent-color)">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
+        </svg>
+        <span>منظومة الحركة والتفاعل</span> <!-- اعتماد الهوية العامة للمنظومة -->
+        <span class="brand-badge">انسيابية الحركة</span> <!-- استبدال الرقم التسويقي غير المقاس بصياغة وصفية -->
+      </a>
+
+      <!-- القائمة المكتبية -->
+      <nav class="desktop-nav" aria-label="التنقل الرئيسي">
+        <a href="#overview" class="nav-link">نظرة عامة</a>
+        <a href="#transitions" class="nav-link">الانتقالات</a>
+        <a href="#interactions" class="nav-link">التفاعلات الدقيقة</a>
+        <a href="#skeletons" class="nav-link">مؤشرات التحميل</a>
+        <a href="#form-demo" class="nav-link">النماذج الذكية</a>
+      </nav>
+
+      <!-- إجراءات الهيدر وزر القائمة للجوال -->
+      <div class="header-actions">
+        <button type="button" class="motion-btn btn-primary btn-sm" data-modal-target="main-modal">
+          <span>فتح نافذة (Modal)</span>
+        </button>
+
+        <!-- زر الهامبرغر المتحول لـ X للجوال -->
+        <button type="button" class="hamburger-toggle" aria-label="تبديل القائمة الجانبية" aria-expanded="false" aria-controls="mobile-drawer"> <!-- ربط الزر بمعرف الدرج عبر aria-controls -->
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+          <span class="hamburger-line"></span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- خلفية القائمة الجانبية الضبابية -->
+  <div class="drawer-backdrop" aria-hidden="true"></div>
+
+  <!-- القائمة الجانبية للجوال (Mobile Drawer) -->
+  <aside id="mobile-drawer" class="mobile-drawer" aria-label="القائمة الجانبية المتنقلة"> <!-- إضافة معرف القائمة للربط وإمكانية الوصول -->
+    <div style="padding: 1.5rem; display: flex; flex-direction: column; height: 100%;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+        <span style="font-weight: 700; font-size: 1.1rem;">القائمة الرئيسية</span>
+        <span class="brand-badge">RTL Native</span>
+      </div>
+
+      <nav style="display: flex; flex-direction: column; gap: 0.75rem;">
+        <a href="#overview" class="nav-link" style="font-size: 1.05rem;">نظرة عامة</a>
+        <a href="#transitions" class="nav-link" style="font-size: 1.05rem;">الانتقالات الفيزيائية</a>
+        <a href="#interactions" class="nav-link" style="font-size: 1.05rem;">التفاعلات الدقيقة</a>
+        <a href="#skeletons" class="nav-link" style="font-size: 1.05rem;">هياكل التحميل</a>
+        <a href="#form-demo" class="nav-link" style="font-size: 1.05rem;">نموذج التحقق</a>
+      </nav>
+
+      <div style="margin-top: auto; padding-top: 1.5rem; border-top: 1px solid var(--surface-border);">
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">
+          معمارية مبنية خصيصاً للتنقل السلس دون تأخير أو ارتداد في التخطيط.
+        </p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- محتوى الصفحة الرئيسي -->
+  <main class="container">
+
+    <!-- قسم Hero الرئيسي مع Scroll Reveal -->
+    <section id="overview" class="hero-section reveal-item">
+      <div class="hero-pill">
+        <span>⚡ حركة رشيقة ومحسوبة الأداء</span>
+      </div>
+      <h1 class="hero-title">
+        طبقة حركة وتفاعل هندسية دقيقة لا تثقل المعالج ولا تشتت العين
+      </h1>
+      <p class="hero-desc">
+        نظام حركة متكامل بمحاذاة معايير سهولة الوصول وإمكانية الاستخدام وانسيابية العرض: تحريك لطبقات الـ Composite فقط (transform و opacity)، وتفاعل واقعي باللمس، وتتابع محسوب عند التمرير. <!-- استبدال الأرقام التسويقية غير المقاسة بصياغة معيارية وصفية -->
+      </p>
+      <div class="hero-ctas">
+        <button type="button" class="motion-btn btn-primary" data-modal-target="main-modal">
+          <span>تجربة النافذة المنبثقة</span>
+          <span style="font-size: 0.9em;">←</span>
+        </button>
+        <a href="#form-demo" class="motion-btn btn-outline">
+          <span>تجربة تفاعل النماذج</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- قسم بطاقات الميزات مع Staggered Reveal عند التمرير -->
+    <section id="transitions">
+      <div class="section-title reveal-item">انتقالات العناصر وقواعد الحركة</div>
+      <div class="section-subtitle reveal-item">
+        كل حركة هنا تستجيب فوراً بنسب تسارع محسوبة وفيزيائية طبيعية
+      </div>
+
+      <div class="cards-grid" data-stagger>
+        
+        <!-- بطاقة 1: استجابة الأزرار مع غلاف ظهور خارجي لمنع تعارض الحركة والتحويم -->
+        <div class="reveal-item">
+          <article class="motion-card card-item">
+            <div class="card-icon-box">👆</div>
+            <h3 class="card-title">تفاعل الضغط الواقعي للأزرار</h3>
+            <p class="card-text">
+              رفع بمقدار <code>2px</code> مع تعميق الظل عند التحويم، يعقبه انكماش فيزيائي بمقدار <code>scale(0.97)</code> خلال <code>100ms</code> عند الضغط.
+            </p>
+            <div class="card-footer">
+              <span class="timing-badge">100ms - 180ms</span>
+              <button type="button" class="motion-btn btn-outline btn-sm">انقر للتجربة</button>
+            </div>
+          </article>
+        </div>
+
+        <!-- بطاقة 2: عمق البطاقات والأسطح مع غلاف ظهور خارجي -->
+        <div class="reveal-item">
+          <article class="motion-card card-item">
+            <div class="card-icon-box">🃏</div>
+            <h3 class="card-title">رفع الأسطح متدرج الظلال</h3>
+            <p class="card-text">
+              ارتفاع خفيف <code>-4px</code> مع استبدال الظل الخافت بظل مركب متعدد الطبقات لإبراز العمق الفراغي دون وميض إعادة الرسم.
+            </p>
+            <div class="card-footer">
+              <span class="timing-badge">260ms • Ease-Out</span>
+              <span style="font-size:0.85rem; color:var(--accent-color); font-weight:600;">حرّك المؤشر فوقي</span>
+            </div>
+          </article>
+        </div>
+
+        <!-- بطاقة 3: تتابع الظهور عند التمرير مع غلاف ظهور خارجي -->
+        <div class="reveal-item">
+          <article class="motion-card card-item">
+            <div class="card-icon-box">🌊</div>
+            <h3 class="card-title">التتابع الممنهج (Stagger)</h3>
+            <p class="card-text">
+              يتم جدولة عناصر الواجهة بفاصل <code>80ms</code> تلقائياً عبر <code>IntersectionObserver</code>، مما يمنح إحساساً انسيابياً كالأمواج.
+            </p>
+            <div class="card-footer">
+              <span class="timing-badge">Stagger: 80ms</span>
+              <span style="font-size:0.85rem; color:var(--color-success); font-weight:600;">تتابع تلقائي</span>
+            </div>
+          </article>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- قسم هياكل التحميل الشبحية (Skeleton Loaders) -->
+    <section id="skeletons" class="reveal-item" style="margin-top: 4rem;">
+      <div class="section-title">مؤشرات التحميل الانسيابية (Skeletons)</div>
+      <div class="section-subtitle">
+        حركة وميض شريطي خفيف (Shimmer) على طبقة GPU لتوجيه انتباه المستخدم أثناء جلب البيانات
+      </div>
+
+      <div class="skeleton-demo-container">
+        
+        <div class="skeleton-card">
+          <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+            <div class="skeleton-box" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+              <div class="skeleton-box" style="height: 14px; width: 65%;"></div>
+              <div class="skeleton-box" style="height: 10px; width: 40%;"></div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <div class="skeleton-box" style="height: 12px; width: 100%;"></div>
+            <div class="skeleton-box" style="height: 12px; width: 90%;"></div>
+            <div class="skeleton-box" style="height: 12px; width: 75%;"></div>
+          </div>
+        </div>
+
+        <div class="skeleton-card">
+          <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+            <div class="skeleton-box" style="width: 48px; height: 48px; border-radius: 50%;"></div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 0.5rem;">
+              <div class="skeleton-box" style="height: 14px; width: 70%;"></div>
+              <div class="skeleton-box" style="height: 10px; width: 45%;"></div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+            <div class="skeleton-box" style="height: 12px; width: 95%;"></div>
+            <div class="skeleton-box" style="height: 12px; width: 85%;"></div>
+            <div class="skeleton-box" style="height: 12px; width: 60%;"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- قسم النماذج الذكية وتفاعلات الخطأ والنجاح -->
+    <section id="form-demo" class="reveal-item">
+      <div class="motion-card demo-form-card">
+        <h2 class="section-title">التفاعلات الدقيقة للنماذج</h2>
+        <p class="section-subtitle">
+          تسميات عائمة، تمييز التركيز، اهتزاز فيزيائي عند الخطأ، ودوران التحميل حتى النجاح.
+        </p>
+
+        <form id="demo-motion-form" novalidate>
+          
+          <!-- حقل الاسم بتسمية عائمة -->
+          <div class="motion-field">
+            <input type="text" id="demo-name" class="motion-input" placeholder=" " required autocomplete="off">
+            <label for="demo-name" class="motion-label">الاسم الكامل للموظف</label>
+          </div>
+
+          <!-- حقل البريد بتسمية عائمة وفحص الخطأ -->
+          <div class="motion-field">
+            <input type="email" id="demo-email" class="motion-input" placeholder=" " required autocomplete="off">
+            <label for="demo-email" class="motion-label">البريد الإلكتروني المهني</label> <!-- تسمية الحقل المهني -->
+          </div>
+
+          <!-- زر الإرسال التفاعلي متعدد الحالات -->
+          <button type="submit" class="motion-btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1rem;">
+            <span>إرسال وتأكيد الطلب</span>
+          </button>
+
+          <!-- إشعار نجاح تفاعلي بخصائص إمكانية الوصول والتنسيق المعياري -->
+          <div id="form-result-notice" role="status" aria-live="polite"> <!-- إضافة role و aria-live مع إزالة display: none ونقل التنسيق للـ CSS -->
+            ✓ تم استلام بياناتك بنجاح وحفظها في سجلات المنظومة.
+          </div>
+
+          <div style="margin-top: 1rem; text-align: center;">
+            <small style="color: var(--text-muted); font-size: 0.82rem;">
+              💡 جرّب النقر دون إدخال بريد إلكتروني صالح لمشاهدة اهتزاز الخطأ الفيزيائي (Shake)!
+            </small>
+          </div>
+        </form>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- النافذة المنبثقة التفاعلية (Modal Dialog) -->
+  <div class="modal-overlay" id="main-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-surface">
+      <div style="padding: 1.5rem; border-bottom: 1px solid var(--surface-border); display: flex; align-items: center; justify-content: space-between;">
+        <h3 id="modal-title" style="margin: 0; font-size: 1.2rem;">تأكيد الإجراء في المنظومة</h3> <!-- عنوان النافذة المنبثقة -->
+        <button type="button" class="motion-btn btn-outline btn-sm" data-modal-close aria-label="إغلاق النافذة">
+          ✕
+        </button>
+      </div>
+      <div style="padding: 1.5rem;">
+        <p style="color: var(--text-secondary); margin: 0 0 1rem; line-height: 1.6;">
+          هذه النافذة المنبثقة تفتح بحركة متزامنة من <strong>opacity</strong> وتكبير تدريجي <strong>scale(0.96) إلى scale(1)</strong> مع خلفية ضبابية بلورية دون أي ارتداد في أبعاد الصفحة.
+        </p>
+        <div style="background-color: #f8fafc; border: 1px solid var(--surface-border); border-radius: 8px; padding: 0.85rem; font-size: 0.88rem; color: var(--text-muted);">
+          ⌨️ يمكنك إغلاقها بالنقر على زر الإلغاء، أو النقر على الخلفية، أو الضغط على مفتاح <code>Escape</code>.
+        </div>
+      </div>
+      <div style="padding: 1rem 1.5rem; background-color: #f8fafc; border-top: 1px solid var(--surface-border); display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button type="button" class="motion-btn btn-outline" data-modal-close>إلغاء</button>
+        <button type="button" class="motion-btn btn-primary" data-modal-close>متابعة التنفيذ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- زر العودة للأعلى الذكي (Scroll to top FAB) -->
+  <button type="button" class="scroll-top-btn" aria-label="العودة لأعلى الصفحة">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 15l-6-6-6 6"></path>
+    </svg>
+  </button>
+
+  <!-- شريط أدوات التطوير لاختبار وضع تقليل الحركة (Reduced Motion Tester) -->
+  <aside class="dev-toolbar" aria-label="شريط اختبار الحركة">
+    <button type="button" id="toggle-reduced-motion-btn" aria-pressed="false">
+      الحركة: مفعّلة
+    </button>
+  </aside>
+
+  <!-- تشغيل محرك الحركة -->
+  <script src="motion.js"></script>
+
+</body>
+</html>
+

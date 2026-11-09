@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_4d6962702d52",
+  "timestamp": "2026-11-09T01:58:19.377782",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "استعلم عن الموظفة سارة في Odoo",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "test_user_scen_3",
+    "company_id": 15,
+    "connection_id": "default",
+    "operation_id": "op_1794178686_71dbca"
+  },
+  "result": {
+    "response": "تم العثور على الموظفة **سارة أحمد** في قاعدة بيانات Odoo، وتفاصيلها كالتالي:\n\n- **المعرف (ID):** 101\n- **الاسم:** سارة أحمد\n- **المسمى الوظيفي:** مهندسة برمجيات\n\nإذا كنت ترغب في معرفة المزيد من التفاصيل عنها (مثل البريد الإلكتروني، القسم، الشركة)، يرجى تزويدي بالمعلومات الإضافية المطلوبة."
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": 15,
+  "user_id": "test_user_scen_3"
+}

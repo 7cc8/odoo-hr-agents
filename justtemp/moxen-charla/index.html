@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Charla · Moxen</title>
+<link rel="stylesheet" href="https://api.fontshare.com/v2/css?f%5B%5D=general-sans@400,500,600&display=swap">
+<link rel="stylesheet" href="charla.css">
+<!-- ?tema=claro para verla sobre fondo claro -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <main class="ch-escena">
+    <!-- data-charla: la ventana del chat. charla.js arma los mensajes en
+         .ch-log, las respuestas rápidas en .ch-fichas, el «escribiendo…»,
+         las reacciones y los adjuntos -->
+    <section class="ch-charla" data-charla aria-label="Chat de soporte">
+      <header class="ch-cabeza">
+        <span class="ch-avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4.5 13.5V12a7.5 7.5 0 0 1 15 0v1.5"/><rect x="3.5" y="12.5" width="4" height="6" rx="2"/><rect x="16.5" y="12.5" width="4" height="6" rx="2"/><path d="M18.5 18.5c0 1.4-1.6 2.5-4 2.5h-1.5"/></svg>
+          <i class="ch-estado"></i>
+        </span>
+        <div class="ch-quien">
+          <h2>Soporte</h2>
+          <p class="ch-sub"><span class="ch-rueda"><span>En línea · Responde en minutos</span></span></p>
+        </div>
+        <button class="ch-nueva" type="button" aria-label="Nueva conversación" title="Nueva conversación">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.5 4.5H7A2.5 2.5 0 0 0 4.5 7v10A2.5 2.5 0 0 0 7 19.5h10a2.5 2.5 0 0 0 2.5-2.5v-4.5"/><path d="m17.6 3.9 2.5 2.5-7.6 7.6-3.3.8.8-3.3z"/></svg>
+        </button>
+      </header>
+
+      <div class="ch-cuerpo">
+        <div class="ch-hilo">
+          <div class="ch-pista">
+            <div class="ch-intro">
+              <span class="ch-sello" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.5 5h11A2.5 2.5 0 0 1 20 7.5v7a2.5 2.5 0 0 1-2.5 2.5H10l-4 3.3V17A2.5 2.5 0 0 1 4 14.5v-7A2.5 2.5 0 0 1 6.5 5z"/><path d="M8.5 10.3h.01M12 10.3h.01M15.5 10.3h.01"/></svg></span>
+              <h3>¿En qué te ayudamos?</h3>
+              <p>Somos el equipo de atención. Respondemos en minutos, de lunes a sábado.</p>
+            </div>
+            <div class="ch-log" role="log" aria-label="Conversación"></div>
+            <div class="ch-escribe" hidden aria-hidden="true"></div>
+            <div class="ch-fichas" role="group" aria-label="Respuestas sugeridas" hidden></div>
+          </div>
+        </div>
+        <button class="ch-abajo" type="button" tabindex="-1">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v13.5m0 0-5.5-5.5m5.5 5.5 5.5-5.5"/></svg>Nuevo mensaje
+        </button>
+      </div>
+
+      <form class="ch-redacta">
+        <div class="ch-campo">
+          <button class="ch-adjunta" type="button" aria-label="Adjuntar archivo" title="Adjuntar archivo">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m19.2 11.6-6.9 6.9a4.6 4.6 0 0 1-6.5-6.5l7.4-7.4a3.1 3.1 0 0 1 4.4 4.4l-7.3 7.3a1.55 1.55 0 0 1-2.2-2.2l6.6-6.6"/></svg>
+          </button>
+          <input class="ch-archivos" type="file" multiple hidden>
+          <textarea rows="1" placeholder="Escribe un mensaje…" aria-label="Mensaje" enterkeyhint="send"></textarea>
+          <button class="ch-envia" type="submit" aria-label="Enviar" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5.5m0 0-6 6m6-6 6 6"/></svg>
+          </button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="charla.js"></script>
+  <script>
+    /* El «servidor» de la demostración: un bot sencillo que reconoce
+       cuatro intenciones. En tu sitio, `responde` llamaría a tu backend
+       (o a tu asistente) y devolvería lo mismo: texto, una tarjeta o
+       fichas con respuestas rápidas. */
+    const llano = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    const inicio = ['¿Dónde está mi pedido?', 'Horario de atención', 'Cambios y devoluciones', 'Hablar con una persona'];
+    const pedido = [
+      { texto: 'Lo encontré. Tu pedido va en camino:',
+        tarjeta: { etiqueta: 'Pedido #10482', estado: 'En camino', titulo: 'Llega hoy', detalle: 'entre 14:00 y 16:00',
+                   pasos: ['Confirmado', 'Preparando', 'En camino', 'Entregado'], actual: 2,
+                   pie: '2 productos · $34.990', acciones: [{ texto: 'Ver seguimiento' }] } },
+      { texto: '¿Te ayudo con algo más?', fichas: ['Cambiar la dirección', 'Hablar con una persona', 'No, gracias'], espera: 700 },
+    ];
+    const intenciones = [
+      [/seguimiento|recorrido/, () => ({ texto: 'Este es el recorrido hasta ahora:',
+        tarjeta: { etiqueta: 'Pedido #10482 · Hoy', filas: [['13:05', 'Base de reparto, Recoleta'], ['11:48', 'Salió de Quilicura'], ['10:14', 'Preparado en bodega'], ['08:57', 'Pedido confirmado']] } })],
+      [/pedido|donde|envio|despacho|llega|\d{5}/, () => pedido],
+      [/direccion/, () => [
+        { texto: 'Todavía estamos a tiempo: el repartidor sale a las 13:30.' },
+        { texto: 'Escríbeme la nueva dirección con su comuna (por ejemplo, «Av. Italia 1450, Ñuñoa») y la cambio.' },
+      ]],
+      [/horario|hora|atencion|abierto|abren/, () => [
+        { texto: 'Te atendemos por este chat y por correo:',
+          tarjeta: { etiqueta: 'Horario de atención', filas: [['Lunes a viernes', '9:00 – 19:00'], ['Sábado', '10:00 – 14:00'], ['Domingo y festivos', 'Cerrado']] } },
+        { texto: 'Fuera de horario puedes dejarnos tu mensaje y te respondemos a primera hora.', fichas: ['¿Dónde está mi pedido?', 'Cambios y devoluciones'] },
+      ]],
+      [/iniciar/, () => ({ texto: 'Perfecto. Escríbeme el número de tu pedido (lo encuentras en el correo de compra) y te envío la etiqueta de despacho.' })],
+      [/cambi|devol|talla|reembolso/, () => [
+        { texto: 'Tienes 30 días desde que recibes tu pedido para cambiarlo o devolverlo, sin costo.' },
+        { texto: 'El producto tiene que estar sin uso y con sus etiquetas. ¿Partimos?', fichas: ['Iniciar un cambio', 'Hablar con una persona'] },
+      ]],
+      [/persona|humano|ejecutiv|agente|alguien/, () => [
+        { texto: 'Te conecto con una persona del equipo. Dame un momento…' },
+        { sistema: 'Una persona del equipo se unió a la conversación', de: 'agente', espera: 1300 },
+        { de: 'agente', texto: '¡Hola! Soy una persona del equipo de atención. Cuéntame, ¿en qué te ayudo?' },
+      ]],
+      [/gracias|nada mas|eso es todo|chao/, () => ({ texto: '¡Un gusto! Si necesitas algo más, escríbeme por aquí.' })],
+    ];
+
+    const charla = Charla(document.querySelector('[data-charla]'), {
+      bienvenida: [{ texto: '¡Hola! Soy el asistente de la tienda.' }, { texto: '¿En qué te ayudo hoy?' }],
+      fichas: inicio,
+      hora: () => '14:03',
+      horaBienvenida: '14:02',
+      remitentes: { agente: { nombre: 'Equipo de atención', icono: '<path d="M12 4.5l7.5 7.5-7.5 7.5L4.5 12z"/>' } },
+      responde: async (texto, { archivo }) => {
+        if (archivo) return { texto: 'Recibí «' + archivo.nombre + '». Lo reviso y te escribo por aquí.' };
+        const t = llano(texto);
+        const hay = intenciones.find(([patron]) => patron.test(t));
+        return hay ? hay[1]() : {
+          texto: 'No estoy seguro de haber entendido. Elige una opción o escribe «persona» para hablar con alguien del equipo.',
+          fichas: inicio,
+        };
+      },
+    });
+  </script>
+</body>
+</html>

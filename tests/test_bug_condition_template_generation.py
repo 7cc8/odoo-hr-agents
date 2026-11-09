@@ -28,6 +28,8 @@ sys.path.insert(0, str(project_root))
 
 from web_service import app
 
+pytestmark = pytest.mark.xfail(strict=True, reason="Bug exploration test: Expected to fail on unfixed code")
+
 
 class TestBugConditionTemplateGeneration:
     """

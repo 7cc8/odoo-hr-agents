@@ -1,0 +1,29 @@
+{
+  "episode_id": "ep_fabf47bc3904",
+  "timestamp": "2026-11-08T22:06:35.010305",
+  "agent": "mudaqqiq",
+  "agents_involved": [
+    "mudaqqiq"
+  ],
+  "user_query": "{\"query\": \"أنشئ موظف جديد\", \"context\": {}}",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "status": "compliant",
+    "decision": "approve",
+    "violations": [],
+    "warnings": [],
+    "passed_checks": 9,
+    "total_checks": 9,
+    "timestamp": "2026-11-08T19:06:35.010305+00:00"
+  },
+  "success": true,
+  "confidence": 0.9,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

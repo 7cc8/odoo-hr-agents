@@ -1,0 +1,51 @@
+{
+  "episode_id": "ep_04f419615a9d",
+  "timestamp": "2026-11-09T00:57:42.713865",
+  "agent": "seraj",
+  "agents_involved": [],
+  "user_query": "Test 2",
+  "intent": "IntentType.CLARIFY",
+  "context": {
+    "perception": {
+      "query": "Test 2",
+      "intent": "clarify",
+      "context": {},
+      "complexity": "low",
+      "entities": [
+        "number:2"
+      ],
+      "ambiguity_score": 0.3,
+      "raw_request": {
+        "query": "Test 2",
+        "context": {}
+      },
+      "similar_past_interactions": [],
+      "requires_clarification": false
+    },
+    "plan": {
+      "selected_agents": [],
+      "execution_order": [],
+      "parallel_possible": false,
+      "reasoning": "",
+      "confidence": 0.7,
+      "fallback_strategy": null
+    }
+  },
+  "result": {
+    "agent_results": {},
+    "overall_success": true,
+    "errors": [],
+    "timestamp": "2026-11-08T21:57:42.713865+00:00"
+  },
+  "success": true,
+  "confidence": 0.7,
+  "decision_path": [],
+  "strategies_used": [
+    "multi_agent_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

@@ -1,0 +1,27 @@
+{
+  "episode_id": "ep_441c67392036",
+  "timestamp": "2026-11-09T01:03:30.753967",
+  "agent": "sijil",
+  "agents_involved": [
+    "sijil"
+  ],
+  "user_query": "{\"query\": \"سجل تقرير التدقيق للعمليات الأخيرة\", \"context\": {\"previous_agent_results\": {}}}",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "summary": "AuditSummary(total_operations=112, operations_by_type={'write_b': 32, 'unknown': 25, 'create_employee': 14, 'execution_started': 17, 'odoo_bulk_insert_start': 2, 'update_employee': 5, 'create': 6, 'update': 4, 'unarchive': 1, 'archive': 3, 'delete': 3}, operations_by_agent={'katib': 86, 'unknown': 26}, anomalies=[], time_range=('2026-10-08T14:41:00.549263+00:00', '2026-11-08T22:03:02.330326+00:00'), compliance_score=1.0)",
+    "anomalies": [],
+    "report": null,
+    "alerts": [],
+    "timestamp": "2026-11-08T22:03:30.752908+00:00"
+  },
+  "success": true,
+  "confidence": 0.9,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

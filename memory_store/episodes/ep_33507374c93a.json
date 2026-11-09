@@ -1,0 +1,26 @@
+{
+  "episode_id": "ep_33507374c93a",
+  "timestamp": "2026-11-09T00:57:42.716866",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj"
+  ],
+  "user_query": "Test 4",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "agent_results": {},
+    "overall_success": true,
+    "errors": [],
+    "timestamp": "2026-11-08T21:57:42.715865+00:00"
+  },
+  "success": true,
+  "confidence": 0.7,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المُحَلِّل — فاحص المعايير والأمان</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-border: #30363d;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --success: #34d399;
+      --radius: 12px;
+      --spring-physics: cubic-bezier(0.25, 1.4, 0.5, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: clip;
+    }
+    .panel {
+      width: 100%;
+      max-width: 580px;
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--surface-border);
+      padding-bottom: 14px;
+    }
+    .title { font-size: 1.1rem; font-weight: 600; }
+    .btn-action {
+      background: #1f2937;
+      color: var(--text-main);
+      border: 1px solid var(--accent);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: background 150ms ease, transform 150ms var(--spring-physics);
+    }
+    .btn-action:hover { background: #374151; }
+    .btn-action:active { transform: scale(0.96); }
+    .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* Thinking State Box */
+    .thinking-box {
+      min-height: 48px;
+      border-radius: 8px;
+      background: rgba(56, 189, 248, 0.05);
+      border: 1px dashed rgba(56, 189, 248, 0.3);
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      position: relative;
+      overflow: hidden;
+      transition: all 400ms var(--spring-physics);
+    }
+    .thinking-shimmer {
+      position: absolute;
+      top: 0; left: -100%; width: 50%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.25), transparent);
+      animation: sweep 1.5s infinite;
+      display: none;
+    }
+    @keyframes sweep {
+      0% { left: -60%; }
+      100% { left: 140%; }
+    }
+    .thinking-box.is-thinking .thinking-shimmer { display: block; }
+    .thinking-text {
+      font-size: 0.88rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* Folded Pill Badge */
+    .folded-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid var(--success);
+      color: var(--success);
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      transform: scale(0.9);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 350ms var(--spring-physics), opacity 250ms ease;
+    }
+    .folded-badge.visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    /* Stream Output */
+    .stream-container {
+      background: #090d13;
+      border: 1px solid #21262d;
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 130px;
+      font-size: 0.92rem;
+      line-height: 1.7;
+      color: #e6edf3;
+      position: relative;
+    }
+    .stream-word {
+      display: inline-block;
+      margin-left: 4px;
+      opacity: 0;
+      filter: blur(4px);
+      transform: translateY(4px);
+      transition: opacity 180ms ease, filter 180ms ease, transform 180ms var(--spring-physics);
+    }
+    .stream-word.visible {
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
+    }
+    .cursor-caret {
+      display: inline-block;
+      width: 2px;
+      height: 1.1em;
+      background: var(--accent);
+      vertical-align: middle;
+      margin-right: 4px;
+      animation: blink 0.8s infinite;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="panel">
+    <header class="header">
+      <h1 class="title">المُحَلِّل — فحص المعايير والأمان</h1>
+      <button class="btn-action" id="start-btn">بدء الفحص</button>
+    </header>
+
+    <div class="thinking-box" id="think-box">
+      <div class="thinking-shimmer" id="shimmer"></div>
+      <span class="thinking-text" id="think-text">جاهز لبدء الفحص البرمجي والأمني.</span>
+      <div class="folded-badge" id="badge">✓ تم التدقيق في 420ms</div>
+    </div>
+
+    <section class="stream-container" id="stream-output" aria-live="polite">
+      <span class="cursor-caret" id="caret" style="display: none;"></span>
+    </section>
+  </main>
+
+  <script>
+    const startBtn = document.getElementById('start-btn');
+    const thinkBox = document.getElementById('think-box');
+    const thinkText = document.getElementById('think-text');
+    const badge = document.getElementById('badge');
+    const streamOutput = document.getElementById('stream-output');
+    const caret = document.getElementById('caret');
+
+    const reportWords = [
+      "تقرير", "الفحص:", "اكتمل", "تدقيق", "المصفوفة", "البرمجية.", "تم", "التحقق", "من",
+      "معايير", "العزل", "الأمني،", "وتطهير", "المدخلات", "بنجاح.", "لا", "توجد", "ثغرات",
+      "نشطة،", "وكفاءة", "الاستجابة", "ضمن", "الحدود", "المثالية", "100%."
+    ];
+
+    let isRunning = false;
+
+    startBtn.addEventListener('click', () => {
+      if (isRunning) return;
+      isRunning = true;
+      startBtn.disabled = true;
+
+      // Reset
+      streamOutput.innerHTML = '';
+      streamOutput.appendChild(caret);
+      badge.classList.remove('visible');
+      thinkBox.classList.add('is-thinking');
+      thinkText.style.display = 'inline';
+      thinkText.textContent = "جارٍ تحليل تدفق العمليات وفحص السياسات الأمنية...";
+
+      // Step 1: Thinking phase (simulate 1.2s analysis)
+      setTimeout(() => {
+        thinkBox.classList.remove('is-thinking');
+        thinkText.style.display = 'none';
+        badge.classList.add('visible');
+        caret.style.display = 'inline-block';
+
+        // Step 2: Stream words sequentially with slight delay
+        let index = 0;
+        function streamNextWord() {
+          if (index < reportWords.length) {
+            const span = document.createElement('span');
+            span.className = 'stream-word';
+            span.textContent = reportWords[index];
+            streamOutput.insertBefore(span, caret);
+
+            requestAnimationFrame(() => {
+              span.classList.add('visible');
+            });
+
+            index++;
+            setTimeout(streamNextWord, 65 + Math.random() * 40);
+          } else {
+            caret.style.display = 'none';
+            startBtn.disabled = false;
+            isRunning = false;
+          }
+        }
+        streamNextWord();
+      }, 1200);
+    });
+  </script>
+</body>
+</html>
+

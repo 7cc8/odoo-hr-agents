@@ -1,0 +1,234 @@
+/* Galleta · Moxen — los estilos del efecto y de la demostración. */
+:root {
+  --gt-fondo: #0a0a0a;
+  --gt-texto: #f4f4f4;
+  --gt-suave: rgba(255, 255, 255, .6);
+  --gt-tenue: rgba(255, 255, 255, .36);
+  --gt-tarjeta: #151515;
+  --gt-linea: rgba(255, 255, 255, .08);
+  --gt-boton: rgba(255, 255, 255, .06);
+  --gt-boton-encima: rgba(255, 255, 255, .12);
+  --gt-boton-borde: rgba(255, 255, 255, .1);
+  --gt-riel: rgba(255, 255, 255, .16);
+  --gt-riel-encima: rgba(255, 255, 255, .24);
+  --gt-riel-activo: #f4f4f4;
+  --gt-perilla: #f4f4f4;
+  --gt-perilla-activa: #0a0a0a;
+  --gt-masa-1: #f6f6f6;      /* la galleta: el centro… */
+  --gt-masa-2: #b9b9b9;      /* …y el borde tostado */
+  --gt-ok: #3ccf6e;
+  --gt-ok-tinta: #0a0a0a;
+  --gt-filo: rgba(255, 255, 255, .24);
+  --gt-sombra: rgba(0, 0, 0, .75);
+  --gt-velo: rgba(10, 10, 10, .92);
+  --gt-curva: cubic-bezier(.22, 1, .36, 1);
+  --gt-rebote: cubic-bezier(.34, 1.56, .64, 1);
+  --gt-radio: 22px;          /* el radio de la tarjeta (lo lee galleta.js) */
+  --gt-ancho: 620px;
+}
+:root[data-tema="claro"] {
+  --gt-fondo: #eeeeee;
+  --gt-texto: #0a0a0a;
+  --gt-suave: rgba(0, 0, 0, .6);
+  --gt-tenue: rgba(0, 0, 0, .38);
+  --gt-tarjeta: #ffffff;
+  --gt-linea: rgba(0, 0, 0, .08);
+  --gt-boton: rgba(0, 0, 0, .04);
+  --gt-boton-encima: rgba(0, 0, 0, .08);
+  --gt-boton-borde: rgba(0, 0, 0, .1);
+  --gt-riel: rgba(0, 0, 0, .14);
+  --gt-riel-encima: rgba(0, 0, 0, .22);
+  --gt-riel-activo: #0a0a0a;
+  --gt-perilla: #ffffff;
+  --gt-perilla-activa: #ffffff;
+  --gt-masa-1: #3a3a3a;
+  --gt-masa-2: #0a0a0a;
+  --gt-ok: #18a34a;
+  --gt-ok-tinta: #ffffff;
+  --gt-filo: rgba(0, 0, 0, .12);
+  --gt-sombra: rgba(0, 0, 0, .2);
+  --gt-velo: rgba(238, 238, 238, .9);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--gt-fondo); color: var(--gt-texto); overflow: hidden; }
+body { font-family: "General Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+
+/* ── el efecto ─────────────────────────────────────────────────────── */
+/* La superficie: una capa de pantalla completa recortada (galleta.js
+   escribe el clip-path). Es la tarjeta y, al guardar, el botón redondo;
+   la sombra y el filo de 1 px van en el filtro y siguen al recorte. */
+.gt-superficie {
+  position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  filter: drop-shadow(0 0 .6px var(--gt-filo)) drop-shadow(0 30px 40px var(--gt-sombra));
+}
+.gt-superficie i { position: fixed; inset: 0; background: var(--gt-tarjeta); clip-path: inset(50%); will-change: clip-path; }
+
+/* La tarjeta se maqueta entera y anclada abajo; galleta.js baja la
+   cabeza y recorta lo que sobra, así el alto cambia sin saltos. */
+.gt-aviso {
+  position: fixed; left: 0; right: 0; bottom: 40px; z-index: 2; margin: 0 auto; width: min(var(--gt-ancho), calc(100% - 32px));
+  display: flex; flex-direction: column; will-change: clip-path;
+}
+.gt-cabeza {
+  position: relative; z-index: 1; display: grid; grid-template-columns: auto 1fr; grid-template-areas: "icono titulo" "icono texto";
+  column-gap: 18px; padding: 24px 26px 6px; will-change: transform;
+}
+.gt-icono {
+  grid-area: icono; display: grid; place-items: center; width: 56px; height: 56px; border-radius: 16px;
+  background: var(--gt-boton); border: 1px solid var(--gt-linea);
+}
+.gt-icono .gt-svg { width: 36px; height: 36px; transform: rotate(-12deg); }
+.gt-cabeza h2 { grid-area: titulo; margin: 2px 0 4px; font-size: 1.42rem; font-weight: 600; letter-spacing: -.03em; line-height: 1.15; }
+.gt-cabeza p { grid-area: texto; margin: 0; font-size: 1rem; line-height: 1.45; color: var(--gt-suave); }
+.gt-cabeza a {
+  color: var(--gt-texto); text-decoration: underline; text-decoration-color: var(--gt-tenue); text-underline-offset: 3px;
+  white-space: nowrap; border-radius: 4px; transition: text-decoration-color .2s;
+}
+.gt-cabeza a:hover { text-decoration-color: currentColor; }
+
+/* las categorías: siempre en la maqueta; galleta.js las destapa */
+.gt-detalle { padding: 14px 26px 4px; will-change: transform, clip-path; }
+.gt-cat { position: relative; will-change: transform; }
+.gt-cat-fila { display: flex; align-items: center; gap: 12px; height: 56px; border-top: 1px solid var(--gt-linea); }
+.gt-cat:first-child .gt-cat-fila { border-top-color: transparent; }
+.gt-cat-nombre {
+  flex: 1; min-width: 0; height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 6px; margin-left: -6px;
+  border: 0; border-radius: 10px; background: none; cursor: pointer; text-align: left; font-size: 1.02rem; font-weight: 500; letter-spacing: -.01em;
+  transition: background-color .2s;
+}
+.gt-cat-nombre:hover { background: var(--gt-boton); }
+.gt-cat-nombre small {
+  font-size: .74rem; font-weight: 500; letter-spacing: 0; color: var(--gt-suave); padding: 3px 8px; border-radius: 99px;
+  border: 1px solid var(--gt-linea);
+}
+.gt-chev { flex: none; width: 18px; height: 18px; fill: none; stroke: var(--gt-suave); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .45s var(--gt-rebote); }
+.gt-cat.is-abierta .gt-chev { transform: rotate(90deg); }
+.gt-desc { margin: 0; padding: 0 64px 14px 34px; font-size: .92rem; line-height: 1.45; color: var(--gt-suave); will-change: clip-path, opacity; }
+
+/* el interruptor: la perilla viaja con un rebote y se estira al pulsar */
+.gt-interruptor {
+  flex: none; padding: 6px; margin-right: -6px; border: 0; background: none; cursor: pointer; border-radius: 99px;
+  -webkit-tap-highlight-color: transparent;
+}
+.gt-riel {
+  position: relative; display: block; width: 46px; height: 28px; border-radius: 99px; background: var(--gt-riel);
+  transition: background-color .3s var(--gt-curva);
+}
+.gt-perilla {
+  position: absolute; left: 3px; top: 3px; width: 22px; height: 22px; border-radius: 99px; background: var(--gt-perilla);
+  display: grid; place-items: center; box-shadow: 0 2px 5px rgba(0, 0, 0, .3);
+  transition: transform .42s var(--gt-rebote), width .2s var(--gt-curva), background-color .3s;
+}
+.gt-interruptor:active .gt-perilla { width: 27px; }
+.gt-interruptor:hover .gt-riel { background: var(--gt-riel-encima); }
+.gt-interruptor[aria-checked="true"] .gt-riel { background: var(--gt-riel-activo); }
+.gt-interruptor[aria-checked="true"] .gt-perilla { transform: translateX(18px); background: var(--gt-perilla-activa); }
+.gt-interruptor[aria-checked="true"]:active .gt-perilla { transform: translateX(13px); }
+.gt-interruptor[aria-disabled="true"] { cursor: not-allowed; }
+.gt-interruptor[aria-disabled="true"] .gt-riel { opacity: .5; }
+.gt-interruptor[aria-disabled="true"]:active .gt-perilla { width: 22px; transform: translateX(18px); }
+.gt-perilla svg { width: 13px; height: 13px; fill: none; stroke: var(--gt-riel-activo); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+:root[data-tema="claro"] .gt-perilla svg { stroke: var(--gt-texto); }
+.gt-interruptor.is-no svg { animation: gt-no .42s var(--gt-curva); }
+@keyframes gt-no { 20% { transform: rotate(-16deg); } 45% { transform: rotate(13deg); } 70% { transform: rotate(-7deg); } }
+
+/* el pie: las dos filas de botones en la misma celda, se funden al cambiar */
+.gt-pie { position: relative; z-index: 2; display: grid; padding: 18px 26px 24px; }
+.gt-fila {
+  grid-area: 1 / 1; align-self: end; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  transition: opacity .28s var(--gt-curva), transform .4s var(--gt-curva), visibility 0s;
+}
+.gt-fila[data-vista="detalle"] { grid-template-columns: repeat(2, 1fr); opacity: 0; visibility: hidden; transform: translateY(6px); transition-delay: 0s, 0s, .28s; }
+.is-detalle .gt-fila[data-vista="simple"] { opacity: 0; visibility: hidden; transform: translateY(-6px); transition-delay: 0s, 0s, .28s; }
+.is-detalle .gt-fila[data-vista="detalle"] { opacity: 1; visibility: visible; transform: none; transition-delay: .06s, .06s, 0s; }
+/* los tres con el mismo peso: ninguno empuja a aceptar */
+.gt-fila button {
+  height: 48px; padding: 0 14px; border-radius: 13px; border: 1px solid var(--gt-boton-borde); background: var(--gt-boton);
+  font-size: .98rem; font-weight: 500; letter-spacing: -.01em; cursor: pointer; white-space: nowrap;
+  transition: background-color .2s, transform .25s var(--gt-curva);
+}
+.gt-fila button:hover { background: var(--gt-boton-encima); }
+.gt-fila button:active { transform: scale(.97); }
+.gt-galleta :focus-visible { outline: 2px solid var(--gt-texto); outline-offset: 2px; }
+.gt-interruptor:focus-visible { outline-offset: -1px; }
+
+/* el botón flotante: su fondo es la superficie; aquí va la galleta */
+.gt-boton {
+  position: fixed; left: 24px; bottom: 24px; z-index: 3; width: 68px; height: 68px; padding: 0; border: 0; border-radius: 50%;
+  background: none; cursor: pointer; visibility: hidden; transition: visibility 0s .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.is-galleta .gt-boton { visibility: visible; transition-delay: 0s; }
+.gt-giro {
+  position: absolute; inset: 12px; opacity: 0; transform: scale(.4) rotate(-80deg);
+  transition: opacity .15s, transform .2s var(--gt-curva);
+}
+.gt-giro .gt-svg { display: block; width: 100%; height: 100%; transition: transform .45s var(--gt-rebote); }
+.gt-boton.is-llega .gt-giro { opacity: 1; transform: none; transition: opacity .18s, transform .75s var(--gt-rebote); }
+.gt-boton:hover .gt-svg { transform: rotate(18deg) scale(1.06); }
+.gt-boton:active .gt-svg { transform: rotate(18deg) scale(.94); }
+.gt-masa-1 { stop-color: var(--gt-masa-1); }
+.gt-masa-2 { stop-color: var(--gt-masa-2); }
+/* cada mordisco entra desde fuera, como una boca */
+.gt-mordida { transform: translate(var(--dx), var(--dy)); transition: transform .32s cubic-bezier(.5, 1.7, .55, 1); }
+.gt-mordida.is-mordida { transform: none; }
+.gt-boton.is-quieta .gt-giro, .gt-boton.is-quieta .gt-mordida { transition: none; }
+
+/* el ✓ verde: asoma un instante sobre el borde */
+.gt-ok {
+  position: absolute; right: -3px; top: -3px; width: 22px; height: 22px; border-radius: 50%; background: var(--gt-ok);
+  box-shadow: 0 0 0 3px var(--gt-fondo); display: grid; place-items: center;
+  transform: scale(0); opacity: 0; transition: transform .3s var(--gt-curva), opacity .3s;
+}
+.gt-ok svg { width: 15px; height: 15px; fill: none; stroke: var(--gt-ok-tinta); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.gt-ok path { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .3s var(--gt-curva); }
+.gt-boton.is-ok .gt-ok { transform: scale(1); opacity: 1; transition: transform .45s var(--gt-rebote), opacity .15s; }
+.gt-boton.is-ok .gt-ok path { stroke-dashoffset: 0; transition-delay: .14s; }
+.gt-migas { position: absolute; inset: 0; pointer-events: none; }
+.gt-migas i { position: absolute; border-radius: 1.5px; background: var(--gt-masa-2); }
+
+.gt-oculto { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ── la demostración: un sitio de ejemplo, tenue y desenfocado ────── */
+.gt-sitio { position: fixed; inset: 0; opacity: .42; filter: blur(2.5px); user-select: none; }
+.gt-sitio::after { content: ""; position: absolute; inset: 0; background: linear-gradient(to top, var(--gt-velo) 8%, transparent 62%); }
+.gt-cabecera { display: flex; align-items: center; gap: 36px; height: 80px; padding: 0 64px; border-bottom: 1px solid var(--gt-linea); }
+.gt-logo { display: flex; align-items: center; gap: 11px; font-size: 1.12rem; font-weight: 600; letter-spacing: -.03em; }
+.gt-logo i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid currentColor; display: grid; place-items: center; }
+.gt-logo i::after { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.gt-cabecera nav { display: flex; gap: 30px; margin-left: auto; font-size: .96rem; color: var(--gt-suave); }
+.gt-cta { display: inline-block; padding: 11px 20px; border-radius: 99px; background: var(--gt-texto); color: var(--gt-fondo); font-size: .94rem; font-weight: 500; }
+.gt-cta.is-linea { background: none; color: var(--gt-texto); box-shadow: inset 0 0 0 1px var(--gt-tenue); }
+.gt-portada { padding: 92px 64px 0; }
+.gt-antetitulo { margin: 0 0 22px; font-size: .9rem; color: var(--gt-suave); letter-spacing: .02em; }
+.gt-portada h1 { margin: 0; max-width: 15ch; font-size: clamp(2.8rem, 7.6vw, 6.4rem); font-weight: 600; letter-spacing: -.048em; line-height: .96; }
+.gt-portada p:not(.gt-antetitulo) { margin: 28px 0 30px; max-width: 34ch; font-size: 1.2rem; line-height: 1.45; color: var(--gt-suave); }
+.gt-portada div { display: flex; gap: 12px; }
+
+@media (max-width: 640px) {
+  .gt-aviso { bottom: 16px; }
+  .gt-cabeza { grid-template-areas: "icono titulo" "texto texto"; align-items: center; column-gap: 14px; padding: 20px 20px 4px; }
+  .gt-icono { width: 46px; height: 46px; border-radius: 14px; }
+  .gt-icono .gt-svg { width: 30px; height: 30px; }
+  .gt-cabeza h2 { font-size: 1.28rem; margin: 0; }
+  .gt-cabeza p { margin-top: 12px; font-size: .96rem; }
+  .gt-detalle { padding: 10px 20px 2px; }
+  .gt-desc { padding: 0 8px 14px 34px; }
+  .gt-cat-nombre small { display: none; }
+  .gt-pie { padding: 16px 20px 20px; }
+  .gt-fila[data-vista="simple"] { grid-template-columns: 1fr; gap: 8px; }
+  .gt-boton { left: 16px; bottom: 16px; }
+  .gt-cabecera { padding: 0 20px; height: 64px; }
+  .gt-cabecera nav { display: none; }
+  .gt-cabecera .gt-cta { margin-left: auto; }
+  .gt-portada { padding: 56px 20px 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gt-giro, .gt-boton.is-llega .gt-giro, .gt-perilla, .gt-chev, .gt-mordida { transition-duration: .01s; }
+  .gt-boton.is-llega .gt-giro { transition: opacity .2s; }
+  .gt-fila { transition-duration: .15s, .15s, 0s; }   /* la visibilidad, al instante: si no, el foco no entra */
+  .gt-interruptor.is-no svg { animation: none; }
+}

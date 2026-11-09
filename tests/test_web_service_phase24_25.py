@@ -17,7 +17,12 @@ from document_expiry_service import DocumentExpiryScanResult, DocumentExpiryItem
 
 @pytest.fixture
 def client():
-    return TestClient(app)
+    import os
+    headers = {}
+    tok = os.environ.get("WRITE_API_TOKEN", "").strip()
+    if tok:
+        headers["X-API-Key"] = tok
+    return TestClient(app, headers=headers)
 
 
 def test_get_expense_categories(client):

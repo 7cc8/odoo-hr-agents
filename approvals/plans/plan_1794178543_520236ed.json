@@ -1,0 +1,22 @@
+{
+  "plan_id": "plan_1794178543_520236ed",
+  "plan_type": "create",
+  "target_model": "hr.employee",
+  "target_records": [],
+  "operation_details": {
+    "action": "create",
+    "name": "خالد العتيبي",
+    "values": {
+      "name": "خالد العتيبي",
+      "job_title": "",
+      "work_email": ""
+    }
+  },
+  "created_by": "web_test_cancel_flow",
+  "approved_by": null,
+  "created_at": "2026-11-08T22:55:43.758916",
+  "expires_at": "2026-11-08T23:00:43.758916",
+  "is_consumed": false,
+  "consumed_at": null,
+  "status": "pending"
+}

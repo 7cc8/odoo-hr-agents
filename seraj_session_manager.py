@@ -31,13 +31,19 @@ class ConversationSession:
     last_query_topic: Optional[str] = None
 
     def add_message(self, role: str, content: str, tool_calls: Optional[List[Dict[str, Any]]] = None) -> None:
-        """إضافة رسالة إلى تاريخ الجلسة مع الحفاظ على سقف أقصى 12 رسالة لمنع تضخم السياق."""
+        """إضافة رسالة إلى تاريخ الجلسة مع الحفاظ على سقف أقصى 12 رسالة ومزامنتها مع ذاكرة العمل الموحدة."""
         msg: Dict[str, Any] = {"role": role, "content": content}
         if tool_calls:
             msg["tool_calls"] = tool_calls
         self.history.append(msg)
         if len(self.history) > 12:
             self.history = self.history[-12:]
+        try:
+            from memory.manager import MemoryManager
+            wm = MemoryManager.get_instance().get_working_memory(self.chat_id)
+            wm.add_message(role=role, content=content, tool_calls=tool_calls)
+        except Exception:
+            pass
 
     def clear_pending_clarification(self) -> None:
         self.pending_clarification = None

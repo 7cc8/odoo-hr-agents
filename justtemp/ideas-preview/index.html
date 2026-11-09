@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>معرض النماذج التفاعلية — 9 أفكار حركية مستقلة</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131b2e;
+      --border: #23314d;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.2);
+      --radius: 14px;
+      --spring: cubic-bezier(0.25, 1.4, 0.45, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 40px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: clip;
+    }
+    .header {
+      text-align: center;
+      max-width: 720px;
+      margin-bottom: 36px;
+    }
+    .header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 10px;
+      letter-spacing: -0.02em;
+    }
+    .header p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      width: 100%;
+      max-width: 1140px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      transition: transform 220ms var(--spring), border-color 200ms ease, box-shadow 220ms ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 16px 36px var(--accent-glow);
+    }
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .style-badge {
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-family: monospace;
+      font-weight: 600;
+    }
+    .story-text {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+    .card-actions {
+      display: flex;
+      gap: 10px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+    .btn-preview {
+      flex: 1;
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 150ms ease, transform 150ms var(--spring);
+    }
+    .btn-preview:hover { background: #0369a1; }
+    .btn-preview:active { transform: scale(0.96); }
+    .btn-open {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 150ms ease, border-color 150ms ease;
+    }
+    .btn-open:hover { background: rgba(255, 255, 255, 0.05); border-color: var(--accent); }
+
+    /* Modal for Inline Sandbox */
+    .preview-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.88);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 250ms ease;
+    }
+    .preview-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-frame-box {
+      width: 100%;
+      max-width: 720px;
+      height: 80vh;
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+    }
+    .modal-nav {
+      background: #161b22;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-nav span { font-weight: 600; font-size: 0.9rem; }
+    .btn-close-modal {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .preview-iframe {
+      width: 100%;
+      flex-grow: 1;
+      border: none;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>معرض النماذج التفاعلية — 9 أفكار حركية مستقلة</h1>
+    <p>كل فكرة تتبنى فلسفة الحركة والشعور الفيزيائي لأحد مجلدات Moxen التسعة دون نسخ كود أو ثوابت، مع قصة تفاعل وظيفية جديدة تماماً ومستقلة بالكامل.</p>
+  </header>
+
+  <main class="grid">
+    <!-- 1: analizador -->
+    <article class="card">
+      <div class="card-top">
+        <h2 class="card-title">1. «المُحَلِّل»</h2>
+        <span class="style-badge">cavila</span>
+      </div>
+      <p class="story-text">ينقر المستخدم على «بدء الفحص»، فيتحرك شريط ضوئي نابض على عبارة التحليل؛ وعند الانتهاء تنطوي العبارة في شارة مدمجة وتتدفق بنود التقرير كلمة بكلمة مع وميض المؤشر.</p>
+      <div class="card-actions">
+        <button class="btn-preview" onclick="openPreview('analizador.html', 'المُحَلِّل — فحص المعايير والأمان')">تشغيل التجربة</button>
+        <a class="btn-open" href="analizador.html" target="_blank" rel="noopener">فتح مستقل ↗</a>
+      </div>
+    </article>
+
+    <!-- 2: registro -->
+    <article class="card">
+      <div class="card-top">
+        <h2 class="card-title">2. «السِّجِلّ»</h2>
+        <span class="style-badge">charla</span>
+      </div>
+      <p class="story-text">ينقر المستخدم على زر اعتماد قيد مالي، فتنطلق شارة الختم في مسار قوسي فيزيائي لتستقر فوق السجل مع انضغاط نابض؛ وتتحول علامة القيد لتدقيق مزدوج (✓✓).</p>
+      <div class="card-actions">
+        <button class="btn-preview" onclick="openPreview('registro.html', 'السِّجِلّ — اعتماد القيود المالية')">تشغيل التجربة</button>
+        <a class="btn-open" href="registro.html" target="_blank" rel="noopener">فتح مستقل ↗</a>
+      </div>
+    </article>
+
+    <!-- 3: visor-fichas -->
+    <article class="card">
+      <div class="card-top">
+        <h2 class="card-title">3. «المُستَعرِض»</h2>
+        <span class="style-badge">despliegue</span>
+      </div>
+      <p class="story-text">عند النقر على بطاقة مخطط، تتحرك البطاقة عبر FLIP نحو لوحة الفحص المكبرة مع تمدد قناع اقتطاع دائري؛ بينما تتراجع البطاقات المجاورة وتغوص للخلف بدرجات متفاوتة حسب بعدها.</p>
+      <div class="card-actions">
+        <button class="btn-preview" onclick="openPreview('visor-fichas.html', 'المُستَعرِض — لوحة فحص المخططات')">تشغيل التجربة</button>
+        <a class="btn-open" href="visor-fichas.html" target="_blank" rel="noopener">فتح مستقل ↗</a>
+      </div>
+    </article>
+
+    <!-- 4: desplegador -->
+    <article class="card">
+      <div class="card-top">
+        <h2 class="card-title">4. «المُدَرِّج»</h2>
+        <span class="style-badge">faena</span>
+      </div>
+      <p class="story-text">يضغط المستخدم «بدء المزامنة»، فتتوالى مهام النقل بحلقات تقدم دوارة وتتمدد نافذة التفاصيل؛ وإذا اعترضها خطأ تهتز البطاقة اهتزازة نفي ثم تُعاد قبل انطواء اللوحة في كبسولة تلخيص فردية.</p>
+      <div class="card-actions">
+        <button class="btn-preview" onclick="openPreview('desplegador.html', 'المُدَرِّج — خط مزامنة الحزم')">تشغيل التجربة</button>
+        <a class="btn-open" href="desplegador.html" target="_blank" rel="noopener">فتح مستقل ↗</a>
+      </div>
+    </article>
+
+    <!-- 5: alcancia -->
+    <article class="card">
+      <div class="card-top">
+        <h2 class="card-title">5. «الحافِظَة»</h2>
+        <span class="style-badge">galleta</span>
+      </div>
+      <p class="story-text">يضغط المستخدم «اعتماد الخطة»، فتتحول البطاقة بحركة مورفينغ مستمرة إلى زر عائم دائري في الزاوية؛ وتتطاير منها عملات ذهبية بمسار مقذوف بالستي مع إمكانية التوسيع مجدداً بالنقر.</p>
+      <div class="card-actions">
+        <button class="btn-preview" onclick="openPreview('alcancia.html', 'الحافِظَة — موازنة الادخار الذكي')">تشغيل التجربة</button>
+        <a class="btn-open" href="alcancia.html" target="_blank" rel="noopener">فتح مستقل ↗</a>
+      </div>
+    </article>
+
+    <!-- 6: control-stock -->
+    <article class="card">
+      <div class="card-top">
+        <h2 class="card-title">6. «المِرصاد»</h2>
+        <span class="style-badge">mirador</span>
+      </div>
+      <p class="story-text">عند تفعيل شرائح تصفية المخزون تضيء نقطة كهرمانية حية؛ وعند الرغبة في التراجع يعيد زر شريط الكاسيت لف التعديلات للوراء خطوة بخطوة بحركة شريطية عكسية ومؤشر دوران.</p>
+      <div class="card-actions">
+        <button class="btn-preview" onclick="openPreview('control-stock.html', 'المِرصاد — لوحة تصفية المخزون')">تشغيل التجربة</button>
+        <a class="btn-open" href="control-stock.html" target="_blank" rel="noopener">فتح مستقل ↗</a>
+      </div>
+    </article>
+
+    <!-- 7: agenda-bloques -->
+    <article class="card">
+      <div class="card-top">
+        <h2 class="card-title">7. «المُنَظِّم»</h2>
+        <span class="style-badge">pilar</span>
+      </div>
+      <p class="story-text">يسحب المستخدم فترة الوردية فيمتد خط دليلي متصل مع وسم رقمي أو تطفو الوردية كشريحة ثلاثية الأبعاد بظل مائل؛ وتثبيت اليوم بالدبوس يصحبه تلصص ناعم مع تبديل موجي لكثافة الجدول.</p>
+      <div class="card-actions">
+        <button class="btn-preview" onclick="openPreview('agenda-bloques.html', 'المُنَظِّم — جدول توزيع الورديات')">تشغيل التجربة</button>
+        <a class="btn-open" href="agenda-bloques.html" target="_blank" rel="noopener">فتح مستقل ↗</a>
+      </div>
+    </article>
+
+    <!-- 8: consola-comandos -->
+    <article class="card">
+      <div class="card-top">
+        <h2 class="card-title">8. «المُصنِّف»</h2>
+        <span class="style-badge">pregunta</span>
+      </div>
+      <p class="story-text">ينقر المستخدم على قالب تحليلي، فينحدر صندوق الأوامر بحركة FLIP نحو الأسفل متلاشية البطاقات السريعة بأطياف ضبابية؛ لتبدأ وحدة المعالجة بكتابة سجل النتائج سطراً بسطر خلف مؤشر مضيء.</p>
+      <div class="card-actions">
+        <button class="btn-preview" onclick="openPreview('consola-comandos.html', 'المُصنِّف — تشغيل الأوامر')">تشغيل التجربة</button>
+        <a class="btn-open" href="consola-comandos.html" target="_blank" rel="noopener">فتح مستقل ↗</a>
+      </div>
+    </article>
+
+    <!-- 9: validador-acceso -->
+    <article class="card">
+      <div class="card-top">
+        <h2 class="card-title">9. «البَوّابَة»</h2>
+        <span class="style-badge">venia</span>
+      </div>
+      <p class="story-text">تعرض البوابة عداد أمان دائرياً SVG؛ وعند النقر على «طلب المصادقة» يسقط مربع حوار أمني معلق بنابض مرن، وعند الاعتماد يكتمل الطوق الدائري بالأخضر وتتحول النسبة إلى 100%.</p>
+      <div class="card-actions">
+        <button class="btn-preview" onclick="openPreview('validador-acceso.html', 'البَوّابَة — اعتماد الصلاحيات')">تشغيل التجربة</button>
+        <a class="btn-open" href="validador-acceso.html" target="_blank" rel="noopener">فتح مستقل ↗</a>
+      </div>
+    </article>
+  </main>
+
+  <!-- Interactive Sandbox Modal -->
+  <div class="preview-modal" id="preview-modal">
+    <div class="modal-frame-box">
+      <div class="modal-nav">
+        <span id="modal-frame-title">معاينة النموذج التفاعلي</span>
+        <button class="btn-close-modal" onclick="closePreview()">✕</button>
+      </div>
+      <iframe class="preview-iframe" id="preview-frame" src="about:blank"></iframe>
+    </div>
+  </div>
+
+  <script>
+    const modal = document.getElementById('preview-modal');
+    const frame = document.getElementById('preview-frame');
+    const frameTitle = document.getElementById('modal-frame-title');
+
+    function openPreview(url, title) {
+      frameTitle.textContent = title;
+      frame.src = url;
+      modal.classList.add('active');
+    }
+
+    function closePreview() {
+      modal.classList.remove('active');
+      frame.src = 'about:blank';
+    }
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closePreview();
+    });
+  </script>
+</body>
+</html>
+

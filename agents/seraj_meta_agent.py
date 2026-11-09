@@ -577,7 +577,7 @@ class SerajMetaAgent(BaseAgent):
         plan: Dict[str, Any],
         result: Dict[str, Any]
     ) -> None:
-        """حفظ التفاعل في الذاكرة الطويلة"""
+        """حفظ التفاعل في الذاكرة الطويلة ومزامنتها مع مدير الذاكرة الموحد"""
         interaction = InteractionLearning(
             user_query=perception["query"],
             intent=perception["intent"],
@@ -592,6 +592,26 @@ class SerajMetaAgent(BaseAgent):
         # الاحتفاظ بآخر 100 تفاعل فقط
         if len(self.long_term_memory) > 100:
             self.long_term_memory = self.long_term_memory[-100:]
+
+        # مزامنة مركزية مع MemoryManager
+        try:
+            from memory.manager import MemoryManager
+            mm = MemoryManager.get_instance()
+            mm.save_episode(
+                agent="seraj",
+                agents_involved=[a.value if hasattr(a, "value") else str(a) for a in plan.get("selected_agents", [])],
+                user_query=str(perception.get("query", "")),
+                intent=str(perception.get("intent", "general")),
+                context={"perception": perception, "plan": plan},
+                result=result,
+                success=bool(result.get("overall_success", True)),
+                confidence=float(plan.get("confidence", 0.9) if isinstance(plan, dict) else 0.9),
+                decision_path=[f"agent_{a.value if hasattr(a, 'value') else str(a)}" for a in plan.get("selected_agents", [])],
+                strategies_used=["multi_agent_orchestration"],
+                duration_ms=int(result.get("duration_ms", 0)),
+            )
+        except Exception:
+            pass
 
     # ============================================================================
     # Performance & Analytics
@@ -639,8 +659,25 @@ class SerajMetaAgent(BaseAgent):
         perception: Dict[str, Any],
         previous_results: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """تنفيذ وكيل من registry الحقيقي، مع منع الكتابة خارج الموافقة."""
-        if agent_type == AgentType.KATIB and not perception.get("context", {}).get("approved"):
+        """تنفيذ وكيل من registry الحقيقي مع تمرير سياق الوكلاء السابقين ومنع الكتابة دون اعتماد."""
+        agent_context = dict(perception.get("context", {}))
+        prev_res = previous_results.get("agent_results", {})
+        agent_context["previous_agent_results"] = prev_res
+
+        # تمرير مخرجات الوكلاء السابقين في خط الأنابيب
+        if "fahas" in prev_res:
+            agent_context["fahas_result"] = prev_res["fahas"].get("data")
+        if "hares" in prev_res:
+            agent_context["hares_result"] = prev_res["hares"].get("data")
+        if "mudaqqiq" in prev_res:
+            agent_context["mudaqqiq_result"] = prev_res["mudaqqiq"].get("data")
+        if "muwaffaq" in prev_res:
+            agent_context["muwaffaq_result"] = prev_res["muwaffaq"].get("data")
+        if "musleh" in prev_res:
+            agent_context["musleh_result"] = prev_res["musleh"].get("data")
+
+        # فحص أمان كاتب: التحقق من وجود اعتماد صريح
+        if agent_type == AgentType.KATIB and not (agent_context.get("approved") or agent_context.get("approval_plan")):
             return {"agent": agent_type.value, "success": False, "status": "blocked", "error": "human approval required"}
 
         from agents.fahas_agent import FahasAgent
@@ -665,12 +702,12 @@ class SerajMetaAgent(BaseAgent):
             return {"agent": agent_type.value, "success": False, "status": "unsupported"}
 
         agent = factory()
-        goal_payload = {"query": perception.get("query", ""), "context": perception.get("context", {})}
+        goal_payload = {"query": perception.get("query", ""), "context": agent_context}
         goal = AgentGoal(
-            objective=json.dumps(goal_payload, ensure_ascii=False),
+            objective=json.dumps(goal_payload, ensure_ascii=False, default=str),
             constraints=["Return structured result", "Do not mutate Odoo without explicit approval"],
         )
-        run = agent.run(goal, context=perception.get("context", {}))
+        run = agent.run(goal, context=agent_context)
         return {
             "agent": agent_type.value,
             "success": run.get("status") == "success",

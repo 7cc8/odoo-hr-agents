@@ -1,0 +1,22 @@
+{
+  "plan_id": "plan_1794181431_f678ef03",
+  "plan_type": "create",
+  "target_model": "hr.employee",
+  "target_records": [],
+  "operation_details": {
+    "action": "create",
+    "name": "فهد",
+    "values": {
+      "name": "فهد",
+      "job_title": "",
+      "work_email": ""
+    }
+  },
+  "created_by": "test_add_edit_chat_1",
+  "approved_by": "test_add_edit_chat_1",
+  "created_at": "2026-11-08T23:43:51.001570",
+  "expires_at": "2026-11-08T23:48:51.001570",
+  "is_consumed": false,
+  "consumed_at": null,
+  "status": "approved"
+}

@@ -1,0 +1,409 @@
+/* Charla · Moxen — los estilos del efecto y de la demostración. */
+:root {
+  --ch-fondo: #0a0a0a;
+  --ch-texto: #f4f4f4;
+  --ch-suave: rgba(255, 255, 255, .58);
+  --ch-tenue: rgba(255, 255, 255, .34);
+  --ch-ventana: #111111;
+  --ch-linea: rgba(255, 255, 255, .07);
+  --ch-borde: rgba(255, 255, 255, .11);
+  --ch-encima: rgba(255, 255, 255, .05);
+  --ch-relieve: rgba(255, 255, 255, .06);
+  --ch-luz: rgba(255, 255, 255, .07);          /* el filo de arriba de cada capa */
+  --ch-ellos: #1e1e1e;                         /* la burbuja de soporte */
+  --ch-ellos-tinta: #f4f4f4;
+  --ch-tu: #f4f4f4;                            /* tu burbuja */
+  --ch-tu-tinta: #0a0a0a;
+  --ch-tu-suave: rgba(10, 10, 10, .5);
+  --ch-control: #171717;
+  --ch-flota: #1c1c1c;                         /* la barra de reacciones */
+  --ch-boton: #f4f4f4;
+  --ch-boton-tinta: #0a0a0a;
+  --ch-apagado: rgba(255, 255, 255, .08);
+  --ch-ok: #3ccf6e;
+  --ch-mal: #ff5a4f;
+  --ch-sombra: 0 70px 110px -60px rgba(0, 0, 0, 1), 0 26px 50px -30px rgba(0, 0, 0, .85);
+  --ch-alzada: 0 18px 34px -12px rgba(0, 0, 0, .85), 0 4px 10px -4px rgba(0, 0, 0, .6);
+  --ch-curva: cubic-bezier(.22, 1, .36, 1);
+  --ch-rebote: cubic-bezier(.34, 1.56, .64, 1);
+  --ch-radio: 20px;          /* el redondeo de las burbujas */
+  --ch-junta: 6px;           /* el de las esquinas que se juntan dentro de un grupo */
+  --ch-letra: 15px;          /* el campo, las fichas y las burbujas: las tres iguales, así el texto vuela sin cambiar de tamaño */
+}
+:root[data-tema="claro"] {
+  --ch-fondo: #eeeeee;
+  --ch-texto: #0a0a0a;
+  --ch-suave: rgba(0, 0, 0, .56);
+  --ch-tenue: rgba(0, 0, 0, .34);
+  --ch-ventana: #ffffff;
+  --ch-linea: rgba(0, 0, 0, .07);
+  --ch-borde: rgba(0, 0, 0, .12);
+  --ch-encima: rgba(0, 0, 0, .04);
+  --ch-relieve: rgba(0, 0, 0, .04);
+  --ch-luz: rgba(255, 255, 255, .9);
+  --ch-ellos: #f0f0f0;
+  --ch-ellos-tinta: #0a0a0a;
+  --ch-tu: #0a0a0a;
+  --ch-tu-tinta: #f4f4f4;
+  --ch-tu-suave: rgba(244, 244, 244, .55);
+  --ch-control: #f5f5f5;
+  --ch-flota: #ffffff;
+  --ch-boton: #0a0a0a;
+  --ch-boton-tinta: #f4f4f4;
+  --ch-apagado: rgba(0, 0, 0, .06);
+  --ch-ok: #18a34a;
+  --ch-mal: #e5484d;
+  --ch-sombra: 0 60px 100px -56px rgba(0, 0, 0, .34), 0 20px 40px -28px rgba(0, 0, 0, .2);
+  --ch-alzada: 0 16px 30px -12px rgba(0, 0, 0, .22), 0 3px 8px -3px rgba(0, 0, 0, .12);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--ch-fondo); color: var(--ch-texto); overflow: hidden; }
+body { font-family: "General Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+button, textarea { font: inherit; color: inherit; }
+svg { display: block; }
+.ch-charla svg, .ch-vuelos svg { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.ch-charla :focus-visible { outline: 2px solid var(--ch-texto); outline-offset: 2px; }
+.ch-charla [hidden] { display: none !important; }
+
+/* ── la ventana ────────────────────────────────────────────────────── */
+.ch-charla {
+  position: relative; width: min(600px, 100%); height: min(740px, calc(100vh - 48px)); display: grid;
+  grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden; border: 1px solid var(--ch-linea); border-radius: 28px; background: var(--ch-ventana);
+  box-shadow: inset 0 1px 0 var(--ch-luz), var(--ch-sombra);
+}
+
+.ch-cabeza { position: relative; z-index: 2; display: flex; align-items: center; gap: 13px; height: 74px; padding: 0 14px 0 18px; border-bottom: 1px solid var(--ch-linea); }
+.ch-avatar {
+  position: relative; display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--ch-texto); color: var(--ch-ventana);
+}
+.ch-avatar svg { width: 22px; height: 22px; stroke-width: 1.8; }
+/* en línea: un punto verde que respira */
+.ch-estado { position: absolute; right: -1px; bottom: -1px; width: 13px; height: 13px; border-radius: 50%; background: var(--ch-ok); box-shadow: 0 0 0 3px var(--ch-ventana); }
+.ch-estado::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--ch-ok); animation: ch-respira 2.4s var(--ch-curva) infinite; }
+@keyframes ch-respira { 0% { transform: scale(1); opacity: .55; } 70%, 100% { transform: scale(2.3); opacity: 0; } }
+.ch-quien { flex: 1; min-width: 0; }
+.ch-quien h2 { margin: 0; font-size: 1.1rem; font-weight: 600; letter-spacing: -.025em; line-height: 1.2; }
+.ch-sub { margin: 3px 0 0; font-size: .84rem; color: var(--ch-suave); }
+/* el subtítulo cambia («En línea» ↔ «Escribiendo…») girando como un tambor */
+.ch-rueda { display: grid; perspective: 300px; overflow: hidden; }
+.ch-rueda > span { grid-area: 1 / 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; transform-origin: 50% 50% -.4em; }
+.ch-rueda .is-entra { animation: ch-gira-entra .55s .06s var(--ch-curva) both; }
+.ch-rueda .is-sale { animation: ch-gira-sale .24s cubic-bezier(.5, 0, .75, 0) forwards; }
+@keyframes ch-gira-entra { from { transform: translateY(55%) rotateX(-80deg); opacity: 0; } }
+@keyframes ch-gira-sale { to { transform: translateY(-55%) rotateX(80deg); opacity: 0; } }
+.ch-nueva {
+  display: grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; border: 1px solid var(--ch-linea); border-radius: 13px;
+  background: none; cursor: pointer; transition: background-color .2s, transform .25s var(--ch-curva);
+}
+.ch-nueva svg { width: 19px; height: 19px; }
+.ch-nueva:hover { background: var(--ch-encima); }
+.ch-nueva:active { transform: scale(.94); }
+
+/* el hilo: se desplaza solo, y los mensajes se deslizan bajo la cabecera con un degradado */
+.ch-cuerpo { position: relative; min-height: 0; }
+.ch-hilo {
+  height: 100%; overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 0 18px 18px;
+  scrollbar-width: thin; scrollbar-color: var(--ch-borde) transparent;
+  -webkit-mask-image: linear-gradient(transparent, #000 18px); mask-image: linear-gradient(transparent, #000 18px);
+}
+.ch-pista { display: flex; flex-direction: column; }
+.ch-intro { display: grid; justify-items: center; text-align: center; padding: 50px 24px 6px; }
+.ch-sello {
+  display: grid; place-items: center; width: 58px; height: 58px; border-radius: 19px;
+  background: var(--ch-relieve); border: 1px solid var(--ch-linea); box-shadow: inset 0 1px 0 var(--ch-luz);
+}
+.ch-sello svg { width: 27px; height: 27px; stroke-width: 1.6; }
+.ch-intro h3 { margin: 18px 0 0; font-size: 1.62rem; font-weight: 600; letter-spacing: -.04em; line-height: 1.1; }
+.ch-intro p { margin: 9px 0 0; max-width: 330px; font-size: .9rem; line-height: 1.5; color: var(--ch-suave); }
+
+.ch-log { display: flex; flex-direction: column; }
+.ch-dia { display: flex; align-items: center; gap: 14px; margin: 26px 4px 4px; font-size: .76rem; font-weight: 500; color: var(--ch-tenue); }
+.ch-dia::before, .ch-dia::after { content: ""; flex: 1; height: 1px; background: var(--ch-linea); }
+
+/* ── los mensajes ──────────────────────────────────────────────────── */
+/* Cada mensaje es una fila. Las seguidas del mismo remitente forman un
+   grupo: el nombre va en la primera, el avatar, la hora y la cola de la
+   burbuja solo en la última, y las esquinas que se tocan se achican. */
+.ch-fila { display: grid; grid-template-columns: minmax(0, 1fr); margin-top: 3px; }
+.ch-fila.is-primero { margin-top: 16px; }
+.ch-fila[data-de="tu"] { justify-items: end; }
+.ch-fila:not([data-de="tu"]) { grid-template-columns: 30px minmax(0, 1fr); column-gap: 9px; justify-items: start; }
+.ch-nombre { grid-column: 2; grid-row: 1; margin: 0 0 5px 4px; font-size: .76rem; font-weight: 500; color: var(--ch-tenue); }
+.ch-fila:not(.is-primero) .ch-nombre { display: none; }
+.ch-av {
+  grid-column: 1; grid-row: 2; align-self: end; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--ch-texto); color: var(--ch-ventana); font-size: .62rem; font-weight: 600; letter-spacing: .02em;
+  opacity: 0; transform: scale(.6); transition: opacity .25s, transform .45s var(--ch-rebote);
+}
+.ch-av svg { width: 16px; height: 16px; stroke-width: 1.9; }
+.ch-fila.is-ultimo .ch-av { opacity: 1; transform: none; }
+.ch-msj {
+  grid-row: 2; position: relative; display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  max-width: min(100%, 420px); border-radius: var(--ch-radio); outline: none;
+}
+.ch-fila[data-de="tu"] .ch-msj { grid-column: 1; align-items: flex-end; }
+.ch-fila:not([data-de="tu"]) .ch-msj { grid-column: 2; }
+.ch-msj:focus-visible .ch-bloque { box-shadow: 0 0 0 2px var(--ch-ventana), 0 0 0 4px var(--ch-texto); }
+.ch-meta {
+  grid-row: 3; display: none; align-items: center; gap: 5px; margin: 5px 4px 0; font-size: .74rem; color: var(--ch-tenue);
+  font-variant-numeric: tabular-nums;
+}
+.ch-fila:not([data-de="tu"]) .ch-meta { grid-column: 2; }
+.ch-fila.is-ultimo .ch-meta { display: flex; }
+/* con una reacción, la fila deja sitio a la píldora (el hilo se acomoda con su resorte) */
+.ch-fila.is-ultimo.is-reac .ch-meta { margin-top: 18px; }
+.ch-fila.is-reac:not(.is-ultimo) { padding-bottom: 15px; }
+
+.ch-bloque {
+  position: relative; border-radius: var(--ch-radio); background: var(--ch-ellos); color: var(--ch-ellos-tinta);
+  box-shadow: inset 0 1px 0 var(--ch-luz); transition: border-radius .35s var(--ch-curva);
+}
+.ch-fila[data-de="tu"] .ch-bloque { background: var(--ch-tu); color: var(--ch-tu-tinta); box-shadow: 0 8px 18px -12px rgba(0, 0, 0, .7); }
+.ch-burbuja { padding: 10px 15px; font-size: var(--ch-letra); line-height: 1.45; letter-spacing: -.003em; white-space: pre-wrap; overflow-wrap: anywhere; }
+/* las esquinas que se juntan, del lado del remitente */
+.ch-fila:not([data-de="tu"]) .ch-bloque:not(:first-of-type),
+.ch-fila:not([data-de="tu"]):not(.is-primero) .ch-bloque:first-of-type { border-top-left-radius: var(--ch-junta); }
+.ch-fila:not([data-de="tu"]) .ch-bloque:not(:last-of-type),
+.ch-fila:not([data-de="tu"]):not(.is-ultimo) .ch-bloque:last-of-type { border-bottom-left-radius: var(--ch-junta); }
+.ch-fila[data-de="tu"] .ch-bloque:not(:first-of-type),
+.ch-fila[data-de="tu"]:not(.is-primero) .ch-bloque:first-of-type { border-top-right-radius: var(--ch-junta); }
+.ch-fila[data-de="tu"] .ch-bloque:not(:last-of-type),
+.ch-fila[data-de="tu"]:not(.is-ultimo) .ch-bloque:last-of-type { border-bottom-right-radius: var(--ch-junta); }
+/* la cola: un trocito recortado con una curva (clip-path) que nace de la
+   esquina de la última burbuja; la mitad queda dentro de la burbuja y
+   tapa su esquina redonda, la otra mitad sale en punta */
+.ch-burbuja::after {
+  content: ""; position: absolute; bottom: 0; left: -7px; width: 15px; height: 19px; background: inherit; opacity: 0; transition: opacity .2s;
+  clip-path: path('M15 0V19H1.2C4.4 17.8 6.6 14.3 7.1 7.5V0Z'); pointer-events: none;
+}
+.ch-fila[data-de="tu"] .ch-burbuja::after { left: auto; right: -7px; clip-path: path('M0 0V19H13.8C10.6 17.8 8.4 14.3 7.9 7.5V0Z'); }
+.ch-fila.is-ultimo .ch-burbuja:last-of-type::after { opacity: 1; }
+
+/* los avisos del sistema («… se unió a la conversación») */
+.ch-sistema { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 18px 0 2px; font-size: .8rem; color: var(--ch-suave); }
+.ch-sistema .ch-av { opacity: 1; transform: none; width: 22px; height: 22px; font-size: .5rem; }
+
+/* ✓ enviado y ✓✓ leído: los dos se dibujan */
+.ch-visto { width: 19px; height: 12px; }
+.ch-visto path { stroke-width: 1.7; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .32s cubic-bezier(.65, 0, .35, 1), stroke .3s; }
+.is-enviado .ch-visto path:first-child, .is-leido .ch-visto path { stroke-dashoffset: 0; }
+.is-leido .ch-visto path { stroke: var(--ch-texto); }
+.is-leido .ch-visto path:last-child { transition-delay: .06s, .1s; }
+
+/* ── la tarjeta (respuesta rica) ───────────────────────────────────── */
+.ch-tarjeta { width: 316px; max-width: 100%; padding: 16px 16px 14px; box-shadow: inset 0 1px 0 var(--ch-luz); }
+.ch-t-cabeza { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: .8rem; color: var(--ch-suave); font-variant-numeric: tabular-nums; }
+.ch-t-estado {
+  display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 9px; border-radius: 99px;
+  background: var(--ch-relieve); border: 1px solid var(--ch-linea); color: var(--ch-texto); font-size: .74rem; font-weight: 500;
+}
+.ch-t-estado i { position: relative; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.ch-t-estado i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: currentColor; animation: ch-respira 1.8s var(--ch-curva) infinite; }
+.ch-t-titulo { margin: 14px 0 0; font-size: 1.5rem; font-weight: 600; letter-spacing: -.04em; line-height: 1.1; }
+.ch-t-detalle { margin: 3px 0 0; font-size: .92rem; color: var(--ch-suave); }
+.ch-t-pasos { display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); gap: 4px; margin-top: 16px; }
+.ch-t-pasos i { height: 4px; border-radius: 2px; background: var(--ch-linea); overflow: hidden; }
+.ch-t-pasos b { display: block; height: 100%; border-radius: inherit; background: var(--ch-texto); transform: scaleX(0); transform-origin: 0 50%; }
+.ch-t-pasos b.is-hecho { transform: none; }
+.ch-t-pasos b.is-actual { transform: scaleX(.55); }
+.ch-t-etapas { display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); gap: 4px; margin-top: 7px; font-size: .7rem; color: var(--ch-tenue); }
+.ch-t-etapas span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.ch-t-etapas .is-actual { color: var(--ch-texto); font-weight: 500; }
+.ch-t-filas { margin: 12px 0 0; display: grid; }
+.ch-t-filas div { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-top: 1px solid var(--ch-linea); font-size: .86rem; }
+.ch-t-filas div:first-child { border-top: 0; }
+.ch-t-filas dt { color: var(--ch-suave); font-variant-numeric: tabular-nums; }
+.ch-t-filas dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.ch-t-pie { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--ch-linea); font-size: .82rem; color: var(--ch-suave); }
+.ch-t-accion {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 10px; cursor: pointer;
+  background: var(--ch-boton); color: var(--ch-boton-tinta); font-size: .82rem; font-weight: 600; text-decoration: none; white-space: nowrap;
+  transition: transform .25s var(--ch-curva), filter .2s;
+}
+.ch-t-accion svg { width: 15px; height: 15px; stroke-width: 2; transition: transform .3s var(--ch-curva); }
+.ch-t-accion:hover svg { transform: translateX(2px); }
+.ch-t-accion:active { transform: scale(.96); }
+
+/* ── el archivo adjunto, con su avance ─────────────────────────────── */
+.ch-archivo { display: flex; align-items: center; gap: 12px; width: 280px; max-width: 100%; padding: 10px 16px 10px 10px; }
+.ch-arch-icono {
+  position: relative; display: grid; place-items: center; flex: none; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 13px;
+  background: var(--ch-tu-suave); background: color-mix(in srgb, currentColor 9%, transparent); cursor: pointer;
+}
+.ch-arch-icono > svg { position: absolute; inset: 0; margin: auto; width: 21px; height: 21px; transition: opacity .25s, transform .4s var(--ch-rebote); }
+.ch-arch-anillo { width: 44px !important; height: 44px !important; transform: rotate(-90deg); }
+.ch-arch-anillo circle { stroke-width: 2.2; }
+.ch-arch-anillo circle:first-child { opacity: .16; }
+.ch-arch-anillo circle:last-child { stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .3s var(--ch-curva); }
+.ch-arch-cancela { opacity: 0; transform: scale(.5) !important; }
+.ch-archivo.is-subiendo .ch-arch-doc { opacity: 0; transform: scale(.5); }
+.ch-archivo.is-subiendo .ch-arch-cancela { opacity: 1; transform: none !important; }
+.ch-archivo:not(.is-subiendo) .ch-arch-anillo { opacity: 0; transform: rotate(-90deg) scale(.8); }
+.ch-archivo:not(.is-subiendo) .ch-arch-icono { cursor: default; }
+.ch-arch-textos { min-width: 0; display: grid; gap: 2px; }
+.ch-arch-textos b { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: .92rem; font-weight: 500; }
+.ch-arch-textos small { font-size: .76rem; opacity: .6; font-variant-numeric: tabular-nums; }
+
+/* ── «escribiendo…»: tres puntos en ola ────────────────────────────── */
+.ch-escribe { display: grid; grid-template-columns: 30px auto; column-gap: 9px; justify-content: start; margin-top: 16px; }
+.ch-escribe .ch-av { grid-row: 1; opacity: 1; transform: none; }
+/* si sigue a un mensaje del mismo remitente, se pega a su grupo y no repite el avatar */
+.ch-escribe.is-junta { margin-top: 6px; }
+.ch-escribe.is-junta .ch-av { visibility: hidden; }
+.ch-puntos {
+  display: flex; align-items: center; gap: 5px; height: 42px; padding: 0 16px; border-radius: var(--ch-radio); border-bottom-left-radius: 4px;
+  background: var(--ch-ellos); transform-origin: 0 100%;
+}
+.ch-puntos i { width: 7px; height: 7px; border-radius: 50%; background: var(--ch-ellos-tinta); opacity: .35; animation: ch-ola 1.15s ease-in-out infinite; }
+.ch-puntos i:nth-child(2) { animation-delay: .14s; }
+.ch-puntos i:nth-child(3) { animation-delay: .28s; }
+@keyframes ch-ola { 0%, 56%, 100% { transform: none; opacity: .32; } 26% { transform: translateY(-5px); opacity: 1; } }
+
+/* ── las respuestas rápidas ────────────────────────────────────────── */
+.ch-fichas { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; margin-top: 16px; padding-left: 40px; }
+.ch-ficha {
+  display: inline-flex; align-items: center; height: 40px; padding: 0 16px; border: 1px solid var(--ch-borde); border-radius: 99px;
+  background: var(--ch-ventana); color: var(--ch-texto); cursor: pointer; font-size: var(--ch-letra); line-height: 1.45; font-weight: 500; letter-spacing: -.005em;
+  transition: background-color .2s, border-color .2s, transform .35s var(--ch-curva);
+}
+.ch-ficha:hover { background: var(--ch-encima); border-color: var(--ch-suave); transform: translateY(-2px); }
+.ch-ficha:active { transform: scale(.97); }
+.ch-ficha span { white-space: nowrap; }
+
+/* ── lo que vuela: la ficha al campo y el texto del campo a su burbuja ── */
+.ch-vuelos { position: fixed; inset: 0; z-index: 60; pointer-events: none; }
+.ch-vuelo { position: absolute; left: 0; top: 0; font-family: "General Sans", system-ui, sans-serif; will-change: transform; }
+.ch-vuelo-fondo { position: absolute; inset: 0; border-radius: inherit; }
+.ch-vuelo[data-forma="ficha"] { border-radius: 99px; }
+.ch-vuelo[data-forma="ficha"] .ch-vuelo-fondo { border: 1px solid var(--ch-borde); background: var(--ch-ventana); }
+.ch-vuelo[data-forma="burbuja"] { border-radius: var(--ch-radio); border-bottom-right-radius: 4px; }
+.ch-vuelo[data-forma="burbuja"] .ch-vuelo-fondo { background: var(--ch-tu); box-shadow: var(--ch-alzada); }
+.ch-vuelo-texto { position: absolute; left: 0; top: 0; display: block; font-size: var(--ch-letra); line-height: 1.45; letter-spacing: -.003em; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ch-texto); }
+.ch-vuelo[data-forma="ficha"] .ch-vuelo-texto { font-weight: 500; letter-spacing: -.005em; white-space: nowrap; }
+.ch-vuelo-texto.is-tinta { color: var(--ch-tu-tinta); }
+.ch-vuelo-icono { position: absolute; left: 0; top: 0; width: 20px; height: 20px; color: var(--ch-texto); }
+
+/* ── las reacciones ────────────────────────────────────────────────── */
+.ch-reacciones {
+  position: absolute; left: 0; top: 0; z-index: 5; display: flex; gap: 2px; padding: 5px; border-radius: 99px;
+  background: var(--ch-flota); border: 1px solid var(--ch-borde); box-shadow: var(--ch-alzada), inset 0 1px 0 var(--ch-luz);
+  transform-origin: var(--ch-origen, 0 100%); opacity: 0; visibility: hidden; transform: scale(.6) translateY(6px);
+  transition: opacity .16s, transform .2s var(--ch-curva), visibility 0s .2s;
+}
+.ch-reacciones.is-abierta { opacity: 1; visibility: visible; transform: none; transition: opacity .18s, transform .5s var(--ch-muelle, var(--ch-rebote)), visibility 0s; }
+.ch-reacciones button {
+  display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%; background: none; cursor: pointer;
+  opacity: 0; transform: translateY(8px) scale(.6); transition: opacity .15s, transform .2s var(--ch-curva), background-color .2s;
+}
+.ch-reacciones.is-abierta button { opacity: 1; transform: none; transition: opacity .2s calc(.04s + var(--i) * .035s), transform .45s calc(.04s + var(--i) * .035s) var(--ch-rebote), background-color .2s; }
+.ch-reacciones button svg { width: 21px; height: 21px; transition: transform .3s var(--ch-rebote); }
+.ch-reacciones button:hover svg, .ch-reacciones button:focus-visible svg { transform: translateY(-3px) scale(1.24); }
+.ch-reacciones button[aria-pressed="true"] { background: var(--ch-relieve); }
+.ch-reacciones button:focus-visible { outline-offset: -2px; }
+/* la que queda en la burbuja: una píldora que se posa en su esquina */
+.ch-reac {
+  position: absolute; bottom: -15px; right: 10px; z-index: 1; display: grid; place-items: center; width: 30px; height: 24px; border-radius: 99px;
+  background: var(--ch-flota); border: 1px solid var(--ch-borde); box-shadow: 0 0 0 2px var(--ch-ventana); color: var(--ch-texto);
+}
+.ch-fila[data-de="tu"] .ch-reac { right: auto; left: 10px; }
+.ch-reac svg { width: 15px; height: 15px; stroke-width: 1.9; }
+.ch-reac svg .ch-lleno { fill: currentColor; }
+.ch-reac::after { content: ""; position: absolute; inset: -3px; border-radius: inherit; border: 1.5px solid var(--ch-texto); opacity: 0; }
+.ch-reac.is-posa::after { animation: ch-onda .7s var(--ch-curva); }
+@keyframes ch-onda { from { opacity: .7; transform: scale(.8); } to { opacity: 0; transform: scale(1.9); } }
+
+/* ── el campo ──────────────────────────────────────────────────────── */
+.ch-redacta { position: relative; z-index: 2; padding: 12px 14px 14px; border-top: 1px solid var(--ch-linea); background: var(--ch-ventana); }
+.ch-campo {
+  display: flex; align-items: flex-end; gap: 4px; padding: 5px; border: 1px solid var(--ch-borde); border-radius: 25px; background: var(--ch-control);
+  transition: border-color .25s, box-shadow .25s;
+}
+.ch-campo:focus-within { border-color: var(--ch-suave); box-shadow: 0 0 0 4px var(--ch-linea); }
+.ch-campo textarea {
+  flex: 1; min-width: 0; height: 40px; max-height: 136px; margin: 0; padding: 9px 6px; border: 0; outline: 0 !important; resize: none; background: none;
+  font-size: var(--ch-letra); line-height: 1.45; letter-spacing: -.003em; color: var(--ch-texto); overflow-y: hidden; scrollbar-width: thin;
+}
+.ch-campo textarea::placeholder { color: var(--ch-tenue); transition: opacity .2s; }
+/* mientras un texto vuela hacia el campo (o sale de él), el «Escribe un mensaje…» se aparta */
+.ch-campo.is-callado textarea::placeholder { opacity: 0; transition-duration: .08s; }
+.ch-adjunta, .ch-envia {
+  display: grid; place-items: center; flex: none; width: 40px; height: 40px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  transition: background-color .25s, color .25s, transform .4s var(--ch-rebote);
+}
+.ch-adjunta { background: none; color: var(--ch-suave); }
+.ch-adjunta:hover { color: var(--ch-texto); background: var(--ch-encima); }
+.ch-adjunta svg { width: 21px; height: 21px; }
+.ch-envia { background: var(--ch-boton); color: var(--ch-boton-tinta); }
+.ch-envia svg { width: 20px; height: 20px; stroke-width: 2.1; transition: transform .35s var(--ch-rebote); }
+.ch-envia:disabled { background: var(--ch-apagado); color: var(--ch-tenue); cursor: default; transform: scale(.9); }
+.ch-envia:disabled svg { transform: translateY(2px); }
+.ch-envia:not(:disabled):hover svg { transform: translateY(-2px); }
+.ch-envia.is-sale svg { animation: ch-despega .5s var(--ch-curva); }
+@keyframes ch-despega { 40% { transform: translateY(-16px); opacity: 0; } 41% { transform: translateY(14px); opacity: 0; } }
+
+/* «Nuevo mensaje»: aparece si llega algo y estás leyendo más arriba */
+.ch-abajo {
+  position: absolute; left: 50%; bottom: 12px; z-index: 3; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px 0 11px;
+  border: 1px solid var(--ch-borde); border-radius: 99px; background: var(--ch-flota); box-shadow: var(--ch-alzada); cursor: pointer;
+  font-size: .82rem; font-weight: 500; opacity: 0; visibility: hidden; transform: translate(-50%, 10px) scale(.9);
+  transition: opacity .2s, transform .3s var(--ch-curva), visibility 0s .3s;
+}
+.ch-abajo svg { width: 16px; height: 16px; stroke-width: 2; }
+.ch-abajo.is-visible { opacity: 1; visibility: visible; transform: translate(-50%, 0); transition: opacity .2s, transform .5s var(--ch-rebote), visibility 0s; }
+
+/* soltar un archivo encima de la ventana */
+.ch-suelta {
+  position: absolute; inset: 10px; z-index: 8; display: grid; place-content: center; justify-items: center; gap: 12px; border-radius: 22px;
+  border: 1.5px dashed var(--ch-suave); background: color-mix(in srgb, var(--ch-ventana) 88%, transparent); font-size: 1rem; font-weight: 500;
+  opacity: 0; visibility: hidden; transform: scale(.98); transition: opacity .2s, transform .35s var(--ch-curva), visibility 0s .2s; pointer-events: none;
+}
+.ch-suelta svg { width: 30px; height: 30px; }
+.ch-charla.is-arrastra .ch-suelta { opacity: 1; visibility: visible; transform: none; transition: opacity .2s, transform .35s var(--ch-curva), visibility 0s; }
+
+.ch-oculto { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* ── la demostración ───────────────────────────────────────────────── */
+.ch-escena { height: 100%; display: grid; place-items: center; padding: 24px; }
+
+/* ── en el teléfono: la ventana ocupa la pantalla ──────────────────── */
+@media (max-width: 560px) {
+  .ch-escena { padding: 0; }
+  .ch-charla { width: 100%; height: 100vh; height: 100dvh; border: 0; border-radius: 0; box-shadow: none; }
+  .ch-cabeza { height: 66px; padding: 0 10px 0 14px; }
+  .ch-avatar { width: 40px; height: 40px; }
+  .ch-hilo { padding: 0 12px 16px; }
+  .ch-intro { padding: 26px 12px 2px; }
+  .ch-intro h3 { font-size: 1.42rem; }
+  .ch-fila:not([data-de="tu"]) { grid-template-columns: 28px minmax(0, 1fr); column-gap: 8px; }
+  .ch-av { width: 28px; height: 28px; }
+  .ch-msj { max-width: min(100%, 300px); }
+  .ch-fila[data-de="tu"] .ch-msj { max-width: 84%; }
+  /* las fichas, en una fila que se desliza de lado (con el borde que se desvanece) */
+  .ch-fichas {
+    flex-wrap: nowrap; justify-content: flex-start; gap: 7px; margin-left: -12px; margin-right: -12px; padding: 2px 12px 4px;
+    overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 28px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 28px), transparent);
+  }
+  .ch-fichas::-webkit-scrollbar { display: none; }
+  .ch-ficha { flex: none; height: 38px; padding: 0 14px; }
+  .ch-redacta { padding: 10px 10px 12px; }
+}
+@media (hover: none) {
+  .ch-msj { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ch-estado::after, .ch-t-estado i::after { animation: none; opacity: 0; }
+  .ch-puntos i { animation: none; opacity: .6; }
+  .ch-rueda .is-entra { animation: ch-funde .15s both; }
+  .ch-rueda .is-sale { animation: ch-funde .1s reverse forwards; }
+  .ch-reacciones, .ch-reacciones.is-abierta, .ch-reacciones button, .ch-reacciones.is-abierta button { transition: opacity .12s, visibility 0s; transform: none; }
+  .ch-visto path, .ch-arch-anillo circle:last-child { transition: none; }
+  .ch-reac.is-posa::after, .ch-envia.is-sale svg { animation: none; }
+  .ch-av, .ch-bloque { transition: none; }
+}
+@keyframes ch-funde { from { opacity: 0; } }

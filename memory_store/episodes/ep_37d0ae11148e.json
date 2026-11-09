@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_37d0ae11148e",
+  "timestamp": "2026-11-09T02:59:16.164861",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "اعرض على 15 سجلاً يحملون هذا الاسم ناصر",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "web_f67cc281-905c-477d-b5cf-3c9f4a9b7a35",
+    "company_id": 1,
+    "connection_id": "default",
+    "operation_id": "op_1794182341_4d7109"
+  },
+  "result": {
+    "response": "تم العثور على 15 سجلاً يحملون اسم \"ناصر\" في قاعدة بيانات الموظفين. إليك تفاصيلهم:\n\n| المعرف | الاسم | البريد الإلكتروني | القسم"
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": 1,
+  "user_id": "web_f67cc281-905c-477d-b5cf-3c9f4a9b7a35"
+}

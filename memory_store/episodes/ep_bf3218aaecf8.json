@@ -1,0 +1,38 @@
+{
+  "episode_id": "ep_bf3218aaecf8",
+  "timestamp": "2026-11-09T01:54:44.234360",
+  "agent": "fahas",
+  "agents_involved": [
+    "fahas"
+  ],
+  "user_query": "{\"query\": \"كم عدد الموظفين في الشركة؟\", \"context\": {\"previous_agent_results\": {}}}",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "steps_executed": [
+      {
+        "step": 0,
+        "action": "query",
+        "status": "success"
+      }
+    ],
+    "data": {
+      "model": "hr.employee",
+      "count": 16,
+      "domain": [],
+      "company_id": null,
+      "context": {}
+    },
+    "status": "success",
+    "consistency_check": null
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

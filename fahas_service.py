@@ -885,10 +885,13 @@ class FahasAgent:
             }
 
 
-# توفير اسم مرادف للتوافق
+# توفير اسم مرادف للتوافق: FahasService هي الخدمة الإجرائية، بينما FahasAgent المعتمد هو مشتق BaseAgent في agents.fahas_agent
 FahasService = FahasAgent
 
 
 def get_fahas_agent() -> FahasAgent:
-    """الحصول على النسخة الحالية لوكيل فاحص."""
+    """الحصول على النسخة الحالية لخدمة فاحص الإجرائية."""
     return FahasAgent.get_instance()
+
+
+get_fahas_service = get_fahas_agent

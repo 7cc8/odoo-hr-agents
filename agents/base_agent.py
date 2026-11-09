@@ -29,12 +29,20 @@ logger = logging.getLogger("base_agent")
 
 @dataclass
 class AgentGoal:
-    """تعريف الهدف والقيود"""
-    objective: str
+    """تعريف الهدف والقيود مع التوافقية العكسية لـ description و context"""
+    objective: str = ""
+    description: str = ""
     constraints: List[str] = field(default_factory=list)
     success_criteria: List[str] = field(default_factory=list)
     max_iterations: int = 10
     timeout_seconds: int = 300
+    context: Optional[Dict[str, Any]] = None
+
+    def __post_init__(self):
+        if not self.objective and self.description:
+            self.objective = self.description
+        elif not self.description and self.objective:
+            self.description = self.objective
 
 
 @dataclass
@@ -53,11 +61,30 @@ class AgentMemory:
         })
     
     def add_episode(self, episode: Dict[str, Any]) -> None:
-        """حفظ حلقة كاملة للرجوع لها لاحقاً"""
+        """حفظ حلقة كاملة للرجوع لها لاحقاً ومزامنتها مع مدير الذاكرة الموحد"""
         self.episodic_memory.append({
             **episode,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         })
+        try:
+            from memory.manager import MemoryManager
+            mm = MemoryManager.get_instance()
+            goal_text = str(episode.get("goal") or episode.get("query") or "agent_execution")
+            mm.save_episode(
+                agent=episode.get("agent", "agent"),
+                agents_involved=episode.get("agents_involved", [episode.get("agent", "agent")]),
+                user_query=goal_text,
+                intent=str(episode.get("intent", "task")),
+                context=episode.get("context", {}),
+                result=episode.get("result", {}),
+                success=bool(episode.get("success", True)),
+                confidence=float(episode.get("confidence", 0.9)),
+                decision_path=episode.get("decision_path", []),
+                strategies_used=episode.get("strategies_used", []),
+                duration_ms=int(episode.get("duration_ms", 0)),
+            )
+        except Exception:
+            pass
     
     def update_semantic(self, key: str, value: Any) -> None:
         """تحديث المعرفة الدلالية"""
@@ -130,6 +157,7 @@ class BaseAgent(ABC):
         self.name = name
         self.role = role
         self.llm_model = llm_model or os.environ.get("LLM_MODEL", "qwen3.5:9b")
+        self.llm_provider: Optional[Any] = None
         self.tools = tools or []
         self.memory = AgentMemory()
         self.current_goal: Optional[AgentGoal] = None
@@ -143,10 +171,86 @@ class BaseAgent(ABC):
         
         # Observability
         self.trace_log: List[Dict[str, Any]] = []
+
+    def recall_similar_episodes(self, query: str, limit: int = 3) -> List[Any]:
+        """استرجاع حلقات تفاعل سابقة مشابهة من الذاكرة المركزية الموحدة"""
+        try:
+            from memory.manager import MemoryManager
+            mm = MemoryManager.get_instance()
+            return mm.search_episodes(query=query, limit=limit)
+        except Exception:
+            return []
+
+    def get_semantic_knowledge(self, concept: str) -> Optional[Any]:
+        """استرجاع معرفة دلالية من الذاكرة المركزية"""
+        try:
+            from memory.manager import MemoryManager
+            mm = MemoryManager.get_instance()
+            return mm.get_semantic_knowledge(concept)
+        except Exception:
+            return None
     
     # ═══════════════════════════════════════════════════════════════
     # Core Agentic Loop
     # ═══════════════════════════════════════════════════════════════
+
+    def _call_perceive(self, goal: Any, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """استدعاء perceive بدعم نمطين: (goal, context) أو (request_dict)."""
+        import inspect
+        sig = inspect.signature(self.perceive)
+        names = [p.name for p in sig.parameters.values()]
+        if "goal" in names:
+            return self.perceive(goal, context)
+
+        # Style B: Request dictionary
+        req: Dict[str, Any] = {}
+        if isinstance(context, dict):
+            req.update(context)
+        if hasattr(goal, "objective"):
+            try:
+                loaded = json.loads(goal.objective)
+                if isinstance(loaded, dict):
+                    req.update(loaded)
+                else:
+                    req["query"] = str(goal.objective)
+            except Exception:
+                req["query"] = str(goal.objective)
+        elif isinstance(goal, dict):
+            req.update(goal)
+        else:
+            req["query"] = str(goal)
+        if "query" not in req and hasattr(goal, "objective"):
+            req["query"] = str(goal.objective)
+        if "context" not in req:
+            req["context"] = context or {}
+        return self.perceive(req)
+
+    def _call_plan(self, goal: Any, perception: Dict[str, Any]) -> Any:
+        """استدعاء plan بدعم نمطين: (goal, perception) أو (perception)."""
+        import inspect
+        sig = inspect.signature(self.plan)
+        names = [p.name for p in sig.parameters.values()]
+        if "goal" in names:
+            return self.plan(goal, perception)
+        return self.plan(perception)
+
+    def _call_execute(self, plan: Any, perception: Dict[str, Any]) -> Dict[str, Any]:
+        """استدعاء execute بدعم (plan) أو (plan, perception)."""
+        import inspect
+        sig = inspect.signature(self.execute)
+        names = [p.name for p in sig.parameters.values()]
+        if "perception" in names:
+            return self.execute(plan, perception)
+        return self.execute(plan)
+
+    def _call_reflect(self, goal: Any, plan: Any, result: Dict[str, Any], perception: Dict[str, Any]) -> Any:
+        """استدعاء reflect بدعم (goal, plan, result) أو (perception, plan, result)."""
+        import inspect
+        sig = inspect.signature(self.reflect)
+        names = [p.name for p in sig.parameters.values()]
+        if "goal" in names:
+            return self.reflect(goal, plan, result)
+        return self.reflect(perception, plan, result)
     
     def run(self, goal: AgentGoal, context: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """
@@ -157,46 +261,68 @@ class BaseAgent(ABC):
         self.iteration_count = 0
         start_time = datetime.now(timezone.utc)
         
-        self._log_trace("START", {"goal": goal.objective})
+        goal_text = goal.objective if hasattr(goal, "objective") else str(goal)
+        self._log_trace("START", {"goal": goal_text})
         
         try:
             # 1. Perception: فهم السياق
-            perception = self.perceive(goal, context)
-            self._log_trace("PERCEIVE", perception)
+            perception = self._call_perceive(goal, context)
+            self._log_trace("PERCEIVE", perception if isinstance(perception, dict) else {})
             
             # 2. Planning: وضع خطة
-            plan = self.plan(goal, perception)
+            plan = self._call_plan(goal, perception)
             self.current_plan = plan
-            self._log_trace("PLAN", {"steps": len(plan.steps)})
+            steps_cnt = (
+                len(plan.steps) if hasattr(plan, "steps")
+                else (len(plan.get("steps", plan.get("execution_order", []))) if isinstance(plan, dict) else 1)
+            )
+            self._log_trace("PLAN", {"steps": steps_cnt})
             
             # 3. Execution Loop
             while self.iteration_count < self.max_iterations:
                 self.iteration_count += 1
                 
                 # تنفيذ الخطة
-                result = self.execute(plan)
-                self._log_trace("EXECUTE", {"iteration": self.iteration_count, "status": result.get("status")})
+                result = self._call_execute(plan, perception)
+                status_val = result.get("status") if isinstance(result, dict) else "completed"
+                self._log_trace("EXECUTE", {"iteration": self.iteration_count, "status": status_val})
                 
                 # 4. Reflection: مراجعة النتائج
-                reflection = self.reflect(goal, plan, result)
+                reflection = self._call_reflect(goal, plan, result, perception)
+                if isinstance(reflection, dict):
+                    success = bool(reflection.get("success", result.get("overall_success", True) if isinstance(result, dict) else True))
+                    conf = float(reflection.get("confidence", reflection.get("confidence_in_decision", 0.9)))
+                    should_retry = bool(reflection.get("should_retry", False))
+                    retry_strat = reflection.get("retry_strategy")
+                else:
+                    success = getattr(reflection, "success", True)
+                    conf = getattr(reflection, "confidence", 0.9)
+                    should_retry = getattr(reflection, "should_retry", False)
+                    retry_strat = getattr(reflection, "retry_strategy", None)
+
                 self._log_trace("REFLECT", {
-                    "success": reflection.success,
-                    "confidence": reflection.confidence,
-                    "should_retry": reflection.should_retry,
+                    "success": success,
+                    "confidence": conf,
+                    "should_retry": should_retry,
                 })
                 
-                # إذا نجح وثقة عالية → خروج
-                if reflection.success and reflection.confidence >= 0.8:
-                    # حفظ في الذاكرة الطويلة
+                # إذا نجح أو اكتمل التقييم بدون إعادة محاولة → خروج
+                if success and (conf >= 0.7 or not should_retry):
+                    plan_steps = (
+                        plan.steps if hasattr(plan, "steps")
+                        else (plan.get("steps", plan.get("execution_order")) if isinstance(plan, dict) else [])
+                    )
                     self.memory.add_episode({
-                        "goal": goal.objective,
-                        "plan": plan.steps,
+                        "agent": self.name,
+                        "goal": goal_text,
+                        "plan": plan_steps,
                         "result": result,
                         "reflection": reflection,
+                        "confidence": conf,
                         "iterations": self.iteration_count,
                     })
                     
-                    self._log_trace("SUCCESS", {"confidence": reflection.confidence})
+                    self._log_trace("SUCCESS", {"confidence": conf})
                     
                     return {
                         "status": "success",
@@ -208,8 +334,8 @@ class BaseAgent(ABC):
                     }
                 
                 # إذا يحتاج إعادة محاولة
-                if reflection.should_retry and self.iteration_count < self.max_iterations:
-                    self._log_trace("RETRY", {"strategy": reflection.retry_strategy})
+                if should_retry and self.iteration_count < self.max_iterations:
+                    self._log_trace("RETRY", {"strategy": retry_strat})
                     # تعديل الخطة حسب استراتيجية الإعادة
                     plan = self._adjust_plan(plan, reflection)
                     continue

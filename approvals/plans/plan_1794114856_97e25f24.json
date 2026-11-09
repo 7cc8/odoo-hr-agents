@@ -1,0 +1,22 @@
+{
+  "plan_id": "plan_1794114856_97e25f24",
+  "plan_type": "create",
+  "target_model": "hr.employee",
+  "target_records": [],
+  "operation_details": {
+    "action": "create",
+    "name": "ناصر الزهراني",
+    "values": {
+      "name": "ناصر الزهراني",
+      "job_title": "",
+      "work_email": ""
+    }
+  },
+  "created_by": "web_test_add_full",
+  "approved_by": "web_test_add_full",
+  "created_at": "2026-11-08T05:14:16.432099",
+  "expires_at": "2026-11-08T05:19:16.432099",
+  "is_consumed": true,
+  "consumed_at": "2026-11-08T05:14:16.452098",
+  "status": "consumed"
+}

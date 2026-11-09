@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_01ee34b3ea3c",
+  "timestamp": "2026-11-09T02:43:22.556169",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "تمام",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "pending-confirmation-test",
+    "company_id": null,
+    "connection_id": "default",
+    "operation_id": null
+  },
+  "result": {
+    "response": "🛡️ **تنبيه استمرارية الخدمة — وضع الأمان الاحترازي (سراج):**\n────────────────────\nخوادم النماذج اللغوية (السحابية والمحلية) غير متاحة حالياً أو انتهت مهلة استجابتها.\n\n💡 **العمليات المتاحة لك فوراً دون توقف:**\n• **إحصائيات الموظفين:** اسأل «كم عدد الموظفين؟» أو «كم عدد المؤرشفين؟»\n• **استعراض المنشآت:** اسأل «ما هي الشركات المتاحة؟»\n• **البحث بالاسم:** اسأل «ابحث عن موظف اسمه [الاسم]»\n• **نظام العمل السعودي:** اسأل أي استشارة في نظام العمل وسيجيبك «مدقق» فوراً.\n\n⚙️ لإعادة تفعيل الذكاء الاصطناعي الكامل: يمكنك مراجعة صفحة الإعدادات وتشغيل خادم Ollama المحلي أو تحديث مفتاح API السحابي."
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": "pending-confirmation-test"
+}

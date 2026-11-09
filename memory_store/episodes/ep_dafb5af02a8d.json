@@ -1,0 +1,28 @@
+{
+  "episode_id": "ep_dafb5af02a8d",
+  "timestamp": "2026-11-09T00:57:42.710867",
+  "agent": "katib",
+  "agents_involved": [
+    "katib"
+  ],
+  "user_query": "Test 9",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "success": true,
+    "operation_type": null,
+    "executed_steps": [],
+    "errors": [],
+    "rollback_performed": false,
+    "timestamp": "2026-11-08T21:57:42.708862+00:00"
+  },
+  "success": true,
+  "confidence": 0.9,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

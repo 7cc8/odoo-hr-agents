@@ -24,15 +24,16 @@ class OdooAttendanceWriteGateway:
     بوابة الكتابة الآمنة والمحصورة لموديل الحضور والانصراف (hr.attendance).
     تلتزم بحارس البيئة وعزل الصلاحيات ومنع العمليات غير المصرح بها.
     """
-    def __init__(self, url: str, db: str, login: str, password: str, common=None, models=None):
+    def __init__(self, url: str, db: str, login: Optional[str] = None, password: str = "", common=None, models=None, username: Optional[str] = None):
         self._check_environment(db)
         self.url = url.rstrip("/")
         self.db = db
-        self.login = login
+        effective_login = login or username or ""
+        self.login = effective_login
         self._password = password
         self._common = common or xmlrpc.client.ServerProxy(f"{self.url}/xmlrpc/2/common", allow_none=True)
         self._models = models or xmlrpc.client.ServerProxy(f"{self.url}/xmlrpc/2/object", allow_none=True)
-        self.uid = self._common.authenticate(self.db, login, password, {})
+        self.uid = self._common.authenticate(self.db, effective_login, password, {})
         if not self.uid:
             raise AttendanceWriteGatewayError("فشل مصادقة بوابة كتابة الحضور في أودو.")
         self._version = self._common.version()

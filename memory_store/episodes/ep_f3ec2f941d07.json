@@ -1,0 +1,45 @@
+{
+  "episode_id": "ep_f3ec2f941d07",
+  "timestamp": "2026-11-08T22:13:51.014230",
+  "agent": "Hares",
+  "agents_involved": [
+    "Hares"
+  ],
+  "user_query": "{\"query\": \"أنشئ موظف جديد\", \"context\": {\"previous_agent_results\": {\"mudaqqiq\": {\"agent\": \"mudaqqiq\", \"success\": true, \"status\": \"success\", \"data\": {\"status\": \"compliant\", \"decision\": \"approve\", \"violations\": [], \"warnings\": [], \"passed_checks\": 9, \"total_checks\": 9, \"timestamp\": \"2026-11-08T19:13:51.013712+00:00\"}, \"reflection\": {\"decision_rationale_ar\": [\"جميع الفحوصات (9/9) نجحت. البيانات ممتثلة للأنظمة.\"], \"legal_interpretation_ar\": \"\", \"confidence_score\": 0.95, \"lessons_learned\": [], \"should_record_precedent\": false}, \"iterations\": 1}}, \"mudaqqiq_result\": {\"status\": \"compliant\", \"decision\": \"approve\", \"violations\": [], \"warnings\": [], \"passed_checks\": 9, \"total_checks\": 9, \"timestamp\": \"2026-11-08T19:13:51.013712+00:00\"}}}",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "decision": "DENY",
+    "risk_level": "medium",
+    "violations": [
+      null
+    ],
+    "requirements": [],
+    "environment_check": {
+      "is_authorized": false,
+      "violation": null
+    },
+    "risk_assessment": {
+      "level": "medium",
+      "factors": [
+        "write_operation",
+        "employee_data"
+      ]
+    },
+    "policy_check": {
+      "violations": [],
+      "requirements": []
+    },
+    "reason": "1 security violations",
+    "rationale": "Security policy violations must be resolved"
+  },
+  "success": true,
+  "confidence": 0.5,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

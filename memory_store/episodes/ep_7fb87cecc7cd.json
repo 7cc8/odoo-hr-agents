@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_7fb87cecc7cd",
+  "timestamp": "2026-11-09T01:57:20.900383",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "موافق",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "pending-confirmation-test",
+    "company_id": null,
+    "connection_id": "default",
+    "operation_id": null
+  },
+  "result": {
+    "response": "أهلاً بك يا سيدي/سيّدة، أنا «سراج» - مساعدك في إدارة الموارد البشرية عبر نظام Odoo.\n\nأرى أنك قد وافقت على شيء ما، ولكن لم تحدد بعد المهمة أو الاستعلام المطلوب تنفيذه.\n\n**كيف يمكنني مساعدتك اليوم؟**\n\nيمكنني المساعدة في المهام التالية:\n- 🔍 **البحث عن موظفين** (حسب الاسم، القسم، الوظيفة، إلخ)\n- 📊 **حساب أعداد الموظفين** (إجمالي العدد، حسب الأقسام، حسب الوظائف، إلخ)\n- 🏢 **عرض قائمة الشركات/المنشآت** المتاحة في النظام\n- 📋 **استعراض الأقسام والوظائف** المعتمدة\n- 📖 **فحص تفاصيل موظف محدد** (بالمعرف أو الاسم)\n- ⚖️ **استشارة نظام العمل السعودي** (ساعات العمل، الإجازات، مكافأة نهاية الخدمة، إلخ)\n\n**يرجى تحديد:**\n1. ما هو الاستعلام أو المهمة المطلوبة تحديداً؟\n2. هل تريد البحث في منشأة معينة أم جميع المنشآت المتاحة؟\n\nأنا جاهز للبدء فور توضيح طلبك."
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": "pending-confirmation-test"
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cavila · Moxen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="cavila.css">
+<!-- ?tema=claro para verla sobre fondo claro -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <main class="cv-escena">
+    <!-- data-cavila: el chat. cavila.js manda la pregunta, muestra
+         «Pensando…» con su barrido de luz, lo pliega en «Pensó n s ▸», deja
+         entrar la respuesta palabra por palabra (de borrosa a nítida) y
+         despliega los pasos del razonamiento al abrir ▸ -->
+    <section class="cv-panel" data-cavila aria-label="Chat con el asistente">
+      <header class="cv-cabeza">
+        <p class="cv-marca">
+          <svg class="cv-chispa" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 4.6 2.9 6.9 7.5 7.5-4.6.6-6.9 2.9-7.5 7.5-.6-4.6-2.9-6.9-7.5-7.5 4.6-.6 6.9-2.9 7.5-7.5z"/><path d="M19 15.5c.25 1.9 1.1 2.75 3 3-1.9.25-2.75 1.1-3 3-.25-1.9-1.1-2.75-3-3 1.9-.25 2.75-1.1 3-3z"/></svg>
+          <b>Asistente</b><small>modelo de ejemplo</small>
+        </p>
+        <button class="cv-nueva" type="button" data-nueva>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4.5v11M4.5 10h11"/></svg>Nueva conversación
+        </button>
+      </header>
+
+      <div class="cv-hilo" data-hilo>
+        <div class="cv-inicio" data-inicio>
+          <h1>¿En qué te ayudo?</h1>
+          <div class="cv-sugerencias">
+            <button type="button" data-sugerencia>¿Cómo hago un resorte en CSS?</button>
+            <button type="button" data-sugerencia>Resume este texto</button>
+            <button type="button" data-sugerencia>Ideas para un nombre</button>
+          </div>
+        </div>
+      </div>
+
+      <form class="cv-caja" data-caja>
+        <input name="pregunta" type="text" placeholder="Pregunta lo que quieras…" autocomplete="off" aria-label="Tu pregunta">
+        <button class="cv-enviar" type="submit" aria-label="Enviar" disabled>
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15.5v-11M5.5 9 10 4.5 14.5 9"/></svg>
+        </button>
+      </form>
+    </section>
+  </main>
+
+  <script src="cavila.js"></script>
+  <script>Cavila(document.querySelector('[data-cavila]'));</script>
+</body>
+</html>

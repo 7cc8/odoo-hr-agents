@@ -1,0 +1,27 @@
+{
+  "plan_id": "plan_1794175296_9447b81b",
+  "plan_type": "update",
+  "target_model": "hr.employee",
+  "target_records": [
+    55
+  ],
+  "operation_details": {
+    "action": "update",
+    "employee_id": 55,
+    "employee_name": "فهد الناصر",
+    "field": "job_title",
+    "field_label": "المسمى الوظيفي",
+    "old_value": "أخصائي توظيف",
+    "new_value": "مدير توظيف",
+    "values": {
+      "job_title": "مدير توظيف"
+    }
+  },
+  "created_by": "test_user_scen_4",
+  "approved_by": null,
+  "created_at": "2026-11-08T22:01:36.003911",
+  "expires_at": "2026-11-08T22:06:36.003911",
+  "is_consumed": false,
+  "consumed_at": null,
+  "status": "pending"
+}

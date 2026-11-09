@@ -1,0 +1,44 @@
+{
+  "episode_id": "ep_135bf8c7716c",
+  "timestamp": "2026-11-08T22:10:00.728033",
+  "agent": "fahas",
+  "agents_involved": [
+    "fahas"
+  ],
+  "user_query": "{\"query\": \"تحقق من امتثال ساعات العمل لنظام العمل السعودي\", \"context\": {\"previous_agent_results\": {}}}",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "steps_executed": [
+      {
+        "step": 0,
+        "action": "query",
+        "status": "success"
+      }
+    ],
+    "data": {
+      "model": "hr.employee",
+      "records_count": 0,
+      "records": [],
+      "company_id": null,
+      "domain": [
+        [
+          "country_id.code",
+          "=",
+          "SA"
+        ]
+      ]
+    },
+    "status": "success",
+    "consistency_check": null
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

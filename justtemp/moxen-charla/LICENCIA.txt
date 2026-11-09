@@ -1,0 +1,26 @@
+Licencia de uso — Charla · Moxen
+====================================
+
+«Charla» es un recurso de Moxen (moxen.cl/recursos), que te regalamos. Esta
+licencia es de quien lo descarga.
+
+PUEDES
+  · Usarlo en tus proyectos y en los de tus clientes, sin límite de
+    proyectos ni de tiempo.
+  · Cambiarlo como quieras: colores, textos, tiempos, el código entero.
+  · Incluirlo en sitios y aplicaciones que entregues o vendas como producto
+    terminado.
+
+NO PUEDES
+  · Vender, ni redistribuir como recurso, plantilla o biblioteca, el código
+    fuente tal cual o modificado.
+  · Publicarlo en otro sitio de recursos o repositorio como si fuera tuyo.
+
+Se entrega tal cual, sin garantías. Los derechos de autor son de Moxen.
+Las dependencias de terceros, si las hay, conservan su propia licencia
+(Ninguna).
+Las fotos de img/, si las hay, son de Unsplash (licencia Unsplash), van solo
+como material de demostración y se reemplazan por las tuyas; sus autores
+están en CREDITOS.md.
+
+¿Necesitas algo hecho a la medida? contacto@moxen.cl · +56 9 3560 5683

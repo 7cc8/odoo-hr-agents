@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Faena · Moxen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="faena.css">
+<!-- ?tema=claro para verla sobre fondo claro -->
+<script>if (/[?&]tema=claro/.test(location.search)) document.documentElement.dataset.tema = 'claro';</script>
+</head>
+<body>
+  <main class="fa-escena">
+    <!-- data-faena: el panel de un agente. faena.js lo hace correr al
+         enviar: los pasos aparecen uno a uno, la herramienta se
+         despliega, un paso falla y se reintenta, y al final todo se
+         pliega en una línea. Clic en esa línea para volver a verlos -->
+    <section class="fa-agente" data-faena aria-label="Agente de ejemplo">
+      <div class="fa-fondo" aria-hidden="true"><i class="fa-cima"></i><i class="fa-medio"></i><i class="fa-pie"></i></div>
+
+      <header class="fa-barra">
+        <span class="fa-marca"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.6 4.6 3.4 7.4 9 9-5.6 1.6-8.4 4.4-9 9-.6-4.6-3.4-7.4-9-9 5.6-1.6 8.4-4.4 9-9z"/></svg>Agente de informes</span>
+        <span class="fa-ejemplo">Datos de ejemplo</span>
+      </header>
+
+      <form class="fa-pedido" autocomplete="off">
+        <input class="fa-campo" name="pedido" value="Prepara el informe semanal de ventas" aria-label="Petición al agente">
+        <button class="fa-enviar" type="submit" aria-label="Enviar la petición">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+        </button>
+      </form>
+
+      <button class="fa-resumen is-listo" type="button" aria-expanded="false" aria-controls="fa-pasos">
+        <span class="fa-estado" aria-hidden="true"><svg class="fa-anillo" viewBox="0 0 24 24"></svg><svg class="fa-sello" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11"/><path d="M7.3 12.4l3.2 3.2 6.2-6.7" pathLength="1"/></svg></span>
+        <span class="fa-titulos">
+          <span class="fa-t-corre">Trabajando <em>paso <b class="fa-cuenta">1</b> de 5</em></span>
+          <span class="fa-t-listo">Listo en 12 s <em>· 5 pasos</em></span>
+        </span>
+        <span class="fa-reloj">0,0 s</span>
+        <svg class="fa-flecha" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg>
+      </button>
+
+      <div class="fa-recorte">
+        <ol class="fa-pasos" id="fa-pasos">
+          <li class="fa-paso"><div class="fa-fila"><span class="fa-icono"></span><span class="fa-nombre">Entender la petición</span><span class="fa-dura"></span></div></li>
+          <li class="fa-paso">
+            <div class="fa-fila"><span class="fa-icono"></span><span class="fa-nombre">Buscar los pedidos de la semana</span><span class="fa-dura"></span></div>
+            <div class="fa-herramienta">
+              <p class="fa-h-cabeza"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4c-2 0-3 1-3 3v2.5c0 1.2-.8 2.5-2 2.5 1.2 0 2 1.3 2 2.5V17c0 2 1 3 3 3M16 4c2 0 3 1 3 3v2.5c0 1.2.8 2.5 2 2.5-1.2 0-2 1.3-2 2.5V17c0 2-1 3-3 3"/></svg>Herramienta<span class="fa-h-estado"><i></i><span class="fa-h-reloj">0,0 s</span></span></p>
+              <code class="fa-codigo"><b class="fa-fn">buscar_pedidos</b>({ <b class="fa-k">desde</b>: <b class="fa-v">"2026-09-01"</b>, <b class="fa-k">estado</b>: <b class="fa-v">"pagado"</b> })</code>
+              <p class="fa-salida">→ 214 pedidos · 3 regiones</p>
+            </div>
+          </li>
+          <li class="fa-paso"><div class="fa-fila"><span class="fa-icono"></span><span class="fa-nombre">Calcular los totales por región</span><span class="fa-dura"></span></div><p class="fa-nota"></p></li>
+          <li class="fa-paso"><div class="fa-fila"><span class="fa-icono"></span><span class="fa-nombre">Redactar el informe</span><span class="fa-dura"></span></div></li>
+          <li class="fa-paso"><div class="fa-fila"><span class="fa-icono"></span><span class="fa-nombre">Guardarlo como PDF</span><span class="fa-dura"></span></div></li>
+        </ol>
+      </div>
+      <p class="fa-voz" role="status"></p>
+    </section>
+    <p class="fa-pista">Pulsa enviar · clic en el resumen para ver los pasos</p>
+  </main>
+
+  <script src="faena.js"></script>
+  <script>Faena(document.querySelector('[data-faena]'));</script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+{
+  "episode_id": "ep_0f2541a45bff",
+  "timestamp": "2026-11-08T22:12:50.107525",
+  "agent": "seraj",
+  "agents_involved": [
+    "sijil"
+  ],
+  "user_query": "سجل تقرير التدقيق للعمليات الأخيرة",
+  "intent": "IntentType.AUDIT",
+  "context": {
+    "perception": {
+      "query": "سجل تقرير التدقيق للعمليات الأخيرة",
+      "intent": "audit",
+      "context": {},
+      "complexity": "low",
+      "entities": [],
+      "ambiguity_score": 0.0,
+      "raw_request": {
+        "query": "سجل تقرير التدقيق للعمليات الأخيرة",
+        "context": {}
+      },
+      "similar_past_interactions": [],
+      "requires_clarification": false
+    },
+    "plan": {
+      "selected_agents": [
+        "sijil"
+      ],
+      "execution_order": [
+        "sijil"
+      ],
+      "parallel_possible": false,
+      "reasoning": "تدقيق → سجل",
+      "confidence": 0.7,
+      "fallback_strategy": null
+    }
+  },
+  "result": {
+    "agent_results": {
+      "sijil": {
+        "agent": "sijil",
+        "success": true,
+        "status": "success",
+        "data": {
+          "summary": "AuditSummary(total_operations=96, operations_by_type={'write_b': 26, 'create_employee': 14, 'execution_started': 17, 'odoo_bulk_insert_start': 2, 'update_employee': 5, 'unknown': 15, 'create': 6, 'update': 4, 'unarchive': 1, 'archive': 3, 'delete': 3}, operations_by_agent={'katib': 70, 'unknown': 26}, anomalies=[], time_range=('2026-10-08T14:41:00.549263+00:00', '2026-11-08T18:55:43.225020+00:00'), compliance_score=1.0)",
+          "anomalies": [],
+          "report": null,
+          "alerts": [],
+          "timestamp": "2026-11-08T19:12:50.105925+00:00"
+        },
+        "reflection": {
+          "decision": "approve_clean",
+          "completeness_score": 0.25,
+          "critical_findings": [],
+          "recommendations": [
+            "الحفاظ على المستوى العالي من الامتثال"
+          ],
+          "should_escalate": false
+        },
+        "iterations": 1
+      }
+    },
+    "overall_success": true,
+    "errors": [],
+    "timestamp": "2026-11-08T19:12:50.104321+00:00"
+  },
+  "success": true,
+  "confidence": 0.7,
+  "decision_path": [
+    "agent_sijil"
+  ],
+  "strategies_used": [
+    "multi_agent_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

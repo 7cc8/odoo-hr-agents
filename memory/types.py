@@ -215,6 +215,15 @@ class WorkingMemory:
     # Temporary data
     temp_data: Dict[str, Any] = field(default_factory=dict)
     
+    def add_message(self, role: str, content: str, tool_calls: Optional[List[Dict[str, Any]]] = None) -> None:
+        """إضافة رسالة إلى ذاكرة العمل الحديثة مع سقف أقصى"""
+        msg: Dict[str, Any] = {"role": role, "content": content}
+        if tool_calls:
+            msg["tool_calls"] = tool_calls
+        self.recent_messages.append(msg)
+        if len(self.recent_messages) > 12:
+            self.recent_messages = self.recent_messages[-12:]
+
     def clear(self) -> None:
         """مسح الذاكرة"""
         self.recent_messages = []

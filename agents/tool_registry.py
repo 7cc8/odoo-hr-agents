@@ -79,6 +79,10 @@ class ToolRegistry:
     def get_tool(self, name: str) -> Optional[ToolDefinition]:
         """الحصول على أداة"""
         return self.tools.get(name)
+
+    def has_tool(self, name: str) -> bool:
+        """التحقق من وجود أداة مسجلة"""
+        return name in self.tools
     
     def get_tools_for_agent(self, agent_name: str, read_only: bool = True) -> List[ToolDefinition]:
         """الحصول على الأدوات المتاحة لوكيل معين"""
@@ -99,7 +103,7 @@ class ToolRegistry:
         args: Dict[str, Any],
         approved: bool = False,
     ) -> Any:
-        """تنفيذ أداة"""
+        """تنفيذ أداة مع التحقق من الصلاحيات والمطابقة الذكية للمعاملات"""
         tool = self.get_tool(tool_name)
         if tool is None:
             raise ValueError(f"Tool {tool_name} not found")
@@ -112,9 +116,14 @@ class ToolRegistry:
         if tool.requires_approval and not approved:
             raise PermissionError(f"Tool {tool_name} requires approval before execution")
         
-        # تنفيذ
+        # تصفية المعاملات حسب توقيع الدالة لمنع أخطاء المعاملات غير المتوقعة
         try:
-            result = tool.function(**args)
+            import inspect
+            sig = inspect.signature(tool.function)
+            has_var_kw = any(p.kind == inspect.Parameter.VAR_KEYWORD for p in sig.parameters.values())
+            call_args = args if has_var_kw else {k: v for k, v in args.items() if k in sig.parameters}
+
+            result = tool.function(**call_args)
             tool.call_count += 1
             from datetime import datetime, timezone
             tool.last_called = datetime.now(timezone.utc)
@@ -129,8 +138,9 @@ class ToolRegistry:
 # ═══════════════════════════════════════════════════════════════
 
 def register_all_tools():
-    """تسجيل كل الأدوات المتاحة"""
+    """تسجيل كل الأدوات المتاحة (قراءة واستعلام)"""
     register_odoo_read_tools()
+    register_fahas_query_tools()
     # register_write_tools()  # لاحقاً
 
 
@@ -147,20 +157,24 @@ def register_odoo_read_tools():
             for tool_schema in tools.SERAJ_ODOO_TOOLS_SCHEMA:
                 fn_def = tool_schema.get("function", {})
                 tool_name = fn_def.get("name")
+                if not tool_name:
+                    continue
                 
-                # محاولة الحصول على الدالة الفعلية
+                # الحصول على الدالة الفعلية أو استدعاء الأداة الموحد
                 if hasattr(tools, tool_name):
                     actual_fn = getattr(tools, tool_name)
+                else:
+                    actual_fn = lambda _t=tool_name, **kwargs: tools.execute_tool_call(_t, kwargs)
                     
-                    registry.register_tool(ToolDefinition(
-                        name=tool_name,
-                        description=fn_def.get("description", ""),
-                        function=actual_fn,
-                        parameters=fn_def.get("parameters", {}),
-                        allowed_agents=None,  # متاح لكل الوكلاء (قراءة فقط)
-                        is_read_only=True,
-                    ))
-                    logger.info(f"Registered read tool: {tool_name}")
+                registry.register_tool(ToolDefinition(
+                    name=tool_name,
+                    description=fn_def.get("description", ""),
+                    function=actual_fn,
+                    parameters=fn_def.get("parameters", {}),
+                    allowed_agents=None,  # متاح لكل الوكلاء (قراءة فقط)
+                    is_read_only=True,
+                ))
+                logger.info(f"Registered read tool: {tool_name}")
         
         logger.info(f"Registered {len(registry.tools)} read tools")
         
@@ -168,6 +182,69 @@ def register_odoo_read_tools():
         logger.warning(f"Could not import odoo_agent_tools: {e}")
     except Exception as e:
         logger.error(f"Error registering tools: {e}")
+
+
+def register_fahas_query_tools():
+    """تسجيل أدوات الاستعلام والفحص التخصصية من fahas_service"""
+    try:
+        from fahas_service import get_fahas_agent
+        fahas = get_fahas_agent()
+        registry = ToolRegistry.get_instance()
+
+        fahas_tools = [
+            ("inspect_employee", "فحص سجلات وتفاصيل موظف محدد بالاسم أو المعرف", fahas.inspect_employee, {
+                "type": "object",
+                "properties": {
+                    "name_or_id": {"type": "string", "description": "اسم أو رقم الموظف"},
+                    "company_id": {"type": "integer", "description": "معرف الشركة"},
+                    "connection_id": {"type": "string", "description": "معرف الاتصال"},
+                },
+                "required": ["name_or_id"],
+            }),
+            ("inspect_references", "فحص السجلات المرجعية الأساسية والأقسام في Odoo", fahas.inspect_references, {
+                "type": "object",
+                "properties": {
+                    "company_id": {"type": "integer", "description": "معرف الشركة"},
+                    "connection_id": {"type": "string", "description": "معرف الاتصال"},
+                },
+            }),
+            ("group_count", "حساب أعداد السجلات مجمعة حسب حقل معين", fahas.group_count, {
+                "type": "object",
+                "properties": {
+                    "model": {"type": "string", "description": "اسم الموديل في Odoo"},
+                    "groupby_field": {"type": "string", "description": "حقل التجميع"},
+                    "domain": {"type": "array", "description": "شروط التصفية"},
+                    "company_id": {"type": "integer", "description": "معرف الشركة"},
+                    "connection_id": {"type": "string", "description": "معرف الاتصال"},
+                },
+                "required": ["model", "groupby_field"],
+            }),
+            ("get_departments", "استعراض قائمة الأقسام النشطة", fahas.get_departments, {
+                "type": "object",
+                "properties": {
+                    "company_id": {"type": "integer", "description": "معرف الشركة"},
+                },
+            }),
+            ("get_jobs", "استعراض قائمة الوظائف المعتمدة", fahas.get_jobs, {
+                "type": "object",
+                "properties": {
+                    "company_id": {"type": "integer", "description": "معرف الشركة"},
+                },
+            }),
+        ]
+
+        for name, desc, fn, params in fahas_tools:
+            if name not in registry.tools:
+                registry.register_tool(ToolDefinition(
+                    name=name,
+                    description=desc,
+                    function=fn,
+                    parameters=params,
+                    allowed_agents=None,
+                    is_read_only=True,
+                ))
+    except Exception as e:
+        logger.warning(f"Could not register fahas query tools: {e}")
 
 
 def register_write_tools():

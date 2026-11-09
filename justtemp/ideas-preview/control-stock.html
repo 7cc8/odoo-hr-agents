@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المِرصاد — تصفية المخزون والتراجع الشريطي</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card: #151c2c;
+      --border: #232f48;
+      --text: #f1f5f9;
+      --amber: #f59e0b;
+      --blue: #38bdf8;
+      --spring: cubic-bezier(0.25, 1.4, 0.45, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow-x: clip;
+    }
+    .panel {
+      width: 100%;
+      max-width: 560px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 12px;
+    }
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mod-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 250ms var(--spring);
+    }
+    .mod-dot.active {
+      opacity: 1;
+      transform: scale(1);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.7);
+    }
+
+    /* Filter Chips */
+    .chips-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip {
+      background: #0d1424;
+      border: 1px solid var(--border);
+      color: #94a3b8;
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      user-select: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 200ms var(--spring);
+    }
+    .chip:hover { border-color: #38bdf8; color: #fff; }
+    .chip.active {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--blue);
+      color: var(--blue);
+      font-weight: 600;
+    }
+
+    /* Control Strip */
+    .control-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+    .btn-rewind {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 150ms ease, transform 150ms var(--spring);
+    }
+    .btn-rewind:hover { background: rgba(255, 255, 255, 0.05); }
+    .btn-rewind:active { transform: scale(0.96); }
+    .spool-icon {
+      display: inline-block;
+      transition: transform 500ms linear;
+    }
+    .spool-icon.spinning { transform: rotate(-360deg); }
+
+    .saved-shelf {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.82rem;
+      color: #94a3b8;
+    }
+    .shelf-pill {
+      background: #1e293b;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      color: #f1f5f9;
+      font-size: 0.78rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <div class="top-bar">
+      <div class="title-group">
+        <h2 style="font-size:1.05rem;">المِرصاد — لوحة تصفية المخزون</h2>
+        <span class="mod-dot" id="mod-dot" title="تعديلات معلقة"></span>
+      </div>
+      <span style="font-size:0.8rem; color:#94a3b8;" id="status-label">الحالة: مطابقة للأصل</span>
+    </div>
+
+    <div class="chips-row" id="chips-container">
+      <button class="chip" data-idx="1">📦 البضائع الجاهزة</button>
+      <button class="chip" data-idx="2">⚠️ دون حد الأمان</button>
+      <button class="chip" data-idx="3">🚚 شحنات في الطريق</button>
+      <button class="chip" data-idx="4">🔒 الحجز التحفظي</button>
+    </div>
+
+    <div class="control-strip">
+      <button class="btn-rewind" id="rewind-btn">
+        <span class="spool-icon" id="spool">📼</span>
+        <span>تراجع شريطي خطوة بخطوة</span>
+      </button>
+
+      <div class="saved-shelf">
+        <span>القوائم المحفوظة:</span>
+        <span class="shelf-pill" id="shelf-tag">الافتراضي</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chips = document.querySelectorAll('.chip');
+    const modDot = document.getElementById('mod-dot');
+    const statusLabel = document.getElementById('status-label');
+    const rewindBtn = document.getElementById('rewind-btn');
+    const spool = document.getElementById('spool');
+
+    let historyStack = [];
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chip.classList.toggle('active');
+        if (chip.classList.contains('active')) {
+          historyStack.push(chip);
+        } else {
+          historyStack = historyStack.filter(c => c !== chip);
+        }
+        updateState();
+      });
+    });
+
+    function updateState() {
+      if (historyStack.length > 0) {
+        modDot.classList.add('active');
+        statusLabel.textContent = `معدل (${historyStack.length} فلاتر نشطة)`;
+        statusLabel.style.color = 'var(--amber)';
+      } else {
+        modDot.classList.remove('active');
+        statusLabel.textContent = 'الحالة: مطابقة للأصل';
+        statusLabel.style.color = '#94a3b8';
+      }
+    }
+
+    rewindBtn.addEventListener('click', () => {
+      if (historyStack.length === 0) return;
+
+      // Animate spool rewind
+      spool.classList.add('spinning');
+      setTimeout(() => spool.classList.remove('spinning'), 500);
+
+      // Step-by-step rewind pop
+      let delay = 0;
+      const toRemove = [...historyStack].reverse();
+
+      toRemove.forEach((chip, i) => {
+        setTimeout(() => {
+          chip.classList.remove('active');
+          historyStack = historyStack.filter(c => c !== chip);
+          updateState();
+        }, (i + 1) * 140);
+      });
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,28 @@
+{
+  "episode_id": "ep_0068d4e215aa",
+  "timestamp": "2026-11-09T01:03:30.748122",
+  "agent": "muwaffaq",
+  "agents_involved": [
+    "muwaffaq"
+  ],
+  "user_query": "{\"query\": \"طابق اسم الموظف محمد العتيبي مع قاعدة البيانات\", \"context\": {\"candidates\": [\"محمد العتيبي\", \"أحمد علي\", \"سالم محمد\"], \"previous_agent_results\": {}}}",
+  "intent": "task",
+  "context": {},
+  "result": {
+    "matched_candidates": [],
+    "best_match": null,
+    "confidence": 0.0,
+    "strategy_used": null,
+    "timestamp": "2026-11-08T22:03:30.748122+00:00",
+    "status": "no_match"
+  },
+  "success": true,
+  "confidence": 0.9,
+  "decision_path": [],
+  "strategies_used": [],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": null
+}

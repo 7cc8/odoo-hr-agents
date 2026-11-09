@@ -371,8 +371,9 @@ def kind_of(path: Path) -> str:
 
 
 def main(argv: list[str]) -> int:
+    dashboard_path = Path("frontend/dashboard.html") if Path("frontend/dashboard.html").exists() else Path("templates/dashboard.html")
     targets = [Path(a) for a in argv[1:]] or [
-        Path("templates/dashboard.html"),
+        dashboard_path,
         Path("templates/sijil.html"),
         Path("docs/user_guide.html"),
     ]

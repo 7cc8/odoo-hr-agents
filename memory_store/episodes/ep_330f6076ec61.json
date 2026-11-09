@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_330f6076ec61",
+  "timestamp": "2026-11-09T02:51:24.597163",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "مرحبا",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "web_debef2de-ffdd-4a31-9a67-45c08f5a74e8",
+    "company_id": 1,
+    "connection_id": "default",
+    "operation_id": "op_1794181861_6a06a7"
+  },
+  "result": {
+    "response": "مرحباً بك! أنا «سراج» - مساعدك الشخصي لإدارة الموارد البشرية في نظام Odoo.\n\nأنا هنا لمساعدتك في:\n- استعراض بيانات الموظفين والأقسام والوظائف\n- البحث عن موظفين محددين\n- حساب أعداد السجلات والإحصائيات\n- الاستفسار عن النصوص القانونية لنظام العمل السعودي\n- أي استعلامات أخرى تتعلق بإدارة الموارد البشرية\n\nما هي المهمة التي تود البدء بها اليوم؟"
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": 1,
+  "user_id": "web_debef2de-ffdd-4a31-9a67-45c08f5a74e8"
+}

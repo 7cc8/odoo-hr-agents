@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pilar · Moxen</title>
+<!-- una hoja por familia: si van juntas, a veces solo llega la primera -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reddit+Mono:wght@400&display=swap">
+<link rel="stylesheet" href="pilar.css">
+<!-- ?tema=oscuro: la misma tabla sobre grafito, con el azul aclarado cuando hace de texto -->
+<script>if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro';</script>
+</head>
+<body>
+  <!-- pilar.js construye la tabla (las columnas y las filas de ejemplo están en COLUMNAS y FILAS, al principio del script).
+       Aquí van los marcos fijos: [data-columnas] abre el menú de columnas, [data-densidad] es el selector de alto de fila,
+       [data-restablece] devuelve todo a su sitio, [data-scroll] es el contenedor que se desplaza (y donde se pega lo fijo),
+       [data-tabla] recibe las filas, [data-guia] es la guía vertical del ancho y [data-vivo] lee en voz alta lo que cambia. -->
+  <main class="pi-escena" data-pilar>
+    <div class="pi-fondo" aria-hidden="true"></div>
+
+    <section class="pi-app" aria-labelledby="pi-titulo">
+      <header class="pi-cab">
+        <div class="pi-titulos">
+          <p class="pi-etq">Pedidos <span>·</span> Semana 42</p>
+          <h1 id="pi-titulo">Pedidos de la semana</h1>
+        </div>
+
+        <div class="pi-barra" role="toolbar" aria-label="Ajustes de la tabla">
+          <div class="pi-menu-env">
+            <button class="pi-btn pi-btn-col" type="button" data-columnas aria-haspopup="menu" aria-expanded="false" aria-controls="pi-menu">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="13" rx="3"/><path d="M9.4 5.5v13M14.6 5.5v13"/></svg>
+              <span>Columnas</span>
+              <b class="pi-cuenta" data-cuenta aria-hidden="true"></b>
+              <svg class="pi-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>
+            </button>
+            <div class="pi-menu" id="pi-menu" data-menu role="menu" aria-label="Columnas visibles" hidden>
+              <ul class="pi-menu-lista" data-menu-lista></ul>
+              <div class="pi-menu-pie">
+                <span data-menu-cuenta></span>
+                <button class="pi-menu-todas" type="button" data-todas>Mostrar todas</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pi-seg" role="radiogroup" aria-label="Densidad de las filas" data-densidad>
+            <i class="pi-seg-pulgar" aria-hidden="true"></i>
+            <button type="button" role="radio" aria-checked="false" data-d="comoda">Cómoda</button>
+            <button type="button" role="radio" aria-checked="true" data-d="normal">Normal</button>
+            <button type="button" role="radio" aria-checked="false" data-d="compacta">Compacta</button>
+          </div>
+
+          <button class="pi-btn pi-rest" type="button" data-restablece data-e="reposo" disabled>
+            <span class="pi-rest-a"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 11.2a6.6 6.6 0 1 1 1.4 5.3M5.5 6.4v4.8h4.8"/></svg><span>Restablecer</span><i class="pi-punto" aria-hidden="true"></i></span>
+            <span class="pi-rest-b" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.6 12.6l3.8 3.8 7.2-8.2" pathLength="1"/></svg><span>Restablecido</span></span>
+          </button>
+        </div>
+      </header>
+
+      <div class="pi-cuerpo">
+        <div class="pi-scroll" data-scroll role="region" aria-label="Tabla de pedidos, se desplaza en horizontal">
+          <div class="pi-tabla" data-tabla role="table" aria-label="Pedidos de la semana"></div>
+        </div>
+      </div>
+
+      <footer class="pi-pie">
+        <p class="pi-estado" data-estado></p>
+        <p class="pi-teclas"><span>Enfoca un encabezado:</span> <kbd>←</kbd><kbd>→</kbd> recorren <i>·</i> <kbd>Alt</kbd>+<kbd>←</kbd><kbd>→</kbd> mueven <i>·</i> <kbd>Mayús</kbd>+<kbd>←</kbd><kbd>→</kbd> ancho <i>·</i> <kbd>P</kbd> fija <i>·</i> <kbd>H</kbd> oculta <i>·</i> <kbd>Intro</kbd> ajusta</p>
+      </footer>
+    </section>
+
+    <p class="pi-vivo" role="status" aria-live="polite" data-vivo></p>
+  </main>
+
+  <script src="pilar.js"></script>
+  <script>window.pilar = Pilar(document.querySelector('[data-pilar]'));</script>
+</body>
+</html>

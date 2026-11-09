@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_2c8022bd2a59",
+  "timestamp": "2026-11-09T01:03:29.750686",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "كم عدد الموظفين؟",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "test_fahas_separation",
+    "company_id": null,
+    "connection_id": "default",
+    "operation_id": null
+  },
+  "result": {
+    "response": "أفاد وكيل فاحص بأن إجمالي عدد الموظفين في Odoo هو 15 موظفاً."
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": "test_fahas_separation"
+}

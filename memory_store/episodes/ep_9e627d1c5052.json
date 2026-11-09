@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_9e627d1c5052",
+  "timestamp": "2026-11-09T01:57:53.228069",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "والمؤرشفين؟",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "test_chat_999",
+    "company_id": null,
+    "connection_id": "default",
+    "operation_id": null
+  },
+  "result": {
+    "response": "عدد الموظفين المؤرشفين (غير النشطين) هو 3 موظفين."
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": "test_chat_999"
+}

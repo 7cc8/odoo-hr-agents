@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مختبر التقنيات الحركية الثمانية — تقرير الطريقة</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131b2e;
+      --border: #23314d;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --success: #34d399;
+      --amber: #f59e0b;
+      --spring: cubic-bezier(0.25, 1.4, 0.45, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: clip;
+    }
+    .header {
+      text-align: center;
+      max-width: 760px;
+      margin-bottom: 32px;
+    }
+    .header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .header p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 1200px;
+    }
+    .lab-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      position: relative;
+    }
+    .lab-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+    .lab-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .lab-badge {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--accent);
+      font-family: monospace;
+    }
+    .lab-desc {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .lab-stage {
+      background: #090e18;
+      border: 1px solid #1c263d;
+      border-radius: 10px;
+      min-height: 140px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-run {
+      background: #0284c7;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      align-self: flex-start;
+      transition: background 150ms ease, transform 150ms var(--spring);
+    }
+    .btn-run:hover { background: #0369a1; }
+    .btn-run:active { transform: scale(0.96); }
+
+    /* Lab 1: Reparent FLIP */
+    .slot-origin, .slot-modal {
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .slot-origin { width: 70px; height: 70px; }
+    .slot-modal { width: 130px; height: 110px; background: rgba(255,255,255,0.02); }
+    .orb-element {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+      user-select: none;
+    }
+
+    /* Lab 2: Spring to linear */
+    .spring-track {
+      width: 100%;
+      height: 48px;
+      background: #0d1424;
+      border-radius: 24px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 0 6px;
+    }
+    .spring-puck {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 12px var(--accent-glow);
+      transform: translateX(0);
+      will-change: transform;
+    }
+
+    /* Lab 3: Parabolic Flight */
+    .flight-pill {
+      position: fixed;
+      z-index: 9999;
+      pointer-events: none;
+      background: var(--success);
+      color: #022c22;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      box-shadow: 0 8px 24px rgba(52, 211, 153, 0.4);
+    }
+    .target-receipt {
+      border: 1px solid var(--border);
+      background: #0d1524;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 250ms var(--spring), border-color 200ms;
+    }
+    .target-receipt.stamped {
+      border-color: var(--success);
+      transform: scale(1.06);
+    }
+
+    /* Lab 4: Distance Stagger */
+    .stagger-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      justify-content: center;
+    }
+    .stagger-card {
+      width: 50px;
+      height: 70px;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 320ms var(--spring), opacity 250ms ease;
+    }
+    .stagger-card.sunk {
+      transform: scale(0.85) translateY(12px);
+      opacity: 0.3;
+    }
+    .stagger-card.selected {
+      border-color: var(--accent);
+      transform: scale(1.08) translateY(-4px);
+      box-shadow: 0 6px 16px var(--accent-glow);
+    }
+
+    /* Lab 5: 3-Piece Scaler */
+    .scaler-box {
+      position: relative;
+      width: 200px;
+    }
+    .scaler-top {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 20px;
+      border-radius: 16px 16px 0 0;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-bottom: 0;
+    }
+    .scaler-mid {
+      position: absolute;
+      top: 20px; left: 0; right: 0;
+      height: 60px;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-top: 0; border-bottom: 0;
+      transform-origin: 0 0;
+      transform: scaleY(1);
+      transition: transform 400ms var(--spring);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .scaler-bot {
+      position: absolute;
+      left: 0; right: 0;
+      height: 20px;
+      border-radius: 0 0 16px 16px;
+      background: #1e293b;
+      border: 1px solid var(--border);
+      border-top: 0;
+      transform: translateY(60px);
+      transition: transform 400ms var(--spring);
+    }
+
+    /* Lab 6: Streamer */
+    .stream-box {
+      width: 100%;
+      min-height: 90px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: #e2e8f0;
+      text-align: right;
+    }
+    .token-word {
+      display: inline-block;
+      margin-left: 5px;
+      opacity: 0;
+      filter: blur(4px);
+      transform: translateY(4px);
+      transition: opacity 180ms ease, filter 180ms ease, transform 180ms var(--spring);
+    }
+    .token-word.visible {
+      opacity: 1;
+      filter: none;
+      transform: none;
+    }
+
+    /* Lab 7: SVG pathLength=1 */
+    .check-svg {
+      width: 60px;
+      height: 60px;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .check-circle {
+      stroke: #1e293b;
+      stroke-width: 2.5;
+      fill: none;
+    }
+    .check-tick {
+      stroke: var(--success);
+      stroke-width: 2.5;
+      fill: none;
+      stroke-dasharray: 1;
+      stroke-dashoffset: 1;
+      transition: stroke-dashoffset 400ms cubic-bezier(0.65, 0, 0.35, 1);
+    }
+
+    /* Lab 8: Guide Line */
+    .guide-svg-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .guide-path {
+      fill: none;
+      stroke: var(--amber);
+      stroke-width: 2;
+      stroke-dasharray: 200;
+      stroke-dashoffset: 200;
+      transition: stroke-dashoffset 600ms ease;
+    }
+    .obstacle-box {
+      background: #1e293b;
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <h1>مختبر التقنيات الحركية الثمانية</h1>
+    <p>تطبيق عملي وتفاعلي مستقل لكل تقنية من التقنيات المستخلصة في «تقرير الطريقة»، يعمل برمجياً بنسبة 100% بدون أي مكتبات خارجية.</p>
+  </header>
+
+  <main class="lab-grid">
+    <!-- Lab 1: True DOM Reparenting FLIP -->
+    <article class="lab-card" id="card-lab-1">
+      <div class="lab-card-top">
+        <h2 class="lab-title">1. نقل العناصر الفعلي (FLIP Reparenting)</h2>
+        <span class="lab-badge">DOM Reparent</span>
+      </div>
+      <p class="lab-desc">نقل العنصر الحقيقي داخل شجرة الـ DOM إلى الحاوية الموسعة وحساب معكوس الإحداثيات والتحجيم بدون إعادة تحميل.</p>
+      <div class="lab-stage" id="stage-1" style="gap:24px;">
+        <div class="slot-origin" id="slot-origin">
+          <div class="orb-element" id="orb">🔮</div>
+        </div>
+        <div class="slot-modal" id="slot-modal"></div>
+      </div>
+      <button class="btn-run" id="btn-run-1">شغّل النقل</button>
+    </article>
+
+    <!-- Lab 2: Spring to linear() -->
+    <article class="lab-card" id="card-lab-2">
+      <div class="lab-card-top">
+        <h2 class="lab-title">2. محاكي النابض إلى linear()</h2>
+        <span class="lab-badge">Spring Solver</span>
+      </div>
+      <p class="lab-desc">حل المعادلة التفاضلية للحركة التوافقية المخمدة واشتقاق دالة linear() فيزيائية حقيقية على المتصفح مباشرة.</p>
+      <div class="lab-stage" id="stage-2">
+        <div class="spring-track" id="spring-track">
+          <div class="spring-puck" id="spring-puck"></div>
+        </div>
+      </div>
+      <button class="btn-run" id="btn-run-2">شغّل النابض</button>
+    </article>
+
+    <!-- Lab 3: Flight Layer & Parabolic Arc -->
+    <article class="lab-card" id="card-lab-3">
+      <div class="lab-card-top">
+        <h2 class="lab-title">3. طبقة الطيران والمقذوف القوسي</h2>
+        <span class="lab-badge">Parabolic Flight</span>
+      </div>
+      <p class="lab-desc">إطلاق عنصر طائر في طبقة علوية مستقلة بمسار مكافئ (Parabolic Arc) لا يعترضه أي قص بحاويات overflow.</p>
+      <div class="lab-stage" id="stage-3" style="justify-content:space-between; padding:0 24px;">
+        <button class="btn-run" id="btn-flight-source" style="align-self:center;">ختم الاعتماد</button>
+        <div class="target-receipt" id="target-receipt">
+          <span>سند صرف #409</span>
+          <span id="stamp-target-slot" style="color:var(--text-muted);">[معلّق]</span>
+        </div>
+      </div>
+      <button class="btn-run" id="btn-run-3">شغّل الطيران</button>
+    </article>
+
+    <!-- Lab 4: Distance Stagger -->
+    <article class="lab-card" id="card-lab-4">
+      <div class="lab-card-top">
+        <h2 class="lab-title">4. التتابع بالمسافة الفيزيائية</h2>
+        <span class="lab-badge">Physical Stagger</span>
+      </div>
+      <p class="lab-desc">حساب البعد المادي الحقيقي لكل عنصر عن نقطة التفاعل لتتراجع البطاقات الأقرب أولاً كأمواج صدمة واقعية.</p>
+      <div class="lab-stage" id="stage-4">
+        <div class="stagger-row" id="stagger-row">
+          <div class="stagger-card" data-idx="0">1</div>
+          <div class="stagger-card" data-idx="1">2</div>
+          <div class="stagger-card" data-idx="2">3</div>
+          <div class="stagger-card" data-idx="3">4</div>
+          <div class="stagger-card" data-idx="4">5</div>
+        </div>
+      </div>
+      <button class="btn-run" id="btn-run-4">شغّل التراجع</button>
+    </article>
+
+    <!-- Lab 5: 3-Piece Scaler -->
+    <article class="lab-card" id="card-lab-5">
+      <div class="lab-card-top">
+        <h2 class="lab-title">5. تمدد الخلفية ثلاثية الأجزاء</h2>
+        <span class="lab-badge">3-Piece Scaler</span>
+      </div>
+      <p class="lab-desc">تمديد الحاوية بتفريق قمتها وقاعدتها ووسطها عبر scaleY و translateY للحفاظ على الأقواس الدائرية بلا تشوه.</p>
+      <div class="lab-stage" id="stage-5" style="height:170px;">
+        <div class="scaler-box">
+          <div class="scaler-top"></div>
+          <div class="scaler-mid" id="scaler-mid">المحتوى المتمدد</div>
+          <div class="scaler-bot" id="scaler-bot"></div>
+        </div>
+      </div>
+      <button class="btn-run" id="btn-run-5">شغّل التمدد</button>
+    </article>
+
+    <!-- Lab 6: Adaptive Streamer -->
+    <article class="lab-card" id="card-lab-6">
+      <div class="lab-card-top">
+        <h2 class="lab-title">6. بافر تدفق النصوص الرمزي</h2>
+        <span class="lab-badge">Token Streamer</span>
+      </div>
+      <p class="lab-desc">استقبال الحروف في طابور عشوائي وإطلاقها بمعدل يتسارع مع زيادة التراكم مع ظهور ضبابي وصعود 4px.</p>
+      <div class="lab-stage" id="stage-6">
+        <div class="stream-box" id="stream-box">جاهز للتدفق...</div>
+      </div>
+      <button class="btn-run" id="btn-run-6">شغّل التدفق</button>
+    </article>
+
+    <!-- Lab 7: pathLength=1 Vector Drawing -->
+    <article class="lab-card" id="card-lab-7">
+      <div class="lab-card-top">
+        <h2 class="lab-title">7. رسم المسارات بـ pathLength="1"</h2>
+        <span class="lab-badge">Normalized SVG</span>
+      </div>
+      <p class="lab-desc">معايرة أطوال المسارات المتجهية رياضياً إلى 1.0 لتحريك stroke-dashoffset بنسب مئوية دقيقة كعلامات الاعتماد.</p>
+      <div class="lab-stage" id="stage-7">
+        <svg class="check-svg" viewBox="0 0 32 32">
+          <circle class="check-circle" cx="16" cy="16" r="14"></circle>
+          <path class="check-tick" id="check-tick" d="M9 16.5l5 5 9-10" pathLength="1"></path>
+        </svg>
+      </div>
+      <button class="btn-run" id="btn-run-7">شغّل الرسم</button>
+    </article>
+
+    <!-- Lab 8: Obstacle-Avoiding Guide Line -->
+    <article class="lab-card" id="card-lab-8">
+      <div class="lab-card-top">
+        <h2 class="lab-title">8. المسار الموجه المتفادي للنصوص</h2>
+        <span class="lab-badge">Vector Guide Line</span>
+      </div>
+      <p class="lab-desc">رسم مسار ذكي يلتف حول العوائق والنصوص في الأزقة الفاصلة ويربط العنصر بهدفه دون أي تقاطع بصري مشتت.</p>
+      <div class="lab-stage" id="stage-8" style="justify-content:space-between; padding:20px;">
+        <svg class="guide-svg-canvas" id="guide-canvas">
+          <path class="guide-path" id="guide-path" d=""></path>
+        </svg>
+        <span id="guide-src" style="background:#0284c7; padding:4px 8px; border-radius:4px; font-size:0.75rem;">نقطة الانطلاق</span>
+        <div class="obstacle-box">نص حاجز لا يُقطع</div>
+        <span id="guide-dst" style="border:1px solid var(--amber); color:var(--amber); padding:4px 8px; border-radius:4px; font-size:0.75rem;">قفل الأمان</span>
+      </div>
+      <button class="btn-run" id="btn-run-8">شغّل التوجيه</button>
+    </article>
+  </main>
+
+  <script>
+    /* --- Lab 1: True DOM Reparenting FLIP --- */
+    const orb = document.getElementById('orb');
+    const slotOrigin = document.getElementById('slot-origin');
+    const slotModal = document.getElementById('slot-modal');
+    const btnRun1 = document.getElementById('btn-run-1');
+    let inModal = false;
+
+    btnRun1.addEventListener('click', () => {
+      const targetParent = inModal ? slotOrigin : slotModal;
+      const r1 = orb.getBoundingClientRect();
+      targetParent.appendChild(orb);
+      const r2 = orb.getBoundingClientRect();
+
+      const dx = r1.left - r2.left;
+      const dy = r1.top - r2.top;
+      const sw = r1.width / r2.width;
+      const sh = r1.height / r2.height;
+
+      orb.animate([
+        { transform: `translate(${dx}px, ${dy}px) scale(${sw}, ${sh})` },
+        { transform: 'none' }
+      ], { duration: 420, easing: 'cubic-bezier(0.2, 1.25, 0.4, 1)' });
+
+      inModal = !inModal;
+      btnRun1.textContent = inModal ? 'إعادة للأصل' : 'شغّل النقل';
+    });
+
+    /* --- Lab 2: Spring Solver to linear() --- */
+    function solveSpringLinear(stiffness = 300, damping = 20) {
+      let x = 0, v = 0, dt = 1 / 120, pts = [0];
+      for (let i = 0; i < 360; i++) {
+        v += (stiffness * (1 - x) - damping * v) * dt;
+        x += v * dt;
+        if (i % 3 === 0) pts.push(x.toFixed(4));
+        if (Math.abs(1 - x) < 0.0015 && Math.abs(v) < 0.01) break;
+      }
+      pts[pts.length - 1] = '1';
+      return `linear(${pts.join(', ')})`;
+    }
+    const puck = document.getElementById('spring-puck');
+    const btnRun2 = document.getElementById('btn-run-2');
+    let puckMoved = false;
+
+    btnRun2.addEventListener('click', () => {
+      const trackWidth = document.getElementById('spring-track').clientWidth - 48;
+      const easing = solveSpringLinear(280, 18);
+      const targetX = puckMoved ? 0 : trackWidth;
+
+      puck.animate([
+        { transform: `translateX(${puckMoved ? trackWidth : 0}px)` },
+        { transform: `translateX(${targetX}px)` }
+      ], { duration: 600, easing, fill: 'forwards' });
+
+      puckMoved = !puckMoved;
+      btnRun2.textContent = puckMoved ? 'إعادة النابض' : 'شغّل النابض';
+    });
+
+    /* --- Lab 3: Flight Layer & Parabolic Flight --- */
+    const btnFlightSource = document.getElementById('btn-flight-source');
+    const targetReceipt = document.getElementById('target-receipt');
+    const stampTargetSlot = document.getElementById('stamp-target-slot');
+    const btnRun3 = document.getElementById('btn-run-3');
+
+    function triggerFlight() {
+      const src = btnFlightSource.getBoundingClientRect();
+      const dst = targetReceipt.getBoundingClientRect();
+
+      const p1 = { x: src.left + src.width / 2, y: src.top + src.height / 2 };
+      const p2 = { x: dst.left + dst.width / 2, y: dst.top + dst.height / 2 };
+
+      const pill = document.createElement('div');
+      pill.className = 'flight-pill';
+      pill.textContent = 'معتمد ✓';
+      document.body.appendChild(pill);
+
+      const duration = 480;
+      const arcHeight = 70;
+      const start = performance.now();
+
+      function step(now) {
+        const t = Math.min((now - start) / duration, 1);
+        const x = p1.x + (p2.x - p1.x) * t;
+        const y = p1.y + (p2.y - p1.y) * t - (4 * arcHeight * t * (1 - t));
+        const scale = 1 + 0.25 * Math.sin(Math.PI * t);
+
+        pill.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%) scale(${scale})`;
+
+        if (t < 1) {
+          requestAnimationFrame(step);
+        } else {
+          pill.remove();
+          targetReceipt.classList.add('stamped');
+          stampTargetSlot.textContent = 'معتمد ✓';
+          stampTargetSlot.style.color = 'var(--success)';
+          setTimeout(() => targetReceipt.classList.remove('stamped'), 300);
+        }
+      }
+      requestAnimationFrame(step);
+    }
+    btnRun3.addEventListener('click', triggerFlight);
+
+    /* --- Lab 4: Distance Stagger --- */
+    const staggerCards = document.querySelectorAll('.stagger-card');
+    const btnRun4 = document.getElementById('btn-run-4');
+    let staggerActive = false;
+
+    function runStagger(clickedIdx = 2) {
+      const clickedCard = staggerCards[clickedIdx];
+      const targetCenter = clickedCard.getBoundingClientRect().left + clickedCard.offsetWidth / 2;
+
+      staggerCards.forEach(c => {
+        const r = c.getBoundingClientRect();
+        const dist = Math.round(Math.abs(r.left + r.width / 2 - targetCenter) / r.width);
+        c.style.transitionDelay = `${dist * 50}ms`;
+      });
+
+      if (!staggerActive) {
+        clickedCard.classList.add('selected');
+        staggerCards.forEach(c => { if (c !== clickedCard) c.classList.add('sunk'); });
+      } else {
+        staggerCards.forEach(c => c.classList.remove('sunk', 'selected'));
+      }
+      staggerActive = !staggerActive;
+      btnRun4.textContent = staggerActive ? 'إعادة البطاقات' : 'شغّل التراجع';
+    }
+    btnRun4.addEventListener('click', () => runStagger(2));
+    staggerCards.forEach((c, i) => c.addEventListener('click', () => runStagger(i)));
+
+    /* --- Lab 5: 3-Piece Scaler --- */
+    const scalerMid = document.getElementById('scaler-mid');
+    const scalerBot = document.getElementById('scaler-bot');
+    const btnRun5 = document.getElementById('btn-run-5');
+    let isScaled = false;
+
+    btnRun5.addEventListener('click', () => {
+      isScaled = !isScaled;
+      const extra = isScaled ? 110 : 60;
+      scalerMid.style.transform = `scaleY(${extra / 60})`;
+      scalerBot.style.transform = `translateY(${extra}px)`;
+      scalerMid.textContent = isScaled ? 'تمدد بدون تشويه الحواف!' : 'المحتوى المتمدد';
+      btnRun5.textContent = isScaled ? 'طي اللوحة' : 'شغّل التمدد';
+    });
+
+    /* --- Lab 6: Adaptive Token Streamer --- */
+    const streamBox = document.getElementById('stream-box');
+    const btnRun6 = document.getElementById('btn-run-6');
+    const tokens = ["الذكاء", "المصطنع", "المتقن", "يعتمد", "على", "حسابات", "فيزيائية", "صارمة", "تمنع", "الارتعاش."];
+
+    btnRun6.addEventListener('click', () => {
+      streamBox.innerHTML = '';
+      btnRun6.disabled = true;
+      let queue = [...tokens];
+
+      function pump() {
+        if (!queue.length) {
+          btnRun6.disabled = false;
+          return;
+        }
+        const word = queue.shift();
+        const span = document.createElement('span');
+        span.className = 'token-word';
+        span.textContent = word;
+        streamBox.appendChild(span);
+
+        requestAnimationFrame(() => span.classList.add('visible'));
+
+        const delay = queue.length > 6 ? 30 : queue.length > 3 ? 55 : 85;
+        setTimeout(pump, delay);
+      }
+      pump();
+    });
+
+    /* --- Lab 7: Normalized SVG Drawing --- */
+    const checkTick = document.getElementById('check-tick');
+    const btnRun7 = document.getElementById('btn-run-7');
+    let isChecked = false;
+
+    btnRun7.addEventListener('click', () => {
+      isChecked = !isChecked;
+      checkTick.style.strokeDashoffset = isChecked ? '0' : '1';
+      btnRun7.textContent = isChecked ? 'إعادة الرسم' : 'شغّل الرسم';
+    });
+
+    /* --- Lab 8: Obstacle-Avoiding Guide Line --- */
+    const guidePath = document.getElementById('guide-path');
+    const guideSrc = document.getElementById('guide-src');
+    const guideDst = document.getElementById('guide-dst');
+    const stage8 = document.getElementById('stage-8');
+    const btnRun8 = document.getElementById('btn-run-8');
+    let guideVisible = false;
+
+    function renderGuide() {
+      const sRect = guideSrc.getBoundingClientRect();
+      const dRect = guideDst.getBoundingClientRect();
+      const pRect = stage8.getBoundingClientRect();
+
+      const sx = sRect.left + sRect.width / 2 - pRect.left;
+      const sy = sRect.bottom - pRect.top;
+      const ex = dRect.left + dRect.width / 2 - pRect.left;
+      const ey = dRect.bottom - pRect.top;
+      const alleyY = Math.max(sy, ey) + 20;
+
+      // Path: M (start) -> V (down to alley) -> H (across under obstacle) -> V (up to dest)
+      const d = `M ${sx} ${sy} V ${alleyY} H ${ex} V ${ey}`;
+      guidePath.setAttribute('d', d);
+    }
+
+    btnRun8.addEventListener('click', () => {
+      guideVisible = !guideVisible;
+      renderGuide();
+      guidePath.style.strokeDashoffset = guideVisible ? '0' : '200';
+      btnRun8.textContent = guideVisible ? 'إخفاء المسار' : 'شغّل التوجيه';
+    });
+  </script>
+</body>
+</html>
+

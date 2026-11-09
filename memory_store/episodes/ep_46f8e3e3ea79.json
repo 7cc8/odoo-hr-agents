@@ -1,0 +1,33 @@
+{
+  "episode_id": "ep_46f8e3e3ea79",
+  "timestamp": "2026-11-09T01:57:55.283918",
+  "agent": "seraj",
+  "agents_involved": [
+    "seraj",
+    "fahas"
+  ],
+  "user_query": "ما الشركات المتاحة لي؟",
+  "intent": "conversation",
+  "context": {
+    "chat_id": "test_chat_999",
+    "company_id": null,
+    "connection_id": "default",
+    "operation_id": null
+  },
+  "result": {
+    "response": "الشركات المصرح بها لحسابك حالياً هي:\n1. شركة النخبة الذكية للتقنية (معرف 15)\n2. شركة توركين للتجزئة (معرف 16)"
+  },
+  "success": true,
+  "confidence": 0.95,
+  "decision_path": [
+    "chat_turn"
+  ],
+  "strategies_used": [
+    "conversational_orchestration"
+  ],
+  "errors_encountered": [],
+  "lessons_learned": [],
+  "duration_ms": 0,
+  "company_id": null,
+  "user_id": "test_chat_999"
+}

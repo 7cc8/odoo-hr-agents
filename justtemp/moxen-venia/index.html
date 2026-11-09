@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Venia · Moxen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Red+Hat+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="venia.css">
+<!-- ?tema=oscuro: la misma ventana de noche (grafito cálido, verde y ámbar más claros) -->
+<script>if (/[?&]tema=oscuro/.test(location.search)) document.documentElement.dataset.tema = 'oscuro';</script>
+</head>
+<body>
+  <!-- Una ventana de navegador dibujada. venia.js monta todo sobre estos atributos:
+       cada [data-permiso] es una tarjeta con su estado (pendiente, pidiendo, concedido, denegado);
+       [data-dialogo] es la vista previa del cuadro nativo y [data-sitio] el panel del candado. -->
+  <main class="ve-escena" data-venia>
+    <div class="ve-fondo" aria-hidden="true"><i class="ve-luz ve-l1"></i><i class="ve-luz ve-l2"></i></div>
+    <div class="ve-grano" aria-hidden="true"></div>
+
+    <div class="ve-ventana" data-ventana>
+      <header class="ve-barra">
+        <span class="ve-puntos" aria-hidden="true"><i></i><i></i><i></i></span>
+        <div class="ve-direccion">
+          <button class="ve-candado" type="button" data-candado aria-haspopup="dialog" aria-expanded="false" aria-label="Ajustes del sitio: permisos">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="10.5" width="13" height="9" rx="2.4"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>
+            <i class="ve-candado-aviso" aria-hidden="true"></i>
+          </button>
+          <span class="ve-url"><b>plataforma.estudio.dev</b>/ajustes/permisos</span>
+          <span class="ve-recarga" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M19 12a7 7 0 1 1-2.2-5.1M19 4.8v3.4h-3.4"/></svg></span>
+        </div>
+      </header>
+
+      <div class="ve-pagina" data-pagina>
+        <div class="ve-cab">
+          <div>
+            <p class="ve-ojo">Ajustes · Privacidad</p>
+            <h1>Permisos de la aplicación</h1>
+            <p class="ve-sub">Antes de pedirlo al navegador, te explicamos para qué.</p>
+          </div>
+          <button class="ve-reinicia" type="button" data-reinicia><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12a7 7 0 1 0 2.2-5.1M5 4.8v3.4h3.4"/></svg>Reiniciar demo</button>
+        </div>
+
+        <div class="ve-tarjetas">
+          <!-- Notificaciones -->
+          <article class="ve-tarjeta" data-permiso="avisos" data-estado="pendiente">
+            <header class="ve-t-cab">
+              <div class="ve-sello">
+                <svg class="ve-anillo" viewBox="0 0 76 76" aria-hidden="true"><circle class="ve-r-pista" cx="38" cy="38" r="33"/><circle class="ve-r-arco" cx="38" cy="38" r="33" transform="rotate(-90 38 38)"/></svg>
+                <span class="ve-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="ve-campana" d="M6 16.5v-5a6 6 0 0 1 12 0v5l1.4 1.6H4.6Z"/><path d="M10 20.4a2.2 2.2 0 0 0 4 0"/></svg></span>
+                <i class="ve-medalla" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="ve-m-visto" d="m3.8 8.4 2.9 2.9 5.5-6.2"/><path class="ve-m-alto" d="M8 4.4v4.4M8 11.6h.01"/></svg></i>
+              </div>
+              <div class="ve-t-tit"><h2>Notificaciones</h2><span class="ve-estado" data-estado-tx>Por pedir</span></div>
+            </header>
+            <p class="ve-porque">Te avisamos cuando un envío termina, aunque tengas otra pestaña abierta.</p>
+
+            <div class="ve-zona">
+              <div class="ve-z ve-z-vacia"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5v-5a6 6 0 0 1 12 0v5l1.4 1.6H4.6Z"/><path d="M10 20.4a2.2 2.2 0 0 0 4 0"/></svg><span>Aquí verás una vista previa<br>cuando lo actives</span></div>
+              <div class="ve-z ve-z-ok">
+                <div class="ve-aviso">
+                  <span class="ve-aviso-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 8.5 12 4.5l7 4v7l-7 4-7-4Z"/><path d="m5 8.5 7 4 7-4M12 12.5v7"/></svg></span>
+                  <div class="ve-aviso-tx"><strong>Envío entregado</strong><span>Tu pedido llegó a su destino.</span></div>
+                  <time>ahora</time>
+                </div>
+                <div class="ve-aviso ve-aviso-2" aria-hidden="true"><span class="ve-aviso-ico"></span><div class="ve-aviso-tx"><strong>Factura disponible</strong><span>Ya puedes descargarla.</span></div></div>
+              </div>
+              <div class="ve-z ve-z-no">
+                <ol class="ve-guia">
+                  <li><b>1</b><span>Pulsa el candado junto a la dirección</span></li>
+                  <li><b>2</b><span>Abre «Permisos del sitio»</span></li>
+                  <li><b>3</b><span>Cambia <em>Notificaciones</em> a «Permitir»</span></li>
+                </ol>
+              </div>
+            </div>
+            <button class="ve-boton" type="button" data-activar><span class="ve-b-tx"><span class="ve-b-p">Activar</span><span class="ve-b-w">Esperando tu respuesta</span><span class="ve-b-c">Probar de nuevo</span><span class="ve-b-d">Abrir ajustes del sitio</span></span></button>
+          </article>
+
+          <!-- Ubicación -->
+          <article class="ve-tarjeta" data-permiso="ubicacion" data-estado="pendiente">
+            <header class="ve-t-cab">
+              <div class="ve-sello">
+                <svg class="ve-anillo" viewBox="0 0 76 76" aria-hidden="true"><circle class="ve-r-pista" cx="38" cy="38" r="33"/><circle class="ve-r-arco" cx="38" cy="38" r="33" transform="rotate(-90 38 38)"/></svg>
+                <span class="ve-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6.5-5.6 6.5-11A6.5 6.5 0 0 0 5.5 10C5.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10" r="2.4"/></svg></span>
+                <i class="ve-medalla" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="ve-m-visto" d="m3.8 8.4 2.9 2.9 5.5-6.2"/><path class="ve-m-alto" d="M8 4.4v4.4M8 11.6h.01"/></svg></i>
+              </div>
+              <div class="ve-t-tit"><h2>Ubicación</h2><span class="ve-estado" data-estado-tx>Por pedir</span></div>
+            </header>
+            <p class="ve-porque">Mostramos puntos de entrega cerca de ti. No guardamos dónde estás.</p>
+
+            <div class="ve-zona">
+              <div class="ve-z ve-z-vacia"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6.5-5.6 6.5-11A6.5 6.5 0 0 0 5.5 10C5.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10" r="2.4"/></svg><span>Aquí verás un mapa<br>cuando lo actives</span></div>
+              <div class="ve-z ve-z-ok">
+                <div class="ve-mapa">
+                  <svg viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+                    <rect width="300" height="150" fill="var(--ve-mapa-fondo)"/>
+                    <path d="M-10 118 C60 96 96 128 168 104 S262 62 316 70" fill="none" stroke="var(--ve-mapa-agua)" stroke-width="16" stroke-linecap="round"/>
+                    <rect x="14" y="14" width="64" height="36" rx="6" fill="var(--ve-mapa-bloque)"/><rect x="88" y="14" width="46" height="36" rx="6" fill="var(--ve-mapa-parque)"/>
+                    <rect x="144" y="14" width="70" height="36" rx="6" fill="var(--ve-mapa-bloque)"/><rect x="224" y="14" width="64" height="36" rx="6" fill="var(--ve-mapa-bloque)"/>
+                    <rect x="14" y="60" width="40" height="24" rx="6" fill="var(--ve-mapa-bloque)"/><rect x="64" y="60" width="60" height="24" rx="6" fill="var(--ve-mapa-bloque)"/>
+                    <rect x="224" y="100" width="64" height="40" rx="6" fill="var(--ve-mapa-bloque)"/><rect x="14" y="128" width="90" height="14" rx="6" fill="var(--ve-mapa-parque)"/>
+                    <path d="M0 55 H300 M83 0 V150 M139 0 V150 M219 0 V150" stroke="var(--ve-mapa-calle)" stroke-width="7" fill="none"/>
+                    <path d="M-10 150 L316 8" stroke="var(--ve-mapa-calle)" stroke-width="9" fill="none"/>
+                    <g class="ve-punto" transform="translate(172 80)">
+                      <circle class="ve-p-precision" r="34"/>
+                      <circle class="ve-p-onda ve-p-o1" r="10"/><circle class="ve-p-onda ve-p-o2" r="10"/>
+                      <g class="ve-p-pin"><circle class="ve-p-centro" r="8"/><circle class="ve-p-nucleo" r="3.2"/></g>
+                    </g>
+                  </svg>
+                  <span class="ve-mapa-pie"><i></i>Ubicación aproximada</span>
+                </div>
+              </div>
+              <div class="ve-z ve-z-no">
+                <ol class="ve-guia">
+                  <li><b>1</b><span>Pulsa el candado junto a la dirección</span></li>
+                  <li><b>2</b><span>Abre «Permisos del sitio»</span></li>
+                  <li><b>3</b><span>Cambia <em>Ubicación</em> a «Permitir»</span></li>
+                </ol>
+              </div>
+            </div>
+            <button class="ve-boton" type="button" data-activar><span class="ve-b-tx"><span class="ve-b-p">Activar</span><span class="ve-b-w">Esperando tu respuesta</span><span class="ve-b-c">Probar de nuevo</span><span class="ve-b-d">Abrir ajustes del sitio</span></span></button>
+          </article>
+
+          <!-- Cámara -->
+          <article class="ve-tarjeta" data-permiso="camara" data-estado="pendiente">
+            <header class="ve-t-cab">
+              <div class="ve-sello">
+                <svg class="ve-anillo" viewBox="0 0 76 76" aria-hidden="true"><circle class="ve-r-pista" cx="38" cy="38" r="33"/><circle class="ve-r-arco" cx="38" cy="38" r="33" transform="rotate(-90 38 38)"/></svg>
+                <span class="ve-icono"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.2-1.8h5L15.7 6h1.8A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5Z"/><circle cx="12" cy="12.6" r="3.4"/></svg></span>
+                <i class="ve-medalla" aria-hidden="true"><svg viewBox="0 0 16 16"><path class="ve-m-visto" d="m3.8 8.4 2.9 2.9 5.5-6.2"/><path class="ve-m-alto" d="M8 4.4v4.4M8 11.6h.01"/></svg></i>
+              </div>
+              <div class="ve-t-tit"><h2>Cámara</h2><span class="ve-estado" data-estado-tx>Por pedir</span></div>
+            </header>
+            <p class="ve-porque">Para escanear un código sin salir de la página. La imagen no se envía a ningún servidor.</p>
+
+            <div class="ve-zona">
+              <div class="ve-z ve-z-vacia"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.2-1.8h5L15.7 6h1.8A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5Z"/><circle cx="12" cy="12.6" r="3.4"/></svg><span>Aquí verás el visor<br>cuando lo actives</span></div>
+              <div class="ve-z ve-z-ok">
+                <div class="ve-visor">
+                  <div class="ve-visor-escena" aria-hidden="true"><i class="ve-v-sol"></i><i class="ve-v-cerro ve-v-c1"></i><i class="ve-v-cerro ve-v-c2"></i></div>
+                  <i class="ve-esq ve-e1"></i><i class="ve-esq ve-e2"></i><i class="ve-esq ve-e3"></i><i class="ve-esq ve-e4"></i>
+                  <span class="ve-reticula" aria-hidden="true"><i></i></span>
+                  <i class="ve-barrido" aria-hidden="true"></i>
+                  <span class="ve-visor-pie"><i></i>Cámara activa</span>
+                </div>
+              </div>
+              <div class="ve-z ve-z-no">
+                <ol class="ve-guia">
+                  <li><b>1</b><span>Pulsa el candado junto a la dirección</span></li>
+                  <li><b>2</b><span>Abre «Permisos del sitio»</span></li>
+                  <li><b>3</b><span>Cambia <em>Cámara</em> a «Permitir»</span></li>
+                </ol>
+              </div>
+            </div>
+            <button class="ve-boton" type="button" data-activar><span class="ve-b-tx"><span class="ve-b-p">Activar</span><span class="ve-b-w">Esperando tu respuesta</span><span class="ve-b-c">Probar de nuevo</span><span class="ve-b-d">Abrir ajustes del sitio</span></span></button>
+          </article>
+        </div>
+      </div>
+
+      <!-- el cuadro nativo, dibujado: cae desde el candado y trae «Permitir» y «No permitir» -->
+      <div class="ve-velo" data-velo aria-hidden="true"></div>
+      <div class="ve-dialogo" data-dialogo role="alertdialog" aria-modal="true" aria-labelledby="ve-d-tit" aria-describedby="ve-d-desc" hidden>
+        <i class="ve-d-flecha" aria-hidden="true"></i>
+        <div class="ve-d-sitio"><span>plataforma.estudio.dev quiere</span></div>
+        <div class="ve-d-cuerpo">
+          <span class="ve-d-icono" data-d-icono aria-hidden="true"></span>
+          <div><h3 id="ve-d-tit" data-d-tit>Mostrar notificaciones</h3><p id="ve-d-desc" data-d-desc>Para avisarte cuando un envío termine.</p></div>
+        </div>
+        <div class="ve-d-botones" role="group" aria-label="Respuesta">
+          <button type="button" class="ve-d-si" data-responde="si">Permitir</button>
+          <button type="button" class="ve-d-no" data-responde="no">No permitir</button>
+        </div>
+      </div>
+
+      <!-- el panel del candado: los permisos del sitio, para recuperarlos -->
+      <div class="ve-sitio" data-sitio role="dialog" aria-label="Permisos del sitio" hidden>
+        <i class="ve-d-flecha" aria-hidden="true"></i>
+        <p class="ve-s-tit">Permisos del sitio</p>
+        <ul>
+          <li data-sitio-fila="avisos"><span class="ve-s-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16.5v-5a6 6 0 0 1 12 0v5l1.4 1.6H4.6Z"/><path d="M10 20.4a2.2 2.2 0 0 0 4 0"/></svg></span><span class="ve-s-nom">Notificaciones<small data-sitio-tx>Preguntar</small></span><button type="button" class="ve-sw" role="switch" aria-checked="false" aria-label="Permitir notificaciones" data-sw="avisos"><i></i></button></li>
+          <li data-sitio-fila="ubicacion"><span class="ve-s-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s6.5-5.6 6.5-11A6.5 6.5 0 0 0 5.5 10C5.5 15.4 12 21 12 21Z"/><circle cx="12" cy="10" r="2.4"/></svg></span><span class="ve-s-nom">Ubicación<small data-sitio-tx>Preguntar</small></span><button type="button" class="ve-sw" role="switch" aria-checked="false" aria-label="Permitir ubicación" data-sw="ubicacion"><i></i></button></li>
+          <li data-sitio-fila="camara"><span class="ve-s-ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.8l1.2-1.8h5L15.7 6h1.8A2.5 2.5 0 0 1 20 8.5v8a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 16.5Z"/><circle cx="12" cy="12.6" r="3.4"/></svg></span><span class="ve-s-nom">Cámara<small data-sitio-tx>Preguntar</small></span><button type="button" class="ve-sw" role="switch" aria-checked="false" aria-label="Permitir cámara" data-sw="camara"><i></i></button></li>
+        </ul>
+      </div>
+
+      <!-- el hilo discontinuo que va de la guía al candado (venia.js lo dibuja) -->
+      <svg class="ve-conector" data-conector aria-hidden="true" focusable="false"><path pathLength="1"/><circle r="5"/></svg>
+    </div>
+
+    <div class="ve-vivo" aria-live="polite" data-vivo></div>
+  </main>
+  <script src="venia.js"></script>
+</body>
+</html>

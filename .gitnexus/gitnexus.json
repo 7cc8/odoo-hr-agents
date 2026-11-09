@@ -1,8 +1,8 @@
 {
   "repoPath": "D:\\mjrm0\\Documents\\odoo-hr-agents-2",
   "storagePath": "D:\\mjrm0\\Documents\\odoo-hr-agents-2\\.gitnexus",
-  "lastCommit": "83dd694445e0bc1ba2a1ea378fc7bb0b26a7524a",
-  "indexedAt": "2026-11-03T00:23:56.750Z",
+  "lastCommit": "b4438c6844da2ad0795317e24771facb0ec417ea",
+  "indexedAt": "2026-11-07T01:42:38.216Z",
   "contentRetention": "full",
   "contentRetentionSchemaVersion": 1,
   "ftsProfile": "full",
@@ -18,32 +18,184 @@
     },
     "cliVersion": "1.6.12",
     "invokedArtifact": {
-      "path": "D:\\mjrm0\\dev-cache\\temp\\bunx-3800886969-gitnexus@latest\\node_modules\\gitnexus\\dist\\cli\\index.js",
+      "path": "D:\\mjrm0\\dev-cache\\npm-cache\\_npx\\5e786f48223a616c\\node_modules\\gitnexus\\dist\\cli\\index.js",
       "digest": "sha256:e2c96d62b26a1898e536457377f7b73c539b080c7e8c316869ffc6a790003eb4"
     },
     "build": {
       "kind": "distribution",
-      "rootPath": "D:\\mjrm0\\dev-cache\\temp\\bunx-3800886969-gitnexus@latest\\node_modules\\gitnexus\\dist",
+      "rootPath": "D:\\mjrm0\\dev-cache\\npm-cache\\_npx\\5e786f48223a616c\\node_modules\\gitnexus\\dist",
       "canonicalization": "gitnexus-analyzer-build-v2",
       "digest": "sha256:262cf80deec8ff56ec019ac08406b7098bf40ae07756aa02ef8fa42720d3583e"
     },
     "dependencyRuntime": {
-      "manifestPath": "D:\\mjrm0\\dev-cache\\temp\\bunx-3800886969-gitnexus@latest\\node_modules\\gitnexus\\package.json",
-      "lockfilePath": null,
+      "manifestPath": "D:\\mjrm0\\dev-cache\\npm-cache\\_npx\\5e786f48223a616c\\node_modules\\gitnexus\\package.json",
+      "lockfilePath": "D:\\mjrm0\\dev-cache\\npm-cache\\_npx\\5e786f48223a616c\\package-lock.json",
       "canonicalization": "gitnexus-analyzer-dependency-runtime-v4",
-      "packageCount": 256,
-      "artifactCount": 12775,
-      "digest": "sha256:cb79585536c89eb6e06a0afd8fa4dc6fec0c9b2a401c2c642621f2b91632f0c4"
+      "packageCount": 251,
+      "artifactCount": 12357,
+      "digest": "sha256:582c101687e6f169be8fad9eeea11217424e8a92b5a62ee9a4436f007c122781"
     }
   },
   "branch": "phase-1-5",
   "remoteUrl": "https://github.com/7cc8/odoo-hr-agents",
+  "crossLanguageProperties": [
+    {
+      "name": "action_type",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "agent",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "agents",
+      "languages": [
+        "javascript"
+      ]
+    },
+    {
+      "name": "api_key",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "audit",
+      "languages": [
+        "javascript"
+      ]
+    },
+    {
+      "name": "base_url",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "candidates",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "companies",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "company_name",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "content",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "created_at",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "decision",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "department",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "description",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "description_ar",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "display_name",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "domain",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "employee_id",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "employee_name",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "error",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "excel_row_number",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "excel_validation_stats",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "fahas",
+      "languages": [
+        "javascript"
+      ]
+    },
+    {
+      "name": "failure_code",
+      "languages": [
+        "python"
+      ]
+    },
+    {
+      "name": "filename",
+      "languages": [
+        "python"
+      ]
+    }
+  ],
   "stats": {
-    "files": 322,
-    "nodes": 8334,
-    "edges": 16139,
-    "communities": 283,
-    "processes": 447,
+    "files": 399,
+    "nodes": 8787,
+    "edges": 17499,
+    "communities": 297,
+    "processes": 485,
     "embeddings": 0
   },
   "capabilities": {
@@ -64,43 +216,51 @@
   "schemaFingerprint": "60fc01e4e4ed",
   "unresolvedReceiverMembers": {
     "counts": {
-      "get": 486,
-      "isoformat": 133,
+      "get": 492,
+      "isoformat": 134,
       "append": 95,
-      "strip": 81,
+      "strip": 88,
+      "join": 73,
       "assert_called_once": 72,
       "dirname": 51,
-      "exists": 49,
-      "join": 49,
+      "exists": 50,
       "ServerProxy": 47,
-      "lower": 43,
+      "lower": 45,
       "strftime": 41,
       "post": 40,
+      "add": 35,
       "startswith": 35,
+      "replace": 34,
       "chat_turn": 33,
       "resolve": 30,
       "insert": 29,
+      "remove": 28,
       "upper": 27,
-      "replace": 26,
       "date": 22,
       "assert_not_called": 21,
       "get_session": 21,
       "mkdir": 21,
       "pop": 21,
+      "trim": 21,
       "write_text": 21,
       "execute_kw": 20,
       "get_employee": 19,
+      "items": 18,
       "parametrize": 18,
-      "items": 17,
       "authenticate": 16,
-      "glob": 16,
       "reconfigure": 16,
       "run": 16,
       "abspath": 15,
       "decode": 15,
+      "glob": 15,
+      "includes": 15,
       "urlopen": 15,
       "endswith": 14,
+      "map": 14,
+      "forEach": 13,
       "get_operation": 13,
+      "setProperty": 13,
+      "split": 12,
       "start_operation": 12,
       "dry_run_eos_settlement": 11,
       "hexdigest": 11,
@@ -108,11 +268,10 @@
       "emit_event": 10,
       "read_text": 10,
       "record_run": 10,
-      "split": 10,
       "version": 10,
       "execute_query_task": 9,
+      "rstrip": 9,
       "encode": 8,
-      "rstrip": 8,
       "timestamp": 8,
       "dry_run_appraisal": 7,
       "dry_run_gr_transaction": 7,
@@ -120,6 +279,8 @@
       "integration": 7,
       "reset_session": 7,
       "search_records": 7,
+      "toLowerCase": 7,
+      "write": 7,
       "assert_called_with": 6,
       "cleanup": 6,
       "clear": 6,
@@ -127,11 +288,13 @@
       "dry_run_contract": 6,
       "launch": 6,
       "splitlines": 6,
+      "toggle": 6,
+      "values": 6,
       "benchmark": 5,
       "check_alerts": 5,
+      "contains": 5,
       "get_employees": 5,
       "total_seconds": 5,
-      "values": 5,
       "count": 4,
       "dry_run_applicant": 4,
       "dry_run_disciplinary_action": 4,
@@ -141,12 +304,18 @@
       "get_summary": 4,
       "is_dir": 4,
       "keys": 4,
+      "set": 4,
+      "slice": 4,
+      "sort": 4,
       "start_trace": 4,
+      "then": 4,
+      "update": 4,
       "write_bytes": 4,
       "__init__": 3,
       "apply_contract": 3,
       "assert_called_once_with": 3,
       "basename": 3,
+      "catch": 3,
       "click": 3,
       "copy": 3,
       "count_records": 3,
@@ -159,17 +328,17 @@
       "get_recruitment_jobs": 3,
       "now": 3,
       "ratio": 3,
+      "removeChild": 3,
       "search_employee_candidates": 3,
       "security": 3,
       "setdefault": 3,
       "start_span": 3,
       "stress": 3,
+      "substring": 3,
       "trace": 3,
       "transcribe": 3,
-      "update": 3,
       "verify_record_status": 3,
       "ThreadPoolExecutor": 2,
-      "add": 2,
       "add_episode": 2,
       "add_rule": 2,
       "apply_applicant": 2,
@@ -200,17 +369,18 @@
       "read": 2,
       "reliability": 2,
       "relpath": 2,
+      "removeProperty": 2,
+      "replaceState": 2,
       "resolve_pending_clarification": 2,
       "scalability": 2,
       "search_episodes": 2,
       "simulate_saudization_impact": 2,
       "slow": 2,
-      "sort": 2,
       "span": 2,
       "splitext": 2,
       "title": 2,
+      "toFixed": 2,
       "verify_and_recover_submission": 2,
-      "write": 2,
       "URLError": 1,
       "_run_tool_calling_loop": 1,
       "_transcribe_local": 1,
@@ -218,6 +388,7 @@
       "add_knowledge": 1,
       "add_to_working": 1,
       "analyze_batch_root_causes": 1,
+      "appendChild": 1,
       "as_completed": 1,
       "cell": 1,
       "close": 1,
@@ -234,6 +405,9 @@
       "execute_approved_action": 1,
       "export_metrics": 1,
       "fileno": 1,
+      "filter": 1,
+      "finally": 1,
+      "find": 1,
       "flush": 1,
       "generate_html_report": 1,
       "generate_pdf_report": 1,
@@ -286,6 +460,7 @@
       "is_configured": 1,
       "isdigit": 1,
       "loadTestsFromTestCase": 1,
+      "match": 1,
       "normalize": 1,
       "put": 1,
       "read_employee": 1,
@@ -303,36 +478,49 @@
       "scan_expiries": 1,
       "search_employee_email_candidates": 1,
       "search_knowledge": 1,
+      "some": 1,
       "start": 1,
       "stat": 1,
       "stop": 1,
+      "test": 1,
       "throw": 1,
+      "toLocaleString": 1,
+      "toLocaleTimeString": 1,
+      "toUpperCase": 1,
+      "update_operation_status": 1,
       "update_profile_from_episode": 1,
       "urlparse": 1,
       "wait": 1,
-      "with_suffix": 1
+      "with_suffix": 1,
+      "writeText": 1
     },
-    "totalSites": 2245,
+    "totalSites": 2500,
     "externalCounts": {
-      "strip": 56,
+      "strip": 57,
       "lower": 44,
-      "replace": 16,
+      "replace": 22,
       "split": 8,
+      "startswith": 6,
+      "trim": 5,
       "get": 4,
+      "forEach": 3,
       "rstrip": 3,
-      "startswith": 3,
-      "stat": 3,
       "find": 2,
       "index": 2,
+      "padStart": 2,
+      "stat": 2,
+      "substring": 2,
       "update": 2,
       "decode": 1,
       "encode": 1,
       "endswith": 1,
+      "flatMap": 1,
       "removeprefix": 1,
+      "toLowerCase": 1,
       "translate": 1,
       "upper": 1
     },
-    "externalSites": 149
+    "externalSites": 172
   },
   "scopeExtractionReceipt": 1,
   "analysisFeatures": {
@@ -342,7 +530,7 @@
   "cjkSegmentation": "none",
   "embeddingDims": 384,
   "fileHashes": {
-    "AGENTS.md": "9297cff701cb146d889cf1338986f9917f2b8bb3d190b2dd865ffc50d28bd59d",
+    "AGENTS.md": "37ae4bce4d2eaae0e0fd490a44c2cdf4192d8a8aef8f4999a15dbce4eba5487c",
     "BRANCH_SUMMARY.md": "0793b68c38fd9e451a870a864b87e37af116b3a93f4639e8ac65812a8d560857",
     "CHAT_SETUP.md": "0c45d1d4bb3e88ded486ada0c1f39e8467a121fe058ebc33c2e4a529dd3fa448",
     "CLAUDE.md": "9297cff701cb146d889cf1338986f9917f2b8bb3d190b2dd865ffc50d28bd59d",
@@ -362,9 +550,11 @@
     "START_HERE.md": "5a869a74ce8ff8103242652fcf3837128c4dabf746998e496df7afc51cb8b872",
     "START_HERE_V2.md": "7092e0b2cca3fd0f1ded26888feb597e747410d17e14db9514b58e4fbee668fe",
     "TEMPLATE_GENERATION_SUMMARY.md": "c252938028ca26b3d6c75fd9a1badc68344c6e9f4e164ee37cdd75ef6426dc30",
+    "UNSLOP_IMPROVEMENTS.md": "e8a232e7f0df2f92ead8bfbf4fc7585cd4cae576b9a5c5f5725c21da9f960016",
     "USER_GUIDE.md": "c944b9dc3b26de2d0121840687cc7b77177843091defa7d5a95264dd03c76850",
-    "agent_events_service.py": "721d7ad9f8067eb94d0be72c2efef342f8a640ef6fca18e430c91babc964d1ba",
-    "agent_runtime.py": "d6701bc0f52c9b5070867474460d9ba52e4dec25be4bf6d1136087209d778778",
+    "add_route.py": "4539646d08044d02b5a306df34ec4ae57c59e27b23216d3b3d9022932205dac0",
+    "agent_events_service.py": "4a89d5ade02a98e82e0f415b01abac252281c4ef4d8c5831874809827ece8b8c",
+    "agent_runtime.py": "c2094b8bc51f55d3e6c50114f2f63e3a2335b14c5fe8485bd3bf0037d1abe151",
     "agents/__init__.py": "ce03d423f5a5d0635452d363dae10de3f45e0b4dd94810ddbe751b0e75dcc072",
     "agents/agent_events_service.py": "bc7ba43a190436a31499ee03f92b73a5d51156aba67f99aac04d6d1accc4ea46",
     "agents/base_agent.py": "f36514fd4ae162c6895ca37100abe6fb9b4ae29a98dd851ed4762048f8644c0a",
@@ -379,10 +569,82 @@
     "agents/sijil_agent.py": "1f92d0ff75f60b9a16cae7d6bdaeff458c82b1527ebeb766ceaa1bda20274886",
     "agents/tool_registry.py": "6aa1c2fb1cca8e2eaefb4d2bf3f469903937da2063ac3837a5a20683e7bae6db",
     "analytics_service.py": "14c1b684ff9aa1cad4977329763e3e8a70d3ef8448e76712956cd51a233d02f0",
-    "apply_ui_redesign.py": "4be8f9450604b25f4820deb0c9fb13bbdc2303f376be1aa7d4003af60d96d282",
+    "apply_ui_redesign.py": "e1cc07c1f959699fd902df99ae9f6bc625f619c9322e85ce2146a67d96527a2e",
     "appraisal_service.py": "f0f396201e7f8b6af11525e85df49df0ba6246373baec7fe8a3bdd6e7fb6e8bc",
-    "approval_plan_schema.py": "bbcdca21e6eda2057f665f9c0cfdb7b5b1cb9c86b2bcb7ce636ca2088f3fb5a1",
+    "approval_plan_schema.py": "af8370f5fc9fdff5cfef5b046963d6902bc5ee378651619f9d9aacb3bdcf1603",
     "approval_schema.py": "bc5d5873bdc9a4fd153d98dfefa2da7a347c5e4c761a95997038970842044bb3",
+    "approvals/plans/plan_1793936717_e749adad.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvals/plans/plan_1793936753_2320a436.json": "6931c7345e04cf168be0ddf8eb5c3b4a4a67b8ed9304e803b970e40d11a7191e",
+    "approvals/plans/plan_1793936772_eaa0427f.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "approvals/plans/plan_1793936803_ed3d480d.json": "3347b9f9dc8d1daaf16e7bf56d5328fdef2cac574dbc2bba1e25819ab018702a",
+    "approvals/plans/plan_1793936813_44a92cd8.json": "c4449dcf4623d92c057f7d1b73d8126e40b115e78c7d40cf7056f62e590fb4b4",
+    "approvals/plans/plan_1793936880_29be969c.json": "4f5f76c8dee84aea8d238472804f36d32e893f9487b4fc7d07cfe5fee7922819",
+    "approvals/plans/plan_1793936897_39595890.json": "46fed1f29ef2fed2087d707ae50ce674a1dd2b071cb55a5c5c36acf3ff1241c0",
+    "approvals/plans/plan_1793936958_8d6ac2b2.json": "2617e87c0a99591ff90d2912c276c68069ca0c3b32753ef6c45439abb09d67de",
+    "approvals/plans/plan_1793936974_24bb477f.json": "5e263aff79991372c8e4e8b5b7ab8d6bb7b5195b0dd672efb86875ece6d21fc4",
+    "approvals/plans/plan_1793936994_eab41278.json": "84ad4415cc024925f8a707c351e321aeadc32d47a25412ca4923b721bb403d6a",
+    "approvals/plans/plan_1793937014_bb68eed2.json": "1bbdf1bce0e53e4fb5adb823badd4add0279cd3d6cafe0fd75d772a095be1f45",
+    "approvals/plans/plan_1793937043_d57306f2.json": "b36b81c54f8130a2ac645455446784033b03cdb6ada5efd8d7a1388a80f7f7e1",
+    "approvals/plans/plan_1793937103_28e27a65.json": "edd7e2ea5f739acfb6f98ecc8d1251214a32ed4f7fc5795917e3a2f16b7df350",
+    "approvals/plans/plan_1793937124_d32d3e87.json": "2de3a272545a3c50989bab0bb9b69a571a91ceeba902479768d1765b535ead0a",
+    "approvals/plans/plan_1793937395_0067d2f0.json": "95e5faff6836fa180fb701ebe1ea368f3828fe57cd12c5845e043583aa0e3652",
+    "approvals/plans/plan_1793994082_3d17f016.json": "53b87b5b233048e8da0f9752b66520c37fcfa918996db53299b62b21122cb904",
+    "approvals/plans/plan_1793994082_4718d74b.json": "5a354f4366b0256a678d114b2086867bb4740887f60f7e1423c9684159ab26ec",
+    "approvals/plans/plan_1793994082_483b48fa.json": "8ebf2fc71aec4a6848eb704af934ddb55baae17ac1c5f84c2553c9c4c4382556",
+    "approvals/plans/plan_1793994186_2368f581.json": "5440ba278647e0f9a9a15eb3b8ddd1591e673f18eb8cdf006ee95ca8e20e1791",
+    "approvals/plans/plan_1793994537_ed278df3.json": "16aab1bf3ecfa65c6094a9b00ae1c9986e4bd826565295999ef341d50fc5b8e2",
+    "approvals/plans/plan_1793995546_46169c7c.json": "b8ed4cd06c5a5f9b6430f07bd22edbfc18bc796b301573aaef9639b691883d88",
+    "approvals/plans/plan_1793995546_6a4b26b0.json": "235e6bbf110cb1d2e7efe93a378e5e3a11a86fd7f7fc1fd89a8b6cffc70f32fc",
+    "approvals/plans/plan_1793995546_b81fe0f3.json": "b874b4ee08e6cb15db8153a3d8de8f5129b4ad361bc1d3401d94eb203e73a6a2",
+    "approvals/plans/plan_1793995624_16cd20f8.json": "0a8af7a96076128dbce32e637d160d2369e21bb7fd5f51e341b0aea9e3ea3069",
+    "approvals/plans/plan_1793997354_b98de898.json": "aad4313712e93285f48857c5ddf5c6530a0b055522b5b255e2800e6faa83fd1b",
+    "approvals/plans/plan_1793997354_e631a47d.json": "24424e2258e682680ab37594bed63b3c31bd48f4f71757b57f7f98676ab5ee0e",
+    "approvals/plans/plan_1793997354_e85e8c99.json": "ac2b7fabd53a2cb3c5713dd51ffa87d96531d8f2a4c4bb231585c8b91cdca348",
+    "approvals/plans/plan_1793997385_c69d577e.json": "1ee67c419ae614fb9132648c7a28f4250ddc413d564f0508b821074a33c80716",
+    "approvals/plans/plan_1793997385_dafb04b0.json": "8d0d7002895540ec17ef093a6114af2b6b51e3ef2e6b42e54df97d039715b123",
+    "approvals/plans/plan_1793997386_b6b6d156.json": "c725b56399d2d7d030ede31b903df14e0f7784dd7e9a872e8b6aaa4a83f2f1cb",
+    "approvals/plans/plan_1793997452_11176625.json": "cf680bb07ec38ee56656514a5f75f235deebded3db4714f5c5714392a1b8b823",
+    "approvals/plans/plan_1793997452_b4b6a0b0.json": "203b2c5c6b75d3b9640486ddcc9320e823a92dcc761b17c25cc29b0cdbc3919e",
+    "approvals/plans/plan_1793997452_e71cef57.json": "2a1266d3018cca59e470de6b27a8c19e24d507520c4f159f3a59fb9f175697a4",
+    "approvals/plans/plan_1793997955_4ee40464.json": "c5a1c04d6b261fa1b882914e8864a9997ec59bed13bedfaa3756c699dab0ed37",
+    "approvals/plans/plan_1793997955_65e48b29.json": "5743e01d13e853f6f6c446ba7796cec3a97246332cedc1a958edcf5e693cc704",
+    "approvals/plans/plan_1793997956_6d58c6fe.json": "47217dedff137aee8614fce886b9f682fda1745c67b0db42a1a5bdc45f3f3f2b",
+    "approvals/plans/plan_1793997957_13a4762e.json": "2e4e7da3ac3292bc8000db5e60e052c78d96989e88c6effe9f65fc70d2ae6927",
+    "approvals/plans/plan_1793997957_43d9db7d.json": "4fce7ab56a5e98ebd483e31e302466ae3f7ab7c81b9b3575b0f8d4de9388365c",
+    "approvals/plans/plan_1793997957_bf3c67af.json": "5c157415d2568e40437ed54c4ccb1072959994df4e7a507a1bf463ade6da5549",
+    "approvals/plans/plan_1793998604_b07f42fb.json": "d21e6205c245e9da483a4aed042c598ef4ca39a8a36fd3de07565513a51c36f2",
+    "approvals/plans/plan_1793998604_ddf2b096.json": "298b36ed441a6887faab162e2e05299d91a66344fd4c11e56f468a01ba84ab11",
+    "approvals/plans/plan_1793998612_0dfbf00b.json": "709984bb6f4f070f008ec0d0dad067fc2a11b9b4d3eed422f66666d09992ccfc",
+    "approvals/plans/plan_1793998760_a37fcc67.json": "f282fa4bc590e65ac5f7a1e6fbae7186f163b6a3d2552a44d48621bf64fa7982",
+    "approvals/plans/plan_1793998894_27837f0d.json": "b6bdd95b88c73e4b025af943486ddf07cf4304b7d83e9959ab064bfe3e542037",
+    "approvals/plans/plan_1793999519_57c4f728.json": "600b95c9329d91b0a19958f53dfbb84663f62047198fe5f6c23e5ac93483fe71",
+    "approvals/plans/plan_1794000984_f01f41bb.json": "cebe5d7c6e8e1da5a18ef6afb98db8b3dc41de64b8cec5cf6334c576aaaf07c3",
+    "approvals/plans/plan_1794002540_3e233627.json": "db07c0c8017b5b5acfe360ee44299580eb71a6303b66ef56f0781cbf540df057",
+    "approvals/plans/plan_1794002540_73fc2900.json": "747701dc9efaf173c8458a9eaf8250c204130fcc5d867876a0a394e4d93d96fa",
+    "approvals/plans/plan_1794002542_869fffd8.json": "4d3f7e2feec0bf9395b702efb5f8238e996d549257bb36ebbdb96fc33e12cccc",
+    "approvals/plans/plan_1794002675_212d5075.json": "ba6b6924ec61d27d94b24655f467ec62d597df5c4c6b36391b97ee550406f2c9",
+    "approvals/plans/plan_1794002675_5c8842aa.json": "00fa6b471111a5ae18af0fdf5d1fc76f73e6be174004bcf7bc6672833e6579f5",
+    "approvals/plans/plan_1794002677_61d47fec.json": "09aca3e4b925a839505136a6157677b8c8d44925aa15e31295c2f1df25f6d79f",
+    "approvals/plans/plan_1794002715_76cc3af6.json": "4672ac583d221f25c609b1a0646fc02c34ed105c32ed1bdd87b00dbcc4e4f221",
+    "approvals/plans/plan_1794002715_a91d5164.json": "5605465ea151787284a11f8c54b619987bd528d1bfbb4170bf880158b110f1c2",
+    "approvals/plans/plan_1794002716_3e87b32d.json": "75ab85bdc4bc0c09f16b46d56f1672cea879da093381ce642df3501d05331451",
+    "approvals/plans/plan_1794002719_8653d581.json": "a3afa21a5443adb9abed16a228aaeede96b5675af2f98b3928fcd443d9ca10db",
+    "approvals/plans/plan_1794002753_3b54a98e.json": "e8e54327959d98cfec12f13df5dabd9386245b176ecf0a83b8b4a3313a6d064c",
+    "approvals/plans/plan_1794002753_a6a11e9a.json": "2f2c297b62221e6c4827ea431f5fbefb446971179ab2e426eb684ca1d7cf6ae8",
+    "approvals/plans/plan_1794002754_fd4bb5cd.json": "fe8802e8a82daf2b07f008b140e93860c3a676fdf37583a1b1b48b76d2557a3f",
+    "approvals/plans/plan_1794002757_15274b64.json": "6a58a0f594388149d748aee1effd167098a4ab93e3be0a34690a4ac444823ae1",
+    "approvals/plans/plan_1794002792_64bd8e23.json": "87eb6a4cebbaeca78d2b20c58a8e42005d6b87e8a44ec65ab4666ce224623daa",
+    "approvals/plans/plan_1794002792_f91bf109.json": "0eaca7569a4102f8b4a37eeec2abfe317aadb14d083017bfb1cae1c6aaaed50f",
+    "approvals/plans/plan_1794002793_aa0fb065.json": "2965ad155031eeccebae4cb3583ec0d6cb0678930d4093c5c87c71dc0d96f9b6",
+    "approvals/plans/plan_1794002795_b5844438.json": "7136d162b7fd986058a8368b6679e017813122edd25a410f442fbc3cd28b740f",
+    "approvals/plans/plan_1794005465_90b0d7a1.json": "5f2b95dee26dee7ecc6f6e5fb74ffd54a020c987e3a94d1554f55ddbbd5e0002",
+    "approvals/plans/plan_1794005465_e2c9d78e.json": "2a88162a5bb55c7c58a1a4f13c70dc3eb78bfd0f9105d33ed975cdca8e113483",
+    "approvals/plans/plan_1794005466_116505f5.json": "5fd36d8678b7f9f7082f5a9fa460d5105dcab278f948f2ec8b480a0d73506c2f",
+    "approvals/plans/plan_1794005468_a40beab3.json": "8dd1e96ed31ea7380f154468da379543e318adfa347289dd1c477b4cb80e3e80",
+    "approvals/plans/plan_1794006591_564dea77.json": "1d188423cb009709d430042427b01533f1a57eb4a1a9442ebdd804298759fba6",
+    "approvals/plans/plan_1794006591_613f10ce.json": "354c8345b21d27d29efd528c63fdaf14fdf78a65e833df2542f78f63f7888437",
+    "approvals/plans/plan_1794006592_04286de2.json": "78044bce0e0f98bb830c1bc1e9c17677b9bae742fbd05e9e097140ddbf984913",
+    "approvals/plans/plan_1794006594_4d9fc585.json": "6a42e30877602c13aba4e6598779bdab8e1b5f5cb47ae45786d27569807ddd42",
     "attendance_service.py": "aafc40c7383c46a7c7be44bcce3a511f1b7dd0df3302aace2c60cb2ed1b71e0d",
     "check_langgraph_studio.py": "43f8e5101a404fdae21ae54e9cc87845a7d125a9e9e0aeaeeeb46455b9b3c6a6",
     "classify_intent.py": "29694aa58a755bd5dd061ab8f047291a12efbd43c839fff097b3e0262941f59f",
@@ -396,7 +658,7 @@
     "docs/02_architecture_reference.md": "a980223d89e0e0186838be4f3cada0433777a45eff31dc17dc30b033c3e4cd7f",
     "docs/LANGGRAPH_USAGE.md": "32d10ef592be6484c1c092ac33e2b3b45b44addae450f8b71eb9932bcdfdd7f0",
     "docs/OPENROUTER_REMOVAL.md": "b72870ba7648b1b76189cf6093b74a3ca4023bcdb7b76675e94a4d2b11ac05d1",
-    "docs/SESSION_DECISIONS_AND_MEMORY.md": "aefe37ce8790f678427f58f98a864c5aa3f6b265214ef3c14a0e3f7dfbc93d45",
+    "docs/SESSION_DECISIONS_AND_MEMORY.md": "2a7fc04c7fb2115b6a967cd63777df2fb58e5d768da103ba87a7a0259166cfa3",
     "docs/UNIFIED_DASHBOARD_GUIDE.md": "e54decbfb724715b5f8be36c09aaf0e82d5e9637f85957eaee474b62d02b28b0",
     "docs/data_retention_and_access_policy.md": "d00343bcdf45e25eebaf4aa4d20d866c19b5140d8a57efa5c11148084d91df7a",
     "docs/env_management.md": "818616efd379f4ec03987def36306581013f936a1b77aa7564e50dc4c7d3a4ee",
@@ -418,7 +680,11 @@
     "expense_service.py": "5c777ffb05e320c568a07a426dbb0fedd6a72fc8e7f642c2c66104f31c415cc2",
     "fahas_service.py": "c763926b9020d998fa6da02ad909781955495fdbf48e80b871ad8099cd16ead0",
     "failure_codes.py": "ecfa30cd15edc219083d643957d377ffecd281fd65df8b826b55a25250128c06",
-    "generate_employee_template.py": "2c2b6c20dcc8b90b41f161197dc9cd7f000b4948c80c4638a349493f491707ea",
+    "frontend/README.md": "9d609bc9d11c133894993fe4e6e12a40c52593bd0cc3920ed04191fe1a09464c",
+    "frontend/css/dashboard.css": "309c0f1bb5df038ea0ee73fc0a914ad6d20f649fe11227ee3a7133ee7d886592",
+    "frontend/dashboard.html": "9770d9ffcbc62784b59c49f0fd78fa8f90f530408909d2ff6ae65022b9e45818",
+    "frontend/js/dashboard.js": "385dfc8483b14364a47fa44bd14c84d17fc99c6766de82e22d2ef2b82ddbdb80",
+    "generate_employee_template.py": "2621ab62a8cf04cf71bc2dff537426ac859bb16c2f12c31ee8c2fae64eba0405",
     "gr_service.py": "8d52e66aa83977148e827adc0f3d891f73d7e787f6255cafbaedc63fd6a9b266",
     "graph/README.md": "56522a6ad5f6ea82527cb306c61f3d07c884b2b078df27eeb0734116a34df887",
     "graph/__init__.py": "546778867296b35e6dcc56786ad139f2501c12f9bd1644a720c9caf83ac54b11",
@@ -429,12 +695,12 @@
     "graph/graph.py": "a3db0e0c1beb0415923077f106a278a866971563cdb75ac4d743b347f08e87d2",
     "graph/nodes.py": "c6c00048a5844b201ecec59268a32b6df48fcfe72b23e4685b15187c0af0b0a1",
     "graph/state.py": "2e9ef83d150736c28c84288c3ea5b81a4e0ca3f36ac39351b488ab14e854d1a3",
-    "katib_service.py": "96f07aaa02dd70eefc29da89a63adc79920fbae5424ae6038eb469977d8ad186",
+    "katib_service.py": "3c00ae4a228e289fe6f01296fee135789804585605940c7e2c7804c9c3b92f15",
     "labor_law_knowledge.py": "2fe1ad263b78cd99ae890fdf30ba24d705d072bd6ea58cd6417ebb91ec523e0a",
     "langgraph.json": "a84cfae4abef0d45d0fea0f2de6ea847553377109365b1e7aa3d9fdf4ad55f06",
     "leave_service.py": "69f473cfe5d8379861f93b58399dfd2af8c7bf61efe8a6a730c00c794f714cca",
     "letter_service.py": "4ab8dd614f1458b8ece273ff5e07cc88e5c4ce004d9e67bae55d672057fda3c0",
-    "llm_config_manager.py": "af2c21425264df56b7805694d3ffe0b198ce6320fc27ca9600c9c529ed4ca1c5",
+    "llm_config_manager.py": "bde146ceabf4453339ad2d45371616b44cb06a75aebce91e3ce3b6208a1015ce",
     "loan_service.py": "952570795f993644a2f2b32f0af3e3c1babca1409e64b1fc4838561cb519cb2c",
     "make_approval.py": "4f787585d84f82d0ffda304df6266ef8b856ef8621a040be1f103b0bd20bb769",
     "manage_retention.py": "5ef891585675af8f1301b58ec464caf03eb151726bf7679eb075aa217ebbb358",
@@ -481,7 +747,7 @@
     "odoo_hr_hq/launch_hq.bat": "33823f43b1bf156dfde9d86af3df1354cf3087093d6a31591c22e092f548a599",
     "odoo_hr_hq/launch_hq.py": "2e94fe00ffd57c21784c394b5d21e4c5b06e7d638aa03b39546c869caeb5efbb",
     "odoo_hr_hq/metro_avatars.json": "96520f86aa5bb15af448cf081e05eeb5e2b41645145b3f2b4143654c26f3bf5c",
-    "odoo_hr_hq/metro_sprites_b64.js": "6b3b11fed516b60c70a1de06735b4a1b54006e2602cd1639765365d1df98a28e",
+    "odoo_hr_hq/metro_sprites_b64.js": "01b7c320ff81979d94c1a9fd54a0397824163799e37ddf2b3da17d133f5d70d3",
     "odoo_hr_hq/scripts/demo_metrocity_agents.py": "4db1b085feac73e287d07e0e1e4fc2e344584fb4f04ebac2f84d92c035e98219",
     "odoo_hr_hq/scripts/generate_hq_layout.py": "8c6bc1b100faa0e690422bf58586451adda4eba4bab70f1d979b171541e53240",
     "odoo_hr_hq/scripts/generate_pixel_office_layout.py": "e791a8e6d958a682c123927494b0ca47999a60da329acf09cd75300677c42d9b",
@@ -491,7 +757,7 @@
     "odoo_letter_write_gateway.py": "daf76e8c91c6761c1a28ca2b3e87f69c0cc154fad1cae9e01331f04d604449f2",
     "odoo_loan_write_gateway.py": "430c398d44c7d1f7cbdef4060a154797c3c2ca5a5c9ec3f441073492aa7fe93d",
     "odoo_payroll_write_gateway.py": "440d2f51c8ddc98a411c5a5af3f66caaca652156cb72d04343c217fa7a988f80",
-    "odoo_readonly_repository.py": "fa057fff67738c50e9d65e6e08d68438116266b3ea4d21639543dc0c4cb6a0f4",
+    "odoo_readonly_repository.py": "fa46767566d43d8b51a489e9170f3ea564d53c7ba713e727a7e85aa3f824a22b",
     "odoo_recruitment_write_gateway.py": "3404ac3d2d49e1e4490e12c15407bd74ac68e2bbcae4b7c03460eddd94f22aff",
     "odoo_warning_write_gateway.py": "7981483db47618cf2f798740b5bd403dff97af74cc2ca3612b976addc7b5d833",
     "odoo_write_gateway.py": "22fe70f75d44ca913f45b5cad128b8efa7194502d1a31735f099fea9e33c29a9",
@@ -535,19 +801,17 @@
     "scripts/validate_dashboard.py": "e98745c982e8f7244c33ffbe4f3707a590539454a3904a5a2299294240d09803",
     "scripts/verify_deployment.py": "eb9821b4b0aa152fb0b7c6fcae66118e5d399e35212b593abc97d72b71e7adb4",
     "scripts/verify_live_api_auth.py": "6d9c6098f160ad729916e0ad522853e2ba7be6f0634347588e1bef4305bc16eb",
-    "seraj_llm_service.py": "0998593c3427f02c0e4ec73ed919af3a029c8499ac94ecd50d983f1b3705a68a",
+    "seraj_llm_service.py": "4ef00a490a4b402b414f821687d02a438038fb52b8aa3ac4c7b463d71de3e44e",
     "seraj_session_manager.py": "d131e0e2bc3ee7aa4bfb384c8034e6639ad8d298fc890f575e4206c528c3002b",
     "sijil_audit_service.py": "869893feacbba410778b939e44ba2b82701eaabf9f134c71908a855eacd3aa05",
     "skills-lock.json": "23a131df83f9eedb2a5b878daabe4c4ccde06ed03bbd916ea692f114d2da7468",
     "start_chat.bat": "a7c5196290f71464b86f19f7ee01c8b80f57a26c59bb9b6c7b50b7f500a810c2",
     "start_ollama.bat": "367ffbf91ce8e3521a36f6e236baa80d7e4d6d69fed94ff8db75a14dfcf20594",
     "state/board_state.json": "43d68f7ff73e9ad970e6f42da05f02e69759832fb8cce06f8419f02bcdef833d",
-    "telegram_bot.py": "c1fb22d162b4361edb19ced3e4735f9eea7a2714a459471101a34bd96359e686",
-    "telegram_notifier.py": "d910930ed5059207522fbc363ef59e596b289b3507a815677b26844d891bec24",
+    "telegram_bot.py": "5b9a8ae13ab6c98efc46a8c255ccf8a185465b1bd8aa859260d6e04024316e61",
+    "telegram_notifier.py": "15e9ccfa2f32810a83f635d763aeaaaa822df4e2383c95ae95fab023f94959fd",
     "template_catalog.py": "a30e34ec3935b4a1456e9cbc6b4a948a7a81f645e7464622aa484f27c5eeca69",
     "template_detector.py": "023c80a070bbca2173fc2720e142fbe002b55e4888f27160ca62b302f3affcac",
-    "templates/agents_redesign_proposals.html": "40101427511b90b20738bec62f2d1b51aa3e131358133813a49015662f6a8bc4",
-    "templates/dashboard.html": "995c0ae2206ff8dbec980044051d0e3af596ef108317fce5858d96a421bbcae1",
     "tests/PRESERVATION_TEST_REPORT.md": "e0f73bc0906ba5c3cd96e98ebce450564a85d64f13535b1d68d76822b23d9908",
     "tests/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "tests/ad_hoc/test_chat.py": "561e570b2a255b55362d8f69a4d0c94e697a6c6fd11cece9463b8e2209efe543",
@@ -613,6 +877,7 @@
     "tests/test_labor_law_mudaqqiq_routing.py": "d32a732acbbc91572e13552337c0b3633fadc7a43c205016fb7358ad12c448a8",
     "tests/test_leave_service.py": "a97ecc955b315f7e6f6648283c07ed830dfae819a5fb90e374f802de4bc7b105",
     "tests/test_letter_service.py": "6d36c5c3abaf55940620c545cd424a90a39d8d61468ebe34b92393026fe594d8",
+    "tests/test_live_fixes.py": "d581411f17f0864d1ca51886609bfd50f08677f93df3539ba9fd5f9c5404d8e6",
     "tests/test_llm_base_url_security.py": "d828c943c857623bce442c43dbae9b8e001e9c15a683bff76bb500171493fc86",
     "tests/test_loan_service.py": "afd655a96adbb66fbd0ab2511d29ae6d5018760151c07d661816e1e65de79616",
     "tests/test_main_acceptance_pipeline.py": "8d81fc5f7f8f399b3d48a539fcb26a466489f9141c3098860a825c8b46012a24",
@@ -661,40 +926,34 @@
     "unused_unlinked/agentic_ai.html": "1c3dab68a11cabc7db7d460b960d6e835615c2cf3918c59aac30380a4e22ce94",
     "validator.py": "28d31c236169280d98846586627fbd34cbe9b4fdee64ce555a67c804c4aa7f0b",
     "warning_service.py": "924ddde8a5142c256c6add11d92e4255a52906149099afc87fdd549803c57c42",
-    "web_service.py": "27fc64ffecb2cb73a07ad7c2726d5ebe3fe0a30fd1abd38f9ce25eee7bdd9cdc",
+    "web_service.py": "1d9f0a5c93a174d0f81daef5478e29884abebd941d5f1db49dc35e1adae5d6f2",
     "whisper_service.py": "5c07db86316112ee4da4ed088a148437dbb3239d644751b5a2bd827006c2d75c",
     "writer.py": "f2a0af73f9ba847397a874a2018b169134bc119fb5932021c97c0a7deffec34c"
   },
   "indexCoverage": {
     "maxFileSizeBytes": 524288,
     "dirtyPaths": [
-      "BRANCH_SUMMARY.md",
+      "apply_ui_redesign.py",
+      "docs/SESSION_DECISIONS_AND_MEMORY.md",
+      "frontend/dashboard.html",
+      "generate_employee_template.py",
+      "telegram_bot.py",
+      "telegram_notifier.py",
       "web_service.py",
-      "memory_store/episodes/ep_c43569b94685.json",
-      "memory_store/semantic/know_044c99c0e572.json",
-      "memory_store/semantic/know_dca1f0dfce84.json",
-      "odoo_hr_hq/README.md",
-      "odoo_hr_hq/index.html",
-      "odoo_hr_hq/launch_hq.bat",
-      "odoo_hr_hq/launch_hq.py",
-      "odoo_hr_hq/metro_avatars.json",
-      "odoo_hr_hq/metro_sprites_b64.js",
-      "odoo_hr_hq/scripts/demo_metrocity_agents.py",
-      "odoo_hr_hq/scripts/generate_hq_layout.py",
-      "odoo_hr_hq/scripts/generate_pixel_office_layout.py",
-      "odoo_hr_hq/scripts/inspect_furniture.py",
-      "odoo_hr_hq/scripts/pixel_office_bridge.py",
-      "state/board_state.json"
+      "frontend/README.md",
+      "frontend/css/dashboard.css",
+      "frontend/js/dashboard.js"
     ]
   },
   "cacheKeys": [
-    "0a7593aa239be7b8263e3cfdd15c7aff94ca09ad0de8eb7232be8e262d131b75",
+    "85e03bc35868c117348a33540c4d168184688fce7a0bf07f17f8c86ed722be15",
+    "70fdded74873e09cb6ec3ac90d8b2ee16aee7c4ec254c963c177ceb8d1352295",
     "dd7b7c1499f87d0bb1625e050bd4b0ecf989a24fd9d47d812d2d021024b4ec3d",
-    "d53c1cb6dc52a5aac176eae511b53a64712311309663dcb5fa0d6a11352fadb2",
+    "d0ad7e4fe66558a7bdd12c678973de659d70dce44f302f5267a389bc2f2324d6",
     "c0820a7f7a37d44ddcc9bb82c651add0dd45f05e29b2294d98a64b6dbb24e95b",
     "26603e94a9b3d334f27b68c1f22b90caca1db15213d2125a7011ffbbc638988b",
     "e14c9bad098e49ed5228b19aa7bb1e7a34cbcfe2a00191d6638f02d6edc3d694",
-    "14b8fef6c76ce80ef3ba57eaf3124712a9d1c5368dfec5ae6f59f99363785600",
+    "d3cca8995fa3d7e0c3b1f6134222c6f011fd9fb55dcced9723e202823d56f806",
     "23d052c9362a7b9237fa9d05bed9706d0c5b4385d1c0a60f586e42f097747b2b",
     "8873c403be5b2445ea7d7adc4851dbdf24ae6a22d1d2d3f641e7d34782f8c358",
     "fc92efca27237429b9b75d6e1758bc8e8463626a60d5c79d41c316e699819032",
@@ -706,14 +965,14 @@
     "5ad6075e1008391923a823d2adf02feae27deebc3f1161120d007663ab4e7139",
     "aa8345e0ad7f9ba36d2e2ddcd33c08d119168cb00f03967737ccc26c112c2bb7",
     "799ec75524e5143c77e369e25d881308c255744eb333d7f9bb9e915bf0d15a4f",
-    "f6360d98526f61f59456115c18efa5ac780c8ed241478a27979eb3b44a281399",
+    "6eb5529f8a3c26f9c9b4bb2bd2d77a9306f22b93eb08adb8a999fdd15edab3c9",
     "d18727af8d2538f0717bb70b974f56211c595d6b5104d9d9a9c3219980ab4cd7",
     "aa504cec7b3b09d98886425fab8d0fbf4edeae217db1c30e322a60d74bd5a1f3",
     "5ebee9903adfbe43e2238fd5e361c00645025e83e24ccdae4348e131152ec881",
     "68cbacfc60d81e623a95d5884a7dd89a0e5b90ff2d84faae06af3d4952c4dc8d",
     "968648f4fd35d716e616aa3be734b31926cab57b440830cf56f7f17b10ed840d",
     "bb6ee109760d7aa6db79b6e7ea827ad07e3cbb918fe851a176e2e23292fba3e8",
-    "eb01eea1114da76ccaf380f681747ed3875a25b149cfaf3662e9009fd57fdae3",
+    "56c78e45db7e239ecd33abeb23d3b5f5f20fe21dae6801b516b6c92f3662c594",
     "f858922dca22d911c8759d9e9b7df636ccd2f896e21e234b9b913a85755eb89e",
     "44228a1ab313368a5a98990133b392afd14dcba29e50dee93120ea760a2a1cb9",
     "069acf3d320c7185d7d85ca2ac3b41807f67a82c5854c68e5a1fdde971b32bed",
@@ -730,14 +989,14 @@
     "94ffd168e789dd8f8ab989582ebb1c0c3c89bb32a62cf3f8368be1b3103f9e7a",
     "abdea87506383906548ea5abed30fabc4c856217d8c8ef3c6018407006f1506e",
     "cbc1aca4a7d3e0c593eeb020e2fed7f31187bde77a260214d0f4ed2096f7b13a",
-    "a45e3d83729956757a8240dd114912be3ed001ee3e35f9cd33c2088e813760e9",
-    "9358d03e005893cff483367cb1e5f78f8cb1e02ccaa1052b441cbbb90c46addf",
-    "d22828b3b99502e3e58bb057e3886134ab6bbe5a28104b3be90a0af2595f8fa4",
+    "b79ea2b66baba13905d1718b45856714949e0a7026a9176dc5279482a8c69159",
+    "c8b43039b40b3b1b2a21640944523dd0d8cd73875001c02d850a4bfe4cf8da14",
+    "2a77e339ffe02187e9680fdbd4623033dc5a063e35b16b4cab98b01fa379ffdf",
     "960ff3016ccc9ca6490ca7db0692e0b0fd9e23c0c216ac7e896a1e9470d454d8",
     "137b5d42e87a4e81bc89ff3b5a72ebff06a4d4386557cf06bf5a4cb1c00ac60c",
     "2d87948a14b5790fbfce7e056ecd635fc31e502a8b0305d67bc54e96f54bb089",
     "5b2220ac9230a5f51e7d393e399a77f344885ed4163d654a6a730401f27efa8c",
-    "ebc4b3766b6187cb49494a415d70152a44ba0ae6eb6c4133c2c5156fb45c3faa",
+    "cbf8f9f7886d30dc678373908701ce4f2775cf52ddb30df737b4fa36b5c50f9c",
     "6cdd4805e66571a1d6c9ddc4563422a2ae09d9b46f0a88133153096aeaf2d944",
     "753726403538791bed312cda0b74f7bf1712c022bde177baa5a5403f4a427eaa",
     "54afd21b19b9735ac5c4a55e9da22ec8b02691b8577b822112eb84f78f203c38",
@@ -749,7 +1008,7 @@
     "05214641e1f305aa1d38279674e37e15e53ea47932ad5ec9d2d16e302b63acb7",
     "6dc2790e976d5ae633bc007960e01b906aa5d1382f78ebe7ef49ed6aeef937d9",
     "15e41293079fde823a093785d9960aafb17ea2377ce75c868c9a78cfa2ce646a",
-    "6d55b43387fa70130e2db75e6fc4b46dfe94453adbf869f6b2dd1f5f591a2a62",
+    "b348ec28a26df3779709f0049a5838fb581d45c440ddb251af4327f936ead979",
     "9fdc305085de870ad6252ffa92392282a16dbeba3e1d3e476a19df2ef4703602",
     "d683425d4cdb1bbb3719c4c0d170269f2da9c0608ef6d8b94624e26c51a8f930",
     "f59d8576d303d5db21eb7fad6f87458c0afe5627232d49b0c7be08f37a906f3f",
@@ -760,11 +1019,11 @@
     "1716741cf6a32d3e94d5be472bb681cf3eb72d96bdd359e28ce7b553e9bf924a",
     "1dd93b044b8a1318ba36d55f6fbcecf99f9cae566f28fa2882c050e130142c86",
     "6d6ad8cd77f92380981907cd5f0399c21a5b47bf5078d5100cb9a50cba606158",
-    "90f946f5b369bfd98ff9eb3ce10cc44edf04378da8cf2d1691a03c828e0ccccc",
-    "d4d5eb5bc3f9a08790fc967f75ebc7af9348505cea55e52d455f3f1adad73d59",
+    "31c45b0c21250f3b15c18a91b354704a636e1b160fedadc44e1c0bf8fc29fc00",
+    "b3f3e569ec77b4c9b87061b451ce0b8b72188fd11717d5fd146b228e117a6d6a",
     "a2585a647f2d7868eeddf634d4e587016e2660ec5a95db0c93421f7d44a4c19c",
     "a6099c2360557862c498825eae51b011cf5483670efe15cd18f83b86535cbf5c",
-    "937eb7a173031c3a01acfb669f348fc0cd5de68cf2354319771b9a1447bb0388",
+    "01c8fad30e980de072ada8ddf08767255eb46f3a489813fc0cfe38222afedaa6",
     "c2f90b30d750d2411999d54dd75aec2d997aa488b73a10f7d5fbbb4635840a6d",
     "434ac24a2b4f0a6fad02cbe612a988c0c7bce816c0aaef4e6900bee9e1685b88",
     "019b71c3821e98121b720e0772195079ffe42e26631d59d1689246662a07cdbb",
@@ -780,7 +1039,7 @@
     "f749893b12f9a574de4bcfdd413ee17987eac149a120d8d9270a772e2d94248c",
     "d38b73832ead7f25d9ef1b7a2fa98284a6005a1d72a707f87761eda08b603c30",
     "e7f646fd5eaac3ccaf1d2e06daaa93d6111bbbdbf64659da8a89e802d0d7ffa8",
-    "e2cac61f102b9c77804a561db681509a4b8e6c4df9e8f3e564e647e1a053bb77",
+    "07e0b274d70c298ee03374696c2c34360c579f981f52ba5ff4c3c731806ca874",
     "4526534a0313f431b41c594946d471b86b28443355a6fc84121eb6bc68d9b56e",
     "dbcf5a35cca39efcda90ff15ea55fb7b89506c8a762d016857b280733329e07c",
     "53bacf9072db738fd9c613c747458dbc8ff3fc8e496833ec9aaaff2a1561e930",
@@ -789,6 +1048,6 @@
     "733686889d233c3602f0d47bae4e6d68770a8b4b247d93c3f6f53d15f29abf71",
     "16c057dc00aedcece25bdaf102ff316f3b35623b2f088df2be57f37a5af8e9fb",
     "cfe2f9991d688ccc7a831cc69258442a1bcfa9ad75e18473b28ee08d656b784f",
-    "58e11e467e70300fc3cb15dd00d88e7e17ceacd9413ef21277707f5e4b111509"
+    "f8af9f6db5fda0763020f4570957683465d007f07049d96cc806507ec9ab9d90"
   ]
 }

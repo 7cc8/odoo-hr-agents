@@ -1742,6 +1742,34 @@ class TelegramBotTests(unittest.TestCase):
         mock_bot.answer_callback_query.assert_called_with("cq_99")
         mock_show_bal.assert_called_once_with(mock_bot, 1234, 147)
 
+    def test_ssl_context_warns_on_missing_ca_bundle(self):
+        with patch.dict("os.environ", {"TELEGRAM_CA_BUNDLE": "non_existent_bundle.pem"}):
+            with patch("sys.stderr.write") as mock_stderr:
+                ctx = telegram_bot._build_ssl_context()
+                self.assertIsNotNone(ctx)
+                mock_stderr.assert_called()
+                err_text = "".join(call[0][0] for call in mock_stderr.call_args_list)
+                self.assertIn("non_existent_bundle.pem", err_text)
+                self.assertIn("WARNING", err_text)
+
+    def test_ssl_context_uses_valid_ca_bundle(self):
+        ca_file = self.tmpdir / "custom_ca.pem"
+        ca_file.write_text("DUMMY CA CONTENT", encoding="utf-8")
+        with patch.dict("os.environ", {"TELEGRAM_CA_BUNDLE": str(ca_file)}):
+            with patch("ssl.create_default_context") as mock_ssl_create:
+                telegram_bot._build_ssl_context()
+                mock_ssl_create.assert_called_with(cafile=str(ca_file))
+
+    def test_post_raises_ssl_verification_failure_without_unverified_fallback(self):
+        bot = telegram_bot.TelegramBotClient(token="123456:ABC-DEF")
+        with patch("urllib.request.urlopen") as mock_urlopen:
+            import urllib.error
+            mock_urlopen.side_effect = urllib.error.URLError("CERTIFICATE_VERIFY_FAILED: self signed cert")
+            res = bot._post("getMe", {})
+            self.assertFalse(res.get("ok"))
+            self.assertIn("URLError", res.get("description", ""))
+            self.assertEqual(mock_urlopen.call_count, 1)
+
 
 if __name__ == "__main__":
     unittest.main()

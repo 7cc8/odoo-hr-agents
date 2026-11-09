@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>المُصنِّف — تشغيل الأوامر وهبوط FLIP</title>
+  <style>
+    :root {
+      --bg: #090c10;
+      --card-bg: #161b22;
+      --border: #30363d;
+      --text: #f0f6fc;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --spring: cubic-bezier(0.2, 1.3, 0.45, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+      overflow-x: clip;
+      position: relative;
+    }
+    .main-view {
+      width: 100%;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: all 400ms var(--spring);
+    }
+
+    /* Hero / Ghost Cards */
+    .hero-section {
+      text-align: center;
+      padding: 20px 0;
+      transition: opacity 300ms ease, transform 300ms var(--spring), filter 300ms ease;
+    }
+    .hero-section.ghost-fade {
+      opacity: 0;
+      filter: blur(8px);
+      transform: translateY(-20px);
+      pointer-events: none;
+    }
+    .hero-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; }
+    .hero-sub { color: #8b949e; font-size: 0.9rem; }
+
+    .templates-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .template-chip {
+      background: #21262d;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 150ms var(--spring);
+    }
+    .template-chip:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+
+    /* Command Box (Performs FLIP descent) */
+    .command-box {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+      transition: transform 450ms var(--spring), border-color 200ms ease;
+    }
+    .command-box.active {
+      border-color: var(--accent);
+    }
+    .prompt-symbol { color: var(--accent); font-weight: 700; font-family: monospace; }
+    .command-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      font-family: inherit;
+    }
+    .run-btn {
+      background: #238636;
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 150ms ease, transform 150ms var(--spring);
+    }
+    .run-btn:hover { background: #2ea043; }
+    .run-btn:active { transform: scale(0.96); }
+
+    /* Output Console Container */
+    .console-terminal {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      font-family: monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      min-height: 120px;
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .console-terminal.visible { display: flex; }
+    .terminal-line { color: #8b949e; }
+    .terminal-line.highlight { color: #58a6ff; }
+    .terminal-line.success { color: #3fb950; }
+    .caret-blink {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--accent);
+      animation: blink 0.8s infinite;
+      vertical-align: middle;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+  </style>
+</head>
+<body>
+  <main class="main-view">
+    <header class="hero-section" id="hero">
+      <h1 class="hero-title">المُصنِّف — وحدة معالجة البيانات</h1>
+      <p class="hero-sub">اختر قالباً تحليلياً لبدء التدفق وهبوط صندوق الأوامر</p>
+      <div class="templates-row">
+        <button class="template-chip" data-cmd="audit --verify-signatures">🔒 تدقيق التواقيع</button>
+        <button class="template-chip" data-cmd="extract --format json --clean">📊 استخراج البيانات</button>
+        <button class="template-chip" data-cmd="sync --workers 4 --live">⚡ مزامنة متوازية</button>
+      </div>
+    </header>
+
+    <div class="command-box" id="cmd-box">
+      <span class="prompt-symbol">❯</span>
+      <input type="text" class="command-input" id="cmd-input" placeholder="اكتب أمراً أو اختر من القوالب أعلاه..." />
+      <button class="run-btn" id="run-btn">تشغيل</button>
+    </div>
+
+    <section class="console-terminal" id="terminal">
+      <div class="terminal-line highlight" id="active-line"></div>
+      <span class="caret-blink" id="caret"></span>
+    </section>
+  </main>
+
+  <script>
+    const hero = document.getElementById('hero');
+    const cmdBox = document.getElementById('cmd-box');
+    const cmdInput = document.getElementById('cmd-input');
+    const runBtn = document.getElementById('run-btn');
+    const terminal = document.getElementById('terminal');
+    const activeLine = document.getElementById('active-line');
+    const caret = document.getElementById('caret');
+    const chips = document.querySelectorAll('.template-chip');
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        cmdInput.value = chip.dataset.cmd;
+        executeCommand();
+      });
+    });
+
+    runBtn.addEventListener('click', executeCommand);
+
+    function executeCommand() {
+      if (!cmdInput.value.trim()) return;
+
+      // 1. Ghost fade hero
+      hero.classList.add('ghost-fade');
+
+      // 2. Active command box
+      cmdBox.classList.add('active');
+
+      // 3. Show terminal
+      terminal.classList.add('visible');
+      activeLine.textContent = '';
+      caret.style.display = 'inline-block';
+
+      const logLines = [
+        `[بدء المهمة] تحليل الأمر: ${cmdInput.value}`,
+        "[التحقق] تم فحص الرموز والمكتبات المعتمدة...",
+        "[البيانات] استخراج 48 سجلاً وتأكيد سلامة الهياكل.",
+        "[اكتمل] العملية انتهت بنجاح وحُفظ السجل."
+      ];
+
+      let lineIdx = 0;
+      function printNextLine() {
+        if (lineIdx < logLines.length) {
+          const p = document.createElement('div');
+          p.className = lineIdx === logLines.length - 1 ? 'terminal-line success' : 'terminal-line';
+          p.textContent = logLines[lineIdx];
+          terminal.insertBefore(p, caret);
+          lineIdx++;
+          setTimeout(printNextLine, 280);
+        } else {
+          caret.style.display = 'none';
+        }
+      }
+      setTimeout(printNextLine, 200);
+    }
+  </script>
+</body>
+</html>
+
