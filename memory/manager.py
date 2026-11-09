@@ -7,6 +7,7 @@ Memory Manager - مدير الذاكرة الموحد
 
 import json
 import logging
+import os
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -218,18 +219,27 @@ class MemoryManager:
                 "company_id": company_id,
             }, limit=limit)
         
-        # وإلا، بحث تقليدي مع فرز زمني سريع للأحدث
+        # وإلا، بحث تقليدي فائق السرعة عبر scandir مع فرز زمني للأحدث
         episodes = []
-        files = sorted(self.episodes_dir.glob("*.json"), key=lambda p: p.stat().st_mtime, reverse=True)
+        file_entries = []
+        try:
+            with os.scandir(self.episodes_dir) as it:
+                for entry in it:
+                    if entry.name.endswith(".json"):
+                        file_entries.append((entry.stat().st_mtime, entry.path))
+            file_entries.sort(key=lambda x: x[0], reverse=True)
+        except Exception:
+            file_entries = [(p.stat().st_mtime, str(p)) for p in self.episodes_dir.glob("*.json")]
+
         cutoff_ts = time_range[0].timestamp() if time_range else None
         
-        for episode_file in files:
+        for mtime, episode_path in file_entries:
             # تخطي سريع للملفات الأقدم من النطاق الزمني المحدد
-            if cutoff_ts and episode_file.stat().st_mtime < (cutoff_ts - 3600):
+            if cutoff_ts and mtime < (cutoff_ts - 3600):
                 break
 
             try:
-                with open(episode_file, "r", encoding="utf-8") as f:
+                with open(episode_path, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 episode = Episode.from_dict(data)
             except Exception:

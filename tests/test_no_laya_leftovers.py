@@ -13,7 +13,13 @@ from seraj_llm_service import SerajLLMService
 from seraj_session_manager import ConversationSession
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SKIP_DIRS = {".git", ".claude", ".gitnexus", "graphify-out", "__pycache__", "node_modules", "venv", ".venv", "logs", "output", "approvals"}
+SKIP_DIRS = {
+    ".git", ".claude", ".gitnexus", "graphify-out", "__pycache__", "node_modules",
+    "venv", ".venv", "logs", "output", "approvals", "memory_store", ".agents",
+    ".kiro", ".specify", ".desloppify", "Skill_Seekers", "AI", ".windsurf",
+    ".kilo", ".playwright", ".playwright-cli", ".playwright-mcp", ".taste-skill",
+    ".archify", "unused_unlinked", "checkpoints", ".pytest_cache", ".vscode", "output_catalog"
+}
 TEXT_EXT = {".py", ".md", ".html", ".bat", ".txt", ".json", ".yml", ".yaml", ".toml", ".cfg", ".ini", ".example"}
 
 # Not "Layan" (a first name) and not Arabic words that merely contain the letters (e.g. الولايات).

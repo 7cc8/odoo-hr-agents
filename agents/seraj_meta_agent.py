@@ -28,6 +28,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 from agents.base_agent import BaseAgent, AgentGoal, AgentMemory
+from seraj_session_manager import SerajSessionState, SerajState
 
 logger = logging.getLogger("seraj_meta_agent")
 
@@ -903,3 +904,50 @@ class SerajMetaAgent(BaseAgent):
 # Singleton (محذوف - غير مستخدم في الرسم)
 # ============================================================================
 # الرسم يستخدم SerajMetaAgent() مباشرة - لا حاجة لـ singleton
+
+
+# ============================================================================
+# Conditional Execution & Routing Logic (Vanilla Agentic AI)
+# ============================================================================
+
+def evaluate_conditional_execution(state: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    تقييم حالة الفحص التجريبي لتحديد إمكانية التنفيذ التلقائي (Auto-Execution)
+    أو ضرورة تعليق العملية لانتظار موافقة المستخدم.
+    
+    القاعدة:
+    - إذا كانت قائمة الصفوف المرفوضة فارغة وعدد المرفوضات 0 -> auto_execute = True
+    - إذا وجدت أي صفوف مرفوضة -> auto_execute = False
+    """
+    rejected_rows = state.get("rejected_rows_details") or []
+    stats = state.get("excel_validation_stats") or {}
+    rejected_count = stats.get("rejected", len(rejected_rows))
+    
+    is_clean = len(rejected_rows) == 0 and rejected_count == 0
+    updated_state = dict(state)
+    updated_state["auto_execute"] = bool(is_clean)
+    if is_clean and not updated_state.get("user_execution_choice"):
+        updated_state["user_execution_choice"] = "execute"
+    return updated_state
+
+
+# كنية توافقية مطابقة لدوال العقد المنطقية
+conditional_execution_node = evaluate_conditional_execution
+
+
+def route_after_conditional_execution(state: Dict[str, Any]) -> str:
+    """
+    توجيه مسار التنفيذ بعد التقييم الشرطي:
+    - إذا كان auto_execute مفعلاً أو اختار المستخدم التنفيذ: التوجيه إلى 'execute_write'
+    - إذا اختار المستخدم الإلغاء: التوجيه إلى 'end'
+    - إذا اختار المستخدم محاولة الإصلاح التلقائي: التوجيه إلى 'musleh_heal'
+    - افتراضياً عند وجود أخطاء بدون خيار محدد: 'wait_for_approval'
+    """
+    user_choice = state.get("user_execution_choice")
+    if user_choice == "cancel":
+        return "end"
+    if user_choice == "fix":
+        return "musleh_heal"
+    if state.get("auto_execute") is True or user_choice in ("execute", "all_valid"):
+        return "execute_write"
+    return "wait_for_approval"

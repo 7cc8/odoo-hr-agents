@@ -560,9 +560,12 @@ def create_musleh_diagnostic_goal(
 
 def _translate_to_arabic(message: str) -> str:
     """Translate error message to Arabic."""
+    if not message:
+        return "خطأ غير محدد"
     translations = {
         "Department not found": "القسم غير موجود",
         "Job not found": "المسمى الوظيفي غير موجود",
+        "Company not found": "الشركة غير موجودة",
         "Invalid email": "البريد الإلكتروني غير صالح",
         "Invalid email format": "تنسيق البريد الإلكتروني غير صحيح",
         "Invalid date format": "تنسيق التاريخ غير صحيح",
@@ -574,7 +577,17 @@ def _translate_to_arabic(message: str) -> str:
         "Invalid value": "قيمة غير صالحة",
         "Field too long": "الحقل طويل جداً",
         "Field required": "الحقل مطلوب",
+        "Employee name is required": "اسم الموظف مطلوب",
     }
+    if message in translations:
+        return translations[message]
+    msg_lower = message.lower()
+    for en, ar in translations.items():
+        if en.lower() in msg_lower:
+            if ":" in message:
+                suffix = message.split(":", 1)[1]
+                return f"{ar}:{suffix}"
+            return ar
     return translations.get(message, message)
 
 

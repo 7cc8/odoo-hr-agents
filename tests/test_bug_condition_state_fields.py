@@ -31,7 +31,7 @@ def test_seraj_state_has_rejected_rows_details_field():
     Expected to FAIL on unfixed code (field missing).
     Expected to PASS after fix is applied.
     """
-    from graph.state import SerajState
+    from seraj_session_manager import SerajState
     
     # Get type hints from SerajState
     type_hints = get_type_hints(SerajState)
@@ -59,7 +59,7 @@ def test_seraj_state_has_user_execution_choice_field():
     Expected to FAIL on unfixed code (field missing).
     Expected to PASS after fix is applied.
     """
-    from graph.state import SerajState
+    from seraj_session_manager import SerajState
     
     # Get type hints from SerajState
     type_hints = get_type_hints(SerajState)
@@ -84,7 +84,7 @@ def test_seraj_state_has_auto_execute_field():
     Expected to FAIL on unfixed code (field missing).
     Expected to PASS after fix is applied.
     """
-    from graph.state import SerajState
+    from seraj_session_manager import SerajState
     
     # Get type hints from SerajState
     type_hints = get_type_hints(SerajState)
@@ -110,7 +110,7 @@ def test_state_instance_can_access_new_fields():
     Expected to FAIL on unfixed code (accessing undefined fields).
     Expected to PASS after fix is applied.
     """
-    from graph.state import SerajState
+    from seraj_session_manager import SerajState
     
     # Create a sample state with the new fields
     state: SerajState = {
@@ -155,7 +155,7 @@ def test_all_three_fields_present_together():
     Expected to FAIL on unfixed code (all three fields missing).
     Expected to PASS after fix is applied.
     """
-    from graph.state import SerajState
+    from seraj_session_manager import SerajState
     
     # Get type hints from SerajState
     type_hints = get_type_hints(SerajState)
@@ -181,7 +181,7 @@ def test_state_fields_have_optional_types():
     Expected to FAIL on unfixed code (fields don't exist).
     Expected to PASS after fix is applied.
     """
-    from graph.state import SerajState
+    from seraj_session_manager import SerajState
     
     # Get type hints from SerajState
     type_hints = get_type_hints(SerajState)

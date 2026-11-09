@@ -14,9 +14,26 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, TypedDict
 
 logger = logging.getLogger("seraj_session_manager")
+
+
+class SerajSessionState(TypedDict, total=False):
+    """حالة جلسة وعمليات سراج في بيئة الوكلاء الموحدة (Vanilla Agentic AI)."""
+    operation_id: Optional[str]
+    company_id: Optional[int]
+    chat_id: Optional[str]
+    user_query: Optional[str]
+    rejected_rows_details: Optional[List[Dict[str, Any]]]
+    user_execution_choice: Optional[str]
+    auto_execute: Optional[bool]
+    excel_validation_stats: Optional[Dict[str, Any]]
+    status: Optional[str]
+
+
+# اسم مستعار للتوافقية الكاملة مع بنية الوكلاء المعمارية
+SerajState = SerajSessionState
 
 
 @dataclass

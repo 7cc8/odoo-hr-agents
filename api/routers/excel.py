@@ -592,22 +592,45 @@ async def run_dry_run_endpoint(
             reasons = r.get("reasons", [])
             primary_reason = str(reasons[0]) if reasons else (r.get("failure_code") or "خطأ في البيانات")
 
-            field = "department" if "department" in primary_reason.lower() else (
-                "job_id" if "job" in primary_reason.lower() else (
-                    "work_email" if "email" in primary_reason.lower() else (
-                        "hiring_date" if "date" in primary_reason.lower() else "name"
+            reason_lower = primary_reason.lower()
+            field = "department" if "department" in reason_lower else (
+                "job_id" if "job" in reason_lower else (
+                    "work_email" if "email" in reason_lower else (
+                        "hiring_date" if "date" in reason_lower else (
+                            "company" if "company" in reason_lower else "name"
+                        )
                     )
                 )
             )
+            raw_field_val = fields.get(field, {})
+            val_str = raw_field_val.get("value") if isinstance(raw_field_val, dict) else raw_field_val
+            if not val_str:
+                if field == "company":
+                    val_str = fields.get("company", {}).get("value") or r.get("display_company") or ""
+                elif field == "department":
+                    val_str = fields.get("department", {}).get("value") or ""
+                elif field == "job_id":
+                    val_str = fields.get("job_title", {}).get("value") or fields.get("job", {}).get("value") or r.get("display_job") or ""
+                elif field == "work_email":
+                    val_str = r.get("display_email") or ""
+                elif field == "name":
+                    val_str = name if name != "N/A" else ""
+            value_final = str(val_str or "")
+
+            reason_ar = _translate_to_arabic(primary_reason)
+            suggestion_text = _generate_suggestion({"field": field, "message": primary_reason}, fields)
+            can_fix_flag = bool(_is_auto_fixable({"field": field, "message": primary_reason}))
 
             rejected_rows_details.append({
                 "row_number": row_num,
-                "name": name,
-                "error_reason": primary_reason,
-                "field": field,
-                "error_reason_ar": _translate_to_arabic(primary_reason),
-                "suggestion": _generate_suggestion({"field": field, "message": primary_reason}, fields),
-                "can_auto_fix": _is_auto_fixable({"field": field, "message": primary_reason}),
+                "name": str(name),
+                "reason_ar": str(reason_ar),
+                "error_reason_ar": str(reason_ar),
+                "error_reason": str(primary_reason),
+                "field": str(field),
+                "value": value_final,
+                "suggestion": str(suggestion_text),
+                "can_auto_fix": can_fix_flag,
             })
 
     report_dict["rejected_rows_details"] = rejected_rows_details

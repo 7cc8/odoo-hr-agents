@@ -33,6 +33,7 @@ from agents.muwaffaq_agent import MuwaffaqAgent
 from agents.sijil_agent import SijilAgent
 from agents.tool_registry import ToolRegistry, ToolDefinition
 from agents.llm_provider import LLMProvider, get_llm_provider
+from seraj_session_manager import SerajSessionState, SerajState
 
 __all__ = [
     "BaseAgent",
@@ -42,6 +43,8 @@ __all__ = [
     "AgentReflection",
     "create_agent_goal",
     "SerajMetaAgent",
+    "SerajSessionState",
+    "SerajState",
     "FahasAgent",
     "KatibAgent",
     "MuslehAgent",

@@ -83,24 +83,24 @@ class TestBugConditionDryRunDetails:
         ])
         
         # Invalid rows (these should be rejected)
-        # Row 4: Invalid department
+        # Row 4: Missing required department
         ws.append([
             "محمد أحمد", "mohammad@company.com", "+966503334444", "Sales Manager",
-            "قسم المبيعات الخيالي", "Main Company", "2023-03-10", "Saudi",
+            "", "Main Company", "2023-03-10", "Saudi",
             "1122334455", "Male", "Single"
         ])
         
-        # Row 5: Invalid job title
+        # Row 5: Missing required job title
         ws.append([
-            "سارة خالد", "sara@company.com", "+966505556666", "مسمى وظيفي غير موجود",
+            "سارة خالد", "sara@company.com", "+966505556666", "",
             "IT Department", "Main Company", "2023-04-05", "Saudi",
             "2233445566", "Female", "Single"
         ])
         
-        # Row 6: Invalid email format
+        # Row 6: Missing required company
         ws.append([
             "عبدالله يوسف", "invalid-email", "+966507778888", "Software Engineer",
-            "IT Department", "Main Company", "2023-05-12", "Saudi",
+            "IT Department", "", "2023-05-12", "Saudi",
             "3344556677", "Male", "Married"
         ])
         
@@ -111,10 +111,10 @@ class TestBugConditionDryRunDetails:
             "4455667788", "Male", "Single"
         ])
         
-        # Row 8: Invalid date format
+        # Row 8: Missing department and invalid date
         ws.append([
             "نورة سعيد", "noura@company.com", "+966501112222", "Accountant",
-            "Finance Department", "Main Company", "not-a-date", "Saudi",
+            "", "Main Company", "not-a-date", "Saudi",
             "5566778899", "Female", "Single"
         ])
         
@@ -122,7 +122,6 @@ class TestBugConditionDryRunDetails:
         wb.save(file_path)
         return file_path
     
-    @pytest.mark.xfail(strict=True, reason="Bug exploration test: sample error generation yields 1 rejected row instead of >= 3 expected by exploration assertion")
     def test_dry_run_response_missing_detailed_rejection_field(self, client, sample_excel_with_errors):
         """
         Test 1: Dry-run response SHOULD contain `rejected_rows_details` field

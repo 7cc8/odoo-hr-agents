@@ -63,7 +63,6 @@ class TestAgentTimelineHidden:
         assert isinstance(data["events"], list)
         print(f"✓ Verified: /api/agent-traces/{mock_operation_id} returns 200 with events list")
 
-    @pytest.mark.xfail(strict=True, reason="Bug exploration test: checks inline script in dashboard.html which was modularized to dashboard.js")
     def test_dashboard_lacks_agent_timeline_section(self, client):
         """
         Validation 2: Dashboard HTML يحتوي على Agent Timeline section
@@ -80,26 +79,32 @@ class TestAgentTimelineHidden:
         assert "timelinecontainer" in html_content or "timeline-container" in html_content, (
             "Dashboard should contain timeline container element"
         )
-        assert "updateagenttimeline" in html_content, (
+        js_res = client.get("/js/dashboard.js")
+        combined = (html_content + " " + js_res.text.lower()) if js_res.status_code == 200 else html_content
+        assert "updateagenttimeline" in combined, (
             "Dashboard should contain updateAgentTimeline JavaScript function"
         )
         print("✓ Verified: Dashboard contains Agent Timeline section and JS functions")
 
     def test_agent_events_service_exists_but_not_integrated(self):
         """
-        Validation 3: agent_events_service مدمج في web_service.py
+        Validation 3: agent_events_service مدمج في web_service.py أو راوترات api/routers/
         """
+        audit_router_path = Path(__file__).parent.parent / "api" / "routers" / "audit.py"
         web_service_path = Path(__file__).parent.parent / "web_service.py"
-        assert web_service_path.exists(), "web_service.py should exist"
-        
-        web_service_content = web_service_path.read_text(encoding="utf-8")
-        assert "/api/agent-traces" in web_service_content, (
-            "web_service.py must include /api/agent-traces endpoint"
+        combined_content = ""
+        if audit_router_path.exists():
+            combined_content += audit_router_path.read_text(encoding="utf-8")
+        if web_service_path.exists():
+            combined_content += "\n" + web_service_path.read_text(encoding="utf-8")
+            
+        assert "/api/agent-traces" in combined_content, (
+            "web_service / audit router must include /api/agent-traces endpoint"
         )
-        assert "get_agent_events" in web_service_content, (
-            "web_service.py must use get_agent_events"
+        assert "get_agent_events" in combined_content or "agent_events_service" in combined_content, (
+            "web_service / audit router must use agent events service"
         )
-        print("✓ Verified: agent_events_service is properly integrated into web_service.py")
+        print("✓ Verified: agent_events_service is properly integrated into web_service/api routers")
 
     def test_agents_dont_emit_dashboard_ready_events(self, mock_operation_id):
         """
@@ -134,7 +139,6 @@ class TestAgentTimelineHidden:
         clear_agent_events(mock_operation_id)
         print("✓ Verified: Events emitted and retrieved successfully with structured data")
 
-    @pytest.mark.xfail(strict=True, reason="Bug exploration test: checks inline polling script in dashboard.html which was modularized to dashboard.js")
     def test_no_real_time_timeline_updates(self, client):
         """
         Validation 5: وجود real-time timeline updates polling في Dashboard
@@ -143,7 +147,9 @@ class TestAgentTimelineHidden:
         assert response.status_code == 200
         
         html_content = response.text.lower()
-        assert "setinterval" in html_content and "updateagenttimeline" in html_content, (
+        js_res = client.get("/js/dashboard.js")
+        combined = (html_content + " " + js_res.text.lower()) if js_res.status_code == 200 else html_content
+        assert "setinterval" in combined and "updateagenttimeline" in combined, (
             "Dashboard should have polling mechanism for timeline updates"
         )
         print("✓ Verified: Dashboard has polling mechanism for agent timeline")
@@ -154,7 +160,6 @@ class TestAgentTimelineBugSummary:
     Summary Test: التأكد من عمل جميع ميزات Agent Timeline
     """
     
-    @pytest.mark.xfail(strict=True, reason="Bug exploration test: checks inline script in dashboard.html which was modularized to dashboard.js")
     def test_comprehensive_bug_condition_summary(self, client, mock_operation_id):
         """
         Comprehensive check confirming timeline features are operational.
@@ -172,14 +177,21 @@ class TestAgentTimelineBugSummary:
         assert "agent timeline" in html or "agenttimeline" in html
         indicators.append("✓ Dashboard has Agent Timeline UI")
         
-        # 3. Check web_service integration
+        # 3. Check web_service / audit router integration
+        audit_router_path = Path(__file__).parent.parent / "api" / "routers" / "audit.py"
         web_service_path = Path(__file__).parent.parent / "web_service.py"
-        web_service_content = web_service_path.read_text(encoding="utf-8")
-        assert "/api/agent-traces" in web_service_content
-        indicators.append("✓ web_service.py has agent-traces endpoint")
+        combined_content = ""
+        if audit_router_path.exists():
+            combined_content += audit_router_path.read_text(encoding="utf-8")
+        if web_service_path.exists():
+            combined_content += "\n" + web_service_path.read_text(encoding="utf-8")
+        assert "/api/agent-traces" in combined_content
+        indicators.append("✓ web_service / audit router has agent-traces endpoint")
         
         # 4. Check polling mechanism
-        assert "setinterval" in html and "updateagenttimeline" in html
+        js_res = client.get("/js/dashboard.js")
+        combined = (html + " " + js_res.text.lower()) if js_res.status_code == 200 else html
+        assert "setinterval" in combined and "updateagenttimeline" in combined
         indicators.append("✓ Dashboard has polling for timeline updates")
         
         print("\n" + "="*70)

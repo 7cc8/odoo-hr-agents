@@ -16,6 +16,23 @@ from agents.seraj_meta_agent import SerajMetaAgent
 from agents.base_agent import AgentGoal
 
 
+@pytest.fixture(autouse=True)
+def isolate_benchmark_memory(tmp_path):
+    """Ensure benchmark tests use an isolated temporary directory for episodic memory."""
+    from memory.manager import MemoryManager
+
+    temp_storage = tmp_path / "bench_memory"
+    temp_storage.mkdir(parents=True, exist_ok=True)
+
+    orig_instance = MemoryManager._instance
+    temp_mm = MemoryManager(storage_dir=temp_storage)
+    MemoryManager._instance = temp_mm
+
+    yield temp_storage
+
+    MemoryManager._instance = orig_instance
+
+
 class TestPerformanceBenchmarks:
     """Performance benchmark tests"""
     

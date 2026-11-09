@@ -32,8 +32,7 @@ from unittest.mock import Mock, patch, MagicMock
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-pytest.importorskip("graph.state")
-from graph.state import SerajState
+from seraj_session_manager import SerajState
 
 
 class TestBugConditionAutoExecute:
@@ -136,7 +135,7 @@ class TestBugConditionAutoExecute:
         """
         try:
             # Try to import the conditional execution node
-            from graph.agentic_nodes import conditional_execution_node
+            from agents.seraj_meta_agent import conditional_execution_node
             
             # If we get here, the function exists
             assert callable(conditional_execution_node), (
@@ -166,7 +165,7 @@ class TestBugConditionAutoExecute:
         Expected on FIXED Code: Node sets auto_execute=True when no rejections → TEST PASSES ✅
         """
         try:
-            from graph.agentic_nodes import conditional_execution_node
+            from agents.seraj_meta_agent import conditional_execution_node
         except (ImportError, AttributeError):
             pytest.skip("conditional_execution_node doesn't exist - covered by test_conditional_execution_node_missing")
         
@@ -203,7 +202,7 @@ class TestBugConditionAutoExecute:
         Expected on FIXED Code: Node sets auto_execute=False for dirty data → TEST PASSES ✅
         """
         try:
-            from graph.agentic_nodes import conditional_execution_node
+            from agents.seraj_meta_agent import conditional_execution_node
         except (ImportError, AttributeError):
             pytest.skip("conditional_execution_node doesn't exist - covered by test_conditional_execution_node_missing")
         
@@ -245,7 +244,7 @@ class TestBugConditionAutoExecute:
         Expected on FIXED Code: Function exists → TEST PASSES ✅
         """
         try:
-            from graph.build_graph import route_after_conditional_execution
+            from agents.seraj_meta_agent import route_after_conditional_execution
             
             assert callable(route_after_conditional_execution), (
                 f"❌ route_after_conditional_execution exists but is not callable"
@@ -272,7 +271,7 @@ class TestBugConditionAutoExecute:
         Expected on FIXED Code: Routes to execute_write → TEST PASSES ✅
         """
         try:
-            from graph.build_graph import route_after_conditional_execution
+            from agents.seraj_meta_agent import route_after_conditional_execution
         except (ImportError, AttributeError):
             pytest.skip("route_after_conditional_execution doesn't exist - covered by previous test")
         
@@ -300,7 +299,7 @@ class TestBugConditionAutoExecute:
         Expected on FIXED Code: Routes to end → TEST PASSES ✅
         """
         try:
-            from graph.build_graph import route_after_conditional_execution
+            from agents.seraj_meta_agent import route_after_conditional_execution
         except (ImportError, AttributeError):
             pytest.skip("route_after_conditional_execution doesn't exist - covered by previous test")
         
@@ -348,10 +347,10 @@ class TestBugConditionAutoExecute:
             f"Got status {response.status_code}"
         )
         
-        # It's OK if it returns 422 (validation error) or 400 (bad request) - those mean the endpoint exists
-        assert response.status_code in [200, 400, 422, 500], (
+        # It's OK if it returns 422 (validation error), 400 (bad request), or 401 (auth required) - those mean the endpoint exists
+        assert response.status_code in [200, 400, 401, 422, 500], (
             f"❌ Unexpected status code: {response.status_code}. "
-            f"Endpoint should exist and return 200/400/422/500, not {response.status_code}"
+            f"Endpoint should exist and return 200/400/401/422/500, not {response.status_code}"
         )
 
 
