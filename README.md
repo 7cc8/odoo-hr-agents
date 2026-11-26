@@ -4,25 +4,25 @@
 
 ![Python Version](https://img.shields.io/badge/Python-3.12%2B-blue?logo=python)
 ![Odoo Version](https://img.shields.io/badge/Odoo-19.0%2Be%20Enterprise-purple?logo=odoo)
-![Tests](https://img.shields.io/badge/Tests-700%2B%20Passing-brightgreen?logo=pytest)
-![Architecture](https://img.shields.io/badge/Architecture-Dual--Track%20Hybrid-orange)
+![Tests](https://img.shields.io/badge/Tests-990%2B-brightgreen?logo=pytest)
+![Architecture](https://img.shields.io/badge/Architecture-Dual--Track%20%7C%20Vanilla%20Agentic-orange)
 ![Security](https://img.shields.io/badge/Security-Fail--Closed%20%26%20RBAC-red)
 
 **المنظومة الهجينة الذكية لإدارة وأتمتة الموارد البشرية في Odoo 19 Enterprise**  
 *تجمع بين خط أنابيب حتمي صارم لمعالجة بيانات Excel، وفريق عمل من 8 وكلاء ذكاء اصطناعي، ومحرك تحليلات متقدم لنسب التوطين ونطاقات وفق نظام العمل السعودي.*
 
 <p align="center">
-  <img src="images/svg/سراج.svg" width="52" height="52" alt="سراج" title="سراج — المنسق العام" /> &nbsp;
-  <img src="images/svg/فاحص.svg" width="52" height="52" alt="فاحص" title="فاحص — استعلام Odoo" /> &nbsp;
-  <img src="images/svg/مدقق.svg" width="52" height="52" alt="مُدَقِّق" title="مُدَقِّق — الامتثال ونظام العمل" /> &nbsp;
-  <img src="images/svg/حارس.svg" width="52" height="52" alt="حارس" title="حارس — الأمان وحجب PII" /> &nbsp;
-  <img src="images/svg/مصلح.svg" width="52" height="52" alt="مُصلِح" title="مُصلِح — التشخيص والعلاج" /> &nbsp;
-  <img src="images/svg/موفق.svg" width="52" height="52" alt="مُوَفِّق" title="مُوَفِّق — المطابقة الهجينة" /> &nbsp;
-  <img src="images/svg/كاتب.svg" width="52" height="52" alt="كاتب" title="كاتب — بوابة التنفيذ والكتابة" /> &nbsp;
-  <img src="images/svg/سجل.svg" width="52" height="52" alt="سِجِل" title="سِجِل — التوثيق والتدقيق الجنائي" />
+  <img src="frontend/images/svg/سراج.svg" width="52" height="52" alt="سراج" title="سراج — المنسق العام" /> &nbsp;
+  <img src="frontend/images/svg/فاحص.svg" width="52" height="52" alt="فاحص" title="فاحص — استعلام Odoo" /> &nbsp;
+  <img src="frontend/images/svg/مدقق.svg" width="52" height="52" alt="مُدَقِّق" title="مُدَقِّق — الامتثال ونظام العمل" /> &nbsp;
+  <img src="frontend/images/svg/حارس.svg" width="52" height="52" alt="حارس" title="حارس — الأمان وحجب PII" /> &nbsp;
+  <img src="frontend/images/svg/مصلح.svg" width="52" height="52" alt="مُصلِح" title="مُصلِح — التشخيص والعلاج" /> &nbsp;
+  <img src="frontend/images/svg/موفق.svg" width="52" height="52" alt="مُوَفِّق" title="مُوَفِّق — المطابقة الهجينة" /> &nbsp;
+  <img src="frontend/images/svg/كاتب.svg" width="52" height="52" alt="كاتب" title="كاتب — بوابة التنفيذ والكتابة" /> &nbsp;
+  <img src="frontend/images/svg/سجل.svg" width="52" height="52" alt="سِجِل" title="سِجِل — التوثيق والتدقيق الجنائي" />
 </p>
 
-[المميزات](#-أبرز-المميزات) • [معمارية المسارين](#-المعمارية-الهجينة-ذات-المسارين-dual-track) • [فريق الوكلاء الثمانية](#-فريق-الوكلاء-الذكية-the-8-ai-agents) • [مركز العمليات والمسار التكيفي](#-مركز-العمليات-الموحد-ومسار-الوكلاء-التكيفي-unified-cockpit--dynamic-dag) • [محرك التحليلات والتوطين](#-محرك-التحليلات-التنفيذية-ونظام-التوطين-ونطاقات) • [سيناريوهات الاستخدام](#-سيناريوهات-العمل-ورحلة-المستخدم) • [التشغيل السريع](#-التشغيل-السريع-quickstart) • [دليل الـ API](#-دليل-واجهات-البرمجة-core-api-reference)
+[المميزات](#-أبرز-المميزات) • [معمارية المسارين](#-المعمارية-الهجينة-ذات-المسارين-dual-track) • [فريق الوكلاء الثمانية](#-فريق-الوكلاء-الذكية-the-8-ai-agents) • [محرك الوكلاء](#-محرك-الوكلاء-بدون-langgraph-vanilla-agentic-runtime) • [مركز العمليات](#-مركز-العمليات-الموحد-ومسارات-التشغيل-unified-cockpit) • [محرك التحليلات والتوطين](#-محرك-التحليلات-التنفيذية-ونظام-التوطين-ونطاقات) • [سيناريوهات الاستخدام](#-سيناريوهات-العمل-ورحلة-المستخدم) • [التشغيل السريع](#-التشغيل-السريع-quickstart) • [دليل الـ API](#-دليل-واجهات-البرمجة-core-api-reference)
 
 ---
 
@@ -51,7 +51,8 @@
 - ⚖️ **حراسة أمنية وتدقيق عمالي استباقي:** مدقق ومطابق لقوانين العمل ولوائح وزارة الموارد البشرية، مع حجب تلقائي للبيانات الحساسة PII.
 - 📊 **محاكاة التوطين ونطاقات (`simulate-saudization`):** تجربة تعيين الموظفين الجدد واكتشاف أثرهم على نطاق المنشأة بضغطة زر.
 - 💬 **محادثة فورية مع Odoo:** استعلام باللغة العربية الطبيعية وسؤال الوكيل الذكي عن الهيكل الإداري والموظفين والإحصائيات.
-- 🌐 **واجهات تشغيل متعددة:** لوحة تحكم ويب متكاملة (FastAPI) مع مركز رفع منفصل وبث حي للأحداث (SSE)، إلى جانب بوت تيليجرام تفاعلي.
+- 🌐 **واجهات تشغيل متعددة:** لوحة تحكم ويب متكاملة (FastAPI) مع مركز رفع منفصل وبث حي للأحداث (SSE)، إلى جانب بوت تيليجرام تفاعلي، ومقر بصري تفاعلي للوكلاء (`odoo_hr_hq/`).
+- 🧩 **محرك وكلاء بدون أطر خارجية (Vanilla Agentic):** حلقة استدعاء أدوات موحدة في `agent_runtime.py` بسقف للأدوار ومهلة لكل أداة، بدلاً من رسوم LangGraph السابقة.
 
 ---
 
@@ -87,9 +88,9 @@ flowchart TD
 
     subgraph Track2 ["المسار الثاني: مركز عمليات الوكلاء ومسارات التشغيل التكيفية (Adaptive Agent Cockpit)"]
         direction TB
-        Cockpit["🎛️ مركز العمليات الموحد (Unified Cockpit - ?view=cockpit)"]
+        Cockpit["🎛️ مركز العمليات الموحد (frontend/dashboard.html على /dashboard)"]
         Seraj["🧠 سراج (Seraj) — المنسق العام وإدارة النوايا وتحديد المسار"]
-        RouterDAG{"🧭 التوجيه التكيفي وفق الرسم البياني (Dynamic DAG)"}
+        RouterDAG{"🧭 التوجيه داخل chat_turn<br/>(seraj_llm_service.py + agent_runtime.py)"}
         
         Cockpit --> Seraj --> RouterDAG
         
@@ -163,9 +164,9 @@ flowchart TD
 
 ### 👥 معرض الوكلاء الذكية (Agent Avatars Gallery)
 
-| <img src="images/svg/سراج.svg" width="80" /><br/>**🧠 سراج (Seraj)**<br/><sub>المنسق العام ومدير النوايا</sub> | <img src="images/svg/فاحص.svg" width="80" /><br/>**🔍 فاحص (Fahas)**<br/><sub>الاستعلام وقراءة Odoo</sub> | <img src="images/svg/مدقق.svg" width="80" /><br/>**⚖️ مُدَقِّق (Mudaqqiq)**<br/><sub>الامتثال لنظام العمل</sub> | <img src="images/svg/حارس.svg" width="80" /><br/>**🛡️ حارس (Hares)**<br/><sub>الأمان وحجب PII والبيئة</sub> |
+| <img src="frontend/images/svg/سراج.svg" width="80" /><br/>**🧠 سراج (Seraj)**<br/><sub>المنسق العام ومدير النوايا</sub> | <img src="frontend/images/svg/فاحص.svg" width="80" /><br/>**🔍 فاحص (Fahas)**<br/><sub>الاستعلام وقراءة Odoo</sub> | <img src="frontend/images/svg/مدقق.svg" width="80" /><br/>**⚖️ مُدَقِّق (Mudaqqiq)**<br/><sub>الامتثال لنظام العمل</sub> | <img src="frontend/images/svg/حارس.svg" width="80" /><br/>**🛡️ حارس (Hares)**<br/><sub>الأمان وحجب PII والبيئة</sub> |
 | :---: | :---: | :---: | :---: |
-| <img src="images/svg/مصلح.svg" width="80" /><br/>**🩺 مُصلِح (Musleh)**<br/><sub>التشخيص وعلاج الرفض</sub> | <img src="images/svg/موفق.svg" width="80" /><br/>**🎯 مُوَفِّق (Muwaffaq)**<br/><sub>المطابقة الهجينة الذكية</sub> | <img src="images/svg/كاتب.svg" width="80" /><br/>**✍️ كاتب (Katib)**<br/><sub>بوابة الكتابة والتنفيذ</sub> | <img src="images/svg/سجل.svg" width="80" /><br/>**📜 سِجِل (Sijil)**<br/><sub>التوثيق الجنائي (JSONL)</sub> |
+| <img src="frontend/images/svg/مصلح.svg" width="80" /><br/>**🩺 مُصلِح (Musleh)**<br/><sub>التشخيص وعلاج الرفض</sub> | <img src="frontend/images/svg/موفق.svg" width="80" /><br/>**🎯 مُوَفِّق (Muwaffaq)**<br/><sub>المطابقة الهجينة الذكية</sub> | <img src="frontend/images/svg/كاتب.svg" width="80" /><br/>**✍️ كاتب (Katib)**<br/><sub>بوابة الكتابة والتنفيذ</sub> | <img src="frontend/images/svg/سجل.svg" width="80" /><br/>**📜 سِجِل (Sijil)**<br/><sub>التوثيق الجنائي (JSONL)</sub> |
 
 ```mermaid
 graph TD
@@ -205,7 +206,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/سراج.svg" width="80" alt="سراج" />
+      <img src="frontend/images/svg/سراج.svg" width="80" alt="سراج" />
     </td>
     <td>
       <ul>
@@ -222,7 +223,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/فاحص.svg" width="80" alt="فاحص" />
+      <img src="frontend/images/svg/فاحص.svg" width="80" alt="فاحص" />
     </td>
     <td>
       <ul>
@@ -239,7 +240,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/مدقق.svg" width="80" alt="مدقق" />
+      <img src="frontend/images/svg/مدقق.svg" width="80" alt="مدقق" />
     </td>
     <td>
       <ul>
@@ -262,7 +263,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/حارس.svg" width="80" alt="حارس" />
+      <img src="frontend/images/svg/حارس.svg" width="80" alt="حارس" />
     </td>
     <td>
       <ul>
@@ -285,7 +286,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/مصلح.svg" width="80" alt="مصلح" />
+      <img src="frontend/images/svg/مصلح.svg" width="80" alt="مصلح" />
     </td>
     <td>
       <ul>
@@ -302,7 +303,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/موفق.svg" width="80" alt="موفق" />
+      <img src="frontend/images/svg/موفق.svg" width="80" alt="موفق" />
     </td>
     <td>
       <ul>
@@ -319,7 +320,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/كاتب.svg" width="80" alt="كاتب" />
+      <img src="frontend/images/svg/كاتب.svg" width="80" alt="كاتب" />
     </td>
     <td>
       <ul>
@@ -336,7 +337,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/سجل.svg" width="80" alt="سجل" />
+      <img src="frontend/images/svg/سجل.svg" width="80" alt="سجل" />
     </td>
     <td>
       <ul>
@@ -350,9 +351,46 @@ graph TD
 
 ---
 
-## 🎛️ مركز العمليات الموحد ومسار الوكلاء التكيفي (Unified Cockpit & Dynamic DAG)
+## 🧩 محرك الوكلاء بدون LangGraph (Vanilla Agentic Runtime)
 
-يقدم النظام واجهة تشغيل مركزية وموحدة للمشغّل البشري (`templates/dashboard.html` عبر المعامل `?view=cockpit`) تجمع بين سرعة الاستجابة الحية، الحوكمة الأمنية، والشفافية الجنائية الكاملة:
+في الفرع `refactor/vanilla-agentic-ai-clean` أُزيل مجلد `graph/` (رسوم LangGraph للقراءة والكتابة وExcel) وملف `langgraph.json`، وأصبح التنسيق بين الوكلاء مكتوباً بلغة Python مباشرة دون إطار تنسيق خارجي. نُقلت اختبارات الرسوم القديمة إلى `docs/archive/graph/tests/` للرجوع إليها فقط.
+
+```mermaid
+flowchart LR
+    classDef core fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff
+    classDef rt fill:#4c1d95,stroke:#8b5cf6,stroke-width:2px,color:#fff
+    classDef tool fill:#065f46,stroke:#10b981,stroke-width:2px,color:#fff
+
+    UI["💬 /api/chat<br/>أو بوت تيليجرام"] --> Turn["🧠 SerajLLMService.chat_turn()<br/>seraj_llm_service.py"]
+    Turn --> Pending["تأكيد/إلغاء العمليات المعلقة<br/>واستيضاح الحذف أو الأرشفة"]
+    Turn --> Mutations["طلبات الإضافة والتعديل والحذف<br/>حارس ➔ اعتماد صريح ➔ كاتب ➔ تحقق فاحص"]
+    Turn --> Rules["أسئلة نظام العمل المحسوبة<br/>نهاية الخدمة • GOSI • العمل الإضافي • الإجازة"]
+    Turn --> Loop["حلقة استدعاء الأدوات<br/>_run_tool_calling_loop"]
+    Loop --> Runtime["⚙️ agent_runtime.run_agent()"]
+    Runtime --> Registry["🧰 agents/tool_registry.py"]
+    Registry --> Fahas["🔍 فاحص — قراءة Odoo فقط"]
+    Turn --> Fallback["الوضع الاحترازي عند تعذر النموذج<br/>_fallback_odoo_or_rules"]
+
+    class Turn core
+    class Loop,Runtime rt
+    class Registry,Fahas tool
+```
+
+| المكوّن | الملف | الدور |
+|---|---|---|
+| **منسق المحادثة** | `seraj_llm_service.py` (`chat_turn`) | نقطة الدخول لكل رسالة: إدارة الجلسة وسياق الشركة، معالجة العمليات المعلقة، مسار الحذف والأرشفة المحكوم، تحضير طلبات الإضافة والتعديل، ثم تفويض الاستعلامات لفاحص. |
+| **وقت التشغيل الموحد** | `agent_runtime.py` (`run_agent`) | حلقة استدعاء أدوات عامة: سقف لعدد الأدوار (`max_turns`، وسراج يعمل بـ 5)، مهلة لكل أداة (افتراضياً 60 ثانية)، قص نتائج الأدوات الطويلة (افتراضياً 8000 حرف)، وسجل `AgentStep` لكل استدعاء مع بث الأحداث. لا يكتب في Odoo بنفسه؛ ينفذ فقط الأدوات التي يمررها المستدعي. |
+| **سجل الأدوات** | `agents/tool_registry.py` | تسجيل الأدوات في أربع مجموعات: قراءة Odoo، استعلامات فاحص، خدمات الموارد البشرية ونظام العمل، وأدوات الكتابة الخاصة بكاتب (تتطلب خطة اعتماد مسبقة). |
+| **تعليمات الوكلاء** | `agents/prompts.py` | تعليمات النظام لكل وكيل وتنسيق سياق Odoo المختصر. |
+| **جلسات المحادثة** | `seraj_session_manager.py` | حفظ سياق كل محادثة (الاتصال، الشركة، الاستيضاحات المعلقة). |
+
+> عند تعذر الوصول إلى النموذج اللغوي، يتحول سراج إلى الوضع الاحترازي فيستعلم من Odoo مباشرة أو يطبق القواعد الحتمية لضمان استمرار الخدمة.
+
+---
+
+## 🎛️ مركز العمليات الموحد ومسارات التشغيل (Unified Cockpit)
+
+يقدم النظام واجهة تشغيل مركزية وموحدة للمشغّل البشري (`frontend/dashboard.html` مع `frontend/css/dashboard.css` و`frontend/js/dashboard.js`، وتُعرض على `/` و`/dashboard`) تجمع بين سرعة الاستجابة الحية، الحوكمة الأمنية، والشفافية الجنائية الكاملة:
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -376,7 +414,7 @@ graph TD
 ### 🌟 أبرز ركائز مركز العمليات التشغيلي:
 
 1. **خط السير التكيفي المباشر (Adaptive Dynamic Stepper):**
-   - التخلص التام من فرضية المراحل الخمس الثابتة الجامدة؛ يتكيف خط السير تلقائياً وفقاً للرسم البياني التشغيلي الموجه (DAG):
+   - التخلص التام من فرضية المراحل الخمس الثابتة الجامدة؛ تحدد الواجهة (`frontend/js/dashboard.js`) نوع الرحلة تلقائياً من أحداث الوكلاء المسجلة لكل عملية، وتعرض المراحل المناسبة لها:
      - **استشارات نظام العمل (`labor_law`):** مسار استشاري رشيق من 3 مراحل (`سراج ➔ مدقق ➔ سراج`) ينتهي باكتمال 100% فور تقديم الرأي النظامي المعتمد، دون ترك محطات وهمية معلقة.
      - **استعلامات وقراءة Odoo (`odoo_query`):** 3 مراحل (`سراج ➔ فاحص ➔ سراج`) لاستخراج السجلات الحية وتنظيم تقرير العرض.
      - **الإجراءات المباشرة المشروطة (`direct_action`):** 6 مراحل (`سراج ➔ فاحص ➔ مدقق ➔ حارس ➔ كاتب ➔ سجل`) لضمان فحص السجل، تدقيق السياسة، واشتراط اعتماد المشغّل (HITL) قبل الكتابة.
@@ -391,6 +429,13 @@ graph TD
 3. **الفصل الجنائي الصارم بين التنفيذ والتوثيق:**
    - عزل صلاحية كاتب Odoo (`كاتب`) عن صلاحية الختم الجنائي اللاتراجعي (`سجل`).
    - توليد بصمة تجزئة مشفرة (`SHA-256`) لكل عملية ناجحة وحفظها في الدفتر اللاتراجعي غير القابل للتعديل لضمان عدم التلاعب.
+
+---
+
+## 🌐 واجهات التشغيل الأخرى
+
+- **بوت تيليجرام (`bot/`):** قُسّم البوت إلى حزمة مستقلة: `client.py` (الاتصال والصلاحيات وسجل التدقيق)، `polling.py`، `navigation.py`، `keyboards.py`، `callbacks.py`، `media_handlers.py` (استقبال ملفات Excel والوسائط)، و`domain_wizards.py` (معالجات خدمات الموارد البشرية خطوة بخطوة). بقي `telegram_bot.py` واجهة توافق تعيد تصدير رموز الحزمة. يستدعي البوت خادم الـ API المركزي للكتابة ويطلب تأكيداً كتابياً قبل التنفيذ.
+- **مقر سراج التفاعلي (`odoo_hr_hq/`):** واجهة بصرية مستقلة بأسلوب Pixel Art تُظهر الوكلاء في مكاتبهم. تُعرض من الخادم على `/hq` (أو `/odoo-hr-hq`)، أو تُشغّل منفردة عبر `python odoo_hr_hq/launch_hq.py` على `http://localhost:5174/`.
 
 ---
 
@@ -429,23 +474,34 @@ graph TD
 
 ```text
 odoo-hr-agents/
-├── agents/                   # كود الوكلاء المتخصصين (Seraj, Mudaqqiq, Hares, Muwaffaq, Sijil, ...)
+├── agents/                   # الوكلاء الثمانية + prompts.py (التعليمات) + tool_registry.py (سجل الأدوات)
+├── api/
+│   ├── common.py             # المصادقة (WRITE_API_TOKEN) ودوال مشتركة
+│   └── routers/              # مسارات FastAPI مقسمة حسب المجال
+│       ├── excel.py          # الرفع، الفحص التجريبي، الاعتماد، الكتابة، القوالب
+│       ├── chat.py           # المحادثة مع سراج والمساعدين
+│       ├── audit.py          # سجل، الحالة، أحداث عمليات الوكلاء والإعدادات
+│       └── hr_services.py    # خدمات الموارد البشرية والتحليلات
+├── bot/                      # حزمة بوت تيليجرام (العميل، الاستقبال، المعالجات خطوة بخطوة)
 ├── config/                   # ملفات ضبط لوحة التحكم وبيئة العمل
-├── docs/                     # التوثيق المعماري، دليل الـ Validator، وأدلة الاستخدام
-├── graph/                    # تعريف حالات ورسم بياني لـ LangGraph ومسارات الوكلاء
+├── docs/                     # التوثيق المعماري والأدلة (+ archive/graph لاختبارات LangGraph المؤرشفة)
+├── frontend/                 # مركز العمليات: dashboard.html + css/ + js/ + images/ (صور الوكلاء)
 ├── memory/                   # إدارة ذاكرة الجلسات وسجلات المحادثة
 ├── observability/            # مقاييس الأداء (Metrics)، التتبع اللحظي (Tracer)، والرصد
-├── templates/                # قوالب HTML للوحة التحكم والقوالب المعيارية (Excel)
-├── tests/                    # حزمة الاختبارات الآلية الشاملة (+700 اختبار)
-├── agent_runtime.py          # محرك تشغيل دورات استدعاء الأدوات الموحد والمهل
+├── odoo_hr_hq/               # مقر سراج التفاعلي المستقل (Pixel Art)
+├── templates/                # قوالب Excel المعيارية (master / modular) وقوالب سجل
+├── tests/                    # حزمة الاختبارات الآلية (حوالي 990 اختباراً)
+├── agent_runtime.py          # وقت تشغيل حلقة استدعاء الأدوات الموحد والمهل
 ├── analytics_service.py      # محرك التحليلات السعودية (نطاقات، التأمينات، محاكاة التوطين)
 ├── cleaning.py               # مرحلة التنظيف الحتمية للمدخلات العربية
 ├── dry_run_report.py         # بناء تقارير الفحص التجريبي وتوليد الـ Hashes
 ├── matching_thresholds.py    # ثوابت وعتبات نسب التشابه الموحدة
 ├── parser.py                 # محلل ملفات Excel واستخراج الحقول
-├── seraj_llm_service.py      # خدمة التنسيق والمحادثة الذكية لسراج
+├── seraj_llm_service.py      # منسق المحادثة chat_turn وحلقة تفويض الأدوات
+├── seraj_session_manager.py  # جلسات المحادثة وسياق الشركة
+├── telegram_bot.py           # واجهة توافق تعيد تصدير حزمة bot/
 ├── validator.py              # المدقق الصارم وقواعد المطابقة مع Odoo
-├── web_service.py            # تطبيق FastAPI الرئيسي والواجهة الموحدة
+├── web_service.py            # تطبيق FastAPI: يركّب الـ routers ويعرض الواجهات
 └── writer.py                 # كاتب Odoo الموثوق وإعادة التحقق من التوقيعات
 ```
 
@@ -459,37 +515,45 @@ odoo-hr-agents/
 - **نموذج الذكاء الاصطناعي:** Ollama محلي (الموديل الموصى به: `qwen3.5:9b`) أو مفتاح سحابي (Groq / OpenAI / Anthropic).
 
 ### 1. إعداد المتغيرات (`.env`)
-أنشئ ملف `.env` في المجلد الرئيسي واضبط الإعدادات التالية:
+انسخ ملف المثال ثم عدّل القيم:
 
 ```bash
-# -------------------------------------------------------------
-# 1. إعدادات الاتصال بـ Odoo 19 Enterprise
-# -------------------------------------------------------------
-ODOO_URL=https://your-odoo19-instance.com
+cp .env.example .env
+```
+
+```bash
+# Odoo Connection Settings
+ODOO_URL=http://localhost:8069
 ODOO_DB=your_database_name
-ODOO_USERNAME=your_username
-ODOO_API_KEY=your_api_key_or_password
+ODOO_USERNAME=your_username_or_email
+ODOO_API_KEY=your_odoo_api_key
 
-# -------------------------------------------------------------
-# 2. أمان الويب ورموز الكتابة (مهم جداً للإنتاج)
-# -------------------------------------------------------------
-AGENT_WRITE_TOKEN=your_strong_secret_token_here
+# مطلوب لكل منافذ الكتابة والإعدادات — ولّد قيمة عشوائية طويلة ولا ترفعها للمستودع
+WRITE_API_TOKEN=replace_with_a_long_random_secret
 
-# -------------------------------------------------------------
-# 3. إعدادات نماذج الذكاء الاصطناعي (المحلي الموصى به)
-# -------------------------------------------------------------
-LLM_PROVIDER=ollama
-OLLAMA_MODEL=qwen3.5:9b
-OLLAMA_BASE_URL=http://localhost:11434
+# أصول المتصفح المسموح لها باستدعاء الـ API
+CORS_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
 
-# أو استخدام المزودات السحابية (اختياري)
-# GROQ_API_KEY=gsk_...
-# OPENAI_API_KEY=sk-...
+# Telegram Bot Integration
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+TELEGRAM_CHAT_ID=your_telegram_chat_id
 
-# -------------------------------------------------------------
-# 4. بوت تيليجرام (اختياري)
-# -------------------------------------------------------------
-# TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+# Local LLM Configuration (Ollama)
+LLM_BASE_URL=http://localhost:11434/v1
+LLM_MODEL=qwen2.5:7b
+LLM_TIMEOUT=120
+LLM_MAX_TOKENS=1024
+
+# Audio / Transcription (Optional)
+WHISPER_MODEL=base
+GROQ_API_KEY=your_groq_api_key
+OPENAI_API_KEY=your_openai_api_key
+```
+
+لتوليد رمز كتابة آمن:
+
+```bash
+python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
 
 ### 2. تثبيت التبعيات وبدء التشغيل
@@ -498,14 +562,16 @@ OLLAMA_BASE_URL=http://localhost:11434
 # تثبيت المتطلبات
 pip install -r requirements.txt
 
-# تشغيل الخادم والواجهة الموحدة (Windows)
-.\start_chat.bat
-
-# أو تشغيل خادم FastAPI مباشرة
+# تشغيل خادم FastAPI والواجهة الموحدة
 uvicorn web_service:app --host 0.0.0.0 --port 8000 --reload
+
+# تشغيل بوت تيليجرام (اختياري، في نافذة منفصلة)
+python telegram_bot.py
 ```
 
-افتح المتصفح على الرابط: **`http://localhost:8000`**
+افتح المتصفح على الرابط: **`http://localhost:8000`** (مركز العمليات على `/dashboard`، والمقر التفاعلي على `/hq`).
+
+> ⚠️ ملف `start_chat.bat` ما زال يحاول تشغيل LangGraph Studio (`langgraph dev`) من المعمارية السابقة، لذلك يُفضّل تشغيل `uvicorn` مباشرة حتى يُحدَّث.
 
 ---
 
@@ -515,13 +581,14 @@ uvicorn web_service:app --host 0.0.0.0 --port 8000 --reload
 |---|---|---|---|
 | **`/api/upload`** | `POST` | مفتوح للجلسة | رفع ملف Excel وفحصه المبدئي وحفظه في الجلسة |
 | **`/api/dry-run`** | `POST` | مفتوح للجلسة | تنفيذ الفحص التجريبي الصارم وتوليد تقرير الـ Hashes |
-| **`/api/approve`** | `POST` | `X-Write-Token` | اعتماد الصفوف المقبولة وتوليد تصريح الكتابة |
-| **`/api/write`** | `POST` | `X-Write-Token` | تنفيذ الكتابة المقيدة في Odoo للصفوف المعتمدة |
+| **`/api/approve`** | `POST` | `X-API-Key` | اعتماد الصفوف المقبولة وتوليد تصريح الكتابة |
+| **`/api/write`** | `POST` | `X-API-Key` | تنفيذ الكتابة المقيدة في Odoo للصفوف المعتمدة |
 | **`/api/write/{run_id}/stream`** | `GET` | مفتوح للجلسة | بث أحداث الكتابة اللحظي للمشرف (Server-Sent Events) |
 | **`/api/chat`** | `POST` | مفتوح للجلسة | إرسال استفسار أو أمر لسراج وتوجيه المهام وبث استجابة الوكلاء |
-| **`/api/agent-events/{operation_id}`** | `GET` | مفتوح للجلسة | بث الأحداث اللحظية وسجل الاستدلال المعرفي والتعليل المنطقي (SSE / JSON) |
-| **`/api/sijil/recent`** | `GET` | `X-Write-Token` | استرجاع سجلات التدقيق الجنائي اللاتراجعي والبصمات المشفرة (SHA-256) |
-| **`/api/approve-conditional`** | `POST` | `X-Write-Token` | حوكمة واعتماد القرارات المشروطة بتدخل المشغّل البشري (HITL) |
+| **`/api/agents/operations/{operation_id}/events`** | `GET` | مفتوح للجلسة | سجل أحداث عملية الوكلاء والاستدلال المعرفي والتعليل المنطقي (JSON) |
+| **`/api/agents/operations/{operation_id}/stream`** | `GET` | مفتوح للجلسة | بث أحداث عملية الوكلاء لحظياً (SSE) |
+| **`/api/sijil/recent`** | `GET` | `X-API-Key` | استرجاع سجلات التدقيق الجنائي اللاتراجعي والبصمات المشفرة (SHA-256) |
+| **`/api/approve-conditional`** | `POST` | `X-API-Key` | حوكمة واعتماد القرارات المشروطة بتدخل المشغّل البشري (HITL) |
 | **`/api/analytics/dashboard`** | `GET` | مفتوح للجلسة | لوحة المؤشرات التنفيذية والإحصائيات الشاملة |
 | **`/api/analytics/workforce`** | `GET` | مفتوح للجلسة | مؤشرات التوطين، نسبة السعودة، وتصنيف نطاقات |
 | **`/api/analytics/simulate-saudization`**| `POST` | مفتوح للجلسة | محاكاة فورية لتأثير التعيين الجديد على نطاق الشركة |
@@ -529,17 +596,19 @@ uvicorn web_service:app --host 0.0.0.0 --port 8000 --reload
 | **`/api/leaves/summary/{emp_id}`** | `GET` | مفتوح للجلسة | استعلام رصيد وسجل إجازات موظف محدد |
 | **`/api/status`** | `GET` | عام | فحص جاهزية النظام والاتصال بقاعدة Odoo |
 
-> 🔒 **ملاحظة أمنية:** جميع منافذ التعديل والكتابة تتطلب ترويسة أمان `X-Write-Token: <AGENT_WRITE_TOKEN>` في الـ Header لمنع أي استدعاءات غير مصرح بها.
+> 🔒 **ملاحظة أمنية:** منافذ التعديل والكتابة تتطلب رمز `WRITE_API_TOKEN` عبر الترويسة `X-API-Key` (أو `Authorization: Bearer <token>` أو `X-Auth-Token`). إذا لم يُضبط الرمز في الخادم تُرجع هذه المنافذ `503` وتبقى الكتابة معطلة.
+
+> 🗂️ **تنظيم المسارات:** يركّب `web_service.py` أربعة routers من `api/routers/` (`excel` و`chat` و`audit` و`hr_services`)، ويقارب مجموع المسارات المعرّفة 150 مساراً (بعضها أسماء بديلة لنفس المنفذ مثل `/write` و`/api/write`). الجدول أعلاه يعرض المنافذ الأساسية فقط.
 
 ---
 
 ## 🧪 الاختبارات وضمان الجودة (Testing Suite)
 
-المشروع مغطى بحزمة اختبارات مكثفة تتجاوز **700 اختبار آلي** تغطي كافة المسارات الحتمية، الوكلاء، وحالات الخطأ:
+المشروع مغطى بحزمة تضم حوالي **990 اختباراً آلياً** تغطي المسارات الحتمية، الوكلاء، وحالات الخطأ. بعض الاختبارات (سيناريوهات سراج، رفع القوالب، وبعض منافذ الويب) تحتاج اتصالاً فعلياً بـ Odoo عبر `.env`، وتفشل بدونه برسالة `Missing Odoo connection settings`.
 
 ```powershell
 # تشغيل جميع اختبارات المسار الحتمي ووقت تشغيل الوكلاء
-pytest tests/test_*.py -q
+pytest tests -q --ignore=tests/integration --ignore=tests/performance --ignore=tests/ad_hoc
 
 # تشغيل اختبارات وقت تشغيل الوكلاء الجديد (Agent Runtime)
 pytest tests/test_agent_runtime.py -v
@@ -548,7 +617,7 @@ pytest tests/test_agent_runtime.py -v
 pytest tests/test_cleaning_stage.py tests/test_failure_code_status_consistency.py -v
 
 # تشغيل اختبارات التحقق من نظام العمل والمدقق
-pytest tests/test_labor_law_mudaqqiq_routing.py tests/test_mudaqqiq_agent.py -v
+pytest tests/test_labor_law_mudaqqiq_routing.py -v
 ```
 
 ---
@@ -559,7 +628,7 @@ pytest tests/test_labor_law_mudaqqiq_routing.py tests/test_mudaqqiq_agent.py -v
 2. **فحص البيئات الصارم (`Environment Policy`):** منع الكتابة على أي بيئة إنتاج حية إلا بشروط صريحة واستثنائية ومحصورة في قواعد Odoo 19 المصرح بها.
 3. **حماية الخصوصية ومراقبة الجلسات:** يتولى الوكيل "حارس" إخفاء البيانات الشخصية (PII Masking) لضمان عدم تسريب الرواتب والبيانات الحساسة في السجلات.
 4. **التطابق التشفيري (`Hash Provenance`):** لا يمكن إدخال أي سجل إلى Odoo إذا تم تعديل حرف واحد في الملف بين مرحلتي الفحص والاعتماد.
-5. **حماية الـ Endpoints برمز أمان قوي:** يُلزم بتعيين رمز كتابة معقد (`AGENT_WRITE_TOKEN`) لا يقل عن 32 خانة وتفعيل بروتوكول HTTPS في البيئات الإنتاجية.
+5. **حماية الـ Endpoints برمز أمان قوي:** يُلزم بتعيين رمز كتابة عشوائي (`WRITE_API_TOKEN`)، ويرفض الخادم أي قيمة منشورة علناً في المستودع، مع تفعيل بروتوكول HTTPS في البيئات الإنتاجية.
 
 ---
 
