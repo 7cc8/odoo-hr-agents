@@ -13,10 +13,28 @@ from sijil_audit_service import SijilAuditService
 class TestSijilPageAndExport(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        import os
+        import os, json
         os.environ["WRITE_API_TOKEN"] = "unit-test-write-token"
         cls.client = TestClient(app)
         cls.service = SijilAuditService()
+
+        # Seed test audit record in isolated logs_dir
+        del_log = cls.service.logs_dir / "deletion_audit_log.jsonl"
+        del_entry = {
+            "timestamp": "2026-10-01T12:00:00Z",
+            "operation_id": "op_test_7afe",
+            "plan_id": "7afe1140644c",
+            "action": "blocked_unlink",
+            "model": "hr.employee",
+            "record_id": 14,
+            "employee_id": 14,
+            "employee_name": "سعد بن خالد الدوسري",
+            "blocked": True,
+            "readback_verified": True,
+            "status": "success",
+            "reason": "حظر الحذف الكلي"
+        }
+        del_log.write_text(json.dumps(del_entry, ensure_ascii=False) + "\n", encoding="utf-8")
 
     def test_sijil_page_loads_arabic_html(self):
         """Test GET /sijil loads the complete Arabic RTL interface with no Odoo write controls."""
@@ -24,13 +42,17 @@ class TestSijilPageAndExport(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
         self.assertIn("<!DOCTYPE html>", res.text)
         self.assertIn('dir="rtl"', res.text)
-        self.assertIn("الوكيل", res.text)
-        self.assertIn("سجل", res.text)
-        self.assertIn("مراجعة وتوثيق العمليات", res.text)
-        # Ensure read-only role: no action/execute/delete buttons for Odoo
-        self.assertNotIn("حذف من أودو", res.text)
-        self.assertNotIn("اعتماد العملية", res.text)
-        self.assertNotIn("إعادة تنفيذ", res.text)
+        _, marker, body = res.text.partition('<section id="view-sijil"')
+        self.assertTrue(marker)
+        panel = body.split("</section>", 1)[0]
+        self.assertIn('aria-labelledby="tab-sijil"', panel)
+        self.assertIn("سجل الحوكمة والتدقيق الشامل", panel)
+        self.assertIn('id="sijilSearchInput"', panel)
+        self.assertIn("تقرير PDF", panel)
+        self.assertIn("تقرير HTML", panel)
+        self.assertNotIn("حذف من أودو", panel)
+        self.assertNotIn("اعتماد العملية", panel)
+        self.assertNotIn("إعادة تنفيذ", panel)
 
     def test_search_by_plan_id(self):
         """Test searching by plan_id returns a direct match or candidate."""

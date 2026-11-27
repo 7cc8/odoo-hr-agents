@@ -170,7 +170,7 @@ def test_seraj_loop_truncates_huge_results_and_emits_a_dashboard_event(monkeypat
     tool_msg = seen[1][-1]
     assert tool_msg["role"] == "tool" and len(tool_msg["content"]) < 8300 and "قُصَّت" in tool_msg["content"]
     kwargs = events.emit_event.call_args.kwargs
-    assert kwargs["operation_id"] == "op1" and kwargs["event_type"] == "odoo_query"
+    assert kwargs["operation_id"] == "op1" and kwargs["event_type"] == "tool_execution"
     assert kwargs["metadata"]["tool"] == "search_records" and kwargs["metadata"]["truncated"] is True
 
 

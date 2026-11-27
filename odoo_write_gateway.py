@@ -60,6 +60,9 @@ SAFE_WRITE_FIELDS = frozenset({
     # hr.loan safe fields
     "loan_amount", "installment", "date",
 
+    # hr.payslip / hr.appraisal safe fields
+    "date_from", "date_to", "date_close",
+
     # Common safe fields
     "note", "description", "sequence", "color", "currency_id", "vat",
 })

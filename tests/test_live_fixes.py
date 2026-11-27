@@ -1,4 +1,5 @@
 import pytest
+import time
 from starlette.testclient import TestClient
 from web_service import app
 from seraj_llm_service import SerajLLMService
@@ -6,6 +7,12 @@ from seraj_session_manager import SerajSessionManager
 
 client = TestClient(app)
 AUTH_HEADERS = {"X-API-Key": "unit-test-write-token"}
+
+def test_real_odoo_writes_are_blocked_before_transport():
+    from xmlrpc.client import ServerProxy
+    with ServerProxy("https://example.invalid/xmlrpc/2/object") as server:
+        with pytest.raises(pytest.fail.Exception, match="real Odoo mutation"):
+            server.execute_kw("fixture", 1, "fixture", "hr.employee", "create", [{}])
 
 def test_name_extraction_variants():
     seraj = SerajLLMService()
@@ -20,15 +27,25 @@ def test_name_extraction_variants():
     assert "**الاسم المقترح:** (يرجى كتابة الاسم" in res2
     assert "الاسم المقترح:** جديد" not in res2
 
-def test_approve_conversational_with_department_not_hijacked():
-    # 1. Create a plan
-    seraj = SerajLLMService()
+def test_approve_conversational_with_department_not_hijacked(monkeypatch, tmp_path):
+    import approval_plan_schema
+    from unittest.mock import MagicMock
+    from katib_service import KatibAgent
+    execute = MagicMock(return_value={"ok": True, "action": "create", "record_id": 301})
+    monkeypatch.setattr(KatibAgent, "execute_approved_action", execute)
+    # Supply the pending draft directly. This test covers approval dispatch.
     chat_id = "web_test_add_full"
-    res = seraj.chat_turn("اضف موظف جديد بأسم ناصر الزهراني", chat_id=chat_id)
     session = SerajSessionManager.get_instance().get_session(chat_id)
-    assert session.pending_action is not None
-    plan_id = session.pending_action["plan_id"]
-    
+    monkeypatch.setattr(approval_plan_schema, "PLANS_DIR", tmp_path)
+    draft = approval_plan_schema.ApprovalPlan.create("create", "hr.employee", [], {}, chat_id)
+    draft.save()
+    plan_id = draft.plan_id
+    session.pending_action = {
+        "action_type": "create", "model": "hr.employee", "plan_id": plan_id,
+        "values": {"name": "مسودة"}, "name": "مسودة", "company_id": 1,
+        "created_at": time.time(),
+    }
+
     # 2. Approve via API with modified payload (department and job)
     res_api = client.post(
         "/api/agents/approve",
@@ -47,6 +64,9 @@ def test_approve_conversational_with_department_not_hijacked():
     assert res_api.status_code == 200
     data = res_api.json()
     assert data["status"] == "success"
+    execute.assert_called_once()
+    assert execute.call_args.args[0]["values"]["department_id"] == 1
+    assert execute.call_args.args[0]["values"]["job_title"] == "مطور برمجيات اول"
     # Verify it was NOT hijacked by excel batch
     assert "تعذر تنفيذ السجلات في Odoo" not in data["response"]
     assert ("تم إنشاء الموظف بنجاح" in data["response"] or "ID #" in data["response"])

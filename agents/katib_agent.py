@@ -260,6 +260,7 @@ class KatibAgent(BaseAgent):
         # بناء خطة التنفيذ
         plan = {
             "operation_type": perception["operation_type"],
+            "values": perception["values"],
             "steps": [],
             "rollback_strategy": RollbackStrategy.NONE,
             "risks": [],
@@ -337,6 +338,26 @@ class KatibAgent(BaseAgent):
             "rollback_performed": False,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
+
+        # استدعاء ذكاء كاتب اللغوي لصياغة الخطابات والمراسلات الرسمية
+        operation = str(plan.get("operation_type", "")).lower()
+        if operation in ("warning", "letter", "disciplinary", "contract_amendment"):
+            try:
+                prompt = (
+                    f"بصفتك وكيل التنفيذ والكتابة «كاتب»، صِغ نصاً رسمياً باللغة العربية الفصحى لـ {plan.get('operation_type')}:\n"
+                    f"البيانات: {plan.get('values') or plan.get('context')}\n"
+                    "النص يجب أن يكون مهنياً وواضحاً ومطابقاً لصيغ الموارد البشرية الرسمية في السعودية."
+                )
+                draft_text = self.call_llm(prompt)
+                if draft_text:
+                    result["drafted_letter_text"] = draft_text
+            except Exception as e:
+                logger.debug("Katib LLM letter drafting skipped: %s", e)
+        if operation == "letter":
+            result["success"] = bool(result.get("drafted_letter_text"))
+            if not result["success"]:
+                result["errors"].append("تعذّر الحصول على مسودة من النموذج.")
+            return result
         
         try:
             # فحص الأهلية
@@ -398,6 +419,7 @@ class KatibAgent(BaseAgent):
         logger.info(f"🤔 Reflecting on execution: success={result.get('success')}")
         
         reflection = {
+            "success": result.get("success", False),
             "execution_success": result.get("success", False),
             "operation_type": result.get("operation_type"),
             "lessons_learned": [],
@@ -492,6 +514,8 @@ class KatibAgent(BaseAgent):
             "status": "eligible",
             "rejection_reason": None,
         }
+        if perception["operation_type"] == "letter":
+            return eligibility
         
         # فحص البيئة
         try:

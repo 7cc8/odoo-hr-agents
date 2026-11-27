@@ -485,6 +485,36 @@ class BaseAgent(ABC):
 - عند الفشل، حاول مقاربة مختلفة
 """
 
+    def call_llm(
+        self,
+        prompt: str,
+        system_prompt: Optional[str] = None,
+        context: Optional[Dict[str, Any]] = None,
+        temperature: float = 0.2,
+    ) -> Optional[str]:
+        """استدعاء LLMProvider للاستدلال والتحليل الذكي مع system prompt المعياري للوكيل"""
+        if self.llm_provider is None:
+            try:
+                from agents.llm_provider import LLMProvider
+                self.llm_provider = LLMProvider()
+            except Exception as exc:
+                logger.warning("Agent %s failed to instantiate LLMProvider: %s", self.name, exc)
+                return None
+        sys_p = system_prompt or self.get_system_prompt(context=context)
+        msgs = [
+            {"role": "system", "content": sys_p},
+            {"role": "user", "content": prompt},
+        ]
+        try:
+            res = self.llm_provider.call(msgs, temperature=temperature)
+            if res and isinstance(res, dict):
+                content = res.get("content")
+                if content and isinstance(content, str):
+                    return content.strip()
+        except Exception as exc:
+            logger.warning("Agent %s call_llm failed: %s", self.name, exc)
+        return None
+
 
 # ═══════════════════════════════════════════════════════════════
 # Helper Functions

@@ -324,11 +324,13 @@ def _detect_template_domain(input_xlsx_path: str | Path) -> str | None:
         return None
 
 
-def build_full_report(input_xlsx_path: str | Path) -> Dict[str, Any]:
+def build_full_report(
+    input_xlsx_path: str | Path, repository: Optional[OdooReadonlyRepository] = None
+) -> Dict[str, Any]:
     """Parses, validates, and assembles the report dict. Does NOT write
     any output files and does NOT call create/write/unlink on Odoo.
     Supports both legacy employee import files and all 14 modular/master HR templates."""
-    repository = OdooReadonlyRepository()
+    repository = repository or OdooReadonlyRepository()
 
     # 1. Check if the file is one of the modular/master HR templates
     try:

@@ -22,6 +22,17 @@ logger = logging.getLogger("llm_config_manager")
 CONFIG_PATH = Path("config/llm_config.json")
 
 PROVIDER_PRESETS: Dict[str, Dict[str, Any]] = {
+    "gemini": {
+        "name": "Google Gemini (رسمي)",
+        "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+        "default_model": "gemini-flash-lite-latest",
+        "suggested_models": [
+            "gemini-flash-lite-latest",
+            "gemini-flash-latest",
+            "gemini-3.8-flash",
+        ],
+        "env_key": "GEMINI_API_KEY",
+    },
     "openrouter": {
         "name": "OpenRouter (شامل وموصى به)",
         "base_url": "https://openrouter.ai/api/v1",
@@ -140,9 +151,17 @@ def load_llm_config() -> Dict[str, Any]:
     if env_local_model and not config["local"].get("model"):
         config["local"]["model"] = env_local_model
 
-    env_cloud_key = os.environ.get("OPENROUTER_API_KEY") or os.environ.get("LLM_API_KEY") or os.environ.get("OPENAI_API_KEY")
+    preset = PROVIDER_PRESETS.get(config["cloud"].get("provider"), PROVIDER_PRESETS["custom"])
+    env_cloud_key = os.environ.get(preset["env_key"])
     if env_cloud_key and not config["cloud"].get("api_key"):
         config["cloud"]["api_key"] = env_cloud_key
+
+    # تصحيح نموذج Gemini إذا كان معلقاً على openrouter/auto أو اسماً قديماً
+    cld_prov = str(config["cloud"].get("provider") or "").lower()
+    cld_url = str(config["cloud"].get("base_url") or "").lower()
+    cld_mod = str(config["cloud"].get("model") or "").lower()
+    if (cld_prov == "gemini" or "generativelanguage.googleapis.com" in cld_url) and (cld_mod == "openrouter/auto" or not cld_mod):
+        config["cloud"]["model"] = PROVIDER_PRESETS["gemini"]["default_model"]
 
     # التحقق من صحة الوضع
     if config["mode"] not in ("auto", "manual"):
@@ -177,14 +196,24 @@ def save_llm_config(new_data: Dict[str, Any]) -> Dict[str, Any]:
 
     if "cloud" in new_data and isinstance(new_data["cloud"], dict):
         cld = new_data["cloud"]
-        if "provider" in cld and str(cld["provider"]).strip():
-            current["cloud"]["provider"] = str(cld["provider"]).strip()
+        provider = str(cld.get("provider") or current["cloud"]["provider"]).strip()
+        base_url = str(cld.get("base_url") or current["cloud"]["base_url"]).strip().rstrip("/")
+        if provider != current["cloud"]["provider"] or base_url != current["cloud"]["base_url"].rstrip("/"):
+            current["cloud"]["api_key"] = ""
+        current["cloud"]["provider"] = provider
         if "base_url" in cld and str(cld["base_url"]).strip():
             current["cloud"]["base_url"] = str(cld["base_url"]).strip()
         if "model" in cld and str(cld["model"]).strip():
             current["cloud"]["model"] = str(cld["model"]).strip()
         if "timeout" in cld and isinstance(cld["timeout"], (int, float)):
             current["cloud"]["timeout"] = int(cld["timeout"])
+
+        # تطبيع اسم النموذج لمزود Google Gemini لمنع بقاء openrouter/auto أو اسماً قديماً
+        cld_prov = str(current["cloud"].get("provider") or "").lower()
+        cld_url = str(current["cloud"].get("base_url") or "").lower()
+        cld_mod = str(current["cloud"].get("model") or "").lower()
+        if (cld_prov == "gemini" or "generativelanguage.googleapis.com" in cld_url) and (cld_mod == "openrouter/auto" or not cld_mod):
+            current["cloud"]["model"] = PROVIDER_PRESETS["gemini"]["default_model"]
 
         # معالجة الـ api_key: إذا أرسل المستخدم قيمة جديدة غير خالية وليست مشفرة/مقنعة
         if "api_key" in cld:
@@ -198,11 +227,6 @@ def save_llm_config(new_data: Dict[str, Any]) -> Dict[str, Any]:
     CONFIG_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(current, f, ensure_ascii=False, indent=2)
-
-    # تحديث متغيرات البيئة المحلية لمزامنة العمليات الفورية
-    if current["cloud"].get("api_key"):
-        os.environ["OPENROUTER_API_KEY"] = current["cloud"]["api_key"]
-        os.environ["LLM_API_KEY"] = current["cloud"]["api_key"]
 
     if current["local"].get("base_url"):
         os.environ["LLM_BASE_URL"] = current["local"]["base_url"]
@@ -262,7 +286,11 @@ def start_local_ollama_process() -> Tuple[bool, str]:
     try:
         creationflags = 0
         if os.name == "nt":
-            creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0) | getattr(subprocess, "DETACHED_PROCESS", 0)
+            creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+            if hasattr(subprocess, "DETACHED_PROCESS"):
+                creationflags |= subprocess.DETACHED_PROCESS
+            if hasattr(subprocess, "CREATE_NO_WINDOW"):
+                creationflags |= subprocess.CREATE_NO_WINDOW
 
         subprocess.Popen(
             [ollama_bin, "serve"],
@@ -270,7 +298,7 @@ def start_local_ollama_process() -> Tuple[bool, str]:
             creationflags=creationflags,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            close_fds=True,
+            close_fds=True if os.name != "nt" else False,
         )
         logger.info("Launched local Ollama daemon (%s) with models: %s", ollama_bin, models_dir)
         return True, "تم إطلاق خادم Ollama في الخلفية بنجاح."
@@ -279,131 +307,164 @@ def start_local_ollama_process() -> Tuple[bool, str]:
         return False, f"فشل تشغيل خادم Ollama: {exc}"
 
 
-def check_local_health(base_url: Optional[str] = None) -> Dict[str, Any]:
-    """فحص صحة اتصال خادم Ollama المحلي"""
-    url = base_url or load_llm_config()["local"].get("base_url", "http://localhost:11434/v1")
+def check_local_health(base_url: Optional[str] = None, auto_start: bool = True, model: Optional[str] = None) -> Dict[str, Any]:
+    """فحص صحة اتصال خادم Ollama المحلي واكتشاف النماذج تلقائياً مع محاولة التشغيل الذاتي"""
+    cfg = load_llm_config()
+    url = base_url or cfg["local"].get("base_url", "http://localhost:11434/v1")
     parsed = urllib.parse.urlparse(url)
     clean_base = f"{parsed.scheme}://{parsed.netloc}"
     tags_url = f"{clean_base}/api/tags"
 
+    def _query_tags(timeout_sec: float = 8.0) -> Optional[List[str]]:
+        try:
+            req = urllib.request.Request(tags_url, headers={"User-Agent": "OdooHRAgents/1.0"})
+            with urllib.request.urlopen(req, timeout=timeout_sec) as res:
+                if res.status == 200:
+                    data = json.loads(res.read().decode("utf-8"))
+                    return [m.get("name") for m in data.get("models", [])]
+        except Exception:
+            return None
+        return None
+
     start_t = time.time()
-    try:
-        req = urllib.request.Request(tags_url, headers={"User-Agent": "OdooHRAgents/1.0"})
-        with urllib.request.urlopen(req, timeout=4) as res:
-            latency_ms = int((time.time() - start_t) * 1000)
-            if res.status == 200:
-                data = json.loads(res.read().decode("utf-8"))
-                models = [m.get("name") for m in data.get("models", [])]
-                return {
-                    "status": "online",
-                    "available": True,
-                    "latency_ms": latency_ms,
-                    "models": models,
-                    "message": f"الخادم المحلي متصل بنجاح ({latency_ms}ms) - تم العثور على {len(models)} نماذج",
-                }
-    except Exception as exc:
+    models = _query_tags(timeout_sec=4.0)
+
+    # إذا تعذر الاتصال وكان auto_start مفعلاً، نحاول إطلاق خادم Ollama المحلي وإعادة المحاولة
+    if models is None and auto_start:
+        base_dir = Path(__file__).resolve().parent
+        ollama_exe = base_dir / "AI" / "ollama.exe"
+        if ollama_exe.exists() or shutil.which("ollama"):
+            try:
+                start_local_ollama_process()
+                time.sleep(2.5)
+                models = _query_tags(timeout_sec=8.0)
+            except Exception:
+                pass
+
+    if models is not None:
         latency_ms = int((time.time() - start_t) * 1000)
+        configured_model = model or cfg["local"]["model"]
+        available = configured_model in models or f"{configured_model}:latest" in models
         return {
-            "status": "offline",
-            "available": False,
+            "status": "online" if available else "model_missing",
+            "available": available,
             "latency_ms": latency_ms,
-            "models": [],
-            "message": f"تعذر الاتصال بـ Ollama محلياً ({exc}). تأكد من تشغيل `ollama serve`.",
+            "models": models,
+            "active_model": configured_model if available else None,
+            "message": "خادم Ollama متصل والنموذج مثبّت." if available else "خادم Ollama متصل، لكن النموذج المحدد غير مثبّت.",
         }
 
-    return {"status": "offline", "available": False, "message": "غير متاح"}
+    latency_ms = int((time.time() - start_t) * 1000)
+    return {
+        "status": "offline",
+        "available": False,
+        "latency_ms": latency_ms,
+        "models": [],
+        "message": "تعذر الاتصال بـ Ollama محلياً. تأكد من تشغيل `ollama serve` أو انقر على تشغيل المحرك المحلي.",
+    }
+
+
+def chat_request_target(base_url: str, api_key: Optional[str]) -> Tuple[str, Dict[str, str], bool]:
+    """Build the transport shared by the model probe and Seraj."""
+    from urllib.parse import urlparse
+
+    base_url = base_url.strip().rstrip("/")
+    parsed = urlparse(base_url)
+    if parsed.scheme not in ("http", "https") or not parsed.hostname:
+        raise ValueError("Invalid provider URL")
+    if parsed.query or parsed.fragment or parsed.username or parsed.password:
+        raise ValueError("Invalid provider URL")
+    native = parsed.hostname == "api.anthropic.com"
+    suffix = "/messages" if native else "/chat/completions"
+    url = base_url if base_url.endswith(suffix) else base_url + suffix
+    headers = {
+        "Content-Type": "application/json",
+        "User-Agent": "OdooHRAgents/1.0",
+        "HTTP-Referer": "http://localhost:8000",
+        "X-Title": "Odoo HR Agents",
+    }
+    if api_key and native:
+        headers["x-api-key"] = api_key.strip()
+        headers["anthropic-version"] = "2023-06-01"
+    elif api_key:
+        headers["Authorization"] = f"Bearer {api_key.strip()}"
+    return url, headers, native
+
+
+def chat_generation_options(url: str, max_tokens: int) -> Dict[str, Any]:
+    from urllib.parse import urlparse
+
+    if urlparse(url).hostname == "api.openai.com":
+        return {"max_completion_tokens": max_tokens}
+    return {"max_tokens": max_tokens, "temperature": 0.1}
 
 
 def check_cloud_health(
     provider_name: Optional[str] = None,
     base_url: Optional[str] = None,
     api_key: Optional[str] = None,
+    model: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """فحص صحة اتصال المشغل السحابي مع مفتاح الـ API"""
-    config = load_llm_config()
-    p_name = provider_name or config["cloud"].get("provider", "openrouter")
-    url = base_url or config["cloud"].get("base_url") or "https://openrouter.ai/api/v1"
-    key = api_key if api_key is not None else config["cloud"].get("api_key", "")
+    """Verify that the selected model can handle a minimal chat completion."""
+    cloud = load_llm_config()["cloud"]
+    provider = provider_name or cloud["provider"]
+    preset = PROVIDER_PRESETS.get(provider, PROVIDER_PRESETS["custom"])
+    same_provider = provider == cloud["provider"]
+    url = (base_url or (cloud["base_url"] if same_provider else preset["base_url"])).strip().rstrip("/")
+    model_name = model or (cloud.get("model") if same_provider else preset["default_model"])
+    same_endpoint = provider == cloud["provider"] and url == cloud["base_url"].rstrip("/")
+    key = (api_key or "").strip()
+    if not key or "••••" in key:
+        key = cloud.get("api_key", "") if same_endpoint else ""
+    if not key or not model_name:
+        return {"status": "missing_settings", "available": False, "message": "أدخل مفتاح المزود واسم النموذج."}
 
-    if not key or not str(key).strip():
-        return {
-            "status": "missing_key",
-            "available": False,
-            "message": "لم يتم إدخال مفتاح API Key لهذا المشغل السحابي بعد.",
-        }
-
-    # اختبار نقطة النهاية المناسبة للتحقق من صلاحية المفتاح
-    clean_url = url.rstrip("/")
-    if "openrouter" in p_name.lower() or "openrouter.ai" in clean_url:
-        test_url = "https://openrouter.ai/api/v1/auth/key"
-    elif "anthropic.com" in clean_url:
-        test_url = "https://api.anthropic.com/v1/models"
-    else:
-        test_url = f"{clean_url}/models"
-
-    headers = {
-        "Authorization": f"Bearer {key.strip()}",
-        "User-Agent": "OdooHRAgents/1.0",
-        "HTTP-Referer": "http://localhost:8000",
-        "X-Title": "Odoo HR Agents",
-    }
-    if "anthropic.com" in clean_url:
-        headers["x-api-key"] = key.strip()
-        headers["anthropic-version"] = "2023-06-01"
-
-    start_t = time.time()
+    started = time.perf_counter()
+    result = {"provider": provider, "model": model_name, "available": False}
     try:
-        req = urllib.request.Request(test_url, headers=headers)
-        with urllib.request.urlopen(req, timeout=8) as res:
-            latency_ms = int((time.time() - start_t) * 1000)
-            if res.status in (200, 201):
-                return {
-                    "status": "online",
-                    "available": True,
-                    "latency_ms": latency_ms,
-                    "message": f"الاتصال بالمشغل السحابي ناجح ومفتاح الـ API صالح ({latency_ms}ms).",
-                }
-    except urllib.error.HTTPError as h_err:
-        latency_ms = int((time.time() - start_t) * 1000)
-        if h_err.code in (401, 403):
-            return {
-                "status": "invalid_key",
-                "available": False,
-                "latency_ms": latency_ms,
-                "message": f"مفتاح API غير صالح أو غير مصرح له (رمز الخطأ: {h_err.code}).",
-            }
-        elif h_err.code == 429:
-            return {
-                "status": "rate_limited",
-                "available": False,
-                "latency_ms": latency_ms,
-                "message": "تم تجاوز حد الطلبات المسموح به (Rate Limit - 429).",
-            }
-        elif h_err.code in (400, 404, 405):
-            # بعض البروكسيات أو الخوادم المخصصة لا تدعم endpoint /models ولكنها تعمل على /chat/completions
-            return {
-                "status": "online",
-                "available": True,
-                "latency_ms": latency_ms,
-                "message": f"الخادم متصل وجاهز للاستقبال (رمز الاستجابة: {h_err.code}، زمن الاستجابة: {latency_ms}ms).",
-            }
-        else:
-            return {
-                "status": "http_error",
-                "available": False,
-                "latency_ms": latency_ms,
-                "message": f"استجاب الخادم السحابي بالرمز {h_err.code}: {h_err.reason}",
-            }
-    except Exception as exc:
-        latency_ms = int((time.time() - start_t) * 1000)
-        return {
-            "status": "network_error",
-            "available": False,
-            "latency_ms": latency_ms,
-            "message": f"خطأ شبكة أثناء فحص المشغل السحابي: {exc}",
+        endpoint, headers, native = chat_request_target(url, key)
+        payload = {
+            "model": model_name,
+            "messages": [{"role": "user", "content": "Reply with OK."}],
+            **chat_generation_options(endpoint, 64),
         }
+        if not native:
+            payload["tools"] = [{"type": "function", "function": {
+                "name": "connection_probe",
+                "description": "Optional connection check",
+                "parameters": {"type": "object", "properties": {}},
+            }}]
+            payload["tool_choice"] = "auto"
+        req = urllib.request.Request(endpoint, data=json.dumps(payload).encode("utf-8"), headers=headers)
+        with urllib.request.urlopen(req, timeout=20) as response:
+            data = json.load(response)
+        message = (data.get("choices") or [{}])[0].get("message") or {}
+        has_reply = any(block.get("type") == "text" and block.get("text") for block in data.get("content", [])) if native else bool(message.get("content") or message.get("tool_calls"))
+        if not has_reply:
+            return {**result, "status": "empty_response", "message": "لم يُرجع النموذج استجابة محادثة."}
+        return {**result, "status": "online", "available": True, "latency_ms": round((time.perf_counter() - started) * 1000)}
+    except urllib.error.HTTPError as error:
+        status = "invalid_key" if error.code in (401, 403) else "http_error"
+        if error.code == 404 and provider == "gemini":
+            return {**result, "status": "not_found", "message": (
+                f"تعذّر العثور على نموذج {model_name} في رابط Gemini المحدد (404). "
+                "اختر Google Gemini واستخدم رابط المزود الافتراضي واسم نموذج متاح لمشروعك في Google AI Studio."
+            )}
+        return {**result, "status": status, "message": cloud_failure_message(error)}
+    except (OSError, ValueError, TypeError, AttributeError) as error:
+        return {**result, "status": "probe_error", "message": cloud_failure_message(error)}
 
-    return {"status": "unknown", "available": False, "message": "حالة غير محددة"}
+
+def cloud_failure_message(error: Exception) -> str:
+    if isinstance(error, urllib.error.HTTPError):
+        if error.code in (401, 403):
+            return f"رفض المزود المصادقة أو صلاحية استخدام النموذج (HTTP {error.code})."
+        if error.code == 429:
+            return "رفض المزود الطلب بسبب حد الاستخدام أو الرصيد (HTTP 429)."
+        if error.code in (502, 503, 504):
+            return f"خدمة المزود غير متاحة مؤقتًا (HTTP {error.code}). أعد المحاولة بعد قليل أو اختر نموذجًا آخر."
+        return f"رفض المزود طلب المحادثة للنموذج المحدد (HTTP {error.code})."
+    return "تعذر الاتصال بالنموذج السحابي. تحقق من الرابط والنموذج."
 
 
 def test_provider_connection(target: str, payload: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -411,14 +472,11 @@ def test_provider_connection(target: str, payload: Optional[Dict[str, Any]] = No
     payload = payload or {}
     if target == "local":
         base_url = payload.get("base_url")
-        return check_local_health(base_url)
+        return check_local_health(base_url, auto_start=False, model=payload.get("model"))
     elif target == "cloud":
         provider_name = payload.get("provider")
         base_url = payload.get("base_url")
         api_key = payload.get("api_key")
-        # إذا كان المفتاح مرسلاً كقناع ولم يتغير، نجلب المفتاح الفعلي من التخزين
-        if api_key and ("••••" in api_key):
-            api_key = load_llm_config()["cloud"].get("api_key")
-        return check_cloud_health(provider_name, base_url, api_key)
+        return check_cloud_health(provider_name, base_url, api_key, payload.get("model"))
     else:
         return {"status": "error", "message": f"الهدف غير معروف: {target}"}

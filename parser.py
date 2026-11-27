@@ -46,6 +46,8 @@ HEADER_MAPPING_RULES = [
     ("الاسم بالإنجليزي", "name_en"),
     ("الاسم بالانجليزي", "name_en"),
     ("employee name en", "name_en"),
+    ("employee name (english)", "name_en"),
+    ("employee english name", "name_en"),
     ("name en", "name_en"),
     ("name_en", "name_en"),
     ("المنشأة بالإنجليزي", "company_en"),
@@ -86,6 +88,7 @@ HEADER_MAPPING_RULES = [
     ("اسم الموظف", "name"),
     ("الاسم الكامل", "name"),
     ("employee name", "name"),
+    ("employee full name", "name"),
     ("full name", "name"),
     ("name", "name"),
 
@@ -242,10 +245,13 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
 
     target_sheet = REQUIRED_SHEET
     if target_sheet not in workbook.sheetnames:
-        # Check for alternative data sheet
-        aux = {"instructions", "reference", "دليل التعليمات", "المراجع"}
-        candidates = [s for s in workbook.sheetnames if s.strip().lower() not in aux]
-        emp_cand = [s for s in candidates if "employee" in s.lower() or "موظف" in s]
+        # Check for alternative data sheet (استبعاد كافة أوراق التعليمات والمراجع بكل أشكالها)
+        def _is_aux_sheet(s_name: str) -> bool:
+            clean = s_name.strip().lower()
+            return any(k in clean for k in ("instruction", "تعليمات", "reference", "مراجع", "دليل")) or clean.startswith("0_")
+
+        candidates = [s for s in workbook.sheetnames if not _is_aux_sheet(s)]
+        emp_cand = [s for s in candidates if any(k in s.lower() for k in ("employee", "موظف", "الموظفين", "الموظفون", "2_employees"))]
         if emp_cand:
             target_sheet = emp_cand[0]
         elif candidates:
@@ -331,7 +337,13 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
     possible_duplicate_counts = {}
 
     data_start_row = header_row_idx + 1
-    if header_row_idx == 2 and ws.max_row > 3:
+    from template_localizer import template_example_matches
+
+    example_matches = template_example_matches(ws, data_start_row) if header_row_idx == 2 else None
+    if example_matches:
+        data_start_row += 1
+        warnings = sorted(set(warnings) | {"template_example_row_skipped:3"})
+    elif example_matches is None and header_row_idx == 2 and ws.max_row > 3:
         # Check if row 3 is the template example row
         row3_vals = [to_text_preserve(cell.value).strip() for cell in ws[3] if cell.value is not None]
         if row3_vals and (TEMPLATE_EXAMPLE_ID in row3_vals or row3_vals[0] == TEMPLATE_EXAMPLE_NAME):
@@ -425,4 +437,109 @@ def parse_xlsx(file_path: str) -> Dict[str, Any]:
     return {
         "run_id": run_id, "source_hash": source_hash, "file_size_bytes": size,
         "warnings": warnings, "row_count": len(rows), "rows": rows,
+    }
+
+
+def parse_master_workbook(file_path: str) -> Dict[str, Any]:
+    """
+    قراءة وتطبيع كافة الأوراق الوظيفية الـ 13 المعبأة في مصنف الماستر الشامل
+    وفق ترتيب التبعيات (1_Company_Setup -> 2_Employees -> 3_Contracts -> 4..13)
+    مع تخطي Instructions و Reference والأوراق الفارغة.
+    """
+    from excel_template_validator import (
+        MASTER_SHEET_ORDER,
+        TEMPLATE_SPECS,
+        _detect_header_and_data_rows,
+        _map_columns_to_keys,
+        _resolve_sheet_domain,
+        is_auxiliary_sheet,
+        row_hash_dict,
+    )
+
+    path = Path(file_path)
+    if path.suffix.lower() != ".xlsx":
+        raise ParserError("only_xlsx_supported")
+    if not path.exists():
+        raise ParserError("file_not_found")
+
+    raw_bytes = path.read_bytes()
+    source_hash = sha256_bytes(raw_bytes)
+    run_id = make_run_id(source_hash)
+    wb = load_workbook(path, data_only=True)
+
+    data_sheets = [s for s in wb.sheetnames if not is_auxiliary_sheet(s)]
+    ordered_sheets: List[Tuple[str, str]] = []
+    seen_sheets = set()
+    for dom_key, _ in MASTER_SHEET_ORDER:
+        for s_name in data_sheets:
+            if s_name in seen_sheets:
+                continue
+            if _resolve_sheet_domain(s_name) == dom_key:
+                ordered_sheets.append((s_name, dom_key))
+                seen_sheets.add(s_name)
+    for s_name in data_sheets:
+        if s_name not in seen_sheets:
+            dom = _resolve_sheet_domain(s_name) or "employee"
+            ordered_sheets.append((s_name, dom))
+
+    sheets_out: Dict[str, Dict[str, Any]] = {}
+    sheet_order: List[str] = []
+    total_rows = 0
+
+    for s_name, dom_key in ordered_sheets:
+        ws = wb[s_name]
+        spec = TEMPLATE_SPECS.get(dom_key, TEMPLATE_SPECS["employee"])
+        header_row_idx, data_start_row = _detect_header_and_data_rows(ws, spec)
+        header_cells = [c.value for c in ws[header_row_idx]]
+        col_map = _map_columns_to_keys(header_cells, spec)
+        if not col_map:
+            continue
+
+        parsed_sheet_rows = []
+        for r_idx in range(data_start_row, ws.max_row + 1):
+            row_vals: Dict[str, str] = {}
+            is_empty = True
+            for key, _ in spec["key_columns"]:
+                if key in col_map:
+                    cell_val = clean_value_text(to_text_preserve(ws.cell(row=r_idx, column=col_map[key]).value))
+                    if cell_val.startswith("="):
+                        cell_val = ""
+                    if dom_key == "employee" and key == "hiring_date":
+                        cell_val = normalize_date_text(cell_val)
+                    elif key in ("start_date", "end_date", "date", "hire_date", "term_date", "violation_date", "investigation_date", "iqama_greg", "passport_exp"):
+                        cell_val = normalize_date_text(cell_val)
+                    row_vals[key] = cell_val
+                    if cell_val:
+                        is_empty = False
+                else:
+                    row_vals[key] = ""
+            if is_empty:
+                continue
+            r_hash = row_hash_dict({"sheet": s_name, "row": r_idx, **row_vals})
+            parsed_sheet_rows.append({
+                "excel_row_number": r_idx,
+                "sheet_name": s_name,
+                "domain": dom_key,
+                "run_id": run_id,
+                "source_hash": source_hash,
+                "row_hash": r_hash,
+                "fields": {k: {"raw": row_vals[k], "value": row_vals[k]} for k in row_vals},
+            })
+
+        if parsed_sheet_rows:
+            sheets_out[s_name] = {
+                "domain": dom_key,
+                "title_ar": spec.get("title_ar", s_name),
+                "rows": parsed_sheet_rows,
+            }
+            sheet_order.append(s_name)
+            total_rows += len(parsed_sheet_rows)
+
+    return {
+        "run_id": run_id,
+        "source_hash": source_hash,
+        "file_size_bytes": path.stat().st_size,
+        "sheet_order": sheet_order,
+        "sheets": sheets_out,
+        "row_count": total_rows,
     }

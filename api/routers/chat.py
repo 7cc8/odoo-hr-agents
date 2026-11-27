@@ -42,52 +42,64 @@ class ChatMessage(BaseModel):
 # ==================== CONVERSATIONAL CHAT (SERAJ) ====================
 
 @router.post("/api/seraj/chat")
-def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> Dict[str, Any]:
+async def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> Dict[str, Any]:
     """Unified conversational interaction with Seraj, coordinating multi-agent actions."""
     audit_log_access("/api/seraj/chat", request, {"chat_id": payload.chat_id, "op_id": payload.operation_id})
+    import asyncio
     from agent_events_service import get_events_service
     from seraj_llm_service import SerajLLMService
+    from seraj_hr_context import contract_reference, policy_save_request
     from seraj_session_manager import SerajSessionManager
 
     # While a delete/archive/create/update awaits confirmation, the next message may
     # confirm and execute it, so the write token is required (the dashboard prompts on 401).
-    if SerajSessionManager.get_instance().get_session(payload.chat_id).pending_action:
+    private_contract = bool(contract_reference(payload.message))
+    policy_save = policy_save_request(payload.message) is not None
+    if SerajSessionManager.get_instance().get_session(payload.chat_id).pending_action or private_contract or policy_save:
         verify_write_auth(request)
 
     srv = get_events_service()
-    op_id = payload.operation_id
-    if not op_id:
-        c_id = payload.company_id
-        c_name = payload.company_name
-        if not c_id:
-            try:
-                repo = _get_readonly_repo_cls()()
-                def_c = repo.get_default_company()
-                c_id = def_c.get("id", 1)
-                c_name = def_c.get("name", "الشركة الرئيسية")
-            except Exception:
-                c_id = 1
-                c_name = "الشركة الرئيسية"
+    import time, uuid
 
-        op_id = srv.start_operation(
-            user_query=payload.message,
-            operation_type="conversation",
-            company_id=c_id,
-            company_name=payload.company_name or "شركة النخبة الذكية للتقنية",
-            connection_id=payload.connection_id or "default",
-            requester=payload.user_name or "المستخدم",
-            chat_id=payload.chat_id,
-        )
+    # فصل خطوات كل رسالة عن الرسائل السابقة برقم عملية / دورة فريد ومستقل
+    op_id = payload.operation_id
+    if not op_id or (srv.get_operation(op_id) and srv.get_operation(op_id).get("events")):
+        op_id = f"op_{int(time.time())}_{uuid.uuid4().hex[:6]}"
+
+    c_id = payload.company_id
+    c_name = payload.company_name
+    if not c_id:
+        try:
+            repo = _get_readonly_repo_cls()()
+            def_c = repo.get_default_company()
+            c_id = def_c.get("id", 1)
+            c_name = def_c.get("name", "الشركة الرئيسية")
+        except Exception:
+            c_id = 1
+            c_name = "الشركة الرئيسية"
+
+    srv.start_operation(
+        user_query=payload.message,
+        operation_type="conversation",
+        company_id=c_id,
+        company_name=c_name,
+        connection_id=payload.connection_id or "default",
+        requester=payload.user_name or "المستخدم",
+        chat_id=payload.chat_id,
+        operation_id=op_id,
+    )
 
     seraj = SerajLLMService()
     try:
-        reply = seraj.chat_turn(
+        reply = await asyncio.to_thread(
+            seraj.chat_turn,
             user_query=payload.message,
             chat_id=payload.chat_id,
             user_name=payload.user_name or "المستخدم",
             connection_id=payload.connection_id,
-            company_id=payload.company_id,
+            company_id=c_id if private_contract or policy_save else payload.company_id,
             operation_id=op_id,
+            **({"allow_contract_pay": True} if private_contract else {}),
         )
     except Exception as exc:
         srv.emit_event(
@@ -105,8 +117,8 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
 
     from llm_config_manager import load_llm_config
     cfg = load_llm_config()
-    prov_used = getattr(seraj, "last_provider_used", None) or cfg.get("active_provider", "local")
-    model_used = getattr(seraj, "last_model_used", None) or cfg.get("cloud" if prov_used == "cloud" else "local", {}).get("model")
+    prov_used = getattr(seraj, "last_provider_used", None)
+    model_used = getattr(seraj, "last_model_used", None)
     prov_name = cfg.get("cloud", {}).get("provider", "Cloud") if prov_used == "cloud" else "Ollama"
 
     llm_meta = {
@@ -114,11 +126,16 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
         "model": model_used,
         "provider_name": prov_name,
         "mode": cfg.get("mode", "auto"),
+        "fallback_reason": getattr(seraj, "last_cloud_error", None) if cfg["active_provider"] == "cloud" and prov_used != "cloud" else None,
     }
 
-    if op and session.pending_action:
-        op["pending_action"] = session.pending_action
-        op["plan"] = session.pending_action
+    if op:
+        if session.pending_action:
+            op["pending_action"] = session.pending_action
+            op["plan"] = session.pending_action
+        elif not session.pending_clarification:
+            srv.update_operation_status(op_id, "completed")
+            op["status"] = "completed"
 
     return {
         "status": "success",
@@ -128,7 +145,32 @@ def post_seraj_chat_endpoint(payload: SerajChatApiRequest, request: Request) -> 
         "pending_action": session.pending_action,
         "pending_clarification": session.pending_clarification,
         "llm_meta": llm_meta,
+        "reasoning_steps": getattr(seraj, "last_turn_reasoning_steps", []),
+        "thinking_duration_sec": getattr(seraj, "last_turn_duration_sec", None),
+        "timestamp": getattr(seraj, "last_turn_timestamp", None),
+        "user_timestamp": getattr(seraj, "last_turn_user_timestamp", None),
     }
+
+
+@router.post("/api/seraj/cancel/{operation_id}")
+async def cancel_seraj_operation(operation_id: str, request: Request) -> Dict[str, Any]:
+    """إلغاء عملية جارية بناءً على طلب المستخدم وإيقاف البث."""
+    audit_log_access(f"/api/seraj/cancel/{operation_id}", request, {"op_id": operation_id})
+    from agent_events_service import get_events_service
+    srv = get_events_service()
+    op = srv.get_operation(operation_id)
+    if not op:
+        return {"status": "not_found", "message": "العملية غير موجودة", "operation_id": operation_id}
+
+    srv.emit_event(
+        operation_id=operation_id,
+        agent="seraj",
+        event_type="operation_cancelled",
+        status="cancelled",
+        description_ar="تم إيقاف استجابة سراج والوكلاء بناءً على طلب المستخدم (تراجع صريح).",
+    )
+    srv.update_operation_status(operation_id, "cancelled")
+    return {"status": "success", "message": "تم إيقاف العملية بنجاح", "operation_id": operation_id}
 
 
 # ==================== SESSIONS MANAGEMENT ====================
@@ -150,6 +192,13 @@ def get_seraj_session_detail_endpoint(chat_id: str, request: Request) -> Dict[st
         s = mgr.get_session(chat_id)
     else:
         s = mgr.sessions[chat_id]
+    history = s.history
+    if any(message.get("sensitive") for message in history):
+        try:
+            verify_write_auth(request)
+        except HTTPException:
+            history = [{**message, "content": "تتطلب تفاصيل العقد رمز المشغّل المعتمد."}
+                       if message.get("sensitive") else message for message in history]
     return {
         "status": "success",
         "session": {
@@ -157,7 +206,7 @@ def get_seraj_session_detail_endpoint(chat_id: str, request: Request) -> Dict[st
             "title": s.title or (f"جلسة {s.chat_id[:8]}" if s.chat_id.startswith("web_") else s.chat_id),
             "created_at": s.created_at,
             "updated_at": s.updated_at,
-            "history": s.history,
+            "history": history,
             "pending_action": s.pending_action,
             "pending_clarification": s.pending_clarification,
             "company_id": s.company_id,
@@ -174,6 +223,14 @@ def delete_seraj_session_endpoint(chat_id: str, request: Request) -> Dict[str, A
     from seraj_session_manager import SerajSessionManager
     SerajSessionManager.get_instance().reset_session(chat_id)
     return {"status": "success", "message": f"تم تصفير الجلسة {chat_id} بنجاح."}
+
+
+@router.delete("/api/seraj/sessions")
+def clear_all_seraj_sessions_endpoint(request: Request) -> Dict[str, Any]:
+    """Clears and deletes all stored chat sessions."""
+    from seraj_session_manager import SerajSessionManager
+    SerajSessionManager.get_instance().clear_all_sessions()
+    return {"status": "success", "message": "تم حذف وتصفير كافة جلسات المحادثة بنجاح."}
 
 
 # ==================== ASSISTANTS & DISCOVERY ====================
@@ -243,6 +300,7 @@ async def chat_endpoint(req: ChatMessage, request: Request) -> Dict[str, Any]:
         from agents.llm_provider import get_llm_provider
         from agents.tool_registry import ToolRegistry
         from memory.manager import MemoryManager
+        from seraj_hr_context import tool_result_text
 
         thread_id = req.thread_id or f"thread_{int(datetime.now().timestamp())}"
         working_mem = MemoryManager.get_instance().get_working_memory(thread_id)
@@ -320,7 +378,7 @@ async def chat_endpoint(req: ChatMessage, request: Request) -> Dict[str, Any]:
                     logger.warning(f"Error executing tool {fn_name}: {tool_err}")
                     tool_res = {"status": "error", "message": str(tool_err)}
 
-                res_str = json.dumps(tool_res, ensure_ascii=False) if not isinstance(tool_res, str) else tool_res
+                res_str = tool_result_text(tool_res)
 
                 messages.append({
                     "role": "tool",
@@ -328,13 +386,8 @@ async def chat_endpoint(req: ChatMessage, request: Request) -> Dict[str, Any]:
                     "name": fn_name,
                     "content": res_str,
                 })
-        else:
-            final_content = final_content or (response.get("content") if "response" in locals() else "") or "تم تنفيذ العمليات الاستعلامية واكتملت الدورات المسموحة."
-
-        if provider.provider == "fallback":
-            final_content = f"{final_content}\n\n" \
-                     "🌟 **ملاحظة:** النظام يعمل في وضع Fallback الآمن.\n" \
-                     "لتجربة أكثر ذكاءً، راجع التعليمات أعلاه!"
+        if not final_content:
+            raise HTTPException(status_code=503, detail="تعذّر الحصول على رد من النموذج لهذه الرسالة.")
 
         # حفظ رد المساعد النهائي في الذاكرة العاملة المرتبطة بـ thread_id
         if final_content:
@@ -345,36 +398,16 @@ async def chat_endpoint(req: ChatMessage, request: Request) -> Dict[str, Any]:
             "thread_id": thread_id,
             "response": {
                 "content": final_content,
-                "provider": provider.provider
+                "provider": response.get("provider", provider.provider)
             },
             "current_agent": "seraj",
         }
 
-    except Exception as exc:
-        logger.error(f"Chat error: {exc}")
-        thread_id = req.thread_id or f"thread_{int(datetime.now().timestamp())}"
-        err_msg = (
-            f"مرحباً! أنا سراج. استلمت رسالتك: '{req.message[:50]}...'\n\n"
-            "حالياً أعمل في وضع محدود. للحصول على ردود أفضل:\n"
-            "1. ثبّت Ollama: https://ollama.ai/download\n"
-            "2. أو أضف OPENAI_API_KEY في .env"
-        )
-        try:
-            from memory.manager import MemoryManager
-            MemoryManager.get_instance().get_working_memory(thread_id).add_message("assistant", err_msg)
-        except Exception:
-            pass
-
-        return {
-            "status": "success",
-            "thread_id": thread_id,
-            "response": {
-                "content": err_msg,
-                "provider": "fallback"
-            },
-            "current_agent": "seraj",
-            "error": str(exc)
-        }
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("Legacy chat failed")
+        raise HTTPException(status_code=500, detail="تعذّر إكمال المحادثة.") from None
 
 
 # Alias للتوافقية العكسية المطلقة مع أي كود خارجي
@@ -399,3 +432,130 @@ async def get_thread_history(thread_id: str, request: Request) -> Dict[str, Any]
     except Exception:
         return {"thread_id": thread_id, "messages": []}
 
+
+# ==================== MEMORY MANAGEMENT ====================
+
+class MemoryItemRequest(BaseModel):
+    content: str
+    key: Optional[str] = ""
+    category: Optional[str] = "general"
+    importance: Optional[int] = 3
+
+
+class MemoryItemUpdateRequest(BaseModel):
+    content: Optional[str] = None
+    key: Optional[str] = None
+    category: Optional[str] = None
+    importance: Optional[int] = None
+
+
+@router.get("/api/memory/items")
+def get_memory_items(category: Optional[str] = None, request: Request = None) -> Dict[str, Any]:
+    """استرجاع كافة عناصر الذاكرة طويلة المدى والكيانات النشطة للجلسات."""
+    if request:
+        audit_log_access("/api/memory/items", request)
+    from memory.manager import MemoryManager
+    from seraj_session_manager import SerajSessionManager
+    mgr = MemoryManager.get_instance()
+    facts = mgr.get_long_term_facts(category=category)
+    stats = mgr.get_memory_stats()
+
+    active_sessions = SerajSessionManager.get_instance().list_sessions()
+    recent_active_entities = {}
+    for s_info in active_sessions[:5]:
+        s = SerajSessionManager.get_instance().get_session(s_info["chat_id"])
+        if s.active_entities:
+            recent_active_entities[s_info["chat_id"]] = {
+                "title": s_info["title"],
+                "entities": s.active_entities,
+                "summary": s.get_context_summary(),
+            }
+
+    return {
+        "status": "success",
+        "facts": facts,
+        "active_entities_by_session": recent_active_entities,
+        "stats": stats,
+    }
+
+
+@router.get("/api/memory/episodes")
+def get_memory_episodes(
+    limit: int = 50,
+    offset: int = 0,
+    q: Optional[str] = None,
+    request: Request = None,
+) -> Dict[str, Any]:
+    """استرجاع سجل حلقات الذاكرة من SQLite مع دعم البحث والتصفح."""
+    if request:
+        audit_log_access("/api/memory/episodes", request)
+    from memory.manager import MemoryManager
+    mgr = MemoryManager.get_instance()
+    res = mgr.get_episodes_list(limit=limit, offset=offset, q=q)
+    return {
+        "status": "success",
+        "items": res.get("items", []),
+        "total": res.get("total", 0),
+        "limit": limit,
+        "offset": offset,
+    }
+
+
+@router.post("/api/memory/items")
+def create_memory_item(payload: MemoryItemRequest, request: Request) -> Dict[str, Any]:
+    """إضافة حقيقة جديدة إلى الذاكرة طويلة المدى لسراج والوكلاء."""
+    audit_log_access("/api/memory/items", request, {"action": "create", "key": payload.key})
+    from memory.manager import MemoryManager
+    mgr = MemoryManager.get_instance()
+    item = mgr.save_long_term_fact(
+        content=payload.content,
+        key=payload.key or "",
+        category=payload.category or "general",
+        importance=payload.importance or 3,
+    )
+    return {"status": "success", "item": item}
+
+
+@router.put("/api/memory/items/{item_id}")
+def update_memory_item(item_id: str, payload: MemoryItemUpdateRequest, request: Request) -> Dict[str, Any]:
+    """تعديل حقيقة في الذاكرة طويلة المدى."""
+    audit_log_access(f"/api/memory/items/{item_id}", request, {"action": "update", "id": item_id})
+    from memory.manager import MemoryManager
+    mgr = MemoryManager.get_instance()
+    updated = mgr.update_long_term_fact(
+        fact_id=item_id,
+        updates=payload.model_dump(exclude_unset=True),
+    )
+    if not updated:
+        raise HTTPException(status_code=404, detail="عنصر الذاكرة غير موجود")
+    return {"status": "success", "item": updated}
+
+
+@router.delete("/api/memory/items/{item_id}")
+def delete_memory_item(item_id: str, request: Request) -> Dict[str, Any]:
+    """حذف حقيقة محددة من الذاكرة طويلة المدى."""
+    audit_log_access(f"/api/memory/items/{item_id}", request, {"action": "delete", "id": item_id})
+    from memory.manager import MemoryManager
+    mgr = MemoryManager.get_instance()
+    ok = mgr.delete_long_term_fact(item_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail="عنصر الذاكرة غير موجود")
+    return {"status": "success", "deleted_id": item_id}
+
+
+@router.delete("/api/memory/clear")
+def clear_memory_items(request: Request) -> Dict[str, Any]:
+    """مسح كافة الحقائق المحفوظة في الذاكرة طويلة المدى."""
+    audit_log_access("/api/memory/clear", request, {"action": "clear"})
+    from memory.manager import MemoryManager
+    mgr = MemoryManager.get_instance()
+    count = mgr.clear_long_term_facts()
+    return {"status": "success", "cleared_count": count}
+
+
+@router.get("/api/telemetry/cost")
+def get_cost_telemetry_endpoint(request: Request) -> Dict[str, Any]:
+    """استرجاع إحصائيات استهلاك وتكاليف نماذج الذكاء الاصطناعي."""
+    audit_log_access("/api/telemetry/cost", request, {"action": "read"})
+    from agents.cost_auditor import CostAuditor
+    return CostAuditor.get_instance().get_cost_summary()

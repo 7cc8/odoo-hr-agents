@@ -83,6 +83,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.middleware("http")
+async def add_no_cache_headers(request: Request, call_next):
+    """منع التخزين المؤقت للملفات الثابتة والواجهة لضمان انعكاس التحديثات فوراً"""
+    response = await call_next(request)
+    path = request.url.path
+    if (
+        path.endswith((".html", ".js", ".css"))
+        or path in ("/dashboard", "/", "/moxen-sample")
+        or path.startswith(("/css/", "/js/", "/frontend/"))
+    ):
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
+
+@app.on_event("startup")
+def startup_event():
+    """التحقق التلقائي من خادم Ollama المحلي واكتشاف النماذج عند بدء تشغيل الخادم"""
+    try:
+        from llm_config_manager import check_local_health
+        check_local_health(auto_start=True)
+    except Exception as exc:
+        print(f"Startup Ollama auto-connect note: {exc}")
+
+
 from fastapi.staticfiles import StaticFiles
 
 IMAGES_DIR = Path(__file__).parent / "frontend" / "images"
@@ -398,23 +425,23 @@ def get_companies_diagram_html() -> str:
 @app.get("/design-preview", response_class=HTMLResponse)
 def get_design_preview_html() -> str:
     """Returns the improved design preview (unslopped version)."""
-    preview_file = Path(__file__).parent / "frontend" / "design_preview.html"
-    if not preview_file.exists():
-        preview_file = Path(__file__).parent / "templates" / "design_preview.html"
-    if preview_file.exists():
-        return preview_file.read_text(encoding="utf-8")
-    return "<h1>ملف design_preview.html غير متوفر</h1>"
+    return (Path(__file__).parent / "frontend" / "temp" / "design_preview.html").read_text(encoding="utf-8")
 
 
 @app.get("/proposals", response_class=HTMLResponse)
 def get_agents_proposals_html() -> str:
     """Returns the interactive showcase for the 8 agents redesign proposals."""
-    proposals_file = Path(__file__).parent / "frontend" / "agents_redesign_proposals.html"
-    if not proposals_file.exists():
-        proposals_file = Path(__file__).parent / "templates" / "agents_redesign_proposals.html"
-    if proposals_file.exists():
-        return proposals_file.read_text(encoding="utf-8")
-    return "<h1>ملف مقترحات التصميم غير متوفر</h1>"
+    return (Path(__file__).parent / "frontend" / "temp" / "agents_redesign_proposals.html").read_text(encoding="utf-8")
+
+
+@app.get("/moxen-sample", response_class=HTMLResponse)
+@app.get("/moxen", response_class=HTMLResponse)
+def get_moxen_sample_html() -> str:
+    """Returns the standalone interactive showcase of the 10 Moxen Motion components."""
+    sample_file = Path(__file__).parent / "frontend" / "moxen_sample.html"
+    if sample_file.exists():
+        return sample_file.read_text(encoding="utf-8")
+    return "<h1>ملف moxen_sample.html غير متوفر</h1>"
 
 
 @app.get("/odoo-hr-hq", response_class=HTMLResponse)

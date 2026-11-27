@@ -340,6 +340,29 @@ class MudaqqiqAgent(BaseAgent):
         )
         if has_critical:
             result["decision"] = ComplianceDecision.ESCALATE_LEGAL
+
+        # تفسير قانوني عبر الوكيل الهجين مدقق لمواد نظام العمل السعودي
+        if result["violations"]:
+            try:
+                v_desc = "; ".join([
+                    f"{v.get('article_reference') or 'مرجع غير محدد'}: {v.get('violation_description_ar', '')}"
+                    for v in result["violations"][:5]
+                ])
+                prompt = (
+                    f"بصفتك وكيل التدقيق ونظام العمل «مدقق»، لخص الأثر النظامي ومواد نظام العمل السعودي المنطبقة على المخالفات التالية:\n"
+                    f"{v_desc}\n"
+                    "لخّص المخالفات المثبتة والتصحيح المقترح بإيجاز. استخدم المراجع الواردة فقط."
+                )
+                from seraj_hr_context import company_fact_context
+                context = plan.get("context") or {}
+                facts = company_fact_context(context.get("connection_id"), context.get("company_id"))
+                if facts:
+                    prompt += f"\nسياسات محفوظة للاستنارة ضمن نطاق التحقق:\n{facts}"
+                legal_advice = self.call_llm(prompt)
+                if legal_advice:
+                    result["legal_reasoning"] = legal_advice
+            except Exception as e:
+                logger.debug("Mudaqqiq legal LLM reasoning skipped: %s", e)
         
         logger.info(f"✅ Execution complete: {result['status']}, {result['decision']}")
 
@@ -847,6 +870,11 @@ class MudaqqiqAgent(BaseAgent):
     # ============================================================================
     # Deterministic Compliance & Calculation Methods (via saudi_labor_law_rules)
     # ============================================================================
+
+    @staticmethod
+    def calculate_company_allowance(basic_wage, rate):
+        """Apply an explicit company rate to the basic wage."""
+        return basic_wage * rate / 100
 
     def calculate_gosi(
         self,

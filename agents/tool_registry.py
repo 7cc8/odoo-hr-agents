@@ -138,11 +138,36 @@ class ToolRegistry:
 # ═══════════════════════════════════════════════════════════════
 
 def register_all_tools():
-    """تسجيل كل الأدوات المتاحة (قراءة واستعلام وخدمات نظام العمل وأدوات الكتابة المعتمدة)"""
+    """تسجيل كل الأدوات المتاحة (قراءة واستعلام وخدمات نظام العمل وأدوات المطابقة والتشخيص والكتابة)"""
     register_odoo_read_tools()
     register_fahas_query_tools()
     register_hr_service_tools()
+    register_muwaffaq_and_musleh_tools()
+    register_seraj_context_tools()
     register_write_tools()
+
+
+def register_seraj_context_tools():
+    from fahas_service import get_fahas_agent
+    from seraj_hr_context import recall_company_policies, save_company_policy_fact
+
+    registry = ToolRegistry.get_instance()
+    string = {"type": "string"}
+    integer = {"type": "integer"}
+    for name, description, implementation, properties, required, private in (
+        ("save_company_policy_fact", "حفظ سياسة منشأة بأمر صريح", save_company_policy_fact,
+         {"fact_text": string, "category": string}, ["fact_text"], True),
+        ("recall_company_policies", "استرجاع سياسات المنشأة الحالية", recall_company_policies,
+         {"query": string}, [], False),
+        ("get_employee_contract", "قراءة عقد موظف واحد ضمن المنشأة المصرح بها",
+         lambda **kwargs: get_fahas_agent().get_employee_contract(**kwargs),
+         {"employee_id_or_name": {"type": ["string", "integer"]}, "company_id": integer},
+         ["employee_id_or_name"], True),
+    ):
+        registry.register_tool(ToolDefinition(
+            name, description, implementation, {"type": "object", "properties": properties, "required": required},
+            allowed_agents={"seraj"}, requires_approval=private, is_read_only=name != "save_company_policy_fact",
+        ))
 
 
 def register_odoo_read_tools():
@@ -359,6 +384,90 @@ def register_hr_service_tools():
                 ))
     except Exception as e:
         logger.warning(f"Could not register HR service tools: {e}")
+
+
+def register_muwaffaq_and_musleh_tools():
+    """تسجيل أدوات المطابقة الدلالية «موفق» والتشخيص والمعالجة «مصلح»."""
+    try:
+        from agents.muwaffaq_agent import get_muwaffaq_agent
+        from agents.musleh_agent import _generate_suggestion, _is_auto_fixable
+        from fahas_service import get_fahas_agent
+
+        registry = ToolRegistry.get_instance()
+
+        def _exec_muwaffaq(query: str, model: str = "hr.department", field_type: str = "entity_name", connection_id: Optional[str] = None) -> Dict[str, Any]:
+            fahas = get_fahas_agent()
+            fields = ["id", "name", "job_title", "department_id", "company_id", "work_email"] if model == "hr.employee" else ["id", "name"]
+            all_recs = fahas.search_records(model=model, domain=[], fields=fields, limit=50, connection_id=connection_id)
+            candidates = all_recs.get("records", []) if isinstance(all_recs, dict) else []
+            res = get_muwaffaq_agent().find_match({
+                "query": query,
+                "field_type": field_type,
+                "candidates": candidates,
+            })
+            best = res.get("best_match")
+            matched_rec = None
+            if best and best.get("id") is not None:
+                matched_rec = next((c for c in candidates if str(c.get("id")) == str(best.get("id"))), None)
+            return {
+                "status": res.get("status"),
+                "query": query,
+                "model": model,
+                "best_match": best,
+                "matched_record": matched_rec,
+                "alternatives": res.get("alternatives", []),
+            }
+
+        def _exec_musleh(target: str = "", fields: Optional[Dict[str, Any]] = None, error_message: str = "") -> Dict[str, Any]:
+            f_dict = dict(fields or {})
+            missing = []
+            for k, lbl in [("work_email", "البريد الإلكتروني"), ("mobile_phone", "رقم الجوال"), ("job_title", "المسمى الوظيفي"), ("department_id", "القسم")]:
+                if k in f_dict and not f_dict.get(k):
+                    missing.append({"field": k, "label": lbl, "suggestion": _generate_suggestion({"field": k, "message": "missing"}, f_dict)})
+            return {
+                "target": target,
+                "missing_fields": missing,
+                "can_auto_fix": _is_auto_fixable({"field": missing[0]["field"] if missing else "", "message": error_message or "missing"}),
+                "summary_ar": f"رصد «مصلح» {len(missing)} نواقص في سجل «{target}» وجهّز مقترحات التصحيح" if missing else "البيانات الإدارية الأساسية مكتملة",
+            }
+
+        if "resolve_semantic_entities" not in registry.tools:
+            registry.register_tool(ToolDefinition(
+                name="resolve_semantic_entities",
+                description="طلب من موفق: مطابقة دلالية وضبابية للأسماء والأقسام والوظائف عند اختلاف الإملاء أو اللغة",
+                function=_exec_muwaffaq,
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "query": {"type": "string", "description": "الاسم أو المسمى المراد مطابقته"},
+                        "model": {"type": "string", "description": "النموذج في Odoo مثل hr.employee أو hr.department أو hr.job"},
+                        "field_type": {"type": "string", "description": "نوع الحقل مثل name أو department أو job_title"},
+                    },
+                    "required": ["query"],
+                },
+                allowed_agents=None,
+                is_read_only=True,
+            ))
+
+        if "diagnose_data_errors" not in registry.tools:
+            registry.register_tool(ToolDefinition(
+                name="diagnose_data_errors",
+                description="طلب من مصلح: تشخيص النواقص الإدارية وأخطاء البيانات وتقديم مقترح تصحيح جاهز للاعتماد",
+                function=_exec_musleh,
+                parameters={
+                    "type": "object",
+                    "properties": {
+                        "target": {"type": "string", "description": "اسم الموظف أو السجل المستهدف"},
+                        "fields": {"type": "object", "description": "بيانات السجل الحالية للفحص"},
+                        "error_message": {"type": "string", "description": "رسالة الخطأ إن وجدت"},
+                    },
+                    "required": ["target"],
+                },
+                allowed_agents=None,
+                is_read_only=True,
+            ))
+    except Exception as e:
+        logger.warning(f"Could not register Muwaffaq/Musleh tools: {e}")
 
 
 def register_write_tools():

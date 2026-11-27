@@ -136,6 +136,7 @@ class MuslehAgent(BaseAgent):
                 "email": email,
             },
             "live_snapshot": live_snapshot,
+            "connection_id": context.get("connection_id"),
             "is_identity_issue": self._is_identity_issue(failure_code),  # ✅ استخدام الدالة الجديدة
             "severity": self._assess_severity(failure_code),
             "operation_id": op_id,
@@ -231,6 +232,9 @@ class MuslehAgent(BaseAgent):
             "action": "assess_issue",
             "description": "تقييم المشكلة والبيانات المتوفرة",
             "operation_id": op_id,
+            "failure_code": failure_code,
+            "references": {key: perception["fields"].get(key) for key in ("company", "department", "job")},
+            "connection_id": perception["connection_id"],
         })
         
         plan.add_step({
@@ -316,13 +320,13 @@ class MuslehAgent(BaseAgent):
             
             elif action == "assess_issue":
                 # تقييم المشكلة
-                assessment = self._assess_issue()
+                assessment = self._assess_issue(step)
                 result["assessment"] = assessment
                 plan.mark_step_complete(i)
             
             elif action == "consult_references":
                 # استشارة المراجع
-                consultation = self._consult_references()
+                consultation = self._consult_references(result["assessment"])
                 result["consultation"] = consultation
                 plan.mark_step_complete(i)
             
@@ -436,22 +440,29 @@ class MuslehAgent(BaseAgent):
         ]
         return any(code in failure_code.lower() for code in identity_codes)
     
-    def _assess_issue(self) -> Dict[str, Any]:
+    def _assess_issue(self, step: Dict[str, Any]) -> Dict[str, Any]:
         """تقييم المشكلة"""
-        # TODO: تحليل تفصيلي
         return {
-            "can_auto_fix": self.auto_repair,
-            "requires_human": False,
+            "failure_code": step.get("failure_code"),
+            "references": step.get("references", {}),
+            "connection_id": step.get("connection_id"),
         }
     
-    def _consult_references(self) -> Dict[str, Any]:
+    def _consult_references(self, assessment: Dict[str, Any]) -> Dict[str, Any]:
         """استشارة المراجع الحية"""
-        # TODO: استدعاء Fahas للحصول على المراجع
-        return {
-            "company_exists": True,
-            "department_exists": False,
-            "job_exists": True,
-        }
+        from agents.tool_registry import ToolRegistry
+
+        fields = assessment["references"]
+        if not any(fields.values()):
+            return {"status": "no_references"}
+        try:
+            return ToolRegistry.get_instance().execute_tool("inspect_references", "musleh", {
+                "company_val": fields.get("company"), "department_val": fields.get("department"),
+                "job_val": fields.get("job"), "connection_id": assessment["connection_id"],
+            })
+        except Exception as exc:
+            logger.warning("Could not verify Musleh references: %s", exc)
+            return {"status": "unavailable"}
     
     def _propose_solutions(self, current_result: Dict[str, Any]) -> List[Dict[str, Any]]:
         """اقتراح الحلول"""
@@ -459,21 +470,23 @@ class MuslehAgent(BaseAgent):
         
         consultation = current_result.get("consultation", {})
         
-        # مثال: إذا القسم غير موجود
-        if not consultation.get("department_exists"):
-            solutions.append({
-                "type": "fuzzy_match",
-                "field": "department",
-                "suggestion": "IT Department",  # TODO: fuzzy matching حقيقي
-                "confidence": 0.85,
-            })
-            
-            solutions.append({
-                "type": "create_entity",
-                "field": "department",
-                "value": "New Department",
-                "confidence": 0.95,
-            })
+        # استدعاء ذكاء مصلح الاستدلالي لصياغة مقترح إصلاح ذكي
+        try:
+            assessment = current_result.get("assessment", {})
+            fc = assessment.get("failure_code") or "خطأ بيانات"
+            prompt = (
+                f"حلل مشكلة البيانات {fc} باستخدام نتائج فحص المراجع التالية: {consultation}.\n"
+                "اقترح خطوة مراجعة واحدة. لا تخترع قسمًا أو اسمًا ولا تدّعِ إجراء تعديل."
+            )
+            smart_advice = self.call_llm(prompt)
+            if smart_advice:
+                solutions.append({
+                    "type": "llm_smart_remediation",
+                    "field": "general",
+                    "suggestion": smart_advice[:200],
+                })
+        except Exception as e:
+            logger.debug("Musleh LLM suggestion skipped: %s", e)
         
         return solutions
     

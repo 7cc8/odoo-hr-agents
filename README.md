@@ -12,14 +12,14 @@
 *تجمع بين خط أنابيب حتمي صارم لمعالجة بيانات Excel، وفريق عمل من 8 وكلاء ذكاء اصطناعي، ومحرك تحليلات متقدم لنسب التوطين ونطاقات وفق نظام العمل السعودي.*
 
 <p align="center">
-  <img src="images/svg/سراج.svg" width="52" height="52" alt="سراج" title="سراج — المنسق العام" /> &nbsp;
-  <img src="images/svg/فاحص.svg" width="52" height="52" alt="فاحص" title="فاحص — استعلام Odoo" /> &nbsp;
-  <img src="images/svg/مدقق.svg" width="52" height="52" alt="مُدَقِّق" title="مُدَقِّق — الامتثال ونظام العمل" /> &nbsp;
-  <img src="images/svg/حارس.svg" width="52" height="52" alt="حارس" title="حارس — الأمان وحجب PII" /> &nbsp;
-  <img src="images/svg/مصلح.svg" width="52" height="52" alt="مُصلِح" title="مُصلِح — التشخيص والعلاج" /> &nbsp;
-  <img src="images/svg/موفق.svg" width="52" height="52" alt="مُوَفِّق" title="مُوَفِّق — المطابقة الهجينة" /> &nbsp;
-  <img src="images/svg/كاتب.svg" width="52" height="52" alt="كاتب" title="كاتب — بوابة التنفيذ والكتابة" /> &nbsp;
-  <img src="images/svg/سجل.svg" width="52" height="52" alt="سِجِل" title="سِجِل — التوثيق والتدقيق الجنائي" />
+  <img src="frontend/images/svg/seraj.svg" width="52" height="52" alt="سراج" title="سراج — المنسق العام" /> &nbsp;
+  <img src="frontend/images/svg/fahas.svg" width="52" height="52" alt="فاحص" title="فاحص — استعلام Odoo" /> &nbsp;
+  <img src="frontend/images/svg/modaqeq.svg" width="52" height="52" alt="مُدَقِّق" title="مُدَقِّق — الامتثال ونظام العمل" /> &nbsp;
+  <img src="frontend/images/svg/hares.svg" width="52" height="52" alt="حارس" title="حارس — الأمان وحجب PII" /> &nbsp;
+  <img src="frontend/images/svg/musleh.svg" width="52" height="52" alt="مُصلِح" title="مُصلِح — التشخيص والعلاج" /> &nbsp;
+  <img src="frontend/images/svg/mowafaq.svg" width="52" height="52" alt="مُوَفِّق" title="مُوَفِّق — المطابقة الهجينة" /> &nbsp;
+  <img src="frontend/images/svg/katib.svg" width="52" height="52" alt="كاتب" title="كاتب — بوابة التنفيذ والكتابة" /> &nbsp;
+  <img src="frontend/images/svg/sijil.svg" width="52" height="52" alt="سِجِل" title="سِجِل — التوثيق والتدقيق الجنائي" />
 </p>
 
 [المميزات](#-أبرز-المميزات) • [معمارية المسارين](#-المعمارية-الهجينة-ذات-المسارين-dual-track) • [فريق الوكلاء الثمانية](#-فريق-الوكلاء-الذكية-the-8-ai-agents) • [مركز العمليات والمسار التكيفي](#-مركز-العمليات-الموحد-ومسار-الوكلاء-التكيفي-unified-cockpit--dynamic-dag) • [محرك التحليلات والتوطين](#-محرك-التحليلات-التنفيذية-ونظام-التوطين-ونطاقات) • [سيناريوهات الاستخدام](#-سيناريوهات-العمل-ورحلة-المستخدم) • [التشغيل السريع](#-التشغيل-السريع-quickstart) • [دليل الـ API](#-دليل-واجهات-البرمجة-core-api-reference)
@@ -163,9 +163,9 @@ flowchart TD
 
 ### 👥 معرض الوكلاء الذكية (Agent Avatars Gallery)
 
-| <img src="images/svg/سراج.svg" width="80" /><br/>**🧠 سراج (Seraj)**<br/><sub>المنسق العام ومدير النوايا</sub> | <img src="images/svg/فاحص.svg" width="80" /><br/>**🔍 فاحص (Fahas)**<br/><sub>الاستعلام وقراءة Odoo</sub> | <img src="images/svg/مدقق.svg" width="80" /><br/>**⚖️ مُدَقِّق (Mudaqqiq)**<br/><sub>الامتثال لنظام العمل</sub> | <img src="images/svg/حارس.svg" width="80" /><br/>**🛡️ حارس (Hares)**<br/><sub>الأمان وحجب PII والبيئة</sub> |
+| <img src="frontend/images/svg/seraj.svg" width="80" /><br/>**🧠 سراج (Seraj)**<br/><sub>المنسق العام ومدير النوايا</sub> | <img src="frontend/images/svg/fahas.svg" width="80" /><br/>**🔍 فاحص (Fahas)**<br/><sub>الاستعلام وقراءة Odoo</sub> | <img src="frontend/images/svg/modaqeq.svg" width="80" /><br/>**⚖️ مُدَقِّق (Mudaqqiq)**<br/><sub>الامتثال لنظام العمل</sub> | <img src="frontend/images/svg/hares.svg" width="80" /><br/>**🛡️ حارس (Hares)**<br/><sub>الأمان وحجب PII والبيئة</sub> |
 | :---: | :---: | :---: | :---: |
-| <img src="images/svg/مصلح.svg" width="80" /><br/>**🩺 مُصلِح (Musleh)**<br/><sub>التشخيص وعلاج الرفض</sub> | <img src="images/svg/موفق.svg" width="80" /><br/>**🎯 مُوَفِّق (Muwaffaq)**<br/><sub>المطابقة الهجينة الذكية</sub> | <img src="images/svg/كاتب.svg" width="80" /><br/>**✍️ كاتب (Katib)**<br/><sub>بوابة الكتابة والتنفيذ</sub> | <img src="images/svg/سجل.svg" width="80" /><br/>**📜 سِجِل (Sijil)**<br/><sub>التوثيق الجنائي (JSONL)</sub> |
+| <img src="frontend/images/svg/musleh.svg" width="80" /><br/>**🩺 مُصلِح (Musleh)**<br/><sub>التشخيص وعلاج الرفض</sub> | <img src="frontend/images/svg/mowafaq.svg" width="80" /><br/>**🎯 مُوَفِّق (Muwaffaq)**<br/><sub>المطابقة الهجينة الذكية</sub> | <img src="frontend/images/svg/katib.svg" width="80" /><br/>**✍️ كاتب (Katib)**<br/><sub>بوابة الكتابة والتنفيذ</sub> | <img src="frontend/images/svg/sijil.svg" width="80" /><br/>**📜 سِجِل (Sijil)**<br/><sub>التوثيق الجنائي (JSONL)</sub> |
 
 ```mermaid
 graph TD
@@ -205,7 +205,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/سراج.svg" width="80" alt="سراج" />
+      <img src="frontend/images/svg/seraj.svg" width="80" alt="سراج" />
     </td>
     <td>
       <ul>
@@ -222,7 +222,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/فاحص.svg" width="80" alt="فاحص" />
+      <img src="frontend/images/svg/fahas.svg" width="80" alt="فاحص" />
     </td>
     <td>
       <ul>
@@ -239,7 +239,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/مدقق.svg" width="80" alt="مدقق" />
+      <img src="frontend/images/svg/modaqeq.svg" width="80" alt="مدقق" />
     </td>
     <td>
       <ul>
@@ -262,7 +262,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/حارس.svg" width="80" alt="حارس" />
+      <img src="frontend/images/svg/hares.svg" width="80" alt="حارس" />
     </td>
     <td>
       <ul>
@@ -285,7 +285,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/مصلح.svg" width="80" alt="مصلح" />
+      <img src="frontend/images/svg/musleh.svg" width="80" alt="مصلح" />
     </td>
     <td>
       <ul>
@@ -302,7 +302,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/موفق.svg" width="80" alt="موفق" />
+      <img src="frontend/images/svg/mowafaq.svg" width="80" alt="موفق" />
     </td>
     <td>
       <ul>
@@ -319,7 +319,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/كاتب.svg" width="80" alt="كاتب" />
+      <img src="frontend/images/svg/katib.svg" width="80" alt="كاتب" />
     </td>
     <td>
       <ul>
@@ -336,7 +336,7 @@ graph TD
 <table>
   <tr>
     <td width="90" align="center" valign="top">
-      <img src="images/svg/سجل.svg" width="80" alt="سجل" />
+      <img src="frontend/images/svg/sijil.svg" width="80" alt="سجل" />
     </td>
     <td>
       <ul>

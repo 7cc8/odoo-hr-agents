@@ -30,6 +30,11 @@ import asyncio
 import uuid
 import tempfile
 import secrets
+import hashlib
+from xmlrpc.client import Fault, ProtocolError
+from functools import wraps
+from fastapi.routing import APIRoute
+from threading import RLock
 import re
 import glob
 from dataclasses import asdict
@@ -46,7 +51,33 @@ from odoo_readonly_repository import OdooReadonlyRepository
 import telegram_notifier
 from odoo_config_manager import get_active_odoo_config
 
-router = APIRouter()
+class HRServiceRoute(APIRoute):
+    def get_route_handler(self):
+        handler = super().get_route_handler()
+
+        async def call(request):
+            try:
+                return await handler(request)
+            except ProtocolError as exc:
+                if exc.errcode == 429:
+                    raise HTTPException(429, "بلغ اتصال Odoo حد الطلبات. أعد المحاولة بعد قليل.") from exc
+                raise HTTPException(502, "تعذر الاتصال بخادم Odoo.") from exc
+
+        return call
+
+
+def _serialize_initialization(factory):
+    lock = RLock()
+
+    @wraps(factory)
+    def get_service():
+        with lock:
+            return factory()
+
+    return get_service
+
+
+router = APIRouter(route_class=HRServiceRoute)
 hr_services_router = router
 
 
@@ -519,6 +550,7 @@ class DisciplinaryApplyPayload(BaseModel):
 _global_disciplinary_service: Optional[DisciplinaryService] = None
 
 
+@_serialize_initialization
 def get_disciplinary_service_instance() -> DisciplinaryService:
     mocked = _resolve_service_from_mock("get_disciplinary_service_instance", get_disciplinary_service_instance)
     if mocked is not None:
@@ -532,13 +564,13 @@ def get_disciplinary_service_instance() -> DisciplinaryService:
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     gw = OdooDisciplinaryWriteGateway(
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     _global_disciplinary_service = DisciplinaryService(readonly_repo=repo, write_gateway=gw)
     _sync_global("_global_disciplinary_service", _global_disciplinary_service)
@@ -549,7 +581,12 @@ def get_disciplinary_service_instance() -> DisciplinaryService:
 def get_disciplinary_categories_endpoint() -> Dict[str, Any]:
     """Returns available violation/penalty categories from discipline.category."""
     service = get_disciplinary_service_instance()
-    cats = service.readonly_repo.get_discipline_categories()
+    try:
+        cats = service.readonly_repo.get_discipline_categories()
+    except Fault as exc:
+        if "discipline.category" in exc.faultString and "doesn't exist" in exc.faultString:
+            raise HTTPException(409, "وحدة تصنيفات الجزاءات غير مثبّتة في قاعدة Odoo المتصلة.") from exc
+        raise
     return {"status": "success", "categories": cats}
 
 
@@ -691,6 +728,7 @@ class EOSApplyPayload(BaseModel):
 _global_eos_service: Optional[EOSService] = None
 
 
+@_serialize_initialization
 def get_eos_service_instance() -> EOSService:
     mocked = _resolve_service_from_mock("get_eos_service_instance", get_eos_service_instance)
     if mocked is not None:
@@ -704,13 +742,13 @@ def get_eos_service_instance() -> EOSService:
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     gw = OdooEOSWriteGateway(
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     _global_eos_service = EOSService(readonly_repo=repo, write_gateway=gw)
     _sync_global("_global_eos_service", _global_eos_service)
@@ -885,6 +923,7 @@ class GRApplyPayload(BaseModel):
 _global_gr_service: Optional[GRService] = None
 
 
+@_serialize_initialization
 def get_gr_service_instance() -> GRService:
     mocked = _resolve_service_from_mock("get_gr_service_instance", get_gr_service_instance)
     if mocked is not None:
@@ -898,13 +937,13 @@ def get_gr_service_instance() -> GRService:
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     gw = OdooGRWriteGateway(
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     _global_gr_service = GRService(readonly_repo=repo, write_gateway=gw)
     _sync_global("_global_gr_service", _global_gr_service)
@@ -1052,6 +1091,7 @@ class AppraisalApplyPayload(BaseModel):
 _global_appraisal_service: Optional[AppraisalService] = None
 
 
+@_serialize_initialization
 def get_appraisal_service_instance() -> AppraisalService:
     mocked = _resolve_service_from_mock("get_appraisal_service_instance", get_appraisal_service_instance)
     if mocked is not None:
@@ -1065,13 +1105,13 @@ def get_appraisal_service_instance() -> AppraisalService:
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     gw = OdooAppraisalWriteGateway(
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     _global_appraisal_service = AppraisalService(readonly_repo=repo, write_gateway=gw)
     _sync_global("_global_appraisal_service", _global_appraisal_service)
@@ -1228,6 +1268,7 @@ class LoanApplyPayload(BaseModel):
 _global_loan_service: Optional[LoanService] = None
 
 
+@_serialize_initialization
 def get_loan_service_instance() -> LoanService:
     mocked = _resolve_service_from_mock("get_loan_service_instance", get_loan_service_instance)
     if mocked is not None:
@@ -1241,13 +1282,13 @@ def get_loan_service_instance() -> LoanService:
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     gw = OdooLoanWriteGateway(
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     _global_loan_service = LoanService(readonly_repo=repo, write_gateway=gw)
     _sync_global("_global_loan_service", _global_loan_service)
@@ -1414,6 +1455,7 @@ class ApplicantApplyPayload(BaseModel):
 _global_recruitment_service: Optional[RecruitmentService] = None
 
 
+@_serialize_initialization
 def get_recruitment_service_instance() -> RecruitmentService:
     mocked = _resolve_service_from_mock("get_recruitment_service_instance", get_recruitment_service_instance)
     if mocked is not None:
@@ -1427,13 +1469,13 @@ def get_recruitment_service_instance() -> RecruitmentService:
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     gw = OdooRecruitmentWriteGateway(
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     _global_recruitment_service = RecruitmentService(readonly_repo=repo, write_gateway=gw)
     _sync_global("_global_recruitment_service", _global_recruitment_service)
@@ -1645,6 +1687,7 @@ class ContractApplyPayload(BaseModel):
 _global_contract_service: Optional[ContractService] = None
 
 
+@_serialize_initialization
 def get_contract_service_instance() -> ContractService:
     mocked = _resolve_service_from_mock("get_contract_service_instance", get_contract_service_instance)
     if mocked is not None:
@@ -1658,13 +1701,13 @@ def get_contract_service_instance() -> ContractService:
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     gw = OdooContractWriteGateway(
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     _global_contract_service = ContractService(readonly_repo=repo, write_gateway=gw)
     _sync_global("_global_contract_service", _global_contract_service)
@@ -1842,6 +1885,7 @@ class WpsSifPayload(BaseModel):
 _global_payroll_service: Optional[PayrollService] = None
 
 
+@_serialize_initialization
 def get_payroll_service_instance() -> PayrollService:
     mocked = _resolve_service_from_mock("get_payroll_service_instance", get_payroll_service_instance)
     if mocked is not None:
@@ -1855,13 +1899,13 @@ def get_payroll_service_instance() -> PayrollService:
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     gw = OdooPayrollWriteGateway(
         url=cfg.get("url"),
         db=cfg.get("db"),
         username=cfg.get("username"),
-        password=cfg.get("password")
+        password=cfg.get("api_key") or cfg.get("password")
     )
     _global_payroll_service = PayrollService(readonly_repo=repo, write_gateway=gw)
     _sync_global("_global_payroll_service", _global_payroll_service)
@@ -2147,6 +2191,27 @@ def simulate_saudization_endpoint(payload: SaudizationSimPayload, request: Reque
 # Phase 22: خطابات الموارد البشرية وشهادات الرواتب الرسمية (HR Official Letters)
 # ==============================================================================
 
+_document_lock = RLock()
+_document_services = {}
+_document_connection = None
+
+
+def _document_service(service_type, gateway_type):
+    """Keep previews available for approval within the same Odoo connection."""
+    global _document_connection
+    config = get_active_odoo_config()
+    connection = hashlib.sha256(json.dumps(config, sort_keys=True).encode()).digest()
+    with _document_lock:
+        if connection != _document_connection:
+            _document_services.clear()
+            _document_connection = connection
+        if service_type not in _document_services:
+            repo = OdooReadonlyRepository()
+            gateway = gateway_type(url=repo.url, db=repo.db, username=repo.username, password=repo.api_key)
+            _document_services[service_type] = service_type(repo=repo, gateway=gateway)
+        return _document_services[service_type]
+
+
 class LetterDryRunPayload(BaseModel):
     employee_id: int
     letter_type: str = "salary_certificate"
@@ -2163,7 +2228,7 @@ class LetterDryRunPayload(BaseModel):
 
 class LetterApplyPayload(BaseModel):
     approval_token: str
-    user_confirmation_text: str = "تأكيد"
+    user_confirmation_text: str = ""
     executor: str = "web_portal"
 
 
@@ -2200,7 +2265,8 @@ def post_letter_dry_run_endpoint(payload: LetterDryRunPayload, request: Request)
     """Dry-run verification and draft preview generation with approval token."""
     audit_log_access("/api/letters/dry-run", request, payload.model_dump())
     from letter_service import LetterService
-    service = LetterService()
+    from odoo_letter_write_gateway import OdooLetterWriteGateway
+    service = _document_service(LetterService, OdooLetterWriteGateway)
     res = service.dry_run_letter(
         employee_id=payload.employee_id,
         letter_type=payload.letter_type,
@@ -2224,12 +2290,14 @@ def post_letter_apply_endpoint(payload: LetterApplyPayload, request: Request) ->
     verify_write_auth(request)
     audit_log_access("/api/letters/apply", request, {"token": payload.approval_token})
     from letter_service import LetterService
-    service = LetterService()
-    res = service.apply_letter(
-        approval_token=payload.approval_token,
-        user_confirmation_text=payload.user_confirmation_text,
-        executor=payload.executor,
-    )
+    from odoo_letter_write_gateway import OdooLetterWriteGateway
+    with _document_lock:
+        service = _document_service(LetterService, OdooLetterWriteGateway)
+        res = service.apply_letter(
+            approval_token=payload.approval_token,
+            user_confirmation_text=payload.user_confirmation_text,
+            executor=payload.executor,
+        )
     from dataclasses import asdict
     if not res.is_success:
         raise HTTPException(status_code=400, detail=res.message_ar)
@@ -2282,7 +2350,7 @@ class WarningDryRunPayload(BaseModel):
 
 class WarningApplyPayload(BaseModel):
     approval_token: str
-    user_confirmation_text: str = "تأكيد"
+    user_confirmation_text: str = ""
     executor: str = "web_portal"
 
 
@@ -2319,7 +2387,8 @@ def post_warning_dry_run_endpoint(payload: WarningDryRunPayload, request: Reques
     """Dry-run verification of warning letter and Article 71 deduction compliance."""
     audit_log_access("/api/warnings/dry-run", request, payload.model_dump())
     from warning_service import WarningService
-    service = WarningService()
+    from odoo_warning_write_gateway import OdooWarningWriteGateway
+    service = _document_service(WarningService, OdooWarningWriteGateway)
     res = service.dry_run_warning(
         employee_id=payload.employee_id,
         warning_level=payload.warning_level,
@@ -2340,12 +2409,14 @@ def post_warning_apply_endpoint(payload: WarningApplyPayload, request: Request) 
     verify_write_auth(request)
     audit_log_access("/api/warnings/apply", request, {"token": payload.approval_token})
     from warning_service import WarningService
-    service = WarningService()
-    res = service.apply_warning(
-        approval_token=payload.approval_token,
-        user_confirmation_text=payload.user_confirmation_text,
-        executor=payload.executor,
-    )
+    from odoo_warning_write_gateway import OdooWarningWriteGateway
+    with _document_lock:
+        service = _document_service(WarningService, OdooWarningWriteGateway)
+        res = service.apply_warning(
+            approval_token=payload.approval_token,
+            user_confirmation_text=payload.user_confirmation_text,
+            executor=payload.executor,
+        )
     from dataclasses import asdict
     if not res.is_success:
         raise HTTPException(status_code=400, detail=res.message_ar)
@@ -2398,7 +2469,7 @@ class ExpenseDryRunPayload(BaseModel):
 
 class ExpenseApplyPayload(BaseModel):
     approval_token: str
-    user_confirmation_text: str = "تأكيد"
+    user_confirmation_text: str = ""
     executor: str = "web_portal"
 
 

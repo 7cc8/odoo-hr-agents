@@ -302,6 +302,21 @@ class HaresAgent(BaseAgent):
                 
                 plan.mark_step_complete(i)
         
+        # استدعاء ذكاء حارس لصياغة التبرير الأمني والتوصيات الرقابية
+        try:
+            d_val = result.get("decision")
+            rl_val = result.get("risk_level")
+            v_cnt = len(result.get("violations", []))
+            prompt = (
+                f"بصفتك وكيل الحوكمة والصلاحيات «حارس»، لخص مبررات القرار الأمني ({d_val}) لعملية بمستوى خطورة '{rl_val}' مع {v_cnt} مخالفات.\n"
+                "قدم تبريراً أمنياً موجزاً يوضح شروط وضمانات التنفيذ."
+            )
+            sec_summary = self.call_llm(prompt)
+            if sec_summary:
+                result["security_summary"] = sec_summary
+        except Exception as e:
+            logger.debug("Hares LLM summary skipped: %s", e)
+
         self._log_trace("EXECUTE", {
             "decision": result.get("decision"),
             "risk": result.get("risk_level"),

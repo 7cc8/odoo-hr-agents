@@ -284,6 +284,19 @@ class SijilAgent(BaseAgent):
         # إنشاء الملخص النهائي
         if not result["summary"]:
             result["summary"] = self._generate_summary(all_records, result["anomalies"])
+
+        # استدعاء ذكاء سجل الرقابي لصياغة خلاصة تدقيقية تنفيذية
+        try:
+            prompt = (
+                f"بصفتك وكيل الرقابة والتوثيق «سجل»، لخص نتائج الفحص الرقابي التالي:\n"
+                f"إجمالي السجلات المفحوصة: {len(all_records)}، عدد الأنماط غير الاعتيادية: {len(result.get('anomalies', []))}.\n"
+                "قدم خلاصة تدقيقية موجزة مبنية على العدّ أعلاه. لا تؤكد فحص البصمات الرقمية أو سلامتها بدون دليل تحقق."
+            )
+            audit_note = self.call_llm(prompt)
+            if audit_note:
+                result["executive_audit_note"] = audit_note
+        except Exception as e:
+            logger.debug("Sijil LLM audit note skipped: %s", e)
         
         logger.info(f"✅ Execution complete: {result['summary'].total_operations if result['summary'] else 0} operations audited")
         return result

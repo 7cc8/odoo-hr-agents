@@ -18,6 +18,7 @@ import asyncio
 import json
 import os
 import shutil
+import tempfile
 import time
 import uuid
 from datetime import datetime, timezone
@@ -50,7 +51,7 @@ from api.common import (
 )
 from agents.musleh_agent import _generate_suggestion, _is_auto_fixable, _translate_to_arabic
 from generate_employee_template import generate_template
-from odoo_readonly_repository import OdooReadonlyRepository
+from odoo_readonly_repository import OdooReadonlyRepository, CompanyScopedReadonlyRepository
 from odoo_write_gateway import EnvironmentGuardError, OdooWriteGateway
 from template_catalog import get_template, list_templates
 
@@ -112,7 +113,7 @@ class ConditionalExecutionApprovalRequest(BaseModel):
 def list_recent_runs(request: Request) -> List[Dict[str, Any]]:
     """List recent dry-run inspection runs."""
     audit_log_access("/runs", request)
-    output_root = Path("output")
+    output_root = OUTPUT_ROOT
     if not output_root.exists():
         return []
 
@@ -304,35 +305,38 @@ async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
             raise HTTPException(status_code=400, detail=f"اختيار القالب غير مدعوم: {exc}")
         generation_dir.mkdir(parents=True, exist_ok=True)
         template_path = generation_dir / definition.filename
-        shutil.copy2(definition.path, template_path)
+        from template_localizer import localize_workbook
+        localize_workbook(definition.path, template_path, language=language, include_example=include_example_row)
         selected_module = definition.module
         selected_template_id = definition.template_id
     elif tt_lower in known_modular:
         definition = get_template("modular", tt_lower)
         generation_dir.mkdir(parents=True, exist_ok=True)
         template_path = generation_dir / definition.filename
-        shutil.copy2(definition.path, template_path)
+        from template_localizer import localize_workbook
+        localize_workbook(definition.path, template_path, language=language, include_example=include_example_row)
         selected_module = definition.module
         selected_template_id = definition.template_id
     elif tt_lower == "contract" and "contracts_allowances" in known_modular:
         definition = get_template("modular", "contracts_allowances")
         generation_dir.mkdir(parents=True, exist_ok=True)
         template_path = generation_dir / definition.filename
-        shutil.copy2(definition.path, template_path)
+        from template_localizer import localize_workbook
+        localize_workbook(definition.path, template_path, language=language, include_example=include_example_row)
         selected_module = definition.module
         selected_template_id = definition.template_id
     else:
         template_path = generate_template(snapshot, output_dir=str(generation_dir), language=language)
         selected_module = "employees"
         selected_template_id = "generated:employees"
-    company_name = snapshot["companies"][0]["name"] if snapshot.get("companies") else "الشركة الافتراضية"
+    company_name = snapshot["companies"][0]["name"] if snapshot.get("companies") else (f"المنشأة #{company_id}" if company_id else "المنشأة الرئيسية")
     gen_time = datetime.now(timezone.utc).isoformat()
 
     return {
         "status": "success",
         "template_id": template_id,
         "template_path": str(template_path),
-        "download_url": f"/api/template/download/{template_id}",
+        "download_url": f"/api/template/download/{template_id}?lang={language}&include_example={'true' if include_example_row else 'false'}",
         "sheet_count": 3,
         "generated_at": gen_time,
         "company_id": company_id,
@@ -353,58 +357,82 @@ async def generate_template_endpoint(request: Request) -> Dict[str, Any]:
 @router.get("/api/template/download/{template_id:path}")
 @router.get("/api/templates/download/{template_id:path}")
 def download_template_endpoint(template_id: str, request: Request) -> FileResponse:
-    """Downloads generated employee template file or allowlisted catalog template."""
+    """Downloads generated employee template file or allowlisted catalog template with full AR/EN/Bilingual localization."""
     audit_log_access(f"/api/template/download/{template_id}", request)
-    template_dir = TEMPLATE_DIR / template_id
-    if template_dir.exists():
-        xlsx_files = list(template_dir.glob("*.xlsx"))
-        if xlsx_files:
-            template_file = xlsx_files[0]
-            return FileResponse(
-                path=str(template_file),
-                filename=template_file.name,
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
+    lang = (request.query_params.get("lang") or request.query_params.get("language") or "ar").strip().lower()
+    inc_raw = request.query_params.get("include_example") or request.query_params.get("include_example_row")
+    include_example = str(inc_raw).lower() in ("true", "1", "yes", "on") if inc_raw is not None else True
 
-    # Check allowlisted catalog templates (e.g. modular:employees or master:all)
+    if lang not in {"ar", "en", "bilingual"}:
+        raise HTTPException(status_code=400, detail="اختر العربية أو الإنجليزية أو اللغة الثنائية.")
+
+    media_type = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    # Generated workbooks already have the choices made at generation time.
     try:
-        parts = template_id.split(":", 1)
-        if len(parts) == 2:
-            tmpl = get_template(parts[0], parts[1])
-        else:
-            tmpl = get_template("modular", template_id)
-        if tmpl and Path(tmpl.path).exists():
-            return FileResponse(
-                path=tmpl.path,
-                filename=tmpl.filename,
-                media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
-    except Exception:
-        pass
+        generation_id = str(uuid.UUID(template_id))
+    except ValueError:
+        generation_id = None
+    if generation_id:
+        generated = sorted(
+            path for path in (TEMPLATE_DIR / generation_id).glob("*.xlsx")
+            if not path.stem.endswith(("_with_ex", "_no_ex"))
+        )
+        if generated:
+            return FileResponse(generated[0], filename=generated[0].name, media_type=media_type)
 
-    raise HTTPException(status_code=404, detail="البيانات غير متوفرة في تقرير التدقيق.")
+    template_type, separator, module = template_id.partition(":")
+    try:
+        tmpl = get_template(template_type, module) if separator else get_template("modular", template_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail="القالب المطلوب غير موجود.") from exc
+
+    from template_localizer import localize_workbook
+
+    cache_dir = TEMPLATE_DIR / "catalog_localized"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    clean_id = tmpl.template_id.replace(":", "_")
+    example_tag = "sample" if include_example else "blank"
+    filename = f"{Path(tmpl.filename).stem}_{lang}_{example_tag}.xlsx"
+    cached = cache_dir / f"v2_{clean_id}_{tmpl.sha256}_{lang}_{example_tag}.xlsx"
+    if not cached.exists():
+        with tempfile.TemporaryDirectory(dir=cache_dir) as temp_dir:
+            output = Path(temp_dir) / "workbook.xlsx"
+            localize_workbook(tmpl.path, output, language=lang, include_example=include_example)
+            os.replace(output, cached)
+    return FileResponse(cached, filename=filename, media_type=media_type)
 
 
 @router.get("/api/reference/hr-options")
 def get_hr_reference_options_endpoint(company_id: Optional[int] = None) -> Dict[str, Any]:
     """Returns company, department, and job reference options for dropdowns."""
+    from fahas_service import DISCIPLINARY_DEPARTMENT_MARKERS
     try:
-        repo = OdooReadonlyRepository()
-        repo.connect()
+        repo = CompanyScopedReadonlyRepository(company_id) if company_id is not None else OdooReadonlyRepository()
         snapshot = repo.get_live_reference_snapshot()
-    except Exception:
-        snapshot = {
-            "companies": [{"id": company_id or 1, "name": f"الشركة {company_id or 1}"}],
-            "departments": [
-                {"id": 1, "name": "الموارد البشرية", "company_id": company_id or 1},
-                {"id": 2, "name": "تقنية المعلومات", "company_id": company_id or 1},
-            ],
-            "jobs": [
-                {"id": 1, "name": "مهندس برمجيات", "company_id": company_id or 1},
-                {"id": 2, "name": "مدير موارد بشرية", "company_id": company_id or 1},
-            ],
-        }
+    except Exception as exc:
+        raise HTTPException(503, "تعذر تحميل قوائم المنشأة من Odoo.") from exc
+    snapshot["departments"] = [
+        dept for dept in snapshot["departments"]
+        if not any(marker in (dept.get("name") or "") for marker in DISCIPLINARY_DEPARTMENT_MARKERS)
+    ]
     return {"status": "success", "data": snapshot}
+
+
+@router.get("/api/reference/employees")
+def find_employee_options(company_id: int, q: str, request: Request) -> Dict[str, Any]:
+    from odoo_readonly_repository import get_shared_readonly_repository
+    verify_api_auth(request)
+    term = q.strip()
+    if len(term) < 2 or len(term) > 100 or company_id < 1:
+        raise HTTPException(422, "اختر المنشأة وأدخل حرفين على الأقل من الاسم.")
+    repo = get_shared_readonly_repository()
+    if company_id not in repo.get_company_ids():
+        raise HTTPException(403, "لا يملك حساب Odoo صلاحية الاطلاع على هذه المنشأة.")
+    rows = repo._execute_kw("hr.employee", "search_read",
+                            [[("company_id", "=", company_id), ("active", "=", True), ("name", "ilike", term)]],
+                            {"fields": ["id", "name"], "limit": 12, "order": "name, id",
+                             "context": {"allowed_company_ids": [company_id]}})
+    return {"employees": rows}
 
 
 # ==================== DRY-RUN INSPECTION ====================
@@ -579,6 +607,9 @@ async def run_dry_run_endpoint(
     except Exception:
         report_dict = _build_offline_dry_run_report(saved_path)
 
+    report_dict.setdefault("header", {})["source_file_name"] = saved_path.name
+    report_dict["source_file_name"] = saved_path.name
+
     run_id = report_dict["header"]["run_id"]
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     folder_name = f"{run_id}_{timestamp}"
@@ -596,17 +627,26 @@ async def run_dry_run_endpoint(
     rows_enhanced = []
     for r in report_dict["rows"]:
         row_num = r["excel_row_number"]
-        fields = parsed_by_num.get(row_num, {})
+        row_fields = r.get("fields") or {}
+        if r.get("sheet_name"):
+            fields = row_fields or parsed_by_num.get(row_num, {})
+        else:
+            fields = parsed_by_num.get(row_num, {}) or row_fields
+
+        def _fval(k: str) -> str:
+            v = fields.get(k, {})
+            return str(v.get("value", "") if isinstance(v, dict) else (v or "")).strip()
+
         rows_enhanced.append({
             **r,
             "row_number": row_num,
             "excel_row_number": row_num,
-            "display_name": fields.get("name", {}).get("value", ""),
-            "display_email": fields.get("work_email", {}).get("value", ""),
-            "display_phone": fields.get("mobile_phone", {}).get("value", "") or fields.get("work_phone", {}).get("value", ""),
-            "display_job": fields.get("job_title", {}).get("value", "") or fields.get("job", {}).get("value", ""),
-            "display_company": fields.get("company", {}).get("value", ""),
-            "display_hiring_date": fields.get("hiring_date", {}).get("value", ""),
+            "display_name": r.get("display_name") or _fval("name") or _fval("emp_name") or _fval("name_ar") or _fval("name_en"),
+            "display_email": _fval("work_email") or _fval("email"),
+            "display_phone": _fval("mobile_phone") or _fval("work_phone") or _fval("mobile"),
+            "display_job": _fval("job_title") or _fval("job"),
+            "display_company": _fval("company") or _fval("name_ar"),
+            "display_hiring_date": _fval("hiring_date") or _fval("start_date"),
         })
 
     report_dict["rows"] = rows_enhanced
@@ -619,9 +659,13 @@ async def run_dry_run_endpoint(
     for r in report_dict.get("rows", []):
         if r.get("final_status") in ("rejected", "failed"):
             row_num = int(r.get("excel_row_number") or r.get("row_number") or 0)
-            fields = parsed_by_num.get(row_num, {})
+            row_fields = r.get("fields") or {}
+            fields = (row_fields or parsed_by_num.get(row_num, {})) if r.get("sheet_name") else (parsed_by_num.get(row_num, {}) or row_fields)
+            raw_name = fields.get("name", {})
+            raw_emp_name = fields.get("emp_name", {})
             name = (
-                fields.get("name", {}).get("value")
+                (raw_name.get("value") if isinstance(raw_name, dict) else raw_name)
+                or (raw_emp_name.get("value") if isinstance(raw_emp_name, dict) else raw_emp_name)
                 or r.get("display_name")
                 or "N/A"
             )
@@ -642,11 +686,15 @@ async def run_dry_run_endpoint(
             val_str = raw_field_val.get("value") if isinstance(raw_field_val, dict) else raw_field_val
             if not val_str:
                 if field == "company":
-                    val_str = fields.get("company", {}).get("value") or r.get("display_company") or ""
+                    c_v = fields.get("company", {})
+                    val_str = (c_v.get("value") if isinstance(c_v, dict) else c_v) or r.get("display_company") or ""
                 elif field == "department":
-                    val_str = fields.get("department", {}).get("value") or ""
+                    d_v = fields.get("department", {})
+                    val_str = (d_v.get("value") if isinstance(d_v, dict) else d_v) or ""
                 elif field == "job_id":
-                    val_str = fields.get("job_title", {}).get("value") or fields.get("job", {}).get("value") or r.get("display_job") or ""
+                    j1 = fields.get("job_title", {})
+                    j2 = fields.get("job", {})
+                    val_str = (j1.get("value") if isinstance(j1, dict) else j1) or (j2.get("value") if isinstance(j2, dict) else j2) or r.get("display_job") or ""
                 elif field == "work_email":
                     val_str = r.get("display_email") or ""
                 elif field == "name":
@@ -659,6 +707,8 @@ async def run_dry_run_endpoint(
 
             rejected_rows_details.append({
                 "row_number": row_num,
+                "sheet_name": r.get("sheet_name", ""),
+                "domain": r.get("domain", ""),
                 "name": str(name),
                 "reason_ar": str(reason_ar),
                 "error_reason_ar": str(reason_ar),
@@ -1216,35 +1266,37 @@ def get_dry_run_report_detail_endpoint(folder_name: str, request: Request) -> Di
                 if op:
                     for evt in op.get("events", []):
                         meta = evt.get("metadata") or {}
-                        f = meta.get("folder")
-                        if f and (OUTPUT_ROOT / f / "dry_run_report.json").exists():
-                            report_file = OUTPUT_ROOT / f / "dry_run_report.json"
-                            break
+                        folder = meta.get("folder")
+                        if folder:
+                            candidate = OUTPUT_ROOT / _safe_operation_id(str(folder)) / "dry_run_report.json"
+                            if candidate.is_file():
+                                report_file = candidate
+                                break
                         run_id = meta.get("run_id")
                         if run_id:
-                            candidates = list(OUTPUT_ROOT.glob(f"*{run_id}*/dry_run_report.json"))
-                            if candidates:
+                            _safe_operation_id(str(run_id))
+                            candidates = list(OUTPUT_ROOT.glob(f"{run_id}_*/dry_run_report.json"))
+                            if len(candidates) == 1:
                                 report_file = candidates[0]
                                 break
             except Exception:
                 pass
 
     if not report_file.exists():
-        candidates = list(Path("output").glob(f"*{folder_name}*/dry_run_report.json"))
-        if candidates:
+        candidates = list(OUTPUT_ROOT.glob(f"{folder_name}_*/dry_run_report.json"))
+        if len(candidates) == 1:
             report_file = candidates[0]
-        else:
-            all_reports = list(OUTPUT_ROOT.glob("*/dry_run_report.json"))
-            if all_reports:
-                all_reports.sort(key=lambda p: p.stat().st_mtime, reverse=True)
-                if (time.time() - all_reports[0].stat().st_mtime) < 1800:
-                    report_file = all_reports[0]
+        elif len(candidates) > 1:
+            raise HTTPException(status_code=409, detail="يوجد أكثر من تقرير لهذا المعرّف. اختر تقريراً من سجل الفحوصات.")
 
     if not report_file or not report_file.exists():
         raise HTTPException(status_code=404, detail="تقرير الفحص غير موجود.")
 
     try:
         data = json.loads(report_file.read_text(encoding="utf-8"))
-        return {"status": "success", "report": data}
+        res = {"status": "success", "report": data}
+        if isinstance(data, dict):
+            res.update(data)
+        return res
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"خطأ في قراءة ملف التقرير: {exc}")

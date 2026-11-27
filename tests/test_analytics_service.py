@@ -19,6 +19,7 @@ from analytics_service import (
 class TestAnalyticsService(unittest.TestCase):
     def setUp(self):
         self.mock_repo = MagicMock()
+        self.mock_repo.count_pending_disciplinary_actions.return_value = 0
         self.service = AnalyticsService(readonly_repo=self.mock_repo)
 
     def test_determine_nitaqat_band(self):
@@ -131,11 +132,11 @@ class TestAnalyticsService(unittest.TestCase):
             {"id": 1, "identification_id": "1001", "sex": "male", "department_id": [1, "الإدارة"]},
             {"id": 2, "identification_id": "2001", "sex": "male", "department_id": [1, "الإدارة"]},
         ]
-        self.mock_repo.get_all_gr_transactions.return_value = [
-            {"id": 1, "transaction_date": d_exp_20},
-            {"id": 2, "transaction_date": d_exp_50},
+        self.mock_repo.get_employees_for_expiry_monitoring.return_value = [
+            {"id": 1, "id_expiry_date": d_exp_20},
+            {"id": 2, "id_expiry_date": d_exp_50},
         ]
-        self.mock_repo.get_employee_disciplinary_actions.return_value = []
+        self.mock_repo.count_pending_disciplinary_actions.return_value = 0
         self.mock_repo.get_all_contracts.return_value = [
             {"id": 1, "trial_date_end": (today + timedelta(days=40)).isoformat()}
         ]

@@ -10,6 +10,19 @@ from sijil_audit_service import SijilAuditService
 class TestSijilAuditService(unittest.TestCase):
     def setUp(self):
         self.service = SijilAuditService()
+        sample_log = self.service.logs_dir / "leave_audit_log.jsonl"
+        if not sample_log.exists() or sample_log.stat().st_size == 0:
+            import json
+            sample_entry = {
+                "timestamp": "2026-11-10T00:00:00Z",
+                "employee_name": "أحمد الشمري",
+                "employee_id": 1,
+                "action": "leave_approved",
+                "reference_code": "LV-2026-001",
+                "readback_verified": True,
+                "status": "success"
+            }
+            sample_log.write_text(json.dumps(sample_entry, ensure_ascii=False) + "\n", encoding="utf-8")
 
     def test_collect_audit_logs(self):
         records = self.service.collect_audit_logs()

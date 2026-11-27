@@ -391,8 +391,8 @@ def calculate_end_of_service_benefit(
       * احتساب أجزاء السنة بنسبة ما قضي منها.
     - المادة 85 (في حال استقالة العامل):
       * أقل من سنتين: 0 (لا يستحق مكافأة).
-      * من سنتين إلى أقل من 5 سنوات: يستحق ثلث المكافأة (1/3).
-      * من 5 سنوات إلى أقل من 10 سنوات: يستحق ثلثي المكافأة (2/3).
+      * من سنتين إلى 5 سنوات شاملة: يستحق ثلث المكافأة (1/3).
+      * أكثر من 5 سنوات وأقل من 10 سنوات: يستحق ثلثي المكافأة (2/3).
       * 10 سنوات فأكثر: يستحق المكافأة كاملة (100%).
     - المادة 87 (استثناءات الاستقالة - استحقاق المكافأة كاملة 100%):
       * استقالة العاملة خلال 6 أشهر من تاريخ زواجها.
@@ -411,6 +411,7 @@ def calculate_end_of_service_benefit(
     tier2_amount = round(years_tier2 * last_gross_wage, 2)
 
     gross_eosb = round(tier1_amount + tier2_amount, 2)
+    gross_unrounded = (years_tier1 / 2.0 + years_tier2) * last_gross_wage
 
     # تحديد نسبة الاستحقاق
     if not is_resignation:
@@ -449,17 +450,17 @@ def calculate_end_of_service_benefit(
                 explanation = (
                     "المادة 85: استقالة بخدمة أقل من سنتين متصلتين، لا يستحق الموظف أي مكافأة (0.00 ر.س)."
                 )
-            elif service_years < 5.0:
+            elif service_years <= 5.0:
                 ratio = 1.0 / 3.0
                 explanation = (
                     f"المادة 85: استقالة بخدمة بين سنتين و5 سنوات، يستحق ثلث المكافأة (1/3). "
-                    f"المبلغ الإجمالي {gross_eosb:,.2f} ر.س × 1/3 = {round(gross_eosb * ratio, 2):,.2f} ر.س."
+                    f"المبلغ الإجمالي {gross_eosb:,.2f} ر.س × 1/3 = {round(gross_unrounded * ratio, 2):,.2f} ر.س."
                 )
             elif service_years < 10.0:
                 ratio = 2.0 / 3.0
                 explanation = (
                     f"المادة 85: استقالة بخدمة بين 5 و10 سنوات، يستحق ثلثي المكافأة (2/3). "
-                    f"المبلغ الإجمالي {gross_eosb:,.2f} ر.س × 2/3 = {round(gross_eosb * ratio, 2):,.2f} ر.س."
+                    f"المبلغ الإجمالي {gross_eosb:,.2f} ر.س × 2/3 = {round(gross_unrounded * ratio, 2):,.2f} ر.س."
                 )
             else:
                 ratio = 1.0
@@ -468,7 +469,7 @@ def calculate_end_of_service_benefit(
                     f"بمبلغ {gross_eosb:,.2f} ر.س."
                 )
 
-    net_eosb = round(gross_eosb * ratio, 2)
+    net_eosb = round(gross_unrounded * ratio, 2)
 
     return EOSBCalculationResult(
         is_saudi=is_saudi,

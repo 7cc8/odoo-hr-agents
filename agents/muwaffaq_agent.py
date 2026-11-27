@@ -27,6 +27,7 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
 from agents.base_agent import BaseAgent
+from normalization import generic_match_key
 from matching_thresholds import (
     MUWAFFAQ_HIGH_CONFIDENCE,
     MUWAFFAQ_LOW_CONFIDENCE,
@@ -34,6 +35,27 @@ from matching_thresholds import (
     MUWAFFAQ_MIN_CANDIDATE_SIMILARITY,
     MUWAFFAQ_SAME_DEPARTMENT_BOOST,
 )
+
+# معجم دلالي ثنائي اللغة (عربي ⇄ إنجليزي) لمطابقة الأقسام والمسميات الوظيفية الشائعة في Odoo
+BILINGUAL_HR_SYNONYM_GROUPS: List[Tuple[str, ...]] = [
+    ("الموارد البشرية", "شؤون الموظفين", "الشؤون الادارية", "human resources", "hr", "people operations", "personnel"),
+    ("تقنية المعلومات", "التقنية", "الهندسة والتقنية", "تكنولوجيا المعلومات", "البرمجة", "it", "information technology", "engineering", "tech", "software", "technical"),
+    ("المالية", "المحاسبة", "المالية والمحاسبة", "الادارة المالية", "الحسابات", "finance", "accounting", "accounts", "financial"),
+    ("المبيعات", "التجارية", "ادارة المبيعات", "sales", "commercial", "business development"),
+    ("التسويق", "المبيعات والتسويق", "marketing", "growth", "communications"),
+    ("الادارة", "الادارة العليا", "الادارة التنفيذية", "management", "administration", "executive", "admin"),
+    ("العمليات", "التشغيل", "operations", "ops", "logistics"),
+    ("خدمة العملاء", "الدعم الفني", "العملاء", "customer service", "support", "customer support"),
+    ("القانونية", "الشؤون القانونية", "الحوكمة والامتثال", "legal", "compliance"),
+    ("المشتريات", "سلاسل الامداد", "procurement", "purchasing", "supply chain"),
+    ("التوظيف", "الاستقطاب", "recruitment", "talent acquisition", "hiring"),
+    ("مهندس برمجيات", "مطور برمجيات", "مطور", "software engineer", "developer", "full stack developer", "programmer"),
+    ("محاسب", "مسؤول محاسبة", "محاسب عام", "accountant", "accounting officer", "senior accountant"),
+    ("مدير مشاريع", "مدير مشروع", "project manager", "pm"),
+    ("مدير موارد بشرية", "hr manager", "human resources manager"),
+    ("أخصائي موارد بشرية", "اخصائي موارد بشرية", "hr specialist", "hr officer"),
+    ("أخصائي تسويق", "اخصائي تسويق", "marketing specialist", "marketing and community manager"),
+]
 
 logger = logging.getLogger("muwaffaq_agent")
 
@@ -260,6 +282,22 @@ class MuwaffaqAgent(BaseAgent):
                 result["status"] = "low_confidence"
         else:
             result["status"] = "no_match"
+
+        # استدعاء الاستدلال الدلالي للوكيل الهجين عند وجود غموض دلالي أو مطابقة مقترحة
+        if result["status"] in ("proposed", "low_confidence") and query and candidates:
+            try:
+                cand_texts = [str(c.get("name") or c.get("display_name") or c) if isinstance(c, dict) else str(c) for c in candidates[:10]]
+                llm_prompt = (
+                    f"بصفتك وكيل الربط الدلالي «موفق»، طابق المصطلح '{query}' مع الخيار الأنسب من قائمة الخيارات التالية في سياق Odoo HR السعودي:\n"
+                    f"{', '.join(cand_texts)}\n"
+                    "أعطِ إجابة حاسمة مختصرة بالخيار الأنسب مع سبب الترجيح."
+                )
+                llm_verdict = self.call_llm(llm_prompt)
+                if llm_verdict:
+                    result["llm_disambiguation"] = llm_verdict
+                    result["reasoning"] = f"ترجيح دلالي بواسطة موفق: {llm_verdict[:120]}"
+            except Exception as e:
+                logger.debug("Muwaffaq LLM disambiguation skipped: %s", e)
         
         logger.info(f"✅ Execution complete: {result['status']}, confidence={result['confidence']:.2f}")
         return result
@@ -340,22 +378,58 @@ class MuwaffaqAgent(BaseAgent):
             return self._contextual_match(query, candidates, context)
         
         elif strategy == MatchStrategy.SEMANTIC:
-            # TODO: implement semantic matching with embeddings
-            return []
+            return self._semantic_match(query, candidates)
         
         return []
 
+    @staticmethod
+    def _normalize_for_match(text: str) -> str:
+        """تطبيع النص للمطابقة (توحيد الهمزات والتاء المربوطة وإزالة التشكيل)."""
+        if not text:
+            return ""
+        norm = generic_match_key(str(text))
+        return norm or str(text).strip().lower()
+
+    @staticmethod
+    def _strip_arabic_prefixes(text: str) -> str:
+        """إزالة سوابق مثل (قسم، إدارة، موظف، شركة، ال) لتحسين المطابقة."""
+        cleaned = text.strip()
+        for prefix in ("إدارة ", "ادارة ", "قسم ", "الموظف ", "الموظفة ", "شركة ", "مؤسسة "):
+            if cleaned.startswith(prefix):
+                cleaned = cleaned[len(prefix):].strip()
+        return cleaned
+
+    @staticmethod
+    def _transliterate_ar_to_latin(text: str) -> str:
+        """تحويل صوتي مبسط للأحرف العربية إلى اللاتينية لمطابقة الأسماء بين اللغتين."""
+        char_map = {
+            "ا": "a", "أ": "a", "إ": "i", "آ": "a", "ب": "b", "ت": "t", "ث": "th",
+            "ج": "j", "ح": "h", "خ": "kh", "د": "d", "ذ": "dh", "ر": "r", "ز": "z",
+            "س": "s", "ش": "sh", "ص": "s", "ض": "d", "ط": "t", "ظ": "z", "ع": "a",
+            "غ": "gh", "ف": "f", "ق": "q", "ك": "k", "ل": "l", "م": "m", "ن": "n",
+            "ه": "h", "ة": "a", "و": "o", "ي": "i", "ى": "a", "ئ": "i", "ؤ": "o",
+        }
+        out = []
+        for ch in text.lower():
+            if ch in char_map:
+                out.append(char_map[ch])
+            elif ch.isalnum() or ch.isspace():
+                out.append(ch)
+        return "".join(out)
+
     def _exact_match(self, query: str, candidates: List[Any]) -> List[MatchCandidate]:
-        """مطابقة دقيقة 100%"""
+        """مطابقة دقيقة 100% (مع دعم تطبيع الهمزات والتاء المربوطة)"""
         matches = []
         
         query_lower = query.strip().lower()
+        query_norm = self._normalize_for_match(query)
         
         for candidate in candidates:
             candidate_name = self._extract_candidate_name(candidate)
             candidate_lower = candidate_name.strip().lower()
+            candidate_norm = self._normalize_for_match(candidate_name)
             
-            if query_lower == candidate_lower:
+            if query_lower == candidate_lower or (query_norm and query_norm == candidate_norm):
                 matches.append(MatchCandidate(
                     candidate_id=self._extract_candidate_id(candidate),
                     display_name=candidate_name,
@@ -367,23 +441,40 @@ class MuwaffaqAgent(BaseAgent):
         return matches
 
     def _fuzzy_text_match(self, query: str, candidates: List[Any]) -> List[MatchCandidate]:
-        """مطابقة ضبابية نصية باستخدام SequenceMatcher"""
+        """مطابقة ضبابية نصية باستخدام SequenceMatcher وتطبيع الحروف العربية وتداخل الكلمات"""
         matches = []
         
-        query_lower = query.strip().lower()
+        query_norm = self._normalize_for_match(self._strip_arabic_prefixes(query))
+        if not query_norm:
+            return matches
+        q_tokens = set(query_norm.split())
         
         for candidate in candidates:
             candidate_name = self._extract_candidate_name(candidate)
-            candidate_lower = candidate_name.strip().lower()
+            candidate_norm = self._normalize_for_match(self._strip_arabic_prefixes(candidate_name))
+            if not candidate_norm:
+                continue
             
-            # حساب التشابه
-            similarity = SequenceMatcher(None, query_lower, candidate_lower).ratio()
+            # حساب التشابه على النص المطبّع
+            similarity = SequenceMatcher(None, query_norm, candidate_norm).ratio()
+
+            # تعزيز عند احتواء النص أو تطابق الكلمات الجوهرية (مثل: "سارة" في "سارة أحمد المطيري")
+            c_tokens = set(candidate_norm.split())
+            if q_tokens and c_tokens:
+                if q_tokens.issubset(c_tokens) or c_tokens.issubset(q_tokens):
+                    similarity = max(similarity, MUWAFFAQ_MEDIUM_CONFIDENCE + MUWAFFAQ_SAME_DEPARTMENT_BOOST)
+                elif query_norm in candidate_norm or candidate_norm in query_norm:
+                    similarity = max(similarity, MUWAFFAQ_MEDIUM_CONFIDENCE)
+                else:
+                    overlap = len(q_tokens & c_tokens) / max(len(q_tokens), len(c_tokens))
+                    if overlap > 0.0:
+                        similarity = max(similarity, min(overlap + MUWAFFAQ_SAME_DEPARTMENT_BOOST, 1.0))
             
             if similarity >= MUWAFFAQ_MIN_CANDIDATE_SIMILARITY:  # عتبة التشابه
                 matches.append(MatchCandidate(
                     candidate_id=self._extract_candidate_id(candidate),
                     display_name=candidate_name,
-                    confidence=similarity,
+                    confidence=min(similarity, 1.0),
                     match_strategy=MatchStrategy.FUZZY_TEXT,
                     match_details={
                         "type": "fuzzy_match",
@@ -394,10 +485,62 @@ class MuwaffaqAgent(BaseAgent):
         return sorted(matches, key=lambda m: m.confidence, reverse=True)
 
     def _phonetic_match(self, query: str, candidates: List[Any]) -> List[MatchCandidate]:
-        """مطابقة صوتية (Soundex-like for Arabic)"""
-        # TODO: implement Arabic-aware phonetic matching
-        # حالياً نستخدم fuzzy match بسيط
-        return []
+        """مطابقة صوتية عابرة للغات (عربي ⇄ إنجليزي) عبر التمثيل اللاتيني"""
+        matches = []
+        q_lat = self._transliterate_ar_to_latin(self._normalize_for_match(query))
+        if not q_lat.strip():
+            return matches
+
+        for candidate in candidates:
+            candidate_name = self._extract_candidate_name(candidate)
+            c_lat = self._transliterate_ar_to_latin(self._normalize_for_match(candidate_name))
+            if not c_lat.strip():
+                continue
+            sim = SequenceMatcher(None, q_lat, c_lat).ratio()
+            q_parts = set(q_lat.split())
+            c_parts = set(c_lat.split())
+            if q_parts and c_parts and (q_parts & c_parts):
+                sim = max(sim, MUWAFFAQ_MEDIUM_CONFIDENCE)
+            if sim >= MUWAFFAQ_MIN_CANDIDATE_SIMILARITY:
+                matches.append(MatchCandidate(
+                    candidate_id=self._extract_candidate_id(candidate),
+                    display_name=candidate_name,
+                    confidence=min(sim, 1.0),
+                    match_strategy=MatchStrategy.PHONETIC,
+                    match_details={"type": "phonetic_match", "latin_query": q_lat, "latin_candidate": c_lat},
+                ))
+        return sorted(matches, key=lambda m: m.confidence, reverse=True)
+
+    def _semantic_match(self, query: str, candidates: List[Any]) -> List[MatchCandidate]:
+        """مطابقة دلالية ثنائية اللغة (عربي ⇄ إنجليزي) لأسماء الأقسام والوظائف"""
+        matches = []
+        q_norm = self._normalize_for_match(self._strip_arabic_prefixes(query))
+        if not q_norm:
+            return matches
+
+        matched_group_terms: set = set()
+        for grp in BILINGUAL_HR_SYNONYM_GROUPS:
+            grp_norms = [self._normalize_for_match(term) for term in grp]
+            if any(term and (term in q_norm or q_norm in term) for term in grp_norms):
+                matched_group_terms.update(grp_norms)
+
+        if not matched_group_terms:
+            return matches
+
+        for candidate in candidates:
+            candidate_name = self._extract_candidate_name(candidate)
+            c_norm = self._normalize_for_match(self._strip_arabic_prefixes(candidate_name))
+            if not c_norm:
+                continue
+            if any(term and (term == c_norm or term in c_norm or c_norm in term) for term in matched_group_terms):
+                matches.append(MatchCandidate(
+                    candidate_id=self._extract_candidate_id(candidate),
+                    display_name=candidate_name,
+                    confidence=MUWAFFAQ_HIGH_CONFIDENCE,
+                    match_strategy=MatchStrategy.SEMANTIC,
+                    match_details={"type": "bilingual_semantic_match"},
+                ))
+        return sorted(matches, key=lambda m: m.confidence, reverse=True)
 
     def _contextual_match(
         self,
@@ -415,7 +558,7 @@ class MuwaffaqAgent(BaseAgent):
             candidate_name = self._extract_candidate_name(candidate)
             candidate_dept = self._extract_candidate_attribute(candidate, "department")
             
-            base_similarity = SequenceMatcher(None, query.lower(), candidate_name.lower()).ratio()
+            base_similarity = SequenceMatcher(None, self._normalize_for_match(query), self._normalize_for_match(candidate_name)).ratio()
             
             # تعزيز النتيجة إذا كان من نفس القسم
             if preferred_department and candidate_dept == preferred_department:
@@ -464,7 +607,7 @@ class MuwaffaqAgent(BaseAgent):
 
     def _recommend_strategies(self, perception: Dict[str, Any]) -> List[MatchStrategy]:
         """توصية باستراتيجيات المطابقة"""
-        strategies = [MatchStrategy.EXACT, MatchStrategy.FUZZY_TEXT]
+        strategies = [MatchStrategy.EXACT, MatchStrategy.FUZZY_TEXT, MatchStrategy.SEMANTIC]
         
         # إضافة استراتيجيات إضافية حسب السياق
         if perception["context"]:

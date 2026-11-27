@@ -147,6 +147,31 @@ STATUS_LABELS_AR: Dict[str, str] = {
 }
 
 
+def normalize_agent_id(agent_name: Optional[str]) -> str:
+    """توحيد معرفات الوكلاء لضمان التطابق التام عبر كافة المنظومة."""
+    if not agent_name:
+        return "seraj"
+    a = str(agent_name).lower().strip()
+    mapping = {
+        "mudaqqiq": "modaqeq",
+        "modaqqeq": "modaqeq",
+        "muwaffaq": "mowafaq",
+        "mowaffaq": "mowafaq",
+        "mosleh": "musleh",
+        "muslih": "musleh",
+        "fahas": "fahas",
+        "fahes": "fahas",
+        "hares": "hares",
+        "haris": "hares",
+        "katib": "katib",
+        "kateb": "katib",
+        "sijil": "sijil",
+        "seraj": "seraj",
+        "siraj": "seraj",
+    }
+    return mapping.get(a, a)
+
+
 def _mask_safe_ref(obj: Any) -> Any:
     """إزالة الأسرار وكلمات المرور والبيانات الحساسة من مراجع النتائج المعروضة."""
     if isinstance(obj, dict):
@@ -271,14 +296,22 @@ class AgentEventsService:
                         continue
                     try:
                         evt = json.loads(line)
-                        if not is_odoo_operation_event(evt):
-                            continue
                         op_id = evt.get("operation_id")
                         if not op_id:
                             continue
+                        agent_id = normalize_agent_id(evt.get("agent"))
+                        evt["agent"] = agent_id
                         if op_id not in self.operation_events:
                             self.operation_events[op_id] = []
                         self.operation_events[op_id].append(evt)
+
+                        raw_status = evt.get("status", "completed")
+                        # العمليات المحفوظة في السجل لا تظل عالقة في حالة جارية بل تكتمل
+                        if raw_status in ("in_progress", "executing_write", "analyzing_request", "inspecting_data", "matching_references"):
+                            clean_status = "completed"
+                        else:
+                            clean_status = raw_status
+
                         if op_id not in self.operations:
                             self.operations[op_id] = {
                                 "operation_id": op_id,
@@ -286,9 +319,9 @@ class AgentEventsService:
                                 "updated_at": evt.get("timestamp"),
                                 "user_query": evt.get("user_query", "عملية موثقة"),
                                 "operation_type": evt.get("operation_type", "operation"),
-                                "status": evt.get("status", "completed"),
-                                "status_label": STATUS_LABELS_AR.get(evt.get("status", "completed"), "اكتمل"),
-                                "active_agent": evt.get("agent", "sijil"),
+                                "status": clean_status,
+                                "status_label": STATUS_LABELS_AR.get(clean_status, "اكتمل"),
+                                "active_agent": agent_id,
                                 "company_id": evt.get("company_id"),
                                 "company_name": evt.get("company_name"),
                                 "connection_id": evt.get("connection_id", "default"),
@@ -297,6 +330,11 @@ class AgentEventsService:
                                 "plan": None,
                                 "clarification": None,
                             }
+                        else:
+                            if clean_status in ("completed", "failed", "cancelled"):
+                                self.operations[op_id]["status"] = clean_status
+                                self.operations[op_id]["status_label"] = STATUS_LABELS_AR.get(clean_status, "اكتمل")
+                                self.operations[op_id]["updated_at"] = evt.get("timestamp")
                     except Exception:
                         continue
         except Exception:
@@ -353,7 +391,7 @@ class AgentEventsService:
                 agent="seraj",
                 event_type="operation_started",
                 status="analyzing_request",
-                description_ar=f"سراج يستلم الطلب ويحلل نية المستخدم: «{user_query[:50]}»",
+                description_ar="بدء العملية وتنسيق مهام الوكلاء",
                 from_agent=None,
                 to_agent="seraj",
                 company_id=company_id,
@@ -484,6 +522,20 @@ class AgentEventsService:
         if error:
             event_data["error"] = error
 
+        # إغلاق الأحداث السابقة المفتوحة وحساب المدة المنقضية بدقة لمنع بقاء أي شارة معلقة في الـ Timeline
+        if evt_list:
+            prev_evt = evt_list[-1]
+            if prev_evt.get("status") in ("in_progress", "analyzing_request", "inspecting_data", "matching_references", "executing_write", "pending", "querying_odoo"):
+                prev_evt["status"] = "completed"
+                prev_evt["status_label"] = STATUS_LABELS_AR.get("completed", "اكتمل")
+                try:
+                    prev_ts = datetime.fromisoformat(prev_evt["timestamp"])
+                    curr_ts = datetime.fromisoformat(now_iso)
+                    diff_ms = int((curr_ts - prev_ts).total_seconds() * 1000)
+                    prev_evt["duration_ms"] = max(diff_ms, 50)
+                except Exception:
+                    prev_evt["duration_ms"] = 120
+
         evt_list.append(event_data)
 
         # تحديث العملية
@@ -506,7 +558,7 @@ class AgentEventsService:
                 op["error"] = error
 
         # تحديث حالة الوكيل النشط
-        target_agent = to_agent or agent
+        target_agent = normalize_agent_id(to_agent or agent)
         if target_agent in self.agent_statuses:
             self.agent_statuses[target_agent]["status_code"] = status
             self.agent_statuses[target_agent]["status_label"] = STATUS_LABELS_AR.get(status, status)
@@ -514,20 +566,25 @@ class AgentEventsService:
             self.agent_statuses[target_agent]["last_active_at"] = now_iso
             self.agent_statuses[target_agent]["last_task"] = description_ar
 
-        # إذا اكتملت العملية أو فشلت، تعود الوكلاء تدريجياً لحالة الجاهزية
+        # إذا اكتملت العملية أو فشلت، إغلاق كافة الخطوات العالقة وتعود الوكلاء تدريجياً لحالة الجاهزية
         if status in ("completed", "failed", "cancelled"):
+            for e in evt_list:
+                if e.get("status") in ("in_progress", "analyzing_request", "inspecting_data", "matching_references", "executing_write", "pending", "querying_odoo"):
+                    e["status"] = "completed" if status == "completed" else status
+                    e["status_label"] = STATUS_LABELS_AR.get(e["status"], e["status"])
+                    if not e.get("duration_ms"):
+                        e["duration_ms"] = 120
             if target_agent in self.agent_statuses:
                 self.agent_statuses[target_agent]["active_operation_id"] = None
                 self.agent_statuses[target_agent]["status_code"] = "ready"
                 self.agent_statuses[target_agent]["status_label"] = "جاهز"
 
-        # قيد الحدث في دفتر سجل اللاتراجعي فقط إذا كان عملية فعلية داخل Odoo (حذف، أرشفة، إضافة، تعديل)
-        if is_odoo_operation_event(event_data):
-            try:
-                with open(AGENT_OPS_LOG_FILE, "a", encoding="utf-8") as f:
-                    f.write(json.dumps(event_data, ensure_ascii=False) + "\n")
-            except Exception:
-                pass
+        # قيد الحدث في دفتر سجل اللاتراجعي لكافة وكلاء المنظومة
+        try:
+            with open(AGENT_OPS_LOG_FILE, "a", encoding="utf-8") as f:
+                f.write(json.dumps(event_data, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
 
         return event_data
 
@@ -585,6 +642,16 @@ class AgentEventsService:
             
             # P3: البحث في القرص عند عدم وجود العملية في الذاكرة
             return self._search_operation_on_disk(operation_id)
+
+    def get_operation_by_chat_id(self, chat_id: str) -> Optional[Dict[str, Any]]:
+        """البحث عن عملية محادثة نشطة مرتبطة بجلسة معينة لمنع تكرار صفوف العمليات."""
+        if not chat_id or chat_id == "default":
+            return None
+        with self._lock:
+            for op in self.operations.values():
+                if op.get("chat_id") == chat_id and op.get("operation_type") == "conversation":
+                    return op
+        return None
     
     def _search_operation_on_disk(self, operation_id: str) -> Optional[Dict[str, Any]]:
         """البحث عن عملية محددة في ملف السجل على القرص"""
@@ -651,6 +718,31 @@ class AgentEventsService:
             ops.sort(key=lambda x: str(x.get("updated_at", "")), reverse=True)
             return ops[offset : offset + limit]
 
+    def operations_page(self, limit: int, offset: int, query: str, group: str):
+        groups = {
+            "completed": {"completed"}, "success": {"completed"},
+            "pending": {"waiting_approval", "in_progress", "waiting_clarification", "running", "pending"},
+            "critical": {"cancelled", "rejected", "failed"},
+        }
+        statuses = groups.get(group)
+        needle = query.strip().casefold()
+        with self._lock:
+            rows = []
+            for op in self.operations.values():
+                if statuses and op.get("status") not in statuses:
+                    continue
+                if needle:
+                    text = [str(op.get(key) or "") for key in (
+                        "operation_id", "operation_type", "company_id", "company_name",
+                        "status", "status_label", "requester", "active_agent", "created_at",
+                    )]
+                    agent = AGENTS_REGISTRY.get(op.get("active_agent"), {})
+                    if needle not in " ".join([*text, agent.get("name_ar", "")]).casefold():
+                        continue
+                rows.append(op)
+            rows.sort(key=lambda op: str(op.get("updated_at", "")), reverse=True)
+            return rows[offset:offset + limit], len(rows)
+
     def get_agents_overview(self) -> List[Dict[str, Any]]:
         """استرجاع بطاقات وهوية كافة الوكلاء الـ 8 وحالاتهم الحالية."""
         with self._lock:
@@ -664,16 +756,34 @@ class AgentEventsService:
                 item["last_active_at"] = st.get("last_active_at")
                 item["last_task"] = st.get("last_task", "في انتظار المهام")
                 # حساب عدد الأحداث والعمليات الفعلية المرتبطة بهذا الوكيل
+                norm_a_id = normalize_agent_id(a_id)
                 agent_event_count = sum(
                     1 for ev_list in self.operation_events.values()
-                    for ev in ev_list if ev.get("agent") == a_id
+                    for ev in ev_list if normalize_agent_id(ev.get("agent")) == norm_a_id
                 )
                 agent_op_count = sum(
                     1 for ev_list in self.operation_events.values()
-                    if any(ev.get("agent") == a_id for ev in ev_list)
+                    if any(normalize_agent_id(ev.get("agent")) == norm_a_id for ev in ev_list)
                 )
                 item["operation_count"] = max(st.get("operation_count", 0), agent_op_count)
                 item["event_count"] = max(st.get("event_count", 0), agent_event_count)
+
+                # جمع آخر الأنشطة والمهام الفعلية للوكيل من سجل الأحداث
+                recent_events = []
+                for ev_list in self.operation_events.values():
+                    for ev in ev_list:
+                        if normalize_agent_id(ev.get("agent")) == norm_a_id:
+                            recent_events.append({
+                                "timestamp": ev.get("timestamp"),
+                                "description_ar": ev.get("description_ar") or ev.get("action") or "مهمة تشغيلية للوكيل",
+                                "operation_id": ev.get("operation_id"),
+                                "status": ev.get("status", "completed"),
+                                "status_label": ev.get("status_label") or STATUS_LABELS_AR.get(ev.get("status", ""), "اكتمل"),
+                                "action": ev.get("action"),
+                            })
+                recent_events.sort(key=lambda x: str(x.get("timestamp") or ""), reverse=True)
+                item["recent_tasks"] = recent_events[:6]
+
                 result.append(item)
             return result
 

@@ -176,7 +176,7 @@ def run_agent(
                 result_chars=len(outcome.content), truncated=truncated, error=outcome.error,
             )
             run.steps.append(step)
-            _emit(on_event, "tool_call", {"agent": spec.name, **step.__dict__})
+            _emit(on_event, "tool_call", {"agent": spec.name, "result_preview": outcome.content[:2000], **step.__dict__})
 
             convo.append({"role": "tool", "tool_call_id": call_id, "name": name, "content": body})
 

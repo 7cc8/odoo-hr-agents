@@ -123,7 +123,7 @@ class ComplianceKpis:
     expiring_iqamas_30d: int
     expiring_iqamas_60d: int
     expiring_iqamas_90d: int
-    pending_disciplinary_count: int
+    pending_disciplinary_count: Optional[int]
     active_probation_count: int
     compliance_alerts: List[str]
     actionable_recommendations_ar: List[str]
@@ -315,14 +315,14 @@ class AnalyticsService:
                 recs.append("تعيين موظفين سعوديين إضافيين أو مراجعة عقود الموظفين لضمان بقاء المنشأة في النطاق الأخضر المرتفع.")
 
         # 2. فحص الإقامات وقرب انتهائها من المعاملات الحكومية
-        gr_records = self.readonly_repo.get_all_gr_transactions(limit=200)
+        identity_records = self.readonly_repo.get_employees_for_expiry_monitoring()
         exp_30 = 0
         exp_60 = 0
         exp_90 = 0
         today = date.today()
 
-        for g in gr_records:
-            t_date_str = str(g.get("transaction_date") or "")
+        for employee in identity_records:
+            t_date_str = str(employee.get("id_expiry_date") or "")
             if t_date_str:
                 try:
                     t_date = date.fromisoformat(t_date_str[:10])
@@ -343,9 +343,10 @@ class AnalyticsService:
 
         # 3. فحص الجزاءات والتحقيقات العالقة
         # إذا كانت هناك جزاءات عالقة تتجاوز 30 يوماً بموجب المادة 72
-        disc_actions = self.readonly_repo.get_employee_disciplinary_actions(employee_id=0, limit=50) if hasattr(self.readonly_repo, "get_employee_disciplinary_actions") else []
-        pending_disc = sum(1 for d in disc_actions if str(d.get("state")) in ("draft", "under_investigation"))
-        if pending_disc > 0:
+        pending_disc = self.readonly_repo.count_pending_disciplinary_actions()
+        if pending_disc is None:
+            alerts.append("الجزاءات غير مشمولة في المؤشر لأن وحدتها غير متاحة في قاعدة Odoo المتصلة.")
+        elif pending_disc > 0:
             score -= 5
             alerts.append(f"⚖️ توجد {pending_disc} إجراءات تأديبية وتحقيقات معلقة تتطلب البت النظامي خلال 30 يوماً بموجب المادة 72.")
 
@@ -371,6 +372,9 @@ class AnalyticsService:
             rating_ar = "امتثال متوسط 🟡"
         else:
             rating_ar = "مخاطر نظامية حرجة 🔴"
+
+        if pending_disc is None:
+            rating_ar = "تقييم جزئي للمؤشرات المتاحة"
 
         if not alerts:
             alerts.append("✅ لا توجد مخالفات نظامية رصدت حالياً. بيئة العمل ممتثلة تماماً للأنظمة.")

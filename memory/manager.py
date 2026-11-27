@@ -8,6 +8,7 @@ Memory Manager - مدير الذاكرة الموحد
 import json
 import logging
 import os
+import sqlite3
 import uuid
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -85,10 +86,222 @@ class MemoryManager:
         self.vector_db_type = vector_db_type
         self._vector_db = None
         
+        # SQLite Database (قاعدة بيانات الذاكرة الموحدة للحقائق والحلقات)
+        self.db_path = self.storage_dir / "memory.db"
+        self._init_sqlite_db()
+
         if use_vector_db:
             self._init_vector_db()
         
         logger.info(f"✅ MemoryManager initialized: storage={self.storage_dir}, vector_db={use_vector_db}")
+
+    def _get_db_connection(self) -> sqlite3.Connection:
+        """فتح اتصال آمن بقاعدة بيانات الذاكرة SQLite"""
+        conn = sqlite3.connect(str(self.db_path), timeout=15.0)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+    def _init_sqlite_db(self) -> None:
+        """تهيئة قاعدة بيانات SQLite للذاكرة وترحيل الحلقات والحقائق التراكمية"""
+        try:
+            with self._get_db_connection() as conn:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS facts (
+                        id TEXT PRIMARY KEY,
+                        key TEXT,
+                        content TEXT,
+                        category TEXT,
+                        importance INTEGER,
+                        created_at TEXT,
+                        updated_at TEXT
+                    )
+                """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS episodes (
+                        id TEXT PRIMARY KEY,
+                        episode_id TEXT UNIQUE,
+                        agent TEXT,
+                        agents_involved TEXT,
+                        user_query TEXT,
+                        result_summary TEXT,
+                        success INTEGER,
+                        created_at TEXT,
+                        raw_json TEXT
+                    )
+                """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS checkpoints (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        checkpoint_id TEXT UNIQUE,
+                        operation_id TEXT,
+                        chat_id TEXT,
+                        agent_name TEXT,
+                        turn_number INTEGER,
+                        state_json TEXT,
+                        created_at TEXT
+                    )
+                """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS rag_chunks (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        chunk_id TEXT UNIQUE,
+                        category TEXT,
+                        article_number TEXT,
+                        title TEXT,
+                        content TEXT,
+                        source TEXT,
+                        metadata_json TEXT,
+                        created_at TEXT
+                    )
+                """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS token_usage (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        chat_id TEXT,
+                        operation_id TEXT,
+                        agent_name TEXT,
+                        model TEXT,
+                        provider TEXT,
+                        prompt_tokens INTEGER,
+                        completion_tokens INTEGER,
+                        total_tokens INTEGER,
+                        estimated_cost_usd REAL,
+                        latency_ms REAL,
+                        created_at TEXT
+                    )
+                """)
+                conn.execute("CREATE VIEW IF NOT EXISTS long_term_facts AS SELECT * FROM facts")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_facts_category ON facts(category)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_episodes_created_at ON episodes(created_at)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_episodes_agent ON episodes(agent)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_checkpoints_op ON checkpoints(operation_id)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_checkpoints_chat ON checkpoints(chat_id)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_rag_cat ON rag_chunks(category)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_rag_art ON rag_chunks(article_number)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_token_usage_chat ON token_usage(chat_id)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_token_usage_op ON token_usage(operation_id)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_token_usage_created ON token_usage(created_at)")
+
+                # محاولة إنشاء جدول FTS5 إذا كانت إضافة fts5 مفعلة في نسخة SQLite
+                try:
+                    conn.execute("""
+                        CREATE VIRTUAL TABLE IF NOT EXISTS rag_fts USING fts5(
+                            title,
+                            content,
+                            category,
+                            source,
+                            tokenize='unicode61'
+                        )
+                    """)
+                except Exception as fts_err:
+                    logger.debug("FTS5 table creation notice: %s", fts_err)
+
+                conn.commit()
+
+                # 1. ترحيل الحقائق إذا كان الجدول فارغاً
+                cur = conn.cursor()
+                cur.execute("SELECT COUNT(*) FROM facts")
+                facts_count = cur.fetchone()[0]
+                if facts_count == 0:
+                    facts_from_json = self._read_long_term_facts_raw()
+                    if not facts_from_json:
+                        now_iso = datetime.now().isoformat()
+                        facts_from_json = [
+                            {
+                                "id": "fact_seed_01",
+                                "key": "ضوابط نظام العمل السعودي",
+                                "content": "الالتزام التام بنظام العمل السعودي (المرسوم الملكي م/51): المادة 84 لمكافأة نهاية الخدمة، المادة 107 لساعات العمل الإضافية، المادة 109 للإجازة السنوية.",
+                                "category": "نظام العمل",
+                                "importance": 5,
+                                "created_at": now_iso,
+                                "updated_at": now_iso
+                            },
+                            {
+                                "id": "fact_seed_02",
+                                "key": "حوكمة بوابة الاعتماد البشري (HITL)",
+                                "content": "لا يتم تنفيذ أي عملية إنشاء أو تعديل لموظف أو عقد داخل Odoo إلا عبر خطة عمل موقعة من الوكيل «حارس» ومعتمدة صراحة من المشغّل البشري.",
+                                "category": "الحوكمة والأمان",
+                                "importance": 5,
+                                "created_at": now_iso,
+                                "updated_at": now_iso
+                            },
+                            {
+                                "id": "fact_seed_03",
+                                "key": "سياسة استقطاعات التأمينات GOSI",
+                                "content": "الموظف السعودي يخضع لـ 9.75% (معاشات 9% + ساند 0.75%) بحد أقصى للأجر الخاضع 45,000 ريال، والموظف غير السعودي 2% أخطار مهنية تتحملها المنشأة.",
+                                "category": "التأمينات الاجتماعية",
+                                "importance": 4,
+                                "created_at": now_iso,
+                                "updated_at": now_iso
+                            }
+                        ]
+                    for f in facts_from_json:
+                        conn.execute(
+                            "INSERT OR REPLACE INTO facts (id, key, content, category, importance, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                            (
+                                f.get("id", f"fact_{uuid.uuid4().hex[:8]}"),
+                                f.get("key", ""),
+                                f.get("content", ""),
+                                f.get("category", "general"),
+                                int(f.get("importance", 3)),
+                                f.get("created_at", datetime.now().isoformat()),
+                                f.get("updated_at", datetime.now().isoformat())
+                            )
+                        )
+                    conn.commit()
+                    self._write_long_term_facts_raw(facts_from_json)
+
+                # 2. ترحيل سجل حلقات الذاكرة (Episodes) السابقة إلى SQLite
+                cur.execute("SELECT COUNT(*) FROM episodes")
+                episodes_count = cur.fetchone()[0]
+                ep_files = list(self.episodes_dir.glob("*.json"))
+                if episodes_count < len(ep_files):
+                    batch = []
+                    for ep_file in ep_files:
+                        try:
+                            with open(ep_file, "r", encoding="utf-8") as ef:
+                                data = json.load(ef)
+                            ep_id = data.get("episode_id") or ep_file.stem
+                            ag = data.get("agent") or "unknown"
+                            ag_inv = json.dumps(data.get("agents_involved") or [], ensure_ascii=False)
+                            u_query = data.get("user_query") or ""
+                            res = data.get("result") or {}
+                            res_sum = ""
+                            if isinstance(res, dict):
+                                res_sum = str(res.get("summary") or res.get("reply") or res.get("status") or "")[:500]
+                            elif isinstance(res, str):
+                                res_sum = res[:500]
+                            succ = 1 if data.get("success", True) else 0
+                            c_at = str(data.get("timestamp") or datetime.now().isoformat())
+                            batch.append((
+                                f"ep_{ep_id}",
+                                ep_id,
+                                ag,
+                                ag_inv,
+                                u_query,
+                                res_sum,
+                                succ,
+                                c_at,
+                                json.dumps(data, ensure_ascii=False, default=str)
+                            ))
+                            if len(batch) >= 100:
+                                conn.executemany(
+                                    "INSERT OR IGNORE INTO episodes (id, episode_id, agent, agents_involved, user_query, result_summary, success, created_at, raw_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                                    batch
+                                )
+                                conn.commit()
+                                batch = []
+                        except Exception:
+                            continue
+                    if batch:
+                        conn.executemany(
+                            "INSERT OR IGNORE INTO episodes (id, episode_id, agent, agents_involved, user_query, result_summary, success, created_at, raw_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            batch
+                        )
+                        conn.commit()
+        except Exception as e:
+            logger.error(f"Error initializing SQLite memory db: {e}", exc_info=True)
+
     
     # ========================================================================
     # Working Memory (قصيرة المدى)
@@ -159,12 +372,39 @@ class MemoryManager:
         
         # حفظ في ملف بشكل ذري وآمن
         episode_file = self.episodes_dir / f"{episode_id}.json"
+        payload_str = "{}"
         try:
             payload_str = json.dumps(episode.to_dict(), ensure_ascii=False, indent=2, default=str)
             with open(episode_file, "w", encoding="utf-8") as f:
                 f.write(payload_str)
         except Exception as write_err:
             logger.warning(f"Failed to write episode {episode_id}: {write_err}")
+
+        # تسجيل الحلقة فوراً في قاعدة بيانات SQLite
+        try:
+            with self._get_db_connection() as conn:
+                res_sum = ""
+                if isinstance(result, dict):
+                    res_sum = str(result.get("summary") or result.get("reply") or result.get("status") or "")[:500]
+                elif isinstance(result, str):
+                    res_sum = result[:500]
+                conn.execute(
+                    "INSERT OR REPLACE INTO episodes (id, episode_id, agent, agents_involved, user_query, result_summary, success, created_at, raw_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        f"ep_{episode_id}",
+                        episode_id,
+                        agent,
+                        json.dumps(agents_involved, ensure_ascii=False),
+                        user_query,
+                        res_sum,
+                        1 if success else 0,
+                        datetime.now().isoformat(),
+                        payload_str,
+                    )
+                )
+                conn.commit()
+        except Exception as sqle:
+            logger.warning(f"Failed to record episode in SQLite: {sqle}")
         
         # إضافة إلى Vector DB (إذا مفعّل)
         if self.use_vector_db and self._vector_db:
@@ -635,16 +875,251 @@ class MemoryManager:
     # ========================================================================
     
     def get_memory_stats(self) -> Dict[str, Any]:
-        """الحصول على إحصائيات الذاكرة"""
-        episode_count = len(list(self.episodes_dir.glob("*.json")))
+        """الحصول على إحصائيات الذاكرة الموحدة من SQLite ومحرك الملفات"""
+        try:
+            with self._get_db_connection() as conn:
+                ep_count = conn.execute("SELECT COUNT(*) FROM episodes").fetchone()[0]
+                facts_count = conn.execute("SELECT COUNT(*) FROM facts").fetchone()[0]
+        except Exception:
+            ep_count = len(list(self.episodes_dir.glob("*.json")))
+            facts_count = len(self._read_long_term_facts_raw())
+
         knowledge_count = len(list(self.semantic_dir.glob("*.json")))
         profile_count = len(list(self.profiles_dir.glob("*.json")))
         
         return {
-            "episodes": episode_count,
+            "episodes": ep_count,
             "semantic_knowledge": knowledge_count,
             "profiles": profile_count,
             "working_memories": len(self._working_memories),
+            "long_term_facts": facts_count,
             "storage_dir": str(self.storage_dir),
+            "storage_engine": "SQLite (memory_store/memory.db)",
             "vector_db_enabled": self.use_vector_db,
         }
+
+    # ========================================================================
+    # Long-Term Facts & Episodes Persistence (قاعدة بيانات SQLite والذاكرة التراكمية)
+    # ========================================================================
+
+    @property
+    def long_term_facts_path(self) -> Path:
+        return self.storage_dir / "long_term_facts.json"
+
+    def _read_long_term_facts_raw(self) -> List[Dict[str, Any]]:
+        p = self.long_term_facts_path
+        if not p.exists():
+            return []
+        try:
+            with open(p, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return data if isinstance(data, list) else []
+        except Exception as e:
+            logger.warning("Failed to read long term facts: %s", e)
+            return []
+
+    def _write_long_term_facts_raw(self, facts: List[Dict[str, Any]]) -> None:
+        p = self.long_term_facts_path
+        try:
+            with open(p, "w", encoding="utf-8") as f:
+                json.dump(facts, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            logger.error("Failed to write long term facts: %s", e)
+
+    def get_long_term_facts(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """الحصول على كافة حقائق وقواعد الذاكرة طويلة المدى من SQLite."""
+        try:
+            with self._get_db_connection() as conn:
+                if category:
+                    rows = conn.execute("SELECT * FROM facts WHERE category = ? ORDER BY created_at DESC", (category,)).fetchall()
+                else:
+                    rows = conn.execute("SELECT * FROM facts ORDER BY created_at DESC").fetchall()
+                facts = [dict(r) for r in rows]
+                if facts:
+                    return facts
+        except Exception as e:
+            logger.warning(f"Failed reading facts from SQLite: {e}")
+        facts = self._read_long_term_facts_raw()
+        if category:
+            facts = [f for f in facts if f.get("category") == category]
+        return sorted(facts, key=lambda x: x.get("created_at", ""), reverse=True)
+
+    def get_long_term_fact(self, fact_id: str) -> Optional[Dict[str, Any]]:
+        """الحصول على حقيقة محددة بالمعرف."""
+        try:
+            with self._get_db_connection() as conn:
+                row = conn.execute("SELECT * FROM facts WHERE id = ?", (fact_id,)).fetchone()
+                if row:
+                    return dict(row)
+        except Exception:
+            pass
+        for f in self._read_long_term_facts_raw():
+            if f.get("id") == fact_id:
+                return f
+        return None
+
+    def save_long_term_fact(
+        self,
+        content: str,
+        key: str = "",
+        category: str = "general",
+        importance: int = 3,
+        fact_id: Optional[str] = None,
+        require_sqlite: bool = False,
+    ) -> Dict[str, Any]:
+        """حفظ أو إنشاء حقيقة جديدة في الذاكرة طويلة المدى في SQLite ومزامنتها مع JSON."""
+        now_iso = datetime.now().isoformat()
+        clean_content = content.strip()
+        clean_key = (key or clean_content[:30]).strip()
+        target_id = fact_id or f"fact_{uuid.uuid4().hex[:8]}"
+        record = {
+            "id": target_id,
+            "key": clean_key,
+            "content": clean_content,
+            "category": category or "general",
+            "importance": max(1, min(5, int(importance or 3))),
+            "created_at": now_iso,
+            "updated_at": now_iso,
+        }
+
+        try:
+            with self._get_db_connection() as conn:
+                existing = conn.execute("SELECT created_at FROM facts WHERE id = ?", (target_id,)).fetchone()
+                if existing:
+                    record["created_at"] = existing["created_at"]
+                conn.execute(
+                    "INSERT OR REPLACE INTO facts (id, key, content, category, importance, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        record["id"],
+                        record["key"],
+                        record["content"],
+                        record["category"],
+                        record["importance"],
+                        record["created_at"],
+                        record["updated_at"],
+                    )
+                )
+                conn.commit()
+        except Exception as e:
+            logger.error(f"Error saving fact to SQLite: {e}")
+            if require_sqlite:
+                raise
+
+        # تزامن مع ملف JSON للاحتياط
+        facts = self._read_long_term_facts_raw()
+        facts = [f for f in facts if f.get("id") != target_id]
+        facts.insert(0, record)
+        try:
+            self._write_long_term_facts_raw(facts)
+        except OSError:
+            if not require_sqlite:
+                raise
+            logger.warning("Fact saved to SQLite but its JSON mirror could not be refreshed")
+        logger.info(f"💾 Long-term fact saved to SQLite & JSON: {record['key']} ({record['id']})")
+        return record
+
+    def update_long_term_fact(self, fact_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """تحديث حقيقة قائمة في SQLite."""
+        record = self.get_long_term_fact(fact_id)
+        if not record:
+            return None
+        for k in ("key", "content", "category", "importance"):
+            if k in updates and updates[k] is not None:
+                record[k] = updates[k]
+        record["updated_at"] = datetime.now().isoformat()
+        try:
+            with self._get_db_connection() as conn:
+                conn.execute(
+                    "UPDATE facts SET key=?, content=?, category=?, importance=?, updated_at=? WHERE id=?",
+                    (record["key"], record["content"], record["category"], record["importance"], record["updated_at"], fact_id)
+                )
+                conn.commit()
+        except Exception as e:
+            logger.error(f"Error updating fact in SQLite: {e}")
+
+        # مزامنة JSON
+        facts = self._read_long_term_facts_raw()
+        for idx, f in enumerate(facts):
+            if f.get("id") == fact_id:
+                facts[idx] = record
+                break
+        self._write_long_term_facts_raw(facts)
+        return record
+
+    def delete_long_term_fact(self, fact_id: str) -> bool:
+        """حذف حقيقة من الذاكرة طويلة المدى في SQLite و JSON."""
+        ok = False
+        try:
+            with self._get_db_connection() as conn:
+                cur = conn.execute("DELETE FROM facts WHERE id = ?", (fact_id,))
+                conn.commit()
+                ok = cur.rowcount > 0
+        except Exception as e:
+            logger.error(f"Error deleting fact from SQLite: {e}")
+
+        facts = self._read_long_term_facts_raw()
+        filtered = [f for f in facts if f.get("id") != fact_id]
+        if len(filtered) < len(facts):
+            self._write_long_term_facts_raw(filtered)
+            ok = True
+        logger.info(f"🗑️ Long-term fact deleted: {fact_id} (success={ok})")
+        return ok
+
+    def clear_long_term_facts(self) -> int:
+        """مسح كافة الحقائق المحفوظة في الذاكرة طويلة المدى."""
+        count = 0
+        try:
+            with self._get_db_connection() as conn:
+                cur = conn.execute("DELETE FROM facts")
+                conn.commit()
+                count = cur.rowcount
+        except Exception as e:
+            logger.error(f"Error clearing facts from SQLite: {e}")
+        self._write_long_term_facts_raw([])
+        logger.info(f"🧹 Cleared {count} long-term facts.")
+        return count
+
+    def get_episodes_list(self, limit: int = 50, offset: int = 0, q: Optional[str] = None) -> Dict[str, Any]:
+        """استرجاع قائمة حلقات الذاكرة من SQLite مع دعم البحث والتصفح"""
+        try:
+            with self._get_db_connection() as conn:
+                if q and q.strip():
+                    pattern = f"%{q.strip()}%"
+                    total = conn.execute(
+                        "SELECT COUNT(*) FROM episodes WHERE user_query LIKE ? OR result_summary LIKE ? OR agent LIKE ?",
+                        (pattern, pattern, pattern)
+                    ).fetchone()[0]
+                    rows = conn.execute(
+                        "SELECT episode_id, agent, agents_involved, user_query, result_summary, success, created_at FROM episodes WHERE user_query LIKE ? OR result_summary LIKE ? OR agent LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                        (pattern, pattern, pattern, limit, offset)
+                    ).fetchall()
+                else:
+                    total = conn.execute("SELECT COUNT(*) FROM episodes").fetchone()[0]
+                    rows = conn.execute(
+                        "SELECT episode_id, agent, agents_involved, user_query, result_summary, success, created_at FROM episodes ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                        (limit, offset)
+                    ).fetchall()
+                items = [dict(r) for r in rows]
+                for item in items:
+                    if isinstance(item.get("agents_involved"), str):
+                        try:
+                            item["agents_involved"] = json.loads(item["agents_involved"])
+                        except Exception:
+                            item["agents_involved"] = [item.get("agent")]
+                return {"items": items, "total": total, "limit": limit, "offset": offset}
+        except Exception as e:
+            logger.error(f"Error reading episodes from SQLite: {e}")
+            return {"items": [], "total": 0, "limit": limit, "offset": offset}
+
+    def get_long_term_summary(self, max_items: int = 10) -> str:
+        """توليد ملخص نصي موجز للحقائق لحقنها في الـ System Prompt لسراج."""
+        facts = self.get_long_term_facts()
+        if not facts:
+            return ""
+        lines = []
+        for f in facts[:max_items]:
+            cat = f.get("category", "عام")
+            title = f.get("key") or "معلومة"
+            cnt = f.get("content", "").replace("\n", " ").strip()
+            lines.append(f"• [{cat}] {title}: {cnt}")
+        return "\n".join(lines)

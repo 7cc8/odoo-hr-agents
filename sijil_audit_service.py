@@ -22,6 +22,7 @@ from __future__ import annotations
 import os
 import sys
 import json
+from html import escape
 import hashlib
 import re
 import shutil
@@ -62,8 +63,6 @@ class SijilAuditService:
             "appraisal_audit_log.jsonl": ("appraisal", "تقييم أداء"),
             "recruitment_audit_log.jsonl": ("recruitment", "استقطاب وتوظيف"),
             "telegram_audit.log": ("telegram", "برقيات تيليجرام وتفويضات"),
-            "01_test_create_employee.jsonl": ("employee", "إدارة موظفين"),
-            "04_test_safe_fields_extended.jsonl": ("security", "فحص حقول وأمان"),
             "deletion_audit_log.jsonl": ("deletions", "أرشفة وحذف محكوم"),
             "writer_audit_log.jsonl": ("writer", "تعديلات كاتب المباشرة"),
             "warning_audit_log.jsonl": ("warnings", "إنذارات ومساءلات"),
@@ -75,6 +74,8 @@ class SijilAuditService:
         }
 
         for filename, (dom_key, dom_name_ar) in log_mappings.items():
+            if "test" in filename.lower():
+                continue
             file_path = self.logs_dir / filename
             if not file_path.exists():
                 continue
@@ -91,9 +92,6 @@ class SijilAuditService:
                             item["_domain"] = dom_key
                             item["_domain_ar"] = dom_name_ar
                             item["_line_number"] = line_idx
-                            if "readback_verified" not in item:
-                                if item.get("status") == "success" or item.get("verified") is True:
-                                    item["readback_verified"] = True
                             all_records.append(item)
                         except Exception:
                             # في حال كانت أسطر نصية عادية
@@ -105,7 +103,6 @@ class SijilAuditService:
                                 "_domain": dom_key,
                                 "_domain_ar": dom_name_ar,
                                 "_line_number": line_idx,
-                                "readback_verified": True,
                             })
             except Exception as exc:
                 print(f"Warning reading audit log {filename}: {exc}", file=sys.stderr)
@@ -136,15 +133,10 @@ class SijilAuditService:
 
         for r in records:
             # التحقق المستقل بعد الكتابة
-            if "readback_verified" in r:
+            if isinstance(r.get("readback_verified"), bool):
                 readback_eligible_count += 1
                 if r["readback_verified"] is True:
                     readback_verified_count += 1
-            elif r.get("status") == "success" or r.get("verified") is True:
-                readback_eligible_count += 1
-                readback_verified_count += 1
-                r["readback_verified"] = True
-
             # رموز الموافقة
             token = r.get("approval_token") or r.get("token") or r.get("details", {}).get("token")
             if token and token not in four_eyes_tokens:
@@ -159,10 +151,10 @@ class SijilAuditService:
         if readback_eligible_count > 0:
             readback_rate = round((readback_verified_count / readback_eligible_count) * 100.0, 1)
         else:
-            readback_rate = 100.0
+            readback_rate = None
 
         # مؤشر النزاهة والحوكمة الإجمالي (من 100)
-        governance_health_score = 99.8 if total_events > 0 else 100.0
+        governance_health_score = None  # No independent governance score is collected.
 
         # بصمة رقمية لمصداقية التقرير
         raw_hash_material = f"{total_events}:{readback_verified_count}:{len(four_eyes_tokens)}:{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
@@ -224,7 +216,7 @@ class SijilAuditService:
             domain_ar = rec.get("_domain_ar", "عام")
             action = str(rec.get("action") or rec.get("event") or "OPERATION")
             emp_id = rec.get("employee_id") or rec.get("user_id") or "—"
-            token = rec.get("approval_token") or rec.get("token") or "تلقائي / آمن"
+            token = "مسجّل" if rec.get("approval_token") or rec.get("token") else "—"
             
             # حالة التحقق بعد القراءة
             rb = rec.get("readback_verified")
@@ -233,15 +225,15 @@ class SijilAuditService:
             elif rb is False:
                 rb_badge = '<span class="status-pill status-alert"><span class="dot dot-red"></span>فشل تطابق</span>'
             else:
-                rb_badge = '<span class="status-pill status-neutral"><span class="dot dot-gray"></span>قراءة آمنة</span>'
+                rb_badge = '<span class="status-pill status-neutral"><span class="dot dot-gray"></span>غير مقاس</span>'
 
             rows_html.append(f"""
             <tr>
                 <td class="mono font-xs">{idx}</td>
-                <td class="mono font-xs" style="color: var(--color-silver);">{ts}</td>
-                <td><span class="domain-tag">{domain_ar}</span></td>
-                <td class="mono font-sm bold">{action}</td>
-                <td class="mono font-sm">{emp_id}</td>
+                <td class="mono font-xs" style="color: var(--color-silver);">{escape(str(ts))}</td>
+                <td><span class="domain-tag">{escape(str(domain_ar))}</span></td>
+                <td class="mono font-sm bold">{escape(str(action))}</td>
+                <td class="mono font-sm">{escape(str(emp_id))}</td>
                 <td class="mono font-xs token-cell">{token}</td>
                 <td>{rb_badge}</td>
             </tr>
@@ -254,7 +246,7 @@ class SijilAuditService:
         for d_name, d_cnt in summary["domain_counts"].items():
             domains_cards_html.append(f"""
             <div class="domain-stat-box">
-                <span class="domain-stat-name">{d_name}</span>
+                <span class="domain-stat-name">{escape(str(d_name))}</span>
                 <span class="domain-stat-count mono">{d_cnt:,} <small>عملية</small></span>
             </div>
             """)
@@ -263,7 +255,7 @@ class SijilAuditService:
         context = {
             "summary": summary,
             "total_events": f"{summary['total_events']:,}",
-            "readback_rate": summary["readback_rate"],
+            "readback_rate": f"{summary['readback_rate']}%" if summary["readback_rate"] is not None else "غير مقاس",
             "four_eyes_tokens_count": f"{summary['four_eyes_tokens_count']:,}",
             "blocked_actions": f"{summary['blocked_actions']:,}",
             "domains_count": len(summary["domain_counts"]),
@@ -536,7 +528,14 @@ class SijilAuditService:
             dirname = os.path.basename(r_dir)
             parts = dirname.split("_")
             r_id = parts[0]
-            if r_id.lower().startswith(q_lower) or q_lower in r_id.lower():
+            ident_run = f"run_{r_id}".lower()
+            if (
+                q_lower == ident_run
+                or ident_run.startswith(q_lower)
+                or r_id.lower().startswith(q_lower)
+                or q_lower in r_id.lower()
+                or (clean_core and (r_id.lower() == clean_core or r_id.lower().startswith(clean_core) or clean_core in r_id.lower()))
+            ):
                 matches.append({
                     "identifier": f"run_{r_id}",
                     "source": "batch_run",
@@ -605,7 +604,7 @@ class SijilAuditService:
         ]
 
         for rel_path, dom_key, dom_title, id_field in domain_logs:
-            full_path = ROOT_DIR / rel_path
+            full_path = self.logs_dir / Path(rel_path).name
             if not full_path.exists():
                 continue
             try:
@@ -622,8 +621,11 @@ class SijilAuditService:
                             emp_id = rec.get("employee_id")
                             ref_code = str(rec.get("reference_code") or rec.get("verification_code") or rec.get("approval_token") or "")
                             emp_name = str(rec.get("employee_name") or "")
+                            ident = f"{dom_key}_{l_idx}_{emp_id}".lower()
 
-                            if is_numeric and (item_id == num_val or emp_id == num_val):
+                            if q_lower == ident or ident.startswith(q_lower):
+                                matched = True
+                            elif is_numeric and (item_id == num_val or emp_id == num_val):
                                 matched = True
                             elif ref_code and (q_lower in ref_code.lower() or ref_code.lower().startswith(q_lower)):
                                 matched = True

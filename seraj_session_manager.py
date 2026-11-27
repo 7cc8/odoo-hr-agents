@@ -48,10 +48,38 @@ class ConversationSession:
     history: List[Dict[str, Any]] = field(default_factory=list)
     handoffs: List[Dict[str, Any]] = field(default_factory=list)
     checkpoints: List[Dict[str, Any]] = field(default_factory=list)
+    active_entities: Dict[str, Any] = field(default_factory=dict)
     last_query_topic: Optional[str] = None
     title: Optional[str] = None
     created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+
+    def update_active_entities(self, **kwargs: Any) -> None:
+        """تحديث الكيانات النشطة في الذاكرة قصيرة المدى (الموظف الأخير، القسم، المعرف...)."""
+        for k, v in kwargs.items():
+            if v is not None:
+                self.active_entities[k] = v
+        self.updated_at = datetime.now(timezone.utc).isoformat()
+
+    def get_context_summary(self) -> str:
+        """صياغة ملخص للكيانات النشطة في السياق لحقنها في توجيهات النماذج وفض الضمائر."""
+        if not self.active_entities:
+            return ""
+        parts = []
+        if self.active_entities.get("employee_name"):
+            emp_info = f"الموظف الحالي: {self.active_entities['employee_name']}"
+            if self.active_entities.get("employee_id"):
+                emp_info += f" (ID: {self.active_entities['employee_id']})"
+            parts.append(emp_info)
+        if self.active_entities.get("department_name"):
+            parts.append(f"القسم: {self.active_entities['department_name']}")
+        if self.active_entities.get("job_title"):
+            parts.append(f"المسمى: {self.active_entities['job_title']}")
+        if self.active_entities.get("company_name"):
+            parts.append(f"الشركة: {self.active_entities['company_name']}")
+        if self.active_entities.get("last_topic"):
+            parts.append(f"آخر موضوع: {self.active_entities['last_topic']}")
+        return " | ".join(parts)
 
     def record_handoff(
         self,
@@ -97,20 +125,25 @@ class ConversationSession:
             self.checkpoints = self.checkpoints[-50:]
         return cp
 
-    def add_message(self, role: str, content: str, tool_calls: Optional[List[Dict[str, Any]]] = None) -> None:
+    def add_message(self, role: str, content: str, tool_calls: Optional[List[Dict[str, Any]]] = None, *, sensitive: bool = False) -> None:
         """إضافة رسالة إلى تاريخ الجلسة مع الحفاظ على سقف أقصى 30 رسالة وتحديث الطابع الزمني والعنوان ومزامنتها مع ذاكرة العمل الموحدة."""
-        msg: Dict[str, Any] = {"role": role, "content": content}
+        timestamp = datetime.now(timezone.utc).isoformat()
+        msg: Dict[str, Any] = {"role": role, "content": content, "timestamp": timestamp}
+        if sensitive:
+            msg["sensitive"] = True
         if tool_calls:
             msg["tool_calls"] = tool_calls
         self.history.append(msg)
         if len(self.history) > 30:
             self.history = self.history[-30:]
 
-        self.updated_at = datetime.now(timezone.utc).isoformat()
+        self.updated_at = timestamp
         if not self.title and role == "user":
             first_line = content.strip().split("\n")[0][:45].strip()
             self.title = first_line or "محادثة استفسار"
 
+        if sensitive:
+            return
         try:
             from memory.manager import MemoryManager
             wm = MemoryManager.get_instance().get_working_memory(self.chat_id)
@@ -174,6 +207,10 @@ class SerajSessionManager:
         if cid in self.sessions:
             del self.sessions[cid]
 
+    def clear_all_sessions(self) -> None:
+        """مسح وتصفير كافة جلسات المحادثة المخزنة في الذاكرة."""
+        self.sessions.clear()
+
     def list_sessions(self) -> List[Dict[str, Any]]:
         """إرجاع قائمة بكافة الجلسات النشطة مرتبة تنازلياً حسب آخر نشاط."""
         result = []
@@ -183,7 +220,7 @@ class SerajSessionManager:
                 display_title = f"جلسة {s.chat_id[:8]}" if s.chat_id.startswith("web_") else s.chat_id
             last_msg = ""
             if s.history:
-                last_msg = str(s.history[-1].get("content") or "")[:80]
+                last_msg = "تفاصيل عقد محمية" if s.history[-1].get("sensitive") else str(s.history[-1].get("content") or "")[:80]
             result.append({
                 "chat_id": s.chat_id,
                 "title": display_title,

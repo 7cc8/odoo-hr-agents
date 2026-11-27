@@ -2,6 +2,8 @@ from __future__ import annotations
 import os
 import time
 import xmlrpc.client
+from threading import Lock
+from functools import cached_property
 from typing import Any, Dict, List, Optional
 
 try:
@@ -16,6 +18,18 @@ class OdooReadonlyRepositoryError(Exception):
 
 
 class OdooReadonlyRepository:
+    @cached_property
+    def supports_appraisal_import(self) -> bool:
+        from odoo_appraisal_write_gateway import APPRAISAL_REQUEST_MODEL
+
+        required = {"employee_id", "name", "start_date", "end_date", "final_percentage",
+                    "total_points_earned", "max_possible_points", "state", "notes"}
+        try:
+            fields = self._execute_kw(APPRAISAL_REQUEST_MODEL, "fields_get", [sorted(required)])
+        except xmlrpc.client.Fault:
+            return False
+        return required.issubset(fields)
+
     def __init__(self, url=None, db=None, username=None, api_key=None, timeout=30, password=None):
         active_cfg: Dict[str, str] = {}
         try:
@@ -35,6 +49,7 @@ class OdooReadonlyRepository:
                 "Missing Odoo connection settings: ODOO_URL, ODOO_DB, ODOO_USER, ODOO_API_KEY"
             )
 
+        self._rpc_lock = Lock()
         self._uid: Optional[int] = None
         self._common = None
         self._models = None
@@ -68,9 +83,20 @@ class OdooReadonlyRepository:
             self.connect()
 
     def _execute_kw(self, model, method, args, kwargs=None):
-        self._ensure_connected()
-        kwargs = kwargs or {}
-        return self._models.execute_kw(self.db, self.uid, self.api_key, model, method, args, kwargs)
+        # ServerProxy reuses one HTTP connection, which cannot serve overlapping calls.
+        with self._rpc_lock:
+            self._ensure_connected()
+            return self._models.execute_kw(self.db, self.uid, self.api_key, model, method, args, kwargs or {})
+
+    def count_pending_disciplinary_actions(self) -> Optional[int]:
+        try:
+            return self._execute_kw("disciplinary.action", "search_count",
+                                    [[["state", "in", ["draft", "under_investigation"]]]],
+                                    {"context": self._base_context()})
+        except xmlrpc.client.Fault as exc:
+            if "disciplinary.action" in exc.faultString and "doesn't exist" in exc.faultString:
+                return None
+            raise
 
     def _base_context(self) -> Dict[str, Any]:
         return {"active_test": False}
@@ -1134,4 +1160,42 @@ def reset_shared_readonly_repository() -> None:
 
 
 
-
+
+
+
+class CompanyScopedReadonlyRepository(OdooReadonlyRepository):
+    """Read Excel import references inside one accessible company."""
+
+    def __init__(self, company_id: int):
+        super().__init__()
+        self.company_id = company_id
+
+    def get_accessible_companies(self) -> List[Dict[str, Any]]:
+        companies = [c for c in super().get_accessible_companies() if c["id"] == self.company_id]
+        if not companies:
+            raise OdooReadonlyRepositoryError("المنشأة المختارة غير متاحة لهذا الحساب.")
+        return companies
+
+    def get_default_company(self) -> Dict[str, Any]:
+        return self.get_accessible_companies()[0]
+
+    def _base_context(self) -> Dict[str, Any]:
+        context = super()._base_context()
+        # Discover accessible companies before applying the narrower context.
+        if self._companies_cache is not None:
+            context["allowed_company_ids"] = self.get_company_ids()
+        return context
+
+    def get_departments(self, company_ids=None) -> List[Dict[str, Any]]:
+        return super().get_departments(company_ids=self.get_company_ids())
+
+    def get_jobs(self, company_ids=None) -> List[Dict[str, Any]]:
+        return super().get_jobs(company_ids=self.get_company_ids())
+
+    def get_employees(self, limit: int = 500, active_only: bool = True) -> List[Dict[str, Any]]:
+        self.get_company_ids()
+        employees = super().get_employees(limit=limit, active_only=active_only)
+        return [
+            employee for employee in employees
+            if (employee.get("company_id") or [None])[0] == self.company_id
+        ]

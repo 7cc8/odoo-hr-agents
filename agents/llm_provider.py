@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger("llm_provider")
@@ -103,14 +104,14 @@ class LLMProvider:
         # 1. إذا كان المشغل النشط هو الذكاء الاصطناعي السحابي:
         if active == "cloud":
             res = self._call_cloud(messages, tools, temperature)
-            if res.get("provider") == "cloud" and not res.get("provider", "").endswith("_error"):
+            if res.get("provider") == "cloud" and (res.get("content") or res.get("tool_calls")):
                 return res
 
             # التبديل التلقائي: إذا لم يستجب المشغل السحابي أو تعطل، التحول فوراً للمحرك المحلي
-            if mode == "auto" or fallback_enabled:
+            if mode == "auto" and fallback_enabled:
                 logger.warning("Cloud AI provider failed or did not respond. Automatically falling back to local Ollama engine so agents keep running...")
                 local_res = self._call_ollama(messages, tools, temperature)
-                if local_res.get("provider") == "ollama" and not local_res.get("provider", "").endswith("_error"):
+                if local_res and local_res.get("provider") == "ollama" and (local_res.get("content") or local_res.get("tool_calls")):
                     return local_res
                 logger.warning("Local Ollama also unavailable. Falling back to safety rule-based response...")
 
@@ -119,15 +120,15 @@ class LLMProvider:
         # 2. إذا كان المشغل النشط هو المحرك المحلي:
         elif active == "local":
             res = self._call_ollama(messages, tools, temperature)
-            if res.get("provider") == "ollama" and not res.get("provider", "").endswith("_error"):
+            if res and res.get("provider") == "ollama" and (res.get("content") or res.get("tool_calls")):
                 return res
 
             # التبديل التلقائي إذا تعثر المحلي وتوفر مفتاح سحابي:
             cloud_key = self.config.get("cloud", {}).get("api_key") or os.environ.get("OPENROUTER_API_KEY") or os.environ.get("LLM_API_KEY")
-            if cloud_key and (mode == "auto" or fallback_enabled):
+            if cloud_key and mode == "auto" and fallback_enabled:
                 logger.warning("Local Ollama unavailable. Automatically switching to Cloud AI provider fallback...")
                 cloud_res = self._call_cloud(messages, tools, temperature)
-                if cloud_res.get("provider") == "cloud" and not cloud_res.get("provider", "").endswith("_error"):
+                if cloud_res.get("provider") == "cloud" and (cloud_res.get("content") or cloud_res.get("tool_calls")):
                     return cloud_res
 
             logger.warning("No live LLM engine responded. Falling back to safety rule-based response...")
@@ -169,6 +170,8 @@ class LLMProvider:
                 "stream": False,
                 "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "1024")),
             }
+            if local_model.startswith("qwen3.5"):
+                payload["reasoning_effort"] = "none"
             
             # إضافة الأدوات إذا كانت متاحة
             if tools:
@@ -246,7 +249,6 @@ class LLMProvider:
                 payload["tools"] = tools
                 payload["tool_choice"] = "auto"
 
-            data = json.dumps(payload).encode("utf-8")
             headers = {
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {api_key.strip()}",
@@ -255,16 +257,25 @@ class LLMProvider:
                 "X-Title": "Odoo HR Agents",
             }
 
-            req = urllib.request.Request(url, data=data, headers=headers)
-            with urllib.request.urlopen(req, timeout=timeout) as response:
-                result = json.loads(response.read().decode("utf-8"))
-                if result.get("choices"):
-                    message = result["choices"][0].get("message", {})
+            deadline = time.monotonic() + timeout
+            for _ in range(2):
+                remaining = deadline - time.monotonic()
+                if remaining <= 1:
+                    break
+                req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers=headers)
+                with urllib.request.urlopen(req, timeout=remaining) as response:
+                    result = json.load(response)
+                choice = (result.get("choices") or [{}])[0]
+                message = choice.get("message") or {}
+                if message.get("content") or message.get("tool_calls"):
                     return {
                         "content": message.get("content", ""),
                         "tool_calls": message.get("tool_calls"),
                         "provider": "cloud",
                     }
+                if choice.get("finish_reason") != "length" or payload["max_tokens"] >= 4096:
+                    break
+                payload["max_tokens"] = min(payload["max_tokens"] * 2, 4096)
         except Exception as e:
             logger.error(f"Cloud provider error: {e}")
             return {
@@ -280,86 +291,8 @@ class LLMProvider:
         }
     
     def _call_fallback(self, messages: List[Dict[str, Any]]) -> Dict[str, Any]:
-        """Rule-based fallback عندما لا يتوفر LLM"""
-        
-        # استخراج آخر سؤال من المستخدم
-        user_query = ""
-        for msg in reversed(messages):
-            if msg.get("role") == "user":
-                user_query = msg.get("content", "").lower()
-                break
-        
-        logger.info(f"Fallback processing query: {user_query[:50]}...")
-        
-        # ردود بسيطة بناءً على كلمات مفتاحية
-        if any(kw in user_query for kw in ["مرحب", "السلام", "هلا", "أهلا", "اهلا", "hello", "hi", "hey"]):
-            response_text = "أهلاً وسهلاً! 👋 أنا سراج، مساعدك في إدارة الموارد البشرية.\n\n" \
-                           "يمكنني مساعدتك في:\n" \
-                           "• الاستفسار عن الموظفين 👥\n" \
-                           "• عرض الأقسام 📁\n" \
-                           "• معلومات الشركات 🏢\n" \
-                           "• معالجة ملفات Excel 📊\n\n" \
-                           "💬 جرّب أن تسأل: 'كم عدد الموظفين؟' أو 'مساعدة'"
-        
-        elif any(kw in user_query for kw in ["كم", "عدد", "count", "how many"]):
-            if "موظف" in user_query or "employee" in user_query:
-                response_text = "📊 لعرض عدد الموظفين، يحتاج النظام للاتصال بقاعدة بيانات Odoo.\n\n" \
-                               "حالياً في وضع Fallback المحدود. للحصول على البيانات الفعلية:\n" \
-                               "1. ثبّت Ollama (مجاني): https://ollama.ai\n" \
-                               "2. أو أضف OPENAI_API_KEY في ملف .env"
-            else:
-                response_text = "أحتاج لمعرفة ماذا تريد أن تعد؟ (موظفين، أقسام، شركات؟)"
-        
-        elif any(kw in user_query for kw in ["قسم", "أقسام", "department"]):
-            response_text = "📁 لعرض الأقسام، يحتاج النظام للاتصال بقاعدة بيانات Odoo.\n\n" \
-                           "حالياً في وضع Fallback المحدود."
-        
-        elif any(kw in user_query for kw in ["شركة", "منشأة", "company"]):
-            response_text = "🏢 لعرض الشركات، يحتاج النظام للاتصال بقاعدة بيانات Odoo.\n\n" \
-                           "حالياً في وضع Fallback المحدود."
-        
-        elif any(kw in user_query for kw in ["help", "مساعدة", "ساعد", "إيش", "ايش", "شو", "وش"]):
-            response_text = "🤖 **سراج - المساعد الذكي للموارد البشرية**\n\n" \
-                           "**الوضع الحالي:** Fallback (محدود)\n\n" \
-                           "**ما يمكنني فعله الآن:**\n" \
-                           "• الرد على التحيات البسيطة\n" \
-                           "• شرح كيفية تحسين النظام\n" \
-                           "• إرشادات الاستخدام\n\n" \
-                           "**🚀 للحصول على الوظائف الكاملة:**\n" \
-                           "1. **Ollama (مجاني):** تحميل من ollama.ai\n" \
-                           "2. **OpenAI API (مدفوع):** إضافة OPENAI_API_KEY\n\n" \
-                           "بعدها ستحصل على:\n" \
-                           "✅ استعلام حقيقي من Odoo\n" \
-                           "✅ معالجة ملفات Excel\n" \
-                           "✅ إجابات ذكية ومفصلة"
-        
-        else:
-            # رد افتراضي ودود
-            response_text = f"مرحباً! 👋 فهمت أنك تريد: '{user_query[:50]}'\n\n" \
-                           "أعتذر، حالياً أعمل في **وضع Fallback المحدود** ولا أستطيع معالجة هذا الطلب بذكاء.\n\n" \
-                           "🎯 **ما يمكنك فعله:**\n" \
-                           "• جرّب كلمات بسيطة: 'مساعدة'، 'كم عدد الموظفين؟'\n" \
-                           "• ارفع ملف Excel من الواجهة (يعمل بدون LLM)\n\n" \
-                           "🚀 **لتفعيل الذكاء الكامل (اختياري):**\n\n" \
-                           "**الطريقة الأسهل (مجاني):**\n" \
-                           "```bash\n" \
-                           "# تحميل Ollama من https://ollama.ai\n" \
-                           "ollama pull qwen3.5:9b\n" \
-                           "ollama serve\n" \
-                           "```\n" \
-                           "ثم في ملف `.env`: `LLM_PROVIDER=ollama`\n\n" \
-                           "**أو استخدام OpenAI:**\n" \
-                           "```bash\n" \
-                           "LLM_PROVIDER=langgraph\n" \
-                           "OPENAI_API_KEY=sk-...\n" \
-                           "```\n\n" \
-                           "💡 النظام يعمل أساساً - الـ LLM مجرد تحسين!"
-        
-        return {
-            "content": response_text,
-            "tool_calls": None,
-            "provider": "fallback",
-        }
+        """Report an unavailable model to the caller."""
+        return {"content": "", "tool_calls": None, "provider": "fallback"}
 
 
 # ═══════════════════════════════════════════════════════════════

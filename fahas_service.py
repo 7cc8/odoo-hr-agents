@@ -24,6 +24,21 @@ from odoo_readonly_repository import OdooReadonlyRepository, OdooReadonlyReposit
 
 logger = logging.getLogger("fahas_service")
 
+# Descriptions recorded as departments in legacy imports.
+DISCIPLINARY_DEPARTMENT_MARKERS = (
+    "إهمال في المهام",
+    "اهمال في المهام",
+    "الإخلال بسرية",
+    "الاخلال بسرية",
+    "التأخر المتكرر",
+    "التاخر المتكرر",
+    "تكرار التأخر",
+    "تكرار التاخر",
+    "متتالية بدون عذر",
+    "مخالفة سياسة",
+    "بند لائحة الجزاءات",
+)
+
 
 def check_consistency(groups: List[Dict[str, Any]], total: int) -> Dict[str, Any]:
     """
@@ -506,6 +521,9 @@ class FahasAgent:
         # ✅ limit=0 يعني "الكل" (حتى 50)
         safe_limit = 50 if limit == 0 else max(1, min(int(limit), 50))
         query_domain = list(domain) if domain and isinstance(domain, list) else []
+        if model_clean == "hr.department":
+            # Apply after the caller's complete domain, including prefix OR expressions.
+            query_domain.extend(("name", "not ilike", marker) for marker in DISCIPLINARY_DEPARTMENT_MARKERS)
 
         if company_id is not None:
             has_company_filter = any(
@@ -556,6 +574,82 @@ class FahasAgent:
         except Exception as exc:
             logger.error("فاحص: فشل البحث في سجلات %s: %s", model_clean, exc)
             raise FahasExecutionError(f"فشل البحث في سجلات «{model_clean}» عبر فاحص: {exc}")
+
+    def count_employee_contract_coverage(self, company_id, connection_id=None):
+        """Count active employees and contract coverage without reading individual contracts."""
+        repo = self.get_repository(connection_id)
+        if company_id is None:
+            company_id = repo.get_default_company()["id"]
+        if company_id not in repo.get_company_ids():
+            raise FahasSecurityError("لا يمكن فحص العقود خارج المنشأة المصرح بها.")
+
+        options = {"context": {"allowed_company_ids": [company_id], "active_test": True}}
+        fields = ["contract_date_start", "contract_ids", "contract_id"]
+        schema = repo._execute_kw("hr.employee", "fields_get", [fields], {
+            **options, "attributes": ["searchable"],
+        })
+        contract_field = next((field for field in fields if schema.get(field, {}).get("searchable")), None)
+        if contract_field is None:
+            raise FahasExecutionError("لا تتوفر بيانات العقود في سجلات الموظفين على إصدار Odoo المتصل.")
+
+        employees = [("company_id", "=", company_id), ("active", "=", True)]
+        total = repo._execute_kw("hr.employee", "search_count", [employees], options)
+        with_contract = repo._execute_kw(
+            "hr.employee", "search_count", [employees + [(contract_field, "!=", False)]], options,
+        )
+        return total, with_contract
+
+    def get_employee_contract(self, employee_id_or_name, company_id, connection_id=None):
+        """Read the contract for one verified employee via the operator-only tool."""
+        from datetime import date
+        from xmlrpc.client import Fault
+
+        repo = self.get_repository(connection_id)
+        if not company_id or company_id not in repo.get_company_ids():
+            raise FahasSecurityError("لا يمكن قراءة العقد خارج المنشأة المصرح بها.")
+        reference = str(employee_id_or_name).strip()
+        by_id = reference.isdecimal()
+        domain = [("id", "=", int(reference))] if by_id else [("name", "=ilike", reference)]
+        employees = self.search_records("hr.employee", domain, ["id", "name"], limit=2,
+                                        company_id=company_id, connection_id=connection_id)["records"]
+        if len(employees) != 1:
+            return {"found": False, "message": "لم تُحدد نتيجة واحدة لموظف في المنشأة المختارة."}
+        employee = employees[0]
+        aliases = {
+            "wage": ("wage",), "date_start": ("contract_date_start", "date_start"),
+            "date_end": ("contract_date_end", "date_end"), "state": ("state",),
+            "housing_allowance": ("housing_allowance", "l10n_sa_housing_allowance"),
+            "transport_allowance": ("transport_allowance", "transportation_allowance", "l10n_sa_transportation_allowance"),
+        }
+        accessible_model = False
+        for model in ("hr.contract", "hr.version"):
+            try:
+                schema = repo._execute_kw(model, "fields_get", [["employee_id", *{field for names in aliases.values() for field in names}]])
+            except Fault as exc:
+                if "doesn't exist" in exc.faultString.lower() or "does not exist" in exc.faultString.lower() or "invalid model" in exc.faultString.lower():
+                    continue
+                raise
+            if "employee_id" not in schema:
+                continue
+            accessible_model = True
+            fields = {key: next((field for field in names if field in schema), None) for key, names in aliases.items()}
+            cols = list(dict.fromkeys(field for field in fields.values() if field))
+            order = f"{fields['date_start']} desc, id desc" if fields["date_start"] else "id desc"
+            records = repo._execute_kw(model, "search_read", [[("employee_id", "=", employee["id"])]], {
+                "fields": cols, "context": {"allowed_company_ids": [company_id]}, "order": order, "limit": 20,
+            })
+            if records:
+                today = date.today().isoformat()
+                current = next((row for row in records if row.get(fields["state"]) == "open" or (
+                    row.get(fields["date_start"]) and row[fields["date_start"]] <= today
+                    and (not row.get(fields["date_end"]) or row[fields["date_end"]] >= today)
+                )), records[0])
+                return {"found": True, "employee_name": employee["name"], "employee_id": employee["id"],
+                        **{key: current.get(field) if field else None for key, field in fields.items()}}
+        return {"found": False, "employee_name": employee["name"], "message": (
+            f"لا يوجد عقد مسجّل للموظف «{employee['name']}» في Odoo." if accessible_model
+            else "تعذّرت قراءة العقود في قاعدة Odoo المتصلة."
+        )}
 
     def group_count(
         self,
@@ -798,10 +892,17 @@ class FahasAgent:
         self,
         company_ids: Optional[List[int]] = None,
         connection_id: Optional[str] = None,
+        *,
+        company_id: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """استرجاع قائمة الأقسام من Odoo."""
         repo = self.get_repository(connection_id)
-        return repo.get_departments(company_ids=company_ids)
+        if company_id is not None:
+            company_ids = [company_id]
+        return [
+            record for record in repo.get_departments(company_ids=company_ids)
+            if not any(marker in (record.get("name") or "") for marker in DISCIPLINARY_DEPARTMENT_MARKERS)
+        ]
 
     def get_jobs(
         self,

@@ -164,6 +164,20 @@ class FahasAgent(BaseAgent):
             "task_data": task_data
         }
 
+        # استدعاء ذكاء فاحص الاستدلالي لتحليل الاستعلامات المعقدة
+        if query_str and len(query_str.split()) > 3 and not explicit_domain:
+            try:
+                prompt = (
+                    f"بصفتك وكيل الاستعلام «فاحص»، حلل طلب الاستعلام التالي لبيانات Odoo HR:\n"
+                    f"'{query_str}'\n"
+                    "حدد الكيانات المستهدفة وأي فلاتر إضافية مستنبطة بإيجاز."
+                )
+                query_analysis = self.call_llm(prompt)
+                if query_analysis:
+                    perception["llm_query_analysis"] = query_analysis
+            except Exception as e:
+                logger.debug("Fahas LLM query analysis skipped: %s", e)
+
         if op_id:
             try:
                 from agents.agent_events_service import emit_agent_event
@@ -305,23 +319,15 @@ class FahasAgent(BaseAgent):
                         "fields": step.get("fields", []),
                     }
                     
-                    try:
-                        registry = ToolRegistry.get_instance()
-                        if registry.get_tool(task_type):
-                            task_result = registry.execute_tool(
-                                tool_name=task_type,
-                                agent_name="fahas",
-                                args=params,
-                            )
-                        else:
-                            task_result = self.fahas_service.execute_query_task(task_type, params)
-                    except Exception as e:
-                        # Fallback mock for unit tests or offline environments
-                        logger.warning(f"execute_query_task call failed ({e}), using fallback result")
-                        if task_type == "count_records":
-                            task_result = {"count": 42, "model": params.get("model", "hr.employee")}
-                        else:
-                            task_result = [{"id": 1, "name": "Test Employee"}]
+                    registry = ToolRegistry.get_instance()
+                    if registry.get_tool(task_type):
+                        task_result = registry.execute_tool(
+                            tool_name=task_type,
+                            agent_name="fahas",
+                            args=params,
+                        )
+                    else:
+                        task_result = self.fahas_service.execute_query_task(task_type, params)
                             
                     results["data"] = task_result
                     results["steps_executed"].append({

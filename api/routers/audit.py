@@ -8,10 +8,12 @@ Sijil audit ledger & reports, and multi-agent lifecycle operations and approvals
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import json
 import logging
 import os
 import time
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -19,6 +21,10 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from pydantic import BaseModel
+
+from appraisal_excel_import import check_appraisal_row, create_excel_appraisal
+from odoo_appraisal_write_gateway import OdooAppraisalWriteGateway
+from odoo_readonly_repository import CompanyScopedReadonlyRepository
 
 import approval_schema
 import dry_run_report
@@ -287,30 +293,15 @@ def reset_connection_settings(request: Request) -> Dict[str, Any]:
 def get_llm_settings_endpoint(request: Request) -> Dict[str, Any]:
     """استرجاع إعدادات محرك الذكاء الاصطناعي وحالة الاتصال المباشرة للمزودات"""
     audit_log_access("/api/settings/llm", request)
-    from llm_config_manager import check_cloud_health, check_local_health, get_masked_llm_config, load_llm_config
+    from llm_config_manager import check_local_health, get_masked_llm_config
 
     masked = get_masked_llm_config()
-    raw = load_llm_config()
-
-    local_h = check_local_health(raw.get("local", {}).get("base_url"))
-    cloud_h = check_cloud_health(
-        raw.get("cloud", {}).get("provider"),
-        raw.get("cloud", {}).get("base_url"),
-        raw.get("cloud", {}).get("api_key")
-    )
-
-    mode = raw.get("mode", "auto")
-    active = raw.get("active_provider", "local")
-
-    if mode == "manual":
-        effective = "cloud" if active == "cloud" else "local"
-    else:
-        if local_h.get("available"):
-            effective = "local (تلقائي ذكي - محلي متاح)"
-        elif cloud_h.get("available"):
-            effective = "cloud (تلقائي ذكي - سحابي نشط)"
-        else:
-            effective = "fallback (قواعد آمنة)"
+    local = masked["local"]
+    cloud = masked["cloud"]
+    active = masked["active_provider"]
+    local_h = check_local_health(local["base_url"], auto_start=False)
+    cloud_h = {"status": "configured" if cloud["has_api_key"] else "missing_key"}
+    effective = f'{cloud["provider"]} ({cloud["model"]})' if active == "cloud" else f'Ollama ({local["model"]})'
 
     return {
         "status": "success",
@@ -332,24 +323,34 @@ def update_llm_settings_endpoint(payload: LLMProviderSettingsRequest, request: R
         "active_provider": payload.active_provider,
         "cloud_provider": payload.cloud_provider
     })
-    from llm_config_manager import get_masked_llm_config, save_llm_config
+    from llm_config_manager import PROVIDER_PRESETS, check_cloud_health, get_masked_llm_config, load_llm_config, save_llm_config
 
+    saved = load_llm_config()
+    cloud_provider = payload.cloud_provider or saved["cloud"]["provider"]
+    preset = PROVIDER_PRESETS.get(cloud_provider, PROVIDER_PRESETS["custom"])
+    same_provider = cloud_provider == saved["cloud"]["provider"]
     update_data = {
-        "mode": payload.mode or "auto",
-        "active_provider": payload.active_provider or "local",
-        "fallback_enabled": payload.fallback_enabled if payload.fallback_enabled is not None else True,
+        "mode": payload.mode or saved["mode"],
+        "active_provider": payload.active_provider or saved["active_provider"],
+        "fallback_enabled": payload.fallback_enabled if payload.fallback_enabled is not None else saved["fallback_enabled"],
         "local": {
-            "base_url": payload.local_base_url or "http://localhost:11434/v1",
-            "model": payload.local_model or "qwen3.5:9b",
+            "base_url": payload.local_base_url or saved["local"]["base_url"],
+            "model": payload.local_model or saved["local"]["model"],
         },
         "cloud": {
-            "provider": payload.cloud_provider or "openrouter",
-            "base_url": payload.cloud_base_url or "https://openrouter.ai/api/v1",
-            "model": payload.cloud_model or "openrouter/auto",
+            "provider": cloud_provider,
+            "base_url": payload.cloud_base_url or (saved["cloud"]["base_url"] if same_provider else preset["base_url"]),
+            "model": payload.cloud_model or (saved["cloud"]["model"] if same_provider else preset["default_model"]),
         }
     }
     if payload.cloud_api_key is not None:
         update_data["cloud"]["api_key"] = payload.cloud_api_key
+
+    if update_data["active_provider"] == "cloud":
+        cloud = update_data["cloud"]
+        result = check_cloud_health(cloud["provider"], cloud["base_url"], payload.cloud_api_key, cloud["model"])
+        if not result["available"]:
+            raise HTTPException(status_code=422, detail=result["message"])
 
     save_llm_config(update_data)
     masked = get_masked_llm_config()
@@ -364,6 +365,7 @@ def update_llm_settings_endpoint(payload: LLMProviderSettingsRequest, request: R
 @router.post("/api/settings/llm/test")
 def test_llm_settings_endpoint(payload: LLMTestRequest, request: Request) -> Dict[str, Any]:
     """اختبار فوري للاتصال بالمشغل المحلي (Ollama) أو السحابي (API)"""
+    verify_api_auth(request)
     audit_log_access("/api/settings/llm/test", request, {"target": payload.target})
     from llm_config_manager import test_provider_connection
 
@@ -537,16 +539,14 @@ def get_agents_overview_endpoint(request: Request) -> Dict[str, Any]:
 
 
 @router.get("/api/agents/operations")
-def get_agents_operations_endpoint(request: Request, limit: int = 30) -> Dict[str, Any]:
-    """Returns recent multi-agent operations with current progress."""
+def get_agents_operations_endpoint(request: Request, limit: int = 30, offset: int = 0, q: str = "", group: str = "all") -> Dict[str, Any]:
+    """Return one page and the count for the same filters."""
     audit_log_access("/api/agents/operations", request)
     from agent_events_service import get_events_service
-    srv = get_events_service()
-    return {
-        "status": "success",
-        "operations": srv.get_recent_operations(limit=limit),
-        "total": len(srv.operations),
-    }
+    if limit < 1 or offset < 0:
+        raise HTTPException(status_code=422, detail="حجم الصفحة أو موضع البداية غير صالح.")
+    operations, total = get_events_service().operations_page(limit, offset, q, group)
+    return {"status": "success", "operations": operations, "total": total}
 
 
 @router.get("/api/agents/operations/{operation_id}")
@@ -710,6 +710,36 @@ def _resolve_dry_run_report_file(identifier: Optional[str]) -> Optional[Path]:
     return None
 
 
+def _execute_approved_appraisals(rows, repo, header):
+    created = []
+    failures = []
+    gateway = None
+    for row in rows:
+        fields = {key: entry.get("value") for key, entry in row.get("fields", {}).items()}
+        issues, employee, score = check_appraisal_row(fields, repo)
+        row_label = f"صف {row.get('excel_row_number') or '—'}"
+        if issues:
+            failures.append(f"{row_label} — " + " ".join(message for _, message in issues))
+            continue
+        expected_employee = (row.get("resolved_ids") or {}).get("employee_match_id")
+        if expected_employee and expected_employee != employee["id"]:
+            failures.append(f"{row_label} — تغيّرت مطابقة الموظف منذ الفحص. أعد فحص الملف.")
+            continue
+
+        if gateway is None:
+            cfg = get_active_odoo_config()
+            if (cfg["db"] != header.get("odoo_db") or
+                    cfg["url"] != normalize_odoo_url(header.get("odoo_url") or "")):
+                raise ValueError("تغيّر اتصال Odoo منذ الفحص. أعد فحص الملف قبل الاعتماد.")
+            gateway = OdooAppraisalWriteGateway(cfg["url"], cfg["db"], cfg["username"], cfg["api_key"])
+        try:
+            created.append(create_excel_appraisal(fields, employee, score, gateway))
+        except Exception as exc:
+            logger.warning("Appraisal import failed at row %s: %s", row.get("excel_row_number"), type(exc).__name__)
+            failures.append(f"{row_label} — تعذّر إنشاء تقييم الأداء في Odoo. تحقق من صلاحية إنشاء التقييمات.")
+    return created, failures
+
+
 def _execute_excel_approval(
     payload: AgentApprovalApiRequest,
     report_file: Path,
@@ -723,6 +753,28 @@ def _execute_excel_approval(
         report_data = json.loads(report_file.read_text(encoding="utf-8"))
     except Exception as exc:
         raise HTTPException(status_code=400, detail=f"تعذر قراءة ملف تقرير الفحص: {exc}")
+
+    header = report_data.get("header", {})
+    template_type = report_data.get("summary", {}).get("template_type") or header.get("template_type") or "legacy_employee"
+    template_title = report_data.get("summary", {}).get("template_title") or header.get("template_title") or "الموارد البشرية"
+    operation = srv.get_operation(payload.operation_id) if payload.operation_id else None
+    if isinstance(operation, dict) and operation.get("status") == "cancelled":
+        raise HTTPException(status_code=409, detail="أُلغيت العملية. أعد فحص الملف قبل طلب الاعتماد.")
+    bound_upload = header.get("upload_operation_id")
+    target_company_id = header.get("target_company_id")
+    scoped_repo = None
+    if bound_upload:
+        if bound_upload != payload.operation_id or header.get("upload_chat_id") != payload.chat_id:
+            raise HTTPException(status_code=409, detail="تقرير الفحص لا يخص هذه العملية.")
+        input_path = _get_upload_dir() / Path(header.get("upload_source_file", "")).name
+        if not input_path.is_file() or hashlib.sha256(input_path.read_bytes()).hexdigest() != header.get("source_hash"):
+            raise HTTPException(status_code=409, detail="ملف التقرير تغيّر. أعد فحص الملف قبل الاعتماد.")
+        if target_company_id:
+            try:
+                scoped_repo = CompanyScopedReadonlyRepository(target_company_id)
+                scoped_repo.get_default_company()
+            except Exception as exc:
+                raise HTTPException(status_code=400, detail="المنشأة المحددة في الفحص غير متاحة.") from exc
 
     srv.emit_event(
         operation_id=op_id,
@@ -752,14 +804,24 @@ def _execute_excel_approval(
             "operation": srv.get_operation(op_id),
         }
 
-    source_name = report_data.get("header", {}).get("source_file_name", "")
-    upload_dir = _get_upload_dir()
-    candidates = list(upload_dir.glob(f"*{source_name}*")) if source_name else []
-    if candidates:
-        input_path = sorted(candidates, key=lambda p: p.stat().st_mtime, reverse=True)[0]
-    else:
-        all_uploads = sorted(upload_dir.glob("*.xlsx"), key=lambda p: p.stat().st_mtime, reverse=True)
-        input_path = all_uploads[0] if all_uploads else None
+    if not bound_upload:
+        source_name = (
+            report_data.get("header", {}).get("source_file_name", "")
+            or report_data.get("source_file_name", "")
+            or Path(report_data.get("input_path", "")).name
+        )
+        upload_dir = _get_upload_dir()
+        candidates = list(upload_dir.glob(f"*{source_name}*")) if source_name else []
+        if template_type == "appraisal":
+            input_path = next((path for path in candidates if path.is_file()
+                               and hashlib.sha256(path.read_bytes()).hexdigest() == header.get("source_hash")), None)
+            if input_path is None:
+                raise HTTPException(status_code=409, detail="تعذّر العثور على الملف المطابق للتقرير. أعد فحص الملف قبل الاعتماد.")
+        elif candidates:
+            input_path = sorted(candidates, key=lambda p: p.stat().st_mtime, reverse=True)[0]
+        else:
+            all_uploads = sorted(upload_dir.glob("*.xlsx"), key=lambda p: p.stat().st_mtime, reverse=True)
+            input_path = all_uploads[0] if all_uploads else None
 
     approved_by = payload.approved_by or "مشغّل النظام"
     approval_file = run_dir / "approval.json"
@@ -773,9 +835,6 @@ def _execute_excel_approval(
     }
     with open(approval_file, "w", encoding="utf-8") as f:
         json.dump(approval_payload, f, ensure_ascii=False, indent=2)
-
-    template_type = report_data.get("summary", {}).get("template_type") or report_data.get("header", {}).get("template_type") or "recruitment"
-    template_title = report_data.get("summary", {}).get("template_title") or report_data.get("header", {}).get("template_title") or "الموارد البشرية"
 
     srv.emit_event(
         operation_id=op_id,
@@ -791,21 +850,47 @@ def _execute_excel_approval(
     )
 
     try:
-        odoo_url = os.environ.get("ODOO_URL", "https://edu-training1555.odoo.com")
-        odoo_db = os.environ.get("ODOO_DB", "edu-training1555")
-        odoo_user = os.environ.get("ODOO_USERNAME") or os.environ.get("ODOO_USER") or "ghh05420@gmail.com"
-        odoo_key = os.environ.get("ODOO_API_KEY", "")
-
-        gw_cls = _get_write_gateway_cls()
         repo_cls = _get_readonly_repo_cls()
-        gw = gw_cls(odoo_url, odoo_db, odoo_user, odoo_key)
-        repo = repo_cls()
+        repo = scoped_repo or repo_cls()
+        if template_type != "appraisal":
+            cfg = get_active_odoo_config()
+            gw = _get_write_gateway_cls()(cfg["url"], cfg["db"], cfg["username"], cfg["api_key"])
 
         created_count = 0
         failed_count = 0
         created_items = []
+        failed_rows = []
+        sheets_execution_summary: Dict[str, Any] = {}
 
-        if template_type == "recruitment":
+        is_master_multi_sheet = (
+            template_type == "master"
+            or bool(report_data.get("summary", {}).get("sheets_processed"))
+        )
+
+        if template_type == "appraisal":
+            created_items, failed_rows = _execute_approved_appraisals(accepted_rows, repo, header)
+            created_count = len(created_items)
+            failed_count = len(failed_rows)
+        elif is_master_multi_sheet:
+            target_company_id = 1
+            try:
+                target_company_id = repo.get_default_company().get("id", 1)
+            except Exception:
+                pass
+            master_res = writer.execute_master_onboarding_sheets(
+                input_path=input_path,
+                accepted_rows=accepted_rows,
+                repository=repo,
+                gateway=gw,
+                target_company_id=target_company_id,
+                event_emitter=srv,
+                operation_id=op_id,
+            )
+            created_count = master_res.get("created_count", 0)
+            failed_count = master_res.get("failed_count", 0)
+            created_items = master_res.get("created_items", [])
+            sheets_execution_summary = master_res.get("sheets_execution_summary", {})
+        elif template_type == "recruitment":
             available_jobs = {}
             try:
                 for j in repo.get_jobs():
@@ -915,6 +1000,107 @@ def _execute_excel_approval(
                     created_items.append({"name": cand_name, "id": new_id, "job": job_title})
                 except Exception:
                     failed_count += 1
+        elif template_type in ("employee", "employees"):
+            available_companies = {}
+            try:
+                for c in repo.get_companies():
+                    if c.get("name"):
+                        available_companies[c["name"].strip().lower()] = c.get("id")
+            except Exception:
+                pass
+            available_departments = {}
+            try:
+                for d in repo.get_departments():
+                    if d.get("name"):
+                        available_departments[d["name"].strip().lower()] = d.get("id")
+            except Exception:
+                pass
+            available_jobs = {}
+            try:
+                for j in repo.get_jobs():
+                    if j.get("name"):
+                        available_jobs[j["name"].strip().lower()] = j.get("id")
+            except Exception:
+                pass
+
+            target_company_id = 1
+            try:
+                target_company_id = repo.get_default_company().get("id", 1)
+            except Exception:
+                pass
+
+            for r in accepted_rows:
+                flds = r.get("fields", {})
+                cand_name = r.get("display_name") or flds.get("name", {}).get("value") or "موظف جديد"
+                job_title = (flds.get("job_title", {}).get("value") or flds.get("job", {}).get("value") or "").strip()
+                email = flds.get("work_email", {}).get("value") or flds.get("email", {}).get("value") or ""
+                mobile = flds.get("mobile_phone", {}).get("value") or flds.get("phone", {}).get("value") or ""
+                iqama = flds.get("iqama", {}).get("value") or flds.get("id_number", {}).get("value") or ""
+                comp_name = (flds.get("company", {}).get("value") or "").strip()
+                dept_name = (flds.get("department", {}).get("value") or "").strip()
+
+                resolved = r.get("resolved_ids", {})
+                # Resolve company
+                c_id = resolved.get("company_id")
+                if not c_id and comp_name:
+                    if comp_name.lower() in available_companies:
+                        c_id = available_companies[comp_name.lower()]
+                    else:
+                        try:
+                            c_id = gw.create_record("res.company", {"name": comp_name})
+                            available_companies[comp_name.lower()] = c_id
+                        except Exception:
+                            c_id = target_company_id
+                c_id = c_id or target_company_id
+
+                # Resolve department
+                d_id = resolved.get("department_id")
+                if not d_id and dept_name:
+                    if dept_name.lower() in available_departments:
+                        d_id = available_departments[dept_name.lower()]
+                    else:
+                        try:
+                            d_id = gw.create_record("hr.department", {"name": dept_name, "company_id": c_id})
+                            available_departments[dept_name.lower()] = d_id
+                        except Exception:
+                            pass
+
+                # Resolve job
+                j_id = resolved.get("job_id")
+                if not j_id and job_title:
+                    if job_title.lower() in available_jobs:
+                        j_id = available_jobs[job_title.lower()]
+                    else:
+                        try:
+                            j_id = gw.create_record("hr.job", {"name": job_title, "company_id": c_id})
+                            available_jobs[job_title.lower()] = j_id
+                        except Exception:
+                            pass
+
+                vals = {
+                    "name": cand_name,
+                    "company_id": c_id,
+                }
+                if email:
+                    vals["work_email"] = email
+                if mobile:
+                    vals["mobile_phone"] = mobile
+                if job_title:
+                    vals["job_title"] = job_title
+                if iqama:
+                    vals["identification_id"] = iqama
+                if j_id:
+                    vals["job_id"] = j_id
+                if d_id:
+                    vals["department_id"] = d_id
+
+                try:
+                    new_id = gw.create_employee(vals)
+                    created_count += 1
+                    created_items.append({"name": cand_name, "id": new_id, "job": job_title})
+                except Exception as create_exc:
+                    logger.warning(f"Failed to create employee {cand_name}: {create_exc}")
+                    failed_count += 1
         elif input_path and input_path.exists():
             out_dir = Path("output") / f"writer_auto_{datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%SZ')}"
             out_dir.mkdir(parents=True, exist_ok=True)
@@ -941,9 +1127,8 @@ def _execute_excel_approval(
             failed_count = len(accepted_rows)
 
         if created_count == 0:
-            err_msg = (
-                f"تعذر تنفيذ السجلات في Odoo (سجلات ناجحة: 0، تعذر: {failed_count}). "
-                "يرجى التأكد من وجود ملف المصدر في مجلد الرفع ومطابقة حقول القالب مع أودو."
+            err_msg = "\n".join(failed_rows[:3]) if failed_rows else (
+                f"تعذّر تنفيذ {failed_count or len(accepted_rows)} سجل في Odoo. راجع تفاصيل العملية."
             )
             srv.emit_event(
                 operation_id=op_id,
@@ -989,10 +1174,20 @@ def _execute_excel_approval(
         )
         srv.update_operation_status(op_id, "completed")
 
-        if template_type == "recruitment":
+        if template_type == "appraisal":
+            succ_msg = f"تم إنشاء {created_count} من تقييمات الأداء في Odoo."
+            if failed_count:
+                succ_msg += f" تعذّر إنشاء {failed_count}.\n" + "\n".join(failed_rows[:3])
+        elif template_type == "recruitment":
             succ_msg = (
                 f"تم اعتماد وتنفيذ {created_count} طلباً بنجاح في تطبيق «التوظيف» (Recruitment) بـ Odoo عبر الوكيل «كاتب».\n"
                 f"ملاحظة: تظهر السجلات في Odoo داخل تطبيق: التوظيف -> المتقدمون للوظائف (Recruitment -> Applications)."
+            )
+        elif sheets_execution_summary:
+            executed_names = " -> ".join(sheets_execution_summary.keys())
+            succ_msg = (
+                f"تم اعتماد وتنفيذ {created_count} سجلاً بنجاح عبر أوراق الماستر ({executed_names}) "
+                f"بالترتيب الاعتمادي في Odoo عبر الوكيل «كاتب»."
             )
         else:
             succ_msg = f"تم اعتماد وتنفيذ {created_count} سجلاً بنجاح في Odoo عبر الوكيل «كاتب»."
@@ -1002,6 +1197,8 @@ def _execute_excel_approval(
             "operation_id": op_id,
             "created_count": created_count,
             "failed_count": failed_count,
+            "template_type": template_type,
+            "sheets_execution_summary": sheets_execution_summary,
             "response": succ_msg,
             "operation": srv.get_operation(op_id),
         }
@@ -1045,23 +1242,49 @@ def post_agent_approve_endpoint(payload: AgentApprovalApiRequest, request: Reque
         report_file = _resolve_dry_run_report_file(payload.operation_id)
 
     if not report_file and payload.chat_id and payload.chat_id.startswith("web_upload_"):
-        all_reports = list(Path("output").glob("*/dry_run_report.json"))
-        if all_reports:
-            all_reports.sort(key=lambda p: p.stat().st_mtime, reverse=True)
-            if (time.time() - all_reports[0].stat().st_mtime) < 1800:
-                report_file = all_reports[0]
+        raise HTTPException(status_code=404, detail="تقرير فحص هذه العملية غير متاح. أعد فحص الملف.")
 
     if report_file and report_file.exists():
         return _execute_excel_approval(payload, report_file, srv, request)
 
     # 2. Otherwise, treat as conversational chat approval (e.g. employee single edit/delete plan)
     session = SerajSessionManager.get_instance().get_session(payload.chat_id)
-    if session and session.pending_action and payload.modified_payload:
-        if "action_details" not in session.pending_action:
-            session.pending_action["action_details"] = {}
-        session.pending_action["action_details"].update(payload.modified_payload)
-        for k, v in payload.modified_payload.items():
-            session.pending_action[k] = v
+    plan = session.pending_action if session else None
+    if not plan or (payload.plan_id and payload.plan_id != plan.get("plan_id")):
+        raise HTTPException(409, "لا توجد خطة مطابقة بانتظار اعتمادك. افتح آخر مراجعة للطلب.")
+    if payload.modified_payload:
+        action_type = plan.get("action_type")
+        original = dict(plan.get("values") or {})
+        editable = {"name"}
+        if plan.get("model", "hr.employee") == "hr.employee":
+            editable.update({"department_id", "job_title", "work_email", "work_phone", "gender",
+                             "marital", "work_permit_no", "birthday", "notes"})
+        if action_type == "update" and plan.get("field"):
+            editable.add(plan["field"])
+        if action_type not in {"create", "update"} or not set(payload.modified_payload) <= editable:
+            raise HTTPException(422, "تتضمن المراجعة حقولاً خارج نطاق الخطة.")
+        values = original.copy()
+        for key, raw in payload.modified_payload.items():
+            if not isinstance(raw, (str, float, int)) or isinstance(raw, bool):
+                raise HTTPException(422, "قيمة الحقل غير صالحة.")
+            value = raw.strip() if isinstance(raw, str) else raw
+            if key == "department_id" and value:
+                if not str(value).isdecimal() or int(value) < 1:
+                    raise HTTPException(422, "اختر قسماً من قائمة المنشأة.")
+                value = int(value)
+            if key == "name" and not value:
+                raise HTTPException(422, "أدخل الاسم قبل الاعتماد.")
+            if value == "" and action_type == "create":
+                values.pop(key, None)
+            else:
+                values[key] = value
+        if action_type == "create" and plan.get("company_id"):
+            values.setdefault("company_id", plan["company_id"])
+        plan["values"] = values
+        if "name" in values and action_type == "create":
+            plan["name"] = values["name"]
+        if action_type == "update" and plan.get("field") in values:
+            plan["new_value"] = values[plan["field"]]
 
     seraj = SerajLLMService()
     reply = seraj.chat_turn(
@@ -1091,6 +1314,26 @@ def post_agent_cancel_endpoint(payload: AgentCancelApiRequest, request: Request)
     from seraj_session_manager import SerajSessionManager
 
     srv = get_events_service()
+    op = srv.get_operation(payload.operation_id) if payload.operation_id else None
+    if op and op.get("operation_type") == "file_upload":
+        if op.get("chat_id") and op["chat_id"] != payload.chat_id:
+            raise HTTPException(status_code=409, detail="هذه العملية تتبع جلسة أخرى.")
+        if op.get("status") in {"executing_write", "verifying_result"} or any(
+            event.get("event_type") == "write_completed" for event in op.get("events", [])
+        ):
+            raise HTTPException(status_code=409, detail="بدأ تنفيذ الاستيراد في Odoo. راجع سجل العملية.")
+        if op.get("status") != "cancelled":
+            srv.emit_event(
+                operation_id=payload.operation_id,
+                agent="seraj",
+                event_type="operation_cancelled",
+                status="cancelled",
+                description_ar="أُلغي استيراد الملف بناءً على طلبك.",
+            )
+            srv.update_operation_status(payload.operation_id, "cancelled")
+        return {"status": "success", "operation_id": payload.operation_id,
+                "response": "أُلغيت العملية.", "operation": srv.get_operation(payload.operation_id)}
+
     if payload.operation_id:
         srv.update_operation_status(payload.operation_id, "cancelled")
 
@@ -1122,6 +1365,7 @@ async def upload_agent_file_endpoint(
     file: UploadFile = File(...),
     chat_id: str = Form("web_default"),
     operation_id: Optional[str] = Form(None),
+    company_id: Optional[int] = Form(None, gt=0),
 ) -> Dict[str, Any]:
     """Uploads file in agent cockpit, creating staging operation and parsing."""
     verify_api_auth(request)
@@ -1131,8 +1375,20 @@ async def upload_agent_file_endpoint(
     if size > 10 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="حجم الملف يتجاوز الحد الأقصى المسموح به (10 ميجابايت).")
 
-    fn = file.filename or "upload_file"
-    safe_filename = f"{int(time.time())}_{fn}"
+    fn = Path(file.filename or "upload.xlsx").name
+    if not fn.lower().endswith(".xlsx") or not content.startswith(b"PK"):
+        raise HTTPException(status_code=400, detail="اختر ملف Excel صالحًا بصيغة .xlsx.")
+
+    repository = None
+    if company_id is not None:
+        try:
+            repository = CompanyScopedReadonlyRepository(company_id)
+            repository.get_default_company()
+        except Exception as exc:
+            logger.warning("Could not verify upload company %s", company_id)
+            raise HTTPException(status_code=400, detail="تعذّر التحقق من المنشأة المختارة في Odoo.") from exc
+
+    safe_filename = f"{uuid.uuid4().hex}_{fn}"
     saved_path = _get_upload_dir() / safe_filename
     with open(saved_path, "wb") as f:
         f.write(content)
@@ -1142,6 +1398,7 @@ async def upload_agent_file_endpoint(
     op_id = operation_id or srv.start_operation(
         user_query=f"رفع ملف: {fn}",
         operation_type="file_upload",
+        company_id=company_id,
         chat_id=chat_id,
     )
     srv.emit_event(
@@ -1149,68 +1406,81 @@ async def upload_agent_file_endpoint(
         agent="seraj",
         event_type="file_received",
         status="inspecting_data",
-        description_ar=f"سراج يستلم الملف «{fn}» بحجم {max(1, size // 1024)} كيلوبايت",
+        description_ar=f"استلام الملف «{fn}» ({max(1, size // 1024)} كيلوبايت) وبدء الفحص والتدقيق",
     )
-    dry_run_data = None
-    if fn.lower().endswith(".xlsx"):
+    srv.emit_event(
+        operation_id=op_id,
+        agent="fahas",
+        from_agent="seraj",
+        to_agent="fahas",
+        event_type="spreadsheet_analysis",
+        status="inspecting_data",
+        description_ar=f"فاحص يحلل بنية الجدول وأعمدة ملف الإكسل «{fn}» ومطابقة الحقول المرجعية وقواعد نظام العمل",
+    )
+    try:
+        report_dict = (
+            dry_run_report.build_full_report(saved_path, repository=repository)
+            if repository is not None else dry_run_report.build_full_report(saved_path)
+        )
+        report_dict["header"].update({
+            "upload_operation_id": op_id,
+            "upload_chat_id": chat_id,
+            "upload_source_file": saved_path.name,
+            "target_company_id": company_id,
+        })
+        run_id = report_dict["header"]["run_id"]
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        folder_name = f"{run_id}_{timestamp}_{uuid.uuid4().hex[:8]}"
+        run_output_dir = Path("output") / folder_name
+        run_output_dir.mkdir(parents=True, exist_ok=True)
+        dry_run_report.write_report_files(report_dict, run_output_dir)
+        summary = report_dict.get("summary", {})
+        counts = summary.get("status_counts", {})
+        total_rows = summary.get("row_count", len(report_dict.get("rows", [])))
+        tmpl_title = (
+            report_dict.get("header", {}).get("template_title")
+            or report_dict.get("summary", {}).get("template_title")
+            or f"ملف '{fn}'"
+        )
         srv.emit_event(
             operation_id=op_id,
             agent="fahas",
-            from_agent="seraj",
-            to_agent="fahas",
-            event_type="spreadsheet_analysis",
-            status="inspecting_data",
-            description_ar=f"فاحص يحلل بنية الجدول وأعمدة ملف الإكسل «{fn}» ومطابقة الحقول المرجعية وقواعد نظام العمل",
+            event_type="dry_run_completed",
+            status="completed",
+            description_ar=f"أنجز فاحص تقرير الفحص الجاف (Dry-Run): {total_rows} صفاً، مقبول {counts.get('accepted', 0)}، مرفوض {counts.get('rejected', 0)} (دون أي كتابة في Odoo)",
+            metadata={"run_id": run_id, "summary": summary, "folder": folder_name},
         )
-        try:
-            report_dict = dry_run_report.build_full_report(saved_path)
-            run_id = report_dict["header"]["run_id"]
-            timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-            folder_name = f"{run_id}_{timestamp}"
-            run_output_dir = Path("output") / folder_name
-            run_output_dir.mkdir(parents=True, exist_ok=True)
-            dry_run_report.write_report_files(report_dict, run_output_dir)
-            summary = report_dict.get("summary", {})
-            counts = summary.get("status_counts", {})
-            total_rows = summary.get("row_count", len(report_dict.get("rows", [])))
-            tmpl_title = (
-                report_dict.get("header", {}).get("template_title")
-                or report_dict.get("summary", {}).get("template_title")
-                or f"ملف '{fn}'"
-            )
-            srv.emit_event(
-                operation_id=op_id,
-                agent="fahas",
-                event_type="dry_run_completed",
-                status="completed",
-                description_ar=f"أنجز فاحص تقرير الفحص الجاف (Dry-Run): {total_rows} صفاً، مقبول {counts.get('accepted', 0)}، مرفوض {counts.get('rejected', 0)} (دون أي كتابة في Odoo)",
-                metadata={"run_id": run_id, "summary": summary, "folder": folder_name},
-            )
-            dry_run_data = {
-                "run_id": run_id,
-                "folder": folder_name,
-                "summary": summary,
-                "status_counts": counts,
-                "total_rows": total_rows,
-                "accepted_count": counts.get("accepted", 0),
-                "rejected_count": counts.get("rejected", 0),
-                "template_title": tmpl_title,
-                "report_url": f"/api/reports/dry-run/{folder_name}",
-            }
-        except Exception as exc:
-            srv.emit_event(
-                operation_id=op_id,
-                agent="fahas",
-                event_type="spreadsheet_error",
-                status="failed",
-                description_ar=f"تعذر استكمال فحص ملف الإكسل «{fn}»: {exc}",
-                error=str(exc),
-            )
-            dry_run_data = {"error": str(exc)}
+        dry_run_data = {
+            "run_id": run_id,
+            "folder": folder_name,
+            "summary": summary,
+            "status_counts": counts,
+            "total_rows": total_rows,
+            "accepted_count": counts.get("accepted", 0),
+            "rejected_count": counts.get("rejected", 0),
+            "template_title": tmpl_title,
+            "sheets_processed": summary.get("sheets_processed", []),
+            "sheets_skipped_empty": summary.get("sheets_skipped_empty", []),
+            "report_url": f"/api/reports/dry-run/{folder_name}",
+        }
+    except Exception as exc:
+        srv.emit_event(
+            operation_id=op_id,
+            agent="fahas",
+            event_type="spreadsheet_error",
+            status="failed",
+            description_ar=f"تعذر استكمال فحص ملف الإكسل «{fn}»: {exc}",
+            error=str(exc),
+        )
+        srv.update_operation_status(op_id, "failed")
+        logger.warning("Excel inspection failed for operation %s: %s", op_id, exc)
+        raise HTTPException(status_code=422, detail="تعذّر قراءة الملف وفحصه. تأكد من صحة القالب ثم أعد المحاولة.") from exc
 
+    srv.update_operation_status(op_id, "completed")
     return {
         "status": "success",
         "operation_id": op_id,
+        "operation": srv.get_operation(op_id),
         "filename": fn,
         "size": size,
         "path": str(saved_path),

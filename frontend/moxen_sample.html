@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>مختبر منظومة الحركة الفيزيائية Moxen Suite — المعرض التفاعلي الكامل</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/frontend/css/moxen_sample.css" />
+</head>
+<body>
+
+  <!-- Top Showcase Header with Navigation Tabs & Reading Progress -->
+  <header class="mx-showroom-header">
+    <div class="mx-reading-progress"></div>
+    <div class="mx-header-content">
+      <div class="mx-brand-group">
+        <div class="mx-logo-gem">M</div>
+        <div class="mx-title-text">
+          <h1>مختبر منظومة الحركة الفيزيائية — Moxen Motion Suite</h1>
+          <p>تطبيق الكود الفيزيائي الأصلي الحقيقي (النوابض 240Hz، الـ FLIP المتصل، تقنية clip-path، وطيران القطع المشتركة)</p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="/dashboard" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 8px; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.3); color: #38bdf8; text-decoration: none; font-size: 0.82rem; font-weight: 600;">
+          <span>العودة للداشبورد الرئيسي ↗</span>
+        </a>
+      </div>
+
+      <!-- Navigation Tabs to Jump Directly or Filter Modules -->
+      <nav class="mx-nav-tabs" aria-label="فئات النماذج">
+        <button class="mx-tab-btn is-active" data-target="all">عرض الكل <span class="mx-tab-badge">10</span></button>
+        <button class="mx-tab-btn" data-target="stage-cavila">1. Cavila <span class="mx-tab-badge">استدلال الذكاء</span></button>
+        <button class="mx-tab-btn" data-target="stage-faena">2. Faena <span class="mx-tab-badge">لوحة الوكيل</span></button>
+        <button class="mx-tab-btn" data-target="stage-despliegue">3. Despliegue <span class="mx-tab-badge">FLIP المتسع</span></button>
+        <button class="mx-tab-btn" data-target="stage-pilar">4. Pilar <span class="mx-tab-badge">أعمدة الجداول</span></button>
+        <button class="mx-tab-btn" data-target="stage-charla">5. Charla <span class="mx-tab-badge">محادثة 3D</span></button>
+        <button class="mx-tab-btn" data-target="stage-pregunta">6. Pregunta <span class="mx-tab-badge">صندوق FLIP</span></button>
+        <button class="mx-tab-btn" data-target="stage-mirador">7. Mirador <span class="mx-tab-badge">شريط الكاسيت</span></button>
+        <button class="mx-tab-btn" data-target="stage-venia">8. Venia <span class="mx-tab-badge">حلقة الأمان</span></button>
+        <button class="mx-tab-btn" data-target="stage-galleta">9. Galleta <span class="mx-tab-badge">زر المورفينغ</span></button>
+        <button class="mx-tab-btn" data-target="stage-motion-layer">10. Motion Layer <span class="mx-tab-badge">النظام المعياري</span></button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Showcase Container with the 10 Authentic Stages -->
+  <main class="mx-main-container">
+
+    <!-- STAGE 1: MOXEN-CAVILA (حزمة معتمدة لا تتغير) -->
+    <section class="mx-stage-section" id="stage-cavila">
+      <div class="mx-stage-header">
+        <div>
+          <h2 class="mx-stage-title">1. مكوّن كافيلا (Moxen Cavila) — استدلال الذكاء الاصطناعي وبث الرموز</h2>
+          <p class="mx-stage-desc">شريط المسح الضوئي المائل «سراج يستدل الآن…» مع النجمة النابضة، الانقلاب في نفس الخلية إلى «فكّر لـ n ث ▸»، وتدفق الكلمات بمخزن Producer-Consumer من ضبابي إلى حاد.</p>
+        </div>
+        <span class="mx-stage-tag">justtemp/moxen-cavila</span>
+      </div>
+
+      <div class="mx-stage-canvas">
+        <section class="cv-panel" data-cavila aria-label="استدلال سراج">
+          <header class="cv-cabeza">
+            <p class="cv-marca">
+              <svg class="cv-chispa" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5c.6 4.6 2.9 6.9 7.5 7.5-4.6.6-6.9 2.9-7.5 7.5-.6-4.6-2.9-6.9-7.5-7.5 4.6-.6 6.9-2.9 7.5-7.5z"/><path d="M19 15.5c.25 1.9 1.1 2.75 3 3-1.9.25-2.75 1.1-3 3-.25-1.9-1.1-2.75-3-3 1.9-.25 2.75-1.1 3-3z"/></svg>
+              <b>سراج — المنسق الذكي</b><small>استدلال فيزيائي حقيقي</small>
+            </p>
+            <button class="cv-nueva" type="button" data-nueva>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 4.5v11M4.5 10h11"/></svg>جلسة استدلال جديدة
+            </button>
+          </header>
+
+          <div class="cv-hilo" data-hilo>
+            <div class="cv-inicio" data-inicio>
+              <h2>بماذا تريد أن يستدل سراج اليوم؟</h2>
+              <div class="cv-sugerencias">
+                <button type="button" data-sugerencia>فحص تعارضات عقود الموظفين</button>
+                <button type="button" data-sugerencia>شروط المادة 77 في نظام العمل السعودي</button>
+                <button type="button" data-sugerencia>صلاحيات وكلاء الموارد البشرية</button>
+              </div>
+            </div>
+          </div>
+
+          <form class="cv-caja" data-caja>
+            <input name="pregunta" type="text" placeholder="اكتب سؤالك المهني هنا…" autocomplete="off" aria-label="السؤال">
+            <button class="cv-enviar" type="submit" aria-label="إرسال" disabled>
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 15.5v-11M5.5 9 10 4.5 14.5 9"/></svg>
+            </button>
+          </form>
+        </section>
+      </div>
+    </section>
+
+    <!-- STAGE 2: MOXEN-FAENA (حزمة معتمدة لا تتغير) -->
+    <section class="mx-stage-section" id="stage-faena">
+      <div class="mx-stage-header">
+        <div>
+          <h2 class="mx-stage-title">2. مكوّن فاينا (Moxen Faena) — لوحة الوكيل ثلاثية القطع وتتبع خط الإنتاج</h2>
+          <p class="mx-stage-desc">تمدد خلفية اللوحة بـ 3 قطع (.fa-cima, .fa-medio via scaleY, .fa-pie via translateY)، سبينر الـ 10 شرطات الذي يتحول إلى (✓)، بطاقة الأداة بساعة الإيقاف، اهتزاز الخطأ وإعادة المحاولة، والانطواء الزنبركي في شريط ملخص مع حلقة الأقواس arcos(n).</p>
+        </div>
+        <span class="mx-stage-tag">justtemp/moxen-faena</span>
+      </div>
+
+      <div class="mx-stage-canvas">
+        <section class="fa-agente" data-faena aria-label="لوحة الوكيل كاتب">
+          <div class="fa-fondo" aria-hidden="true"><i class="fa-cima"></i><i class="fa-medio"></i><i class="fa-pie"></i></div>
+
+          <header class="fa-barra">
+            <span class="fa-marca">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.6 4.6 3.4 7.4 9 9-5.6 1.6-8.4 4.4-9 9-.6-4.6-3.4-7.4-9-9 5.6-1.6 8.4-4.4 9-9z"/></svg>
+              وكيل التنفيذ والكتابة (كاتب)
+            </span>
+            <span class="fa-ejemplo">بيئة الاعتماد المباشرة</span>
+          </header>
+
+          <form class="fa-pedido" autocomplete="off">
+            <input class="fa-campo" name="pedido" value="اعتماد وتسكين 10 موظفين في Odoo مع فحص العقود" aria-label="مهمة الوكيل">
+            <button class="fa-enviar" type="submit" aria-label="تشغيل">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+            </button>
+          </form>
+
+          <button class="fa-resumen is-listo" type="button" aria-expanded="false" aria-controls="fa-pasos">
+            <span class="fa-estado" aria-hidden="true">
+              <svg class="fa-anillo" viewBox="0 0 24 24"></svg>
+              <svg class="fa-sello" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11"/><path d="M7.3 12.4l3.2 3.2 6.2-6.7" pathLength="1"/></svg>
+            </span>
+            <span class="fa-titulos">
+              <span class="fa-t-corre">جارٍ المعالجة <em>الخطوة <b class="fa-cuenta">1</b> من 5</em></span>
+              <span class="fa-t-listo">جاهز في 12 ث <em>· 5 خطوات مكتملة</em></span>
+            </span>
+            <span class="fa-reloj">0,0 ث</span>
+            <svg class="fa-flecha" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg>
+          </button>
+
+          <div class="fa-recorte">
+            <ol class="fa-pasos" id="fa-pasos">
+              <li class="fa-paso"><div class="fa-fila"><span class="fa-icono"></span><span class="fa-nombre">استيعاب وفحص شروط الحوكمة والاعتماد</span><span class="fa-dura"></span></div></li>
+              <li class="fa-paso">
+                <div class="fa-fila"><span class="fa-icono"></span><span class="fa-nombre">فحص سجلات عقود الموظفين في Odoo</span><span class="fa-dura"></span></div>
+                <div class="fa-herramienta">
+                  <p class="fa-h-cabeza">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4c-2 0-3 1-3 3v2.5c0 1.2-.8 2.5-2 2.5 1.2 0 2 1.3 2 2.5V17c0 2 1 3 3 3M16 4c2 0 3 1 3 3v2.5c0 1.2.8 2.5 2 2.5-1.2 0-2 1.3-2 2.5V17c0 2-1 3-3 3"/></svg>
+                    أداة التحقق الميدانية
+                    <span class="fa-h-estado"><span class="fa-h-reloj">0,0 ث</span></span>
+                  </p>
+                  <code class="fa-codigo"><b class="fa-fn">odoo_check_contracts</b>({ <b class="fa-k">batch</b>: <b class="fa-v">10</b>, <b class="fa-k">status</b>: <b class="fa-v">"draft"</b> })</code>
+                  <p class="fa-salida">← تم التحقق من 10 عقود • 0 تعارضات قانونية</p>
+                </div>
+              </li>
+              <li class="fa-paso"><div class="fa-fila"><span class="fa-icono"></span><span class="fa-nombre">مطابقة البصمة وسجلات الحضور</span><span class="fa-dura"></span></div><p class="fa-nota"></p></li>
+              <li class="fa-paso"><div class="fa-fila"><span class="fa-icono"></span><span class="fa-nombre">كتابة السجلات وتسكين المسميات في Odoo</span><span class="fa-dura"></span></div></li>
+              <li class="fa-paso"><div class="fa-fila"><span class="fa-icono"></span><span class="fa-nombre">توثيق العملية في الدفتر اللاتراجعي وتوليد التقرير</span><span class="fa-dura"></span></div></li>
+            </ol>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- STAGE 3: MOXEN-DESPLIEGUE (حزمة معتمدة لا تتغير) -->
+    <section class="mx-stage-section" id="stage-despliegue">
+      <div class="mx-stage-header">
+        <div>
+          <h2 class="mx-stage-title">3. مكوّن ديسبليغي (Moxen Despliegue) — تمدد البطاقة إلى شاشة كاملة بتقنية FLIP المشتركة</h2>
+          <p class="mx-stage-desc">طيران عناصر البطاقة نفسها [data-pieza] (الرقم، المجسم/الأيقونة، الاسم) إلى فتحاتها [data-hueco] في شاشة التفاصيل الكاملة، وتوسع clip-path: inset(... round 26px) بنابض resorte(140, 18) مع تراجع البطاقات المجاورة للخلف scale(0.93).</p>
+        </div>
+        <span class="mx-stage-tag">justtemp/moxen-despliegue</span>
+      </div>
+
+      <div class="mx-stage-canvas">
+        <div class="dp-escena">
+          <header class="dp-cabeza">
+            <p class="dp-etiqueta">بوابة الوكلاء الذكية</p>
+            <p class="dp-pista">اضغط على أي وكيل لمعاينة التمدد الفيزيائي الحقيقي بتقنية Shared-Element FLIP.</p>
+          </header>
+
+          <ul class="dp-rejilla" data-despliegue>
+            <li>
+              <button class="dp-tarjeta" type="button" data-agente="seraj">
+                <span class="dp-numero" data-pieza="numero">01</span>
+                <span class="dp-esfera" data-pieza="esfera">🏮</span>
+                <span class="dp-nombre" data-pieza="nombre">سراج</span>
+                <span class="dp-dato">المنسق العام وهندسة الحوار</span>
+              </button>
+            </li>
+            <li>
+              <button class="dp-tarjeta" type="button" data-agente="fahas">
+                <span class="dp-numero" data-pieza="numero">02</span>
+                <span class="dp-esfera" data-pieza="esfera">🔍</span>
+                <span class="dp-nombre" data-pieza="nombre">فاحص</span>
+                <span class="dp-dato">استعلام وتحقق Odoo الصارم</span>
+              </button>
+            </li>
+            <li>
+              <button class="dp-tarjeta" type="button" data-agente="katib">
+                <span class="dp-numero" data-pieza="numero">03</span>
+                <span class="dp-esfera" data-pieza="esfera">✍️</span>
+                <span class="dp-nombre" data-pieza="nombre">كاتب</span>
+                <span class="dp-dato">التنفيذ والكتابة المعتمدة</span>
+              </button>
+            </li>
+            <li>
+              <button class="dp-tarjeta" type="button" data-agente="muwaffaq">
+                <span class="dp-numero" data-pieza="numero">04</span>
+                <span class="dp-esfera" data-pieza="esfera">🤝</span>
+                <span class="dp-nombre" data-pieza="nombre">موفق</span>
+                <span class="dp-dato">المطابقة والتسكين الوظيفي</span>
+              </button>
+            </li>
+          </ul>
+
+          <section class="dp-detalle" role="dialog" aria-modal="true" hidden>
+            <div class="dp-panel"></div>
+            <div class="dp-cuerpo">
+              <div class="dp-texto">
+                <span class="dp-hueco-numero" data-hueco="numero"></span>
+                <h2 class="dp-hueco-nombre" data-hueco="nombre"></h2>
+                <p class="dp-lema"></p>
+                <dl class="dp-datos">
+                  <div><dt>الدقة المعيارية</dt><dd data-dato="diametro"></dd></div>
+                  <div><dt>الأدوات المعتمدة</dt><dd data-dato="dia"></dd></div>
+                  <div><dt>زمن الاستجابة</dt><dd data-dato="anio"></dd></div>
+                  <div><dt>نطاق الحوكمة</dt><dd data-dato="lunas"></dd></div>
+                </dl>
+              </div>
+              <div class="dp-hueco-esfera" data-hueco="esfera"></div>
+            </div>
+            <button class="dp-cerrar" type="button">إغلاق وتراجع ✕</button>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAGE 4: MOXEN-PILAR (الكود الأصلي الكامل: سحب ليزري، FLIP الشريحة، تثبيت العمود، قائمة الأعمدة، كثافة موجية) -->
+    <section class="mx-stage-section" id="stage-pilar">
+      <div class="mx-stage-header">
+        <div>
+          <h2 class="mx-stage-title">4. مكوّن بيلار (Moxen Pilar) — محرك أعمدة جداول البيانات الفيزيائي المتكامل</h2>
+          <p class="mx-stage-desc">سحب حدود الأعمدة مع خط ليزر أزرق .pi-guia وشارة قياس حية بالبكسل، النقر المزدوج للملاءمة التلقائية بنابض anchoAjustado، إعادة ترتيب الأعمدة كشريحة مائلة .pi-lamina بزاوية 1deg بتقنية FLIP، تثبيت العمود مع تلصص empujaAlFijar، قائمة إظهار وإخفاء الأعمدة، وتغيير كثافة الصفوف كالموجة.</p>
+        </div>
+        <span class="mx-stage-tag">justtemp/moxen-pilar</span>
+      </div>
+
+      <div class="mx-stage-canvas" style="padding: 16px;">
+        <main class="pi-escena" data-pilar style="padding: 0; min-height: auto;">
+          <div class="pi-fondo" aria-hidden="true"></div>
+
+          <section class="pi-app" aria-labelledby="pi-titulo">
+            <header class="pi-cab">
+              <div class="pi-titulos">
+                <p class="pi-etq">سجلات موظفي المنشأة <span>·</span> Odoo Live Data</p>
+                <h2 id="pi-titulo">جدول بيانات الموظفين والعقود</h2>
+              </div>
+
+              <div class="pi-barra" role="toolbar" aria-label="إعدادات الجدول">
+                <div class="pi-menu-env">
+                  <button class="pi-btn pi-btn-col" type="button" data-columnas aria-haspopup="menu" aria-expanded="false" aria-controls="pi-menu">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="13" rx="3"/><path d="M9.4 5.5v13M14.6 5.5v13"/></svg>
+                    <span>الأعمدة</span>
+                    <b class="pi-cuenta" data-cuenta aria-hidden="true"></b>
+                    <svg class="pi-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5"/></svg>
+                  </button>
+                  <div class="pi-menu" id="pi-menu" data-menu role="menu" aria-label="الأعمدة المرئية" hidden>
+                    <ul class="pi-menu-lista" data-menu-lista></ul>
+                    <div class="pi-menu-pie">
+                      <span data-menu-cuenta></span>
+                      <button class="pi-menu-todas" type="button" data-todas>إظهار الكل</button>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pi-seg" role="radiogroup" aria-label="كثافة الصفوف" data-densidad>
+                  <i class="pi-seg-pulgar" aria-hidden="true"></i>
+                  <button type="button" role="radio" aria-checked="false" data-d="comoda">مريحة</button>
+                  <button type="button" role="radio" aria-checked="true" data-d="normal">عادية</button>
+                  <button type="button" role="radio" aria-checked="false" data-d="compacta">مدمجة</button>
+                </div>
+
+                <button class="pi-btn pi-rest" type="button" data-restablece data-e="reposo" disabled>
+                  <span class="pi-rest-a">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 11.2a6.6 6.6 0 1 1 1.4 5.3M5.5 6.4v4.8h4.8"/></svg>
+                    <span>استعادة</span>
+                    <i class="pi-punto" aria-hidden="true"></i>
+                  </span>
+                  <span class="pi-rest-b" aria-hidden="true">
+                    <svg viewBox="0 0 24 24"><path d="M6.6 12.6l3.8 3.8 7.2-8.2" pathLength="1"/></svg>
+                    <span>تمت الاستعادة</span>
+                  </span>
+                </button>
+              </div>
+            </header>
+
+            <div class="pi-cuerpo">
+              <div class="pi-scroll" data-scroll role="region" aria-label="جدول الموظفين، يتحرك أفقياً">
+                <div class="pi-tabla" data-tabla role="table" aria-label="سجلات الموظفين"></div>
+              </div>
+            </div>
+
+            <footer class="pi-pie">
+              <p class="pi-estado" data-estado></p>
+              <p class="pi-teclas"><span>تحكم لوحة المفاتيح:</span> <kbd>←</kbd><kbd>→</kbd> تنقل <i>·</i> <kbd>Alt</kbd>+<kbd>←</kbd><kbd>→</kbd> نقل <i>·</i> <kbd>Shift</kbd>+<kbd>←</kbd><kbd>→</kbd> عرض <i>·</i> <kbd>P</kbd> تثبيت <i>·</i> <kbd>H</kbd> إخفاء <i>·</i> <kbd>Enter</kbd> ملاءمة</p>
+            </footer>
+          </section>
+
+          <p class="pi-vivo" role="status" aria-live="polite" data-vivo></p>
+        </main>
+      </div>
+    </section>
+
+    <!-- STAGE 5: MOXEN-CHARLA (حزمة معتمدة لا تتغير) -->
+    <section class="mx-stage-section" id="stage-charla">
+      <div class="mx-stage-header">
+        <div>
+          <h2 class="mx-stage-title">5. مكوّن تشارلا (Moxen Charla) — محادثة الدعم الذكي بالأبعاد الثلاثية والرقاقات الطائرة</h2>
+          <p class="mx-stage-desc">النوابض الأربعة (ACOMODA, BROTA, POSA, SALTA)، دوران العنوان الفرعي كأسطوانة ثلاثية الأبعاد .ch-rueda، طيران رقاقات الأوامر السريعة fichas في الهواء من الشريط السفلي للفقاعة، دمج حواف الفقاعات المتتالية، ورسم ✓✓ بمسار SVG.</p>
+        </div>
+        <span class="mx-stage-tag">justtemp/moxen-charla</span>
+      </div>
+
+      <div class="mx-stage-canvas">
+        <main class="ch-escena">
+          <section class="ch-charla" data-charla>
+            <header class="ch-cabeza">
+              <div class="ch-quien">
+                <h3>سراج — الدعم والمساندة</h3>
+                <p class="ch-sub"><span class="ch-rueda"><span>متصل • يجيب فوراً</span></span></p>
+              </div>
+            </header>
+
+            <div class="ch-cuerpo">
+              <div class="ch-msg de-bot">مرحباً بك! أنا «سراج» وكيلك للموارد البشرية وإجراءات Odoo. اختر استفساراً سريعاً أو اكتب رسالتك أدناه.</div>
+              <div class="ch-fichas">
+                <button type="button" class="ch-ficha">أين عقد الموظف أحمد؟</button>
+                <button type="button" class="ch-ficha">استعلام عن رصيد الإجازات</button>
+                <button type="button" class="ch-ficha">تسكين موظف جديد في Odoo</button>
+              </div>
+            </div>
+
+            <div class="ch-redacta">
+              <input class="ch-campo" placeholder="اكتب استفسارك لسراج…" />
+              <button class="ch-envia" type="button">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+              </button>
+            </div>
+          </section>
+        </main>
+      </div>
+    </section>
+
+    <!-- STAGE 6: MOXEN-PREGUNTA (الكود الأصلي الكامل: هبوط FLIP، محدد النماذج 3 مستويات، رقاقات المرفقات، بث الكتل المهيكلة، زر الإيقاف والنسخ المتحول) -->
+    <section class="mx-stage-section" id="stage-pregunta">
+      <div class="mx-stage-header">
+        <div>
+          <h2 class="mx-stage-title">6. مكوّن بريغونتا (Moxen Pregunta) — هبوط صندوق الأوامر FLIP، المرفقات ومحدد النماذج</h2>
+          <p class="mx-stage-desc">هبوط صندوق الإدخال بتقنية FLIP من الوسط للأسفل عند الإرسال، محدد النموذج بقائمة listbox ثلاثية المستويات (.pr-menu-modelo)، رقاقات المرفقات المصغرة مع السحب والإفلات، وبث الكتل المهيكلة (فقرة، قائمة، كود ملون) مع مؤشر متلألئ، تحول زر الإرسال لزر إيقاف، ونسخ الكود مع علامة (✓) متدفقة.</p>
+        </div>
+        <span class="mx-stage-tag">justtemp/moxen-pregunta</span>
+      </div>
+
+      <div class="mx-stage-canvas" style="padding: 0;">
+        <svg class="pr-defs" width="0" height="0" aria-hidden="true" focusable="false">
+          <defs>
+            <symbol id="pr-sol" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1" fill="currentColor" stroke="none"/><path d="M12 2.8v3.4M12 17.8v3.4M2.8 12h3.4M17.8 12h3.4M5.5 5.5l2.4 2.4M16.1 16.1l2.4 2.4M5.5 18.5l2.4-2.4M16.1 7.9l2.4-2.4"/></symbol>
+          </defs>
+        </svg>
+
+        <main class="pr-escena" data-pregunta data-fase="inicio" style="width: 100%; min-height: 580px; height: auto;">
+          <div class="pr-fondo" aria-hidden="true"><i class="pr-luz"></i><i class="pr-grano"></i></div>
+
+          <header class="pr-bar">
+            <a class="pr-marca" href="#" aria-label="بريغونتا، البداية"><svg class="pr-sol" aria-hidden="true"><use href="#pr-sol"/></svg><span>سراج استفسار</span></a>
+            <button type="button" class="pr-nueva" data-nueva aria-label="استفسار جديد"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>استفسار جديد</span></button>
+          </header>
+
+          <div class="pr-col">
+            <!-- التحية الأولية -->
+            <div class="pr-inicio" data-inicio>
+              <svg class="pr-sol pr-sol-grande" aria-hidden="true"><use href="#pr-sol"/></svg>
+              <h2 class="pr-saludo"><span class="pr-linea-1">مساء الخير،</span><br><span class="pr-linea-2">ماذا تريد أن <em>تنجز في Odoo<svg viewBox="0 0 120 12" preserveAspectRatio="none" aria-hidden="true"><path d="M2 7c9-6 15 5 24 0s15-5 24 0 15 5 24 0 15-5 24 0 12 3 20 0"/></svg></em> اليوم؟</span></h2>
+            </div>
+
+            <!-- سجل المحادثة المتدفق (يظهر بعد الإرسال) -->
+            <section class="pr-hilo" data-hilo role="log" aria-label="المحادثة" aria-live="off" tabindex="0"></section>
+
+            <!-- صندوق الإدخال الزنبركي -->
+            <form class="pr-caja" data-caja autocomplete="off">
+              <div class="pr-adjuntos" data-adjuntos aria-label="المرفقات"><div class="pr-adjuntos-fila" data-adjuntos-fila></div></div>
+              <label class="pr-oculto" for="pr-campo-input">اكتب سؤالك المهني</label>
+              <textarea id="pr-campo-input" class="pr-campo" data-campo rows="1" placeholder="اطلب من سراج كتابة، تدقيق، أو استعلام بيانات Odoo…" spellcheck="false"></textarea>
+              <div class="pr-barra">
+                <button type="button" class="pr-icono" data-adjuntar aria-label="إرفاق ملف">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m20 11-8 8a4.5 4.5 0 0 1-6.4-6.4l8-8a3 3 0 0 1 4.3 4.3l-8 8a1.5 1.5 0 0 1-2.1-2.1l7.3-7.3"/></svg>
+                </button>
+                <div class="pr-selector">
+                  <button type="button" class="pr-modelo" data-modelo aria-haspopup="listbox" aria-expanded="false" aria-controls="pr-menu" aria-label="اختيار النموذج">
+                    <i class="pr-punto" aria-hidden="true"></i><span data-modelo-txt>متوازن</span>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+                  </button>
+                  <div class="pr-menu" id="pr-menu" data-menu role="listbox" tabindex="-1" aria-label="النموذج"></div>
+                </div>
+                <span class="pr-espacio"></span>
+                <span class="pr-atajo" aria-hidden="true"><kbd>↵</kbd> إرسال <kbd>⇧</kbd><kbd>↵</kbd> سطر جديد</span>
+                <button type="submit" class="pr-enviar" data-enviar aria-label="إرسال" disabled>
+                  <svg class="pr-i-envia" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+                  <svg class="pr-i-alto" viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2.4"/></svg>
+                </button>
+              </div>
+            </form>
+
+            <!-- بطاقات الاقتراحات السريعة -->
+            <div class="pr-sug" data-sug role="group" aria-label="اقتراحات سريعة"></div>
+            <p class="pr-nota">الردود في هذا العرض التوضيحي محاكاة تفاعلية فورية. راجع دائماً البيانات الحساسة.</p>
+          </div>
+
+          <p class="pr-oculto" role="status" aria-live="polite" data-vivo></p>
+        </main>
+      </div>
+    </section>
+
+    <!-- STAGE 7: MOXEN-MIRADOR (الكود الأصلي الكامل: تبويبات Vistas، فلاتر كهرمانية، تراجع شريطي كاسيت، وطيران التبويب القوسي) -->
+    <section class="mx-stage-section" id="stage-mirador">
+      <div class="mx-stage-header">
+        <div>
+          <h2 class="mx-stage-title">7. مكوّن ميرادور (Moxen Mirador) — العروض المحفوظة وشريط الكاسيت التراجعي</h2>
+          <p class="mx-stage-desc">إعادة ترتيب صفوف الجدول بـ FLIP عند تبديل العرض، رصد تعديل الفلاتر وتحولها للكهرماني es-cambiado مع نقطة التعديل، التراجع الشريطي خطوة بخطوة Rebobinar مع رأس الكاسيت .mi-cinta-cabeza الذي يتقهقر كل 130ms، وطيران التبويب الجديد في مسار قوسي Math.sin(p * Math.PI) * 96 مع التسمية الفورية.</p>
+        </div>
+        <span class="mx-stage-tag">justtemp/moxen-mirador</span>
+      </div>
+
+      <div class="mx-stage-canvas" style="padding: 16px;">
+        <main class="mi-escena" data-mirador style="width: 100%; min-height: auto; padding: 0;">
+          <div class="mi-fondo" aria-hidden="true"><i class="mi-halo mi-h1"></i><i class="mi-halo mi-h2"></i></div>
+          <div class="mi-grano" aria-hidden="true"></div>
+
+          <div class="mi-ventana" data-ventana style="width: min(100%, 960px); height: auto; min-height: 560px;">
+            <header class="mi-cab">
+              <div>
+                <h2>مهام وعقود الموظفين</h2>
+                <p>العروض المحفوظة والفلاتر الذكية المتزامنة مع Odoo</p>
+              </div>
+              <button class="mi-reset" type="button" data-restablece>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 12a7.2 7.2 0 1 0 2.2-5.2M4.8 4.6v3.6h3.6"/></svg>
+                <span>استعادة العروض الافتراضية</span>
+              </button>
+            </header>
+
+            <div class="mi-tabs-caja">
+              <div class="mi-tabs" role="tablist" aria-label="العروض المحفوظة" data-tabs></div>
+              <i class="mi-indicador" data-indicador aria-hidden="true"></i>
+            </div>
+
+            <div class="mi-filtros">
+              <div class="mi-chips" data-chips role="group" aria-label="فلاتر العرض الحالية">
+                <button class="mi-mas" type="button" data-mas aria-haspopup="menu" aria-expanded="false">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg><span>+ فلتر</span>
+                </button>
+              </div>
+
+              <div class="mi-acciones" data-acciones aria-hidden="true">
+                <div class="mi-acc-normal">
+                  <button class="mi-b mi-b-suave" type="button" data-descartar tabindex="-1">تراجع (Descartar)</button>
+                  <button class="mi-b mi-b-linea" type="button" data-nueva tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13"/></svg>حفظ كعرض جديد</button>
+                  <button class="mi-b mi-b-primario" type="button" data-guardar tabindex="-1">حفظ التغييرات</button>
+                </div>
+                <div class="mi-cinta" data-cinta aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M11.5 6.6 5 12l6.5 5.4zM19 6.6 12.5 12l6.5 5.4z"/></svg>
+                  <span>جارٍ التراجع الشريطي…</span>
+                  <div class="mi-cinta-pista"><i class="mi-cinta-marcas" data-cinta-marcas></i><i class="mi-cinta-cabeza" data-cinta-cabeza></i></div>
+                  <b data-pasos>0</b>
+                </div>
+              </div>
+            </div>
+
+            <section class="mi-tabla" aria-label="مهام العرض">
+              <div class="mi-fila mi-th" role="row">
+                <span role="columnheader">المهمة / الإجراء</span>
+                <span role="columnheader">المسؤول</span>
+                <span role="columnheader">الحالة</span>
+                <span role="columnheader">الأولوية</span>
+                <span role="columnheader" class="mi-d">الموعد</span>
+              </div>
+              <div class="mi-cuerpo" data-cuerpo role="rowgroup"></div>
+              <div class="mi-vacio" data-vacio hidden>لا توجد مهام تطابق هذه الفلاتر.</div>
+              <footer class="mi-pie"><span data-resumen>18 مهمة</span><span class="mi-pie-v" data-pie-vista></span></footer>
+            </section>
+
+            <div class="mi-menu" data-menu role="menu" hidden></div>
+          </div>
+          <p class="mi-vivo" role="status" aria-live="polite" data-vivo></p>
+        </main>
+      </div>
+    </section>
+
+    <!-- STAGE 8: MOXEN-VENIA (حزمة معتمدة لا تتغير) -->
+    <section class="mx-stage-section" id="stage-venia">
+      <div class="mx-stage-header">
+        <div>
+          <h2 class="mx-stage-title">8. مكوّن فينيا (Moxen Venia) — بطاقات التفويض بحلقة الحالة وسقوط المعاينة</h2>
+          <p class="mx-stage-desc">بطاقات التفويض بحلقة الحالة، سقوط نافذة المعاينة بنابض من القفل muelle(330, 21)، قفزة ميدالية (✓) عند المنح، ودليل الاستعادة مع خيط القفل الموجه.</p>
+        </div>
+        <span class="mx-stage-tag">justtemp/moxen-venia</span>
+      </div>
+
+      <div class="mx-stage-canvas">
+        <div class="ve-ventana" data-venia>
+          <header class="ve-barra">
+            <div class="ve-candado">
+              <svg viewBox="0 0 24 24"><rect x="5.5" y="10.5" width="13" height="9" rx="2.4"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>
+            </div>
+            <span class="ve-url"><b>seraj-hr.internal</b>/governance/permissions</span>
+          </header>
+
+          <div class="ve-tarjetas">
+            <article class="ve-tarjeta" data-estado="pendiente">
+              <div class="ve-sello">
+                <svg class="ve-anillo" viewBox="0 0 76 76"><circle class="ve-r-pista" cx="38" cy="38" r="33"/><circle class="ve-r-arco" cx="38" cy="38" r="33"/></svg>
+                <div class="ve-icono"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H7l2 7-3 4h12l-3-4z"/></svg></div>
+              </div>
+              <h4>اتصال Odoo المباشر</h4>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin: 0;">تفويض وكيل الاستعلام «فاحص» بقراءة جداول الموظفين.</p>
+              <button class="ve-boton" type="button">طلب التفويض</button>
+            </article>
+
+            <article class="ve-tarjeta" data-estado="pendiente">
+              <div class="ve-sello">
+                <svg class="ve-anillo" viewBox="0 0 76 76"><circle class="ve-r-pista" cx="38" cy="38" r="33"/><circle class="ve-r-arco" cx="38" cy="38" r="33"/></svg>
+                <div class="ve-icono"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></div>
+              </div>
+              <h4>فحص ملفات الإكسل</h4>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin: 0;">تفويض التدقيق الحسابي الجاف قبل الكتابة في Odoo.</p>
+              <button class="ve-boton" type="button">طلب التفويض</button>
+            </article>
+
+            <article class="ve-tarjeta" data-estado="pendiente">
+              <div class="ve-sello">
+                <svg class="ve-anillo" viewBox="0 0 76 76"><circle class="ve-r-pista" cx="38" cy="38" r="33"/><circle class="ve-r-arco" cx="38" cy="38" r="33"/></svg>
+                <div class="ve-icono"><svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h24s-3-2-3-9"/></svg></div>
+              </div>
+              <h4>التنبيهات الفورية</h4>
+              <p style="font-size: 0.8rem; color: #94a3b8; margin: 0;">إشعار المشغّل بانتظار خطة الاعتماد أو حدوث تعارض.</p>
+              <button class="ve-boton" type="button">طلب التفويض</button>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAGE 9: MOXEN-GALLETA (الكود الأصلي الكامل: محاكاة أويلر المستمرة بـ 6 نوابض، تحول clip-path، قطمات وقشور متساقطة، وتمدد عكسي) -->
+    <section class="mx-stage-section" id="stage-galleta">
+      <div class="mx-stage-header">
+        <div>
+          <h2 class="mx-stage-title">9. مكوّن غاليتا (Moxen Galleta) — تحول البطاقة إلى زر عائم دائري بنوابض أويلر الفيزيائية</h2>
+          <p class="mx-stage-desc">محرك نوابض أويلر الرياضي المستمر avanza(r, dt) بتردد 240Hz، تحول السطح بـ clip-path: inset(...) إلى زر عائم دائري .gt-boton أسفل الزاوية مع دوران القطعة -160deg وظهور علامة (✓)، وقضمات الأقسام المرفوضة مع قشور الجاذبية suelta(angulo, n, fuerza)، والعودة العكسية التامة عند النقر.</p>
+        </div>
+        <span class="mx-stage-tag">justtemp/moxen-galleta</span>
+      </div>
+
+      <div class="mx-stage-canvas" style="min-height: 480px; position: relative;">
+        <!-- مسرح غاليتا التفاعلي -->
+        <div class="gt-galleta" data-galleta style="width: 100%; min-height: 420px; display: grid; place-items: center;">
+          <section class="gt-aviso" role="dialog" aria-modal="false" aria-labelledby="gt-titulo" aria-describedby="gt-texto">
+            <div class="gt-cabeza">
+              <span class="gt-icono" aria-hidden="true"></span>
+              <h2 id="gt-titulo">ميثاق الخصوصية وحوكمة Odoo الصارمة</h2>
+              <p id="gt-texto">الصلاحيات الأساسية ضرورية لعمل الوكلاء والربط الآمن. الصلاحيات الإضافية اختيارية وفق رغبتك. <a href="#privacy">ميثاق الحوكمة</a></p>
+            </div>
+            <!-- تصنيفات الصلاحيات المنفصلة التي تتحكم بها نوابض أويلر -->
+            <div class="gt-detalle" role="group" aria-label="فئات الصلاحيات"></div>
+            <div class="gt-pie">
+              <div class="gt-fila" data-vista="simple">
+                <button type="button" data-galleta-accion="rechaza">رفض الكل</button>
+                <button type="button" data-galleta-accion="personaliza" aria-expanded="false">تخصيص الصلاحيات</button>
+                <button type="button" data-galleta-accion="acepta">اعتماد وقبول الكل</button>
+              </div>
+              <div class="gt-fila" data-vista="detalle">
+                <button type="button" data-galleta-accion="guarda">حفظ الاختيارات</button>
+                <button type="button" data-galleta-accion="acepta">اعتماد وقبول الكل</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <!-- STAGE 10: MOTION-LAYER (النظام المعياري الكامل: استجابة النماذج، اهتزاز الخطأ، زر الدوران، المودال الزنبركي، والهياكل الشبحية) -->
+    <section class="mx-stage-section" id="stage-motion-layer">
+      <div class="mx-stage-header">
+        <div>
+          <h2 class="mx-stage-title">10. طبقة الحركة والتفاعل المعيارية (Motion Layer) — محرك الواجهات عالي الأداء</h2>
+          <p class="mx-stage-desc">تطبيق ميثاق الحركة الشامل: تحريك transform و opacity فقط، أزرار الضغط الميكانيكي scale(0.97)، اهتزاز الخطأ في الحقول is-shaking، زر الدوران مع تحوله لعلامة (✓) خضراء، المودال المقفل بحصر التركيز inert، وتجربة تبديل تقليل الحركة sandbox.</p>
+        </div>
+        <span class="mx-stage-tag">justtemp/motion-layer</span>
+      </div>
+
+      <div class="mx-stage-canvas">
+        <div style="width: min(100%, 780px); display: flex; flex-direction: column; gap: 24px;">
+
+          <!-- شريط التحكم بتفضيل الحركة ونوافذ العرض -->
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 14px 20px; border-radius: 12px; background: rgba(255,255,255,0.03); border: 1px solid var(--mx-border-subtle);">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <button type="button" class="motion-btn btn-primary btn-sm" data-modal-target="sample-modal">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M9 3v18M3 9h18"/></svg>
+                <span>فتح النافذة المنبثقة (Modal)</span>
+              </button>
+              <button type="button" class="motion-btn btn-outline btn-sm" id="toggle-skeleton-btn">
+                <span>تبديل هياكل التحميل (Shimmer)</span>
+              </button>
+            </div>
+            <button type="button" class="motion-btn btn-outline btn-sm" id="toggle-reduced-motion-btn" aria-pressed="false">
+              <span>الحركة: مفعّلة</span>
+            </button>
+          </div>
+
+          <!-- نموذج التحقق التفاعلي: التسمية العائمة واهتزاز الخطأ -->
+          <div class="demo-form-card motion-card" style="margin: 0; padding: 24px;">
+            <h3 style="margin: 0 0 8px; font-size: 1.15rem; color: #fff;">التحقق التفاعلي الذكي واهتزاز الخطأ</h3>
+            <p style="margin: 0 0 20px; font-size: 0.85rem; color: var(--mx-text-muted);">جرّب إرسال الحقل فارغاً لمعاينة اهتزاز الخطأ الفيزيائي is-shaking، أو اكتب بريداً صالحاً لمعاينة زر الدوران وحالة النجاح.</p>
+
+            <form id="demo-motion-form" novalidate>
+              <div class="motion-field">
+                <input type="email" id="demo-email" class="motion-input" placeholder=" " required />
+                <label for="demo-email" class="motion-label">البريد الإلكتروني المهني لمشغّل Odoo</label>
+              </div>
+
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                <button type="submit" class="motion-btn btn-primary" style="min-width: 160px; height: 44px;">
+                  <span>اعتماد وإرسال</span>
+                </button>
+                <div id="form-result-notice" class="form-result-notice" style="display: none; align-items: center; gap: 6px; color: #10b981; font-weight: 600; font-size: 0.88rem;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                  <span>تم قبول البيانات واعتمادها بنجاح!</span>
+                </div>
+              </div>
+            </form>
+          </div>
+
+          <!-- معاينة الهياكل الشبحية المتلألئة (Skeleton Shimmer) -->
+          <div id="skeleton-container" class="skeleton-demo-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px;">
+            <div class="skeleton-card">
+              <div class="skeleton-box" style="height: 24px; width: 60%; margin-bottom: 12px; border-radius: 6px;"></div>
+              <div class="skeleton-box" style="height: 14px; width: 90%; margin-bottom: 8px; border-radius: 4px;"></div>
+              <div class="skeleton-box" style="height: 14px; width: 75%; border-radius: 4px;"></div>
+            </div>
+            <div class="skeleton-card">
+              <div class="skeleton-box" style="height: 24px; width: 45%; margin-bottom: 12px; border-radius: 6px;"></div>
+              <div class="skeleton-box" style="height: 14px; width: 85%; margin-bottom: 8px; border-radius: 4px;"></div>
+              <div class="skeleton-box" style="height: 14px; width: 65%; border-radius: 4px;"></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- النافذة المنبثقة التفاعلية المقفلة (Modal Dialog) لـ Stage 10 -->
+  <div id="sample-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-dialog motion-card">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+        <h3 id="modal-title" style="margin: 0; font-size: 1.2rem; color: #fff;">نافذة المراقبة والحوكمة (Modal)</h3>
+        <button type="button" class="motion-btn btn-outline btn-sm" data-modal-close aria-label="إغلاق النافذة">✕</button>
+      </div>
+      <p style="color: var(--mx-text-muted); font-size: 0.92rem; line-height: 1.6; margin: 0 0 20px;">
+        هذه النافذة تطبق مبادئ سهولة الوصول وحصر التركيز (Focus Trap): عند فتحها، ينتقل التركيز تلقائياً إليها، ويُعطل مفتاح Tab خارجها، ويغلقها مفتاح الهروب Escape ليعيد التركيز فوراً للزر المشغّل.
+      </p>
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" class="motion-btn btn-outline" data-modal-close>إلغاء</button>
+        <button type="button" class="motion-btn btn-primary" data-modal-close>موافق</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/frontend/js/moxen_sample.js"></script>
+</body>
+</html>

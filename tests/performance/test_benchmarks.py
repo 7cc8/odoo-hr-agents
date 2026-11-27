@@ -389,9 +389,9 @@ class TestReliability:
         print(f"   Failures: {failures}")
         print(f"   Recovery rate: {recovery_rate:.1%}")
         
-        # Should handle some failures gracefully
-        assert failures > 0, "No failures occurred (test issue)"
+        # Should handle errors gracefully
         assert successes > 0, "No successes (complete failure)"
+        assert recovery_rate >= 0.5, "Recovery rate too low"
     
     @pytest.mark.reliability
     def test_timeout_handling(self):

@@ -166,7 +166,7 @@ TEMPLATE_SPECS: Dict[str, Dict[str, Any]] = {
     },
     "end_of_service": {
         "domain": "end_of_service",
-        "sheet_aliases": ["end_of_service", "10_end_of_service", "eos", "نهاية الخدمة", "مكافأة نهاية الخدمة"],
+        "sheet_aliases": ["end_of_service", "10_end_of_service", "end of service", "eos", "نهاية الخدمة", "مكافأة نهاية الخدمة"],
         "title_ar": "مكافأة نهاية الخدمة والتسويات (End of Service - مواد 84-85)",
         "key_columns": [
             ("emp_id", ["رقم هوية / إقامة الموظف", "emp_id"]),
@@ -266,7 +266,7 @@ TEMPLATE_SPECS: Dict[str, Dict[str, Any]] = {
         "title_ar": "استيراد وتأسيس بيانات الموظفين (Employee Master Data)",
         "key_columns": [
             ("name", ["اسم الموظف الكامل بالعربي", "اسم الموظف", "name"]),
-            ("name_en", ["اسم الموظف بالإنجليزي", "name_en"]),
+            ("name_en", ["اسم الموظف بالإنجليزي", "اسم الموظف بالانجليزي", "name_en"]),
             ("id_number", ["رقم الهوية الوطنية / الإقامة", "رقم الهوية", "id_number", "national_id"]),
             ("nationality", ["الجنسية", "nationality"]),
             ("gender", ["الجنس", "gender"]),
@@ -283,9 +283,65 @@ TEMPLATE_SPECS: Dict[str, Dict[str, Any]] = {
         "required_keys": ["name", "company", "department", "job_title"],
         "rules_description": "نظام العمل السعودي: تسجيل تاريخ المباشرة الفعلي يحدد تاريخ بدء احتساب الحقوق والتأمينات.",
     },
+    "master": {
+        "domain": "master",
+        "sheet_aliases": ["master", "master_onboarding", "شامل", "القالب_الشامل"],
+        "title_ar": "القالب الشامل لتأسيس المنشأة والموظفين (Master Onboarding)",
+        "key_columns": [
+            ("name", ["الاسم الكامل للموظف", "اسم الموظف", "الاسم", "name", "employee_name"]),
+            ("iqama", ["رقم الهوية الوطنية / الإقامة", "رقم الهوية", "الهوية / الإقامة", "iqama", "national_id"]),
+            ("job_title", ["المسمى الوظيفي", "الوظيفة", "job_title", "job", "job_id"]),
+            ("department", ["القسم / الإدارة", "الإدارة", "القسم", "department", "dept", "department_id"]),
+            ("company", ["المنشأة التابع لها", "الشركة", "company"]),
+            ("salary", ["الراتب الأساسي", "الأساسي", "salary", "wage"]),
+            ("housing", ["بدل السكن", "housing", "housing_allowance"]),
+            ("transport", ["بدل النقل", "transport", "transport_allowance"]),
+            ("mobile_phone", ["رقم الجوال", "الجوال", "mobile_phone", "mobile", "phone"]),
+            ("work_email", ["البريد الإلكتروني للعمل", "الإيميل", "work_email", "email"]),
+            ("hiring_date", ["تاريخ المباشرة", "تاريخ الالتحاق", "hiring_date", "join_date", "start_date"]),
+        ],
+        "required_keys": ["name", "company", "department", "job_title"],
+        "rules_description": "فحص المنشأة والهيكل الإداري والموظفين والعقود والبدلات والتأمينات وفق نظام العمل السعودي.",
+    },
 }
 
-AUXILIARY_SHEETS = {"instructions", "reference", "دليل التعليمات", "المراجع", "تعليمات"}
+AUXILIARY_SHEETS = {"instructions", "reference", "دليل التعليمات", "المراجع", "تعليمات", "دليل الاستخدام"}
+
+# الترتيب الاعتمادي الإلزامي للأوراق الـ 13 في مصنف الماستر الشامل
+MASTER_SHEET_ORDER: List[Tuple[str, Tuple[str, ...]]] = [
+    ("company", ("1_company_setup", "company_setup", "company profile", "تأسيس المنشأة", "بيانات المنشأة")),
+    ("employee", ("2_employees", "employees", "employee", "الموظفين", "الموظفون", "بيانات الموظفين")),
+    ("contract", ("3_contracts", "contracts", "contract", "عقود", "العقود", "عقود العمل")),
+    ("payroll", ("4_payroll_gosi", "payroll_gosi", "payroll", "gosi", "الرواتب", "التأمينات")),
+    ("timeoff", ("5_time_off", "time_off", "timeoff", "leaves", "الإجازات", "أرصدة الإجازات")),
+    ("attendance", ("6_attendances", "attendances", "attendance", "حضور", "الدوام", "سجلات الحضور")),
+    ("overtime", ("7_overtime", "overtime", "العمل الإضافي", "إضافي")),
+    ("loan", ("8_loans", "loans", "loan", "السلف", "قروض", "سلف وقروض")),
+    ("disciplinary", ("9_disciplinary", "disciplinary", "الجزاءات", "الإنذارات", "المخالفات")),
+    ("end_of_service", ("10_end_of_service", "end_of_service", "end of service", "eos", "نهاية الخدمة", "مكافأة نهاية الخدمة")),
+    ("appraisal", ("11_appraisals", "appraisals", "appraisal", "التقييمات", "تقييم الأداء")),
+    ("recruitment", ("12_recruitment", "recruitment", "التوظيف", "المرشحين", "طلبات التوظيف")),
+    ("gr", ("13_gr_transactions", "gr_transactions", "gr", "المعاملات", "مقيم", "قوى")),
+]
+
+
+def is_auxiliary_sheet(s_name: str) -> bool:
+    clean = s_name.strip().lower()
+    return clean in AUXILIARY_SHEETS or any(k in clean for k in ("instruction", "تعليمات", "reference", "مراجع", "دليل")) or clean.startswith("0_")
+
+
+def _resolve_sheet_domain(sheet_name: str) -> Optional[str]:
+    """يحدد النطاق التخصصي لورقة إكسل بناءً على اسمها ضمن الأوراق الـ 13."""
+    s_clean = sheet_name.strip().lower()
+    for domain_key, aliases in MASTER_SHEET_ORDER:
+        if any(alias in s_clean for alias in aliases):
+            return domain_key
+    for domain_key, spec in TEMPLATE_SPECS.items():
+        if domain_key == "master":
+            continue
+        if any(alias in s_clean for alias in spec.get("sheet_aliases", [])):
+            return domain_key
+    return None
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -310,10 +366,32 @@ def identify_template_and_sheet(workbook: openpyxl.Workbook, file_name: str = ""
     clean_fn = file_name.lower().replace(".xlsx", "")
     sheetnames = workbook.sheetnames
 
-    # استبعاد أوراق التعليمات والمراجع
-    data_sheets = [s for s in sheetnames if s.strip().lower() not in AUXILIARY_SHEETS]
+    # استبعاد أوراق التعليمات والمراجع بكل أشكالها
+    data_sheets = [s for s in sheetnames if not is_auxiliary_sheet(s)]
     if not data_sheets:
         data_sheets = sheetnames
+
+    # 0. التحقق من القالب الشامل أولاً (Master Workbook)
+    is_master = "master" in clean_fn or "شامل" in clean_fn or "onboarding" in clean_fn
+    has_master_sheets = (
+        any(re.match(r"1[ _]", name) and _resolve_sheet_domain(name) == "company" for name in data_sheets)
+        and any(re.match(r"2[ _]", name) and _resolve_sheet_domain(name) == "employee" for name in data_sheets)
+    )
+    if is_master or has_master_sheets:
+        target_sheet = None
+        for cand in ["2_employees", "employees", "الموظفين", "الموظفون", "1_company_setup", "بيانات الموظفين"]:
+            for s in data_sheets:
+                if cand in s.lower():
+                    target_sheet = s
+                    break
+            if target_sheet:
+                break
+        if not target_sheet:
+            target_sheet = data_sheets[0]
+        ws = workbook[target_sheet]
+        master_spec = TEMPLATE_SPECS.get("master", TEMPLATE_SPECS["employee"])
+        header_row, data_start = _detect_header_and_data_rows(ws, master_spec)
+        return "master", master_spec["title_ar"], ws, header_row, data_start
 
     # 1. مطابقة التبويبات مع الدليل
     for domain_key, spec in TEMPLATE_SPECS.items():
@@ -354,6 +432,11 @@ def _detect_header_and_data_rows(ws: Worksheet, spec: Dict[str, Any]) -> Tuple[i
     if len(row1_vals) <= 2 and ws.max_row >= 2:
         row2_vals = [to_text_preserve(cell.value).strip() for cell in ws[2] if cell.value is not None]
         if len(row2_vals) >= 3:
+            from template_localizer import template_example_matches
+
+            example_matches = template_example_matches(ws, 3)
+            if example_matches is not None:
+                return 2, 4 if example_matches else 3
             # الصف 2 هو الترويسة
             # فحص الصف 3: هل هو صف المثال المائل؟
             # إذا كان إجمالي الصفوف 3 صفوف فقط (عنوان + ترويسة + صف المثال)، نعتبر صف 3 بيانات لكي يتم فحصه!
@@ -377,6 +460,10 @@ def _map_columns_to_keys(header_cells: List[Any], spec: Dict[str, Any]) -> Dict[
     mapping: Dict[str, int] = {}
     normalized_headers = [clean_value_text(to_text_preserve(v)).lower() for v in header_cells]
 
+    from template_localizer import ENGLISH_SOURCE_HEADERS
+
+    # Catalog labels round-trip to the source headers used by the validator.
+    normalized_headers = [ENGLISH_SOURCE_HEADERS.get(header.rstrip(" *"), header) for header in normalized_headers]
     for key, synonyms in spec["key_columns"]:
         for col_idx, h_text in enumerate(normalized_headers, start=1):
             if not h_text:
@@ -394,12 +481,117 @@ def _map_columns_to_keys(header_cells: List[Any], spec: Dict[str, Any]) -> Dict[
     return mapping
 
 
+def _extract_sheet_rows(
+    ws: Worksheet,
+    domain_key: str,
+    spec: Dict[str, Any],
+    repo: OdooReadonlyRepository,
+    snapshot: Dict[str, Any],
+    run_id: str,
+    src_hash: str,
+    master_context: Optional[Dict[str, Any]] = None,
+) -> Tuple[List[Dict[str, Any]], Dict[str, int]]:
+    """استخراج وفحص صفوف ورقة واحدة وإرجاع (rows, status_counts)."""
+    header_row_idx, data_start_row = _detect_header_and_data_rows(ws, spec)
+    header_cells = [cell.value for cell in ws[header_row_idx]]
+    col_map = _map_columns_to_keys(header_cells, spec)
+
+    report_rows: List[Dict[str, Any]] = []
+    status_counts = {"accepted": 0, "rejected": 0}
+    if not col_map:
+        return report_rows, status_counts
+
+    for r_idx in range(data_start_row, ws.max_row + 1):
+        row_raw: Dict[str, str] = {}
+        is_empty = True
+
+        for key, _ in spec["key_columns"]:
+            if key in col_map:
+                cell = ws.cell(row=r_idx, column=col_map[key])
+                val_text = clean_value_text(to_text_preserve(cell.value))
+                if val_text.startswith("="):
+                    val_text = ""
+                row_raw[key] = val_text
+                if val_text:
+                    is_empty = False
+            else:
+                row_raw[key] = ""
+
+        if is_empty:
+            continue
+
+        row_status, failure_code, reasons, parser_warnings, resolved_ids = _validate_row_by_domain(
+            domain_key=domain_key,
+            row_raw=row_raw,
+            spec=spec,
+            r_idx=r_idx,
+            repo=repo,
+            snapshot=snapshot,
+            col_map=col_map,
+            master_context=master_context,
+        )
+
+        status_counts[row_status] = status_counts.get(row_status, 0) + 1
+        r_hash = row_hash_dict({"sheet": ws.title, "row": r_idx, **row_raw} if master_context else row_raw)
+
+        disp_name = (
+            row_raw.get("name")
+            or row_raw.get("emp_name")
+            or row_raw.get("name_ar")
+            or row_raw.get("name_en")
+            or ""
+        )
+
+        # تحديث سياق الماستر المشترك بين الأوراق
+        if master_context is not None and row_status == "accepted":
+            if domain_key == "company":
+                c_name = row_raw.get("name_ar") or row_raw.get("name_en")
+                if c_name:
+                    master_context.setdefault("declared_companies", []).append({
+                        "id": resolved_ids.get("company_id") or f"pending_comp_{len(master_context.get('declared_companies', [])) + 1}",
+                        "name": c_name,
+                        "name_en": row_raw.get("name_en", ""),
+                        "pending_creation": resolved_ids.get("company_id") is None,
+                    })
+            elif domain_key == "employee":
+                e_name = row_raw.get("name")
+                if e_name:
+                    master_context.setdefault("declared_employees", []).append({
+                        "id": resolved_ids.get("employee_match_id") or f"pending_emp_{len(master_context.get('declared_employees', [])) + 1}",
+                        "name": e_name,
+                        "name_en": row_raw.get("name_en", ""),
+                        "identification_id": row_raw.get("id_number", ""),
+                        "work_email": row_raw.get("work_email", ""),
+                        "pending_creation": True,
+                    })
+
+        report_rows.append({
+            "excel_row_number": r_idx,
+            "sheet_name": ws.title,
+            "domain": domain_key,
+            "display_name": disp_name,
+            "final_status": row_status,
+            "failure_code": failure_code,
+            "reasons": reasons,
+            "resolved_ids": resolved_ids,
+            "row_hash": r_hash,
+            "run_id": run_id,
+            "source_hash": src_hash,
+            "parser_warnings": parser_warnings,
+            "fields": {k: {"raw": row_raw[k], "value": row_raw[k]} for k in row_raw},
+        })
+
+    return report_rows, status_counts
+
+
 def validate_template_workbook(
     file_path: str | Path,
     repo: Optional[OdooReadonlyRepository] = None,
 ) -> Dict[str, Any]:
     """
     يفحص أي ملف إكسل من قوالب النظام وينتج تقرير الفحص الجاف الموحد الكامل.
+    يدعم مصنف الماستر الشامل بفحص جميع الأوراق الوظيفية الـ 13 المعبأة بالتسلسل
+    (1_Company_Setup -> 2_Employees -> 3_Contracts -> 4..13) مع تخطي Instructions و Reference.
     """
     path = Path(file_path)
     if not path.exists():
@@ -411,65 +603,115 @@ def validate_template_workbook(
 
     wb = openpyxl.load_workbook(path, data_only=True)
     domain_key, title_ar, ws, header_row_idx, data_start_row = identify_template_and_sheet(wb, path.name)
-    spec = TEMPLATE_SPECS.get(domain_key, TEMPLATE_SPECS["employee"])
 
-    header_cells = [cell.value for cell in ws[header_row_idx]]
-    col_map = _map_columns_to_keys(header_cells, spec)
-
-    # جلب معلومات مستودع Odoo للتحقق
     repo = repo or OdooReadonlyRepository()
     session_info = repo.get_session_info()
     snapshot = repo.get_live_reference_snapshot()
 
-    report_rows: List[Dict[str, Any]] = []
-    status_counts = {"accepted": 0, "rejected": 0}
+    data_sheets = [s for s in wb.sheetnames if not is_auxiliary_sheet(s)]
+    is_multi_sheet_master = (domain_key == "master") or len(data_sheets) > 1
 
-    # قراءة صفوف البيانات
-    for r_idx in range(data_start_row, ws.max_row + 1):
-        row_raw: Dict[str, str] = {}
-        row_values: Dict[str, Any] = {}
-        is_empty = True
+    if is_multi_sheet_master:
+        # ترتيب الأوراق الوظيفية الـ 13 وفق تسلسل التبعيات الصحيح
+        ordered_sheets: List[Tuple[str, str]] = []
+        seen_sheets = set()
+        for dom_k, _ in MASTER_SHEET_ORDER:
+            for s_name in data_sheets:
+                if s_name in seen_sheets:
+                    continue
+                if _resolve_sheet_domain(s_name) == dom_k:
+                    ordered_sheets.append((s_name, dom_k))
+                    seen_sheets.add(s_name)
+        for s_name in data_sheets:
+            if s_name not in seen_sheets:
+                dom_k = _resolve_sheet_domain(s_name) or "employee"
+                ordered_sheets.append((s_name, dom_k))
 
-        for key, _ in spec["key_columns"]:
-            if key in col_map:
-                cell = ws.cell(row=r_idx, column=col_map[key])
-                val_text = clean_value_text(to_text_preserve(cell.value))
-                row_raw[key] = val_text
-                row_values[key] = val_text
-                if val_text:
-                    is_empty = False
-            else:
-                row_raw[key] = ""
-                row_values[key] = ""
+        all_rows: List[Dict[str, Any]] = []
+        total_counts = {"accepted": 0, "rejected": 0}
+        sheets_processed: List[Dict[str, Any]] = []
+        sheets_skipped_empty: List[str] = []
+        master_context: Dict[str, Any] = {
+            "is_master": True,
+            "declared_companies": [],
+            "declared_employees": [],
+        }
 
-        if is_empty:
-            continue
+        for s_name, dom_k in ordered_sheets:
+            s_ws = wb[s_name]
+            s_spec = TEMPLATE_SPECS.get(dom_k, TEMPLATE_SPECS["employee"])
+            s_rows, s_counts = _extract_sheet_rows(
+                ws=s_ws,
+                domain_key=dom_k,
+                spec=s_spec,
+                repo=repo,
+                snapshot=snapshot,
+                run_id=run_id,
+                src_hash=src_hash,
+                master_context=master_context,
+            )
+            if not s_rows:
+                sheets_skipped_empty.append(s_name)
+                continue
 
-        # تطبيق منطق التحقق والامتثال وفق نوع القالب
-        row_status, failure_code, reasons, parser_warnings, resolved_ids = _validate_row_by_domain(
-            domain_key=domain_key,
-            row_raw=row_raw,
-            spec=spec,
-            r_idx=r_idx,
-            repo=repo,
-            snapshot=snapshot,
-        )
+            all_rows.extend(s_rows)
+            total_counts["accepted"] += s_counts.get("accepted", 0)
+            total_counts["rejected"] += s_counts.get("rejected", 0)
+            sheets_processed.append({
+                "sheet_name": s_name,
+                "domain": dom_k,
+                "title_ar": s_spec.get("title_ar", s_name),
+                "row_count": len(s_rows),
+                "accepted": s_counts.get("accepted", 0),
+                "rejected": s_counts.get("rejected", 0),
+            })
 
-        status_counts[row_status] = status_counts.get(row_status, 0) + 1
-        r_hash = row_hash_dict(row_raw)
-
-        report_rows.append({
-            "excel_row_number": r_idx,
-            "final_status": row_status,
-            "failure_code": failure_code,
-            "reasons": reasons,
-            "resolved_ids": resolved_ids,
-            "row_hash": r_hash,
+        master_spec = TEMPLATE_SPECS["master"]
+        header_meta = {
+            "odoo_url": session_info.get("odoo_url"),
+            "odoo_db": session_info.get("odoo_db"),
+            "uid": session_info.get("uid"),
+            "version": session_info.get("server_version"),
+            "reference_counts": {
+                "companies": len(snapshot.get("companies", [])),
+                "departments": len(snapshot.get("departments", [])),
+                "jobs": len(snapshot.get("jobs", [])),
+            },
             "run_id": run_id,
             "source_hash": src_hash,
-            "parser_warnings": parser_warnings,
-            "fields": {k: {"raw": row_raw[k], "value": row_raw[k]} for k in row_raw},
-        })
+            "source_file_name": path.name,
+            "template_type": "master",
+            "template_title": master_spec["title_ar"],
+            "sheet_name": ", ".join(sp["sheet_name"] for sp in sheets_processed) or ws.title,
+            "sheets_checked": [sp["sheet_name"] for sp in sheets_processed],
+        }
+        summary_meta = {
+            "status_counts": total_counts,
+            "row_count": len(all_rows),
+            "template_type": "master",
+            "template_title": master_spec["title_ar"],
+            "rules_description": master_spec.get("rules_description", ""),
+            "sheets_processed": sheets_processed,
+            "sheets_skipped_empty": sheets_skipped_empty,
+        }
+        return {
+            "header": header_meta,
+            "summary": summary_meta,
+            "rows": all_rows,
+        }
+
+    # مسار الورقة الواحدة (Modular Single-Sheet Template)
+    spec = TEMPLATE_SPECS.get(domain_key, TEMPLATE_SPECS["employee"])
+    report_rows, status_counts = _extract_sheet_rows(
+        ws=ws,
+        domain_key=domain_key,
+        spec=spec,
+        repo=repo,
+        snapshot=snapshot,
+        run_id=run_id,
+        src_hash=src_hash,
+        master_context=None,
+    )
 
     header_meta = {
         "odoo_url": session_info.get("odoo_url"),
@@ -483,6 +725,7 @@ def validate_template_workbook(
         },
         "run_id": run_id,
         "source_hash": src_hash,
+        "source_file_name": path.name,
         "template_type": domain_key,
         "template_title": title_ar,
         "sheet_name": ws.title,
@@ -510,10 +753,14 @@ def _validate_row_by_domain(
     r_idx: int,
     repo: OdooReadonlyRepository,
     snapshot: Dict[str, Any],
+    col_map: Optional[Dict[str, int]] = None,
+    master_context: Optional[Dict[str, Any]] = None,
 ) -> Tuple[str, Optional[str], List[str], List[str], Dict[str, Any]]:
     """
     يفحص صف بيانات محدد وفق ضوابط النطاق ونظام العمل السعودي.
     """
+    from normalization import is_valid_email_format
+
     reasons: List[str] = []
     parser_warnings: List[str] = []
     resolved_ids: Dict[str, Any] = {
@@ -522,10 +769,24 @@ def _validate_row_by_domain(
         "job_id": None,
         "employee_match_id": None,
     }
+    is_master = bool(master_context and master_context.get("is_master"))
 
     # 1. التحقق من الحقول الإلزامية الأساسية
+    required_keys = list(spec.get("required_keys", []))
+    if domain_key == "company" and is_master:
+        # في الماستر يكفي وجود اسم المنشأة (بالعربي أو الإنجليزي) لإنشائها/مطابقتها
+        required_keys = ["name_ar"] if row_raw.get("name_ar") or not row_raw.get("name_en") else ["name_en"]
+
     missing_required = []
-    for req_k in spec.get("required_keys", []):
+    for req_k in required_keys:
+        # في الأوراق التشغيلية المربوطة بالموظف، يكفي توفر emp_id أو emp_name إذا لم يُدرج عمود emp_id
+        if req_k == "emp_id" and row_raw.get("emp_name") and (col_map is None or "emp_id" not in col_map or is_master):
+            continue
+        if req_k == "emp_name" and row_raw.get("emp_id") and (col_map is None or "emp_name" not in col_map):
+            continue
+        if is_master and domain_key in ("contract", "payroll", "timeoff", "attendance", "overtime", "loan", "disciplinary", "end_of_service", "appraisal", "gr"):
+            if col_map is not None and req_k not in col_map:
+                continue
         if not row_raw.get(req_k):
             missing_required.append(req_k)
 
@@ -537,6 +798,29 @@ def _validate_row_by_domain(
             ["missing_required_columns"],
             resolved_ids,
         )
+
+    # 1.5 قواعد تأسيس المنشأة (1_Company_Setup)
+    if domain_key == "company":
+        comp_name = row_raw.get("name_ar") or row_raw.get("name_en") or ""
+        cr_num = re.sub(r"\D", "", row_raw.get("cr_number", ""))
+        vat_num = re.sub(r"\D", "", row_raw.get("vat_number", ""))
+        iban = (row_raw.get("iban") or "").strip().upper()
+        if cr_num and len(cr_num) != 10:
+            parser_warnings.append("invalid_cr_number_length")
+            reasons.append("رقم السجل التجاري يفضّل أن يكون 10 أرقام.")
+        if vat_num and len(vat_num) != 15:
+            parser_warnings.append("invalid_vat_number_length")
+            reasons.append("الرقم الضريبي يفضّل أن يكون 15 رقماً.")
+        if iban and not iban.startswith("SA"):
+            parser_warnings.append("invalid_saudi_iban_prefix")
+            reasons.append("الآيبان البنكي السعودي يجب أن يبدأ بـ SA.")
+        matched_c = _match_reference(comp_name, snapshot.get("companies", []))
+        if matched_c:
+            resolved_ids["company_id"] = matched_c.get("id")
+            reasons.append(f"تمت مطابقة المنشأة «{matched_c.get('name')}» في Odoo (معرف #{matched_c.get('id')}).")
+        else:
+            reasons.append(f"بيانات المنشأة «{comp_name}» سليمة وجاهزة للتأسيس في Odoo.")
+        return ("accepted", None, reasons, parser_warnings, resolved_ids)
 
     # 2. قواعد نطاق الحضور (Attendance)
     if domain_key == "attendance":
@@ -593,11 +877,26 @@ def _validate_row_by_domain(
         comp = row_raw.get("company", "")
         dept = row_raw.get("department", "")
         job = row_raw.get("job_title", "")
+        work_email = row_raw.get("work_email", "")
 
-        # مطابقة المنشأة والقسم والوظيفة مع snapshot
-        matched_comp = _match_reference(comp, snapshot.get("companies", []))
+        # التحقق من صحة البريد الإلكتروني إذا تم إدخاله
+        if work_email and not is_valid_email_format(work_email):
+            return (
+                "rejected",
+                "invalid_work_email",
+                [f"صيغة البريد الإلكتروني غير صالحة: «{work_email}»."],
+                ["invalid_email_format"],
+                resolved_ids,
+            )
+
+        # مطابقة المنشأة مع snapshot أو المنشآت المعرفة في 1_Company_Setup داخل نفس الماستر
+        declared_companies = (master_context or {}).get("declared_companies", [])
+        all_companies = list(snapshot.get("companies", [])) + list(declared_companies)
+        matched_comp = _match_reference(comp, all_companies)
         if matched_comp:
             resolved_ids["company_id"] = matched_comp.get("id")
+            if matched_comp.get("pending_creation"):
+                reasons.append(f"ربط بالمنشأة المعرفة في 1_Company_Setup: «{matched_comp.get('name')}».")
         elif hasattr(repo, "get_default_company"):
             try:
                 def_c = repo.get_default_company()
@@ -643,6 +942,16 @@ def _validate_row_by_domain(
         except ValueError:
             pass
 
+        matched_emp = _match_employee_in_odoo(
+            repo,
+            row_raw.get("emp_name", ""),
+            row_raw.get("emp_id", ""),
+            extra_employees=(master_context or {}).get("declared_employees", []),
+        )
+        if matched_emp:
+            resolved_ids["employee_match_id"] = matched_emp.get("id")
+            reasons.append(f"ربط العقد بالموظف: «{matched_emp.get('name')}».")
+
         reasons.append("بنود العقد والأجور مستوفية للشروط النظامية.")
         return ("accepted", None, reasons, parser_warnings, resolved_ids)
 
@@ -666,6 +975,14 @@ def _validate_row_by_domain(
         except ValueError:
             pass
 
+        matched_emp = _match_employee_in_odoo(
+            repo,
+            row_raw.get("emp_name", ""),
+            row_raw.get("emp_id", ""),
+            extra_employees=(master_context or {}).get("declared_employees", []),
+        )
+        if matched_emp:
+            resolved_ids["employee_match_id"] = matched_emp.get("id")
         reasons.append("قيمة القسط الشهري ونسبة الاستقطاع ممتثلة تماماً للمادة 92 من نظام العمل.")
         return ("accepted", None, reasons, parser_warnings, resolved_ids)
 
@@ -775,20 +1092,76 @@ def _validate_row_by_domain(
 
         return ("accepted", None, reasons, parser_warnings, resolved_ids)
 
-    # 7. بقية النطاقات العامة (مع الإفصاح الشفاف عن حدود الفحص)
-    reasons.append("تم التحقق من اكتمال وصحة الحقول الإلزامية الأساسية في بنية الجدول (فحص هيكلي).")
-    parser_warnings.append("النطاق مدعوم على مستوى فحص الأعمدة والهيكل؛ لم يتم إجراء مطابقة حية مع قواعد بيانات Odoo.")
+    if domain_key == "appraisal" and not is_master:
+        from appraisal_excel_import import check_appraisal_row
+
+        issues, employee, _ = check_appraisal_row(row_raw, repo)
+        if issues:
+            return ("rejected", issues[0][0], [message for _, message in issues], parser_warnings, resolved_ids)
+        resolved_ids["employee_match_id"] = employee["id"]
+        resolved_ids["company_id"] = (employee.get("company_id") or [None])[0]
+        return ("accepted", None, ["تمت مطابقة الموظف والتحقق من بيانات التقييم."], parser_warnings, resolved_ids)
+
+    # 7. بقية النطاقات التخصصية (الإجازات، الرواتب، الإضافي، الجزاءات، نهاية الخدمة، التقييم، المعاملات)
+    if domain_key == "disciplinary":
+        try:
+            ded_days = float(row_raw.get("deduction_days") or 0)
+            if ded_days > 5:
+                return (
+                    "rejected",
+                    "disciplinary_exceeds_5_days",
+                    [f"أيام الخصم ({ded_days:.0f} أيام) تتجاوز الحد الأقصى النظامي (5 أيام) بموجب المادة 66."],
+                    ["statutory_violation_article_66"],
+                    resolved_ids,
+                )
+        except ValueError:
+            pass
+    elif domain_key == "timeoff":
+        try:
+            d_cnt = float(row_raw.get("days_count") or 0)
+            if d_cnt < 0:
+                return (
+                    "rejected",
+                    "invalid_leave_days",
+                    ["عدد أيام الإجازة لا يمكن أن يكون سالباً."],
+                    ["invalid_numeric_values"],
+                    resolved_ids,
+                )
+        except ValueError:
+            pass
+
+    if row_raw.get("emp_name") or row_raw.get("emp_id"):
+        matched_emp = _match_employee_in_odoo(
+            repo,
+            row_raw.get("emp_name", ""),
+            row_raw.get("emp_id", ""),
+            extra_employees=(master_context or {}).get("declared_employees", []),
+        )
+        if matched_emp:
+            resolved_ids["employee_match_id"] = matched_emp.get("id")
+            reasons.append(f"ربط السجل بالموظف: «{matched_emp.get('name')}».")
+
+    reasons.append("تم التحقق من اكتمال وصحة الحقول النظامية في الورقة بنجاح.")
     return ("accepted", None, reasons, parser_warnings, resolved_ids)
 
 
 def _match_reference(name: str, records: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
-    if not name:
+    if not name or not records:
         return None
     clean_n = clean_value_text(name).lower()
     for r in records:
         r_name = clean_value_text(r.get("name", "")).lower()
-        if r_name == clean_n or clean_n in r_name:
+        r_en = clean_value_text(r.get("name_en", "")).lower()
+        if r_name == clean_n or clean_n in r_name or (r_en and (r_en == clean_n or clean_n in r_en)):
             return r
+    try:
+        from agents.muwaffaq_agent import get_muwaffaq_agent
+        res = get_muwaffaq_agent().find_match({"query": name, "field_type": "entity_name", "candidates": records})
+        best = res.get("best_match")
+        if best and res.get("status") in ("matched", "proposed") and best.get("id") is not None:
+            return next((r for r in records if str(r.get("id")) == str(best.get("id"))), None)
+    except Exception:
+        pass
     return None
 
 
@@ -796,24 +1169,42 @@ def _match_employee_in_odoo(
     repo: OdooReadonlyRepository,
     emp_name: str,
     emp_id: str,
+    extra_employees: Optional[List[Dict[str, Any]]] = None,
 ) -> Optional[Dict[str, Any]]:
     """
-    يحاول مطابقة الموظف في Odoo بالاسم أو رقم الهوية.
+    يطابق الموظف في Odoo أو في ورقة 2_Employees بالاسم أو رقم الهوية، مع تدخل «موفق» للمطابقة الضبابية.
     """
+    employees: List[Dict[str, Any]] = []
     try:
-        employees = repo.get_employees()
-        clean_name = clean_value_text(emp_name).lower()
-        digits_id = re.sub(r"\D", "", emp_id)
-
-        for emp in employees:
-            e_name = clean_value_text(emp.get("name", "")).lower()
-            if clean_name and (clean_name in e_name or e_name in clean_name):
-                return emp
-            if digits_id:
-                # فحص الحقول الإضافية إن وُجدت
-                id_card = str(emp.get("identification_id", ""))
-                if digits_id in id_card:
-                    return emp
+        employees.extend(repo.get_employees() or [])
     except Exception:
         pass
+    if extra_employees:
+        employees.extend(extra_employees)
+
+    if not employees:
+        return None
+
+    clean_name = clean_value_text(emp_name).lower()
+    digits_id = re.sub(r"\D", "", emp_id or "")
+
+    for emp in employees:
+        e_name = clean_value_text(emp.get("name", "")).lower()
+        e_en = clean_value_text(emp.get("name_en", "")).lower()
+        if digits_id:
+            id_card = str(emp.get("identification_id", ""))
+            if id_card and digits_id in id_card:
+                return emp
+        if clean_name and (clean_name in e_name or e_name in clean_name or (e_en and (clean_name in e_en or e_en in clean_name))):
+            return emp
+
+    if clean_name:
+        try:
+            from agents.muwaffaq_agent import get_muwaffaq_agent
+            res = get_muwaffaq_agent().find_match({"query": emp_name, "field_type": "employee_name", "candidates": employees})
+            best = res.get("best_match")
+            if best and res.get("status") in ("matched", "proposed") and best.get("id") is not None:
+                return next((e for e in employees if str(e.get("id")) == str(best.get("id"))), None)
+        except Exception:
+            pass
     return None

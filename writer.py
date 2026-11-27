@@ -17,7 +17,7 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -307,6 +307,136 @@ def _attempt_row(
     return record, False
 
 
+def _normalize_iso_date(raw_val: Any, fallback: Optional[str] = None) -> Optional[str]:
+    """يحوّل القيمة الزمنية إلى صيغة YYYY-MM-DD صالحة لأودو."""
+    if raw_val is None:
+        return fallback
+    if hasattr(raw_val, "strftime"):
+        return raw_val.strftime("%Y-%m-%d")
+    txt = str(raw_val).strip()
+    if not txt or txt.startswith("="):
+        return fallback
+    if len(txt) == 7 and txt[4] == "-":
+        return f"{txt}-01"
+    part = txt.split("T")[0].split(" ")[0].strip()
+    if len(part) >= 10 and part[4] == "-" and part[7] == "-":
+        return part[:10]
+    return fallback
+
+
+def _safe_float(raw_val: Any, default: float = 0.0) -> float:
+    if raw_val is None:
+        return default
+    txt = str(raw_val).strip().replace(",", "")
+    if not txt or txt.startswith("="):
+        return default
+    try:
+        return float(txt)
+    except (ValueError, TypeError):
+        return default
+
+
+def _get_muwaffaq_instance() -> Any:
+    try:
+        from agents.muwaffaq_agent import get_muwaffaq_agent
+        return get_muwaffaq_agent()
+    except Exception:
+        return None
+
+
+def _resolve_with_muwaffaq(
+    query: str,
+    candidates_map: Dict[str, int],
+    entity_type: str = "employee",
+    muwaffaq: Any = None,
+) -> Tuple[Optional[int], Optional[Dict[str, Any]]]:
+    """يطابق الاسم أو المصطلح أولاً بالتطابق المباشر ثم عبر وكيل موفق (MuwaffaqAgent)."""
+    q_clean = str(query or "").strip()
+    if not q_clean or not candidates_map:
+        return None, None
+    q_low = q_clean.lower()
+    if q_clean in candidates_map:
+        return candidates_map[q_clean], None
+    if q_low in candidates_map:
+        return candidates_map[q_low], None
+
+    agent = muwaffaq or _get_muwaffaq_instance()
+    if not agent or not hasattr(agent, "find_match"):
+        return None, None
+
+    candidates_list = []
+    seen_ids = set()
+    for name_key, rec_id in candidates_map.items():
+        if not name_key or rec_id in seen_ids:
+            continue
+        seen_ids.add(rec_id)
+        candidates_list.append({"id": rec_id, "name": name_key})
+
+    if not candidates_list:
+        return None, None
+
+    try:
+        res = agent.find_match({
+            "query": q_clean,
+            "field_type": entity_type,
+            "candidates": candidates_list,
+        })
+        best = res.get("best_match") if isinstance(res, dict) else None
+        if isinstance(best, dict) and best.get("id") is not None and res.get("status") in ("matched", "proposed"):
+            conf_val = float(best.get("confidence", res.get("confidence", 0.0)) or 0.0)
+            if conf_val >= 0.55:
+                return int(best["id"]), {
+                    "query": q_clean,
+                    "matched_id": int(best["id"]),
+                    "matched_name": str(best.get("name") or best.get("display_name") or ""),
+                    "confidence": round(conf_val, 3),
+                    "strategy": str(best.get("strategy") or res.get("strategy_used") or "semantic"),
+                    "entity_type": entity_type,
+                }
+    except Exception as exc:
+        logger.debug(f"Muwaffaq find_match failed for '{q_clean}' ({entity_type}): {exc}")
+    return None, None
+
+
+def _extract_raw_sheet_rows(ws: Any, spec: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """يستخرج صفوف ورقة إكسل واحدة كقاموس مسطح {key: value} اعتماداً على _map_columns_to_keys."""
+    from excel_template_validator import _detect_header_and_data_rows, _map_columns_to_keys
+
+    header_row_idx, _validator_data_start = _detect_header_and_data_rows(ws, spec)
+    header_cells = [cell.value for cell in ws[header_row_idx]]
+    col_map = _map_columns_to_keys(header_cells, spec)
+    if not col_map:
+        return []
+
+    data_start_row = header_row_idx + 1
+    if header_row_idx == 2 and ws.max_row > 3:
+        first_cell = ws.cell(row=3, column=1)
+        first_txt = str(first_cell.value or "").strip()
+        is_italic = bool(getattr(getattr(first_cell, "font", None), "italic", False))
+        if is_italic or "1088776655" in first_txt or "شركة النخبة" in first_txt:
+            data_start_row = 4
+
+    rows_out: List[Dict[str, Any]] = []
+    for r_idx in range(data_start_row, ws.max_row + 1):
+        fields: Dict[str, Any] = {}
+        has_any = False
+        for key, col_idx in col_map.items():
+            raw_v = ws.cell(row=r_idx, column=col_idx).value
+            if raw_v is None:
+                fields[key] = ""
+                continue
+            txt = str(raw_v).strip()
+            if txt.startswith("="):
+                fields[key] = ""
+                continue
+            if txt:
+                has_any = True
+            fields[key] = raw_v if not isinstance(raw_v, str) else txt
+        if has_any:
+            rows_out.append({"excel_row_number": r_idx, "fields": fields})
+    return rows_out
+
+
 def _setup_onboarding_prerequisites(
     input_path: Path,
     repository: Any,
@@ -315,7 +445,7 @@ def _setup_onboarding_prerequisites(
 ) -> Tuple[int, Dict[str, Any]]:
     """
     تأسيس المتطلبات المسبقة للمنشأة والهيكل التنظيمي بالترتيب الاعتمادي:
-    1) تأسيس/ربط المنشأة (res.company).
+    1) تأسيس/ربط المنشأة (res.company) بدعم المطابقة الدلالية عبر موفق.
     2) تأسيس/ربط الأقسام (hr.department).
     3) تأسيس/ربط المسميات الوظيفية (hr.job).
     """
@@ -335,89 +465,164 @@ def _setup_onboarding_prerequisites(
     except Exception:
         return target_company_id, summary
 
+    try:
+        from excel_template_validator import (
+            TEMPLATE_SPECS,
+            _detect_header_and_data_rows,
+            _map_columns_to_keys,
+            _resolve_sheet_domain,
+            is_auxiliary_sheet,
+        )
+    except Exception:
+        TEMPLATE_SPECS = {}
+        _detect_header_and_data_rows = None
+        _map_columns_to_keys = None
+        _resolve_sheet_domain = None
+        is_auxiliary_sheet = lambda s: s.strip().lower() in {"instructions", "reference"}
+
+    muwaffaq = _get_muwaffaq_instance()
+
     comp_sheet = None
     for name in wb.sheetnames:
+        if is_auxiliary_sheet(name):
+            continue
+        domain = _resolve_sheet_domain(name) if _resolve_sheet_domain else None
         name_lower = name.strip().lower()
-        if "company" in name_lower or "منشأة" in name_lower or "منشاه" in name_lower or "شركة" in name_lower:
+        if domain == "company" or any(k in name_lower for k in ("company", "منشأة", "منشاه", "شركة")):
             comp_sheet = wb[name]
             break
 
     effective_company_id = target_company_id
+    comp_candidates: Dict[str, int] = {}
+    try:
+        companies = repository.get_companies() if hasattr(repository, "get_companies") else []
+        for c in companies:
+            if c.get("name") and c.get("id") is not None:
+                comp_candidates[str(c["name"]).strip()] = int(c["id"])
+                comp_candidates[str(c["name"]).strip().lower()] = int(c["id"])
+    except Exception:
+        pass
+
     if comp_sheet and comp_sheet.max_row >= 2:
-        comp_name = None
-        for r_idx in range(2, min(comp_sheet.max_row + 1, 6)):
-            for cell in comp_sheet[r_idx]:
-                val = str(cell.value or "").strip()
-                if val and not val.endswith("*") and not any(h in val for h in ["اسم", "بيانات", "Company", "رقم", "سجل", "ملف"]):
-                    comp_name = val
+        comp_rows: List[Dict[str, Any]] = []
+        if "company" in TEMPLATE_SPECS and _detect_header_and_data_rows and _map_columns_to_keys:
+            try:
+                comp_rows = _extract_raw_sheet_rows(comp_sheet, TEMPLATE_SPECS["company"])
+            except Exception:
+                comp_rows = []
+
+        comp_payload: Dict[str, Any] = {}
+        if comp_rows:
+            f = comp_rows[0].get("fields", {})
+            comp_name = str(f.get("name_ar") or f.get("name_en") or "").strip()
+            if comp_name:
+                comp_payload["name"] = comp_name
+                if f.get("vat_number"):
+                    comp_payload["vat"] = str(f["vat_number"]).strip()
+                if f.get("city"):
+                    comp_payload["city"] = str(f["city"]).strip()
+        else:
+            comp_name = None
+            for r_idx in range(2, min(comp_sheet.max_row + 1, 6)):
+                for cell in comp_sheet[r_idx]:
+                    val = str(cell.value or "").strip()
+                    if val and not val.endswith("*") and not val.startswith("=") and not any(h in val for h in ["اسم", "بيانات", "Company", "رقم", "سجل", "ملف"]):
+                        comp_name = val
+                        break
+                if comp_name:
                     break
             if comp_name:
-                break
+                comp_payload["name"] = comp_name
 
-        if comp_name:
-            try:
-                companies = repository.get_companies() if hasattr(repository, "get_companies") else []
-                existing_comp = next((c for c in companies if c.get("name", "").strip().lower() == comp_name.lower()), None)
-                if existing_comp:
-                    effective_company_id = existing_comp.get("id", target_company_id)
-                elif hasattr(gateway, "create_record"):
-                    new_cid = gateway.create_record("res.company", {"name": comp_name})
-                    effective_company_id = new_cid
-                    summary["company_created"] = {"id": new_cid, "name": comp_name}
-            except Exception as e:
-                logger.debug(f"Company setup prerequisite check skipped: {e}")
+        if comp_payload.get("name"):
+            c_name = comp_payload["name"]
+            matched_cid, _ = _resolve_with_muwaffaq(c_name, comp_candidates, entity_type="company", muwaffaq=muwaffaq)
+            if matched_cid is not None:
+                effective_company_id = matched_cid
+            elif hasattr(gateway, "create_record"):
+                try:
+                    new_cid = gateway.create_record("res.company", comp_payload)
+                    effective_company_id = int(new_cid)
+                    summary["company_created"] = {"id": int(new_cid), "name": c_name}
+                    comp_candidates[c_name] = int(new_cid)
+                    comp_candidates[c_name.lower()] = int(new_cid)
+                except Exception as e:
+                    logger.debug(f"Company setup prerequisite check skipped: {e}")
 
     summary["company_id"] = effective_company_id
 
-    known_depts = set()
-    known_jobs = set()
+    dept_candidates: Dict[str, int] = {}
+    job_candidates: Dict[str, int] = {}
     try:
         depts_list = repository.get_departments(effective_company_id) if hasattr(repository, "get_departments") else []
         for d in depts_list:
-            d_name = d.get("complete_name") or d.get("name") or ""
-            if d_name:
-                known_depts.add(d_name.strip().lower())
+            d_id = d.get("id")
+            for k_name in (d.get("name"), d.get("complete_name")):
+                if k_name and d_id is not None:
+                    dept_candidates[str(k_name).strip()] = int(d_id)
+                    dept_candidates[str(k_name).strip().lower()] = int(d_id)
         jobs_list = repository.get_jobs(effective_company_id) if hasattr(repository, "get_jobs") else []
         for j in jobs_list:
+            j_id = j.get("id")
             j_name = j.get("name") or ""
-            if j_name:
-                known_jobs.add(j_name.strip().lower())
+            if j_name and j_id is not None:
+                job_candidates[str(j_name).strip()] = int(j_id)
+                job_candidates[str(j_name).strip().lower()] = int(j_id)
     except Exception as e:
         logger.debug(f"Reference cache read skipped: {e}")
 
-    needed_depts = set()
-    needed_jobs = set()
+    needed_depts: set = set()
+    needed_jobs: set = set()
 
     for sheet_name in wb.sheetnames:
+        if is_auxiliary_sheet(sheet_name):
+            continue
         sheet = wb[sheet_name]
         if sheet.max_row < 2:
             continue
-        header_row = 1
-        h_vals = [str(c.value or "").strip().lower() for c in sheet[1]]
-        if not any("name" in h or "اسم" in h or "department" in h or "قسم" in h for h in h_vals) and sheet.max_row >= 2:
-            header_row = 2
-            h_vals = [str(c.value or "").strip().lower() for c in sheet[2]]
 
-        dept_col = None
-        job_col = None
-        for c_idx, h in enumerate(h_vals, 1):
-            if any(k in h for k in ["department", "القسم", "إدارة", "ادارة"]):
-                dept_col = c_idx
-            elif any(k in h for k in ["job", "وظيفة", "مسمى", "مسمي"]):
-                job_col = c_idx
+        domain = _resolve_sheet_domain(sheet_name) if _resolve_sheet_domain else None
+        spec = TEMPLATE_SPECS.get(domain) if domain else None
+        if _detect_header_and_data_rows and _map_columns_to_keys and spec:
+            header_row, data_start = _detect_header_and_data_rows(sheet, spec)
+            header_cells = [c.value for c in sheet[header_row]]
+            col_map = _map_columns_to_keys(header_cells, spec)
+            dept_col = col_map.get("department") or col_map.get("dept")
+            job_col = col_map.get("job_title") or col_map.get("job")
+            start_r = data_start
+        else:
+            header_row = 1
+            h_vals = [str(c.value or "").strip().lower() for c in sheet[1]]
+            if not any("name" in h or "اسم" in h or "department" in h or "قسم" in h for h in h_vals) and sheet.max_row >= 2:
+                header_row = 2
+                h_vals = [str(c.value or "").strip().lower() for c in sheet[2]]
+            dept_col = None
+            job_col = None
+            for c_idx, h in enumerate(h_vals, 1):
+                if any(k in h for k in ["department", "القسم", "إدارة", "ادارة"]):
+                    dept_col = c_idx
+                elif any(k in h for k in ["job", "وظيفة", "مسمى", "مسمي"]):
+                    job_col = c_idx
+            start_r = header_row + 1
 
         if dept_col or job_col:
-            for r_idx in range(header_row + 1, sheet.max_row + 1):
+            for r_idx in range(start_r, sheet.max_row + 1):
                 if dept_col:
                     d_val = str(sheet.cell(row=r_idx, column=dept_col).value or "").strip()
-                    if d_val and d_val.lower() not in known_depts and not d_val.startswith("="):
-                        needed_depts.add(d_val)
+                    if d_val and not d_val.startswith("=") and not d_val.endswith("*"):
+                        matched_d, _ = _resolve_with_muwaffaq(d_val, dept_candidates, entity_type="department", muwaffaq=muwaffaq)
+                        if matched_d is None:
+                            needed_depts.add(d_val)
                 if job_col:
                     j_val = str(sheet.cell(row=r_idx, column=job_col).value or "").strip()
-                    if j_val and j_val.lower() not in known_jobs and not j_val.startswith("="):
-                        needed_jobs.add(j_val)
+                    if j_val and not j_val.startswith("=") and not j_val.endswith("*"):
+                        matched_j, _ = _resolve_with_muwaffaq(j_val, job_candidates, entity_type="job", muwaffaq=muwaffaq)
+                        if matched_j is None:
+                            needed_jobs.add(j_val)
 
     for d_name in sorted(needed_depts):
+        if d_name.lower() in dept_candidates:
+            continue
         try:
             if hasattr(gateway, "create_record"):
                 d_id = gateway.create_record("hr.department", {
@@ -425,11 +630,14 @@ def _setup_onboarding_prerequisites(
                     "company_id": effective_company_id,
                 })
                 summary["departments_created"].append({"id": d_id, "name": d_name})
-                known_depts.add(d_name.lower())
+                dept_candidates[d_name] = int(d_id)
+                dept_candidates[d_name.lower()] = int(d_id)
         except Exception as e:
             logger.debug(f"Could not auto-create department '{d_name}': {e}")
 
     for j_name in sorted(needed_jobs):
+        if j_name.lower() in job_candidates:
+            continue
         try:
             if hasattr(gateway, "create_record"):
                 j_id = gateway.create_record("hr.job", {
@@ -437,11 +645,248 @@ def _setup_onboarding_prerequisites(
                     "company_id": effective_company_id,
                 })
                 summary["jobs_created"].append({"id": j_id, "name": j_name})
-                known_jobs.add(j_name.lower())
+                job_candidates[j_name] = int(j_id)
+                job_candidates[j_name.lower()] = int(j_id)
         except Exception as e:
             logger.debug(f"Could not auto-create job '{j_name}': {e}")
 
     return effective_company_id, summary
+
+
+def _resolve_employee_id_for_row(
+    emp_ident: str,
+    emp_id_num: str,
+    employee_id_map: Dict[str, int],
+    repo_emp_candidates: Dict[str, int],
+    muwaffaq: Any = None,
+) -> Tuple[Optional[int], Optional[Dict[str, Any]]]:
+    """يبحث عن معرف الموظف عبر الهوية/الإقامة، ثم الاسم المباشر، ثم وكيل موفق."""
+    for key in (emp_id_num, emp_ident):
+        k = str(key or "").strip()
+        if not k:
+            continue
+        if k in employee_id_map:
+            return employee_id_map[k], None
+        if k.lower() in employee_id_map:
+            return employee_id_map[k.lower()], None
+
+    combined = {**repo_emp_candidates, **employee_id_map}
+    if emp_ident:
+        matched_id, trace = _resolve_with_muwaffaq(emp_ident, combined, entity_type="employee", muwaffaq=muwaffaq)
+        if matched_id is not None:
+            return matched_id, trace
+
+    if not emp_ident and not emp_id_num and len(set(employee_id_map.values())) == 1:
+        return next(iter(employee_id_map.values())), None
+    return None, None
+
+
+def _execute_domain_record(
+    domain: str,
+    fields: Dict[str, Any],
+    repository: Any,
+    gateway: Any,
+    effective_company_id: int,
+    employee_id_map: Dict[str, int],
+    repo_emp_candidates: Dict[str, int],
+    dept_candidates: Dict[str, int],
+    job_candidates: Dict[str, int],
+    leave_type_id: int,
+    muwaffaq: Any = None,
+) -> Tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]], Optional[str]]:
+    """
+    ينفّذ سجلاً واحداً من أي ورقة تشغيلية (3..13) باستخدام SAFE_WRITE_FIELDS المعتمدة فقط.
+    يعيد: (created_item_dict | None, muwaffaq_match_dict | None, error_msg | None)
+    """
+    emp_ident = str(fields.get("emp_name") or fields.get("name") or "").strip()
+    emp_id_num = str(fields.get("emp_id") or fields.get("id_number") or "").strip()
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    target_emp_id: Optional[int] = None
+    m_trace: Optional[Dict[str, Any]] = None
+    if domain != "recruitment":
+        target_emp_id, m_trace = _resolve_employee_id_for_row(
+            emp_ident, emp_id_num, employee_id_map, repo_emp_candidates, muwaffaq=muwaffaq
+        )
+        if not target_emp_id:
+            return None, m_trace, f"تعذر ربط الموظف '{emp_ident or emp_id_num}' بسجل موجود في أودو."
+
+    if domain == "contract":
+        wage_val = _safe_float(fields.get("wage") or fields.get("total_salary"), 0.0)
+        if wage_val <= 0:
+            return None, m_trace, "الراتب الأساسي في العقد يجب أن يكون أكبر من صفر."
+        payload: Dict[str, Any] = {
+            "name": f"عقد عمل - {emp_ident or target_emp_id}",
+            "employee_id": target_emp_id,
+            "wage": wage_val,
+            "state": "open",
+            "company_id": effective_company_id,
+        }
+        d_start = _normalize_iso_date(fields.get("start_date"))
+        d_end = _normalize_iso_date(fields.get("end_date"))
+        if d_start:
+            payload["date_start"] = d_start
+        if d_end:
+            payload["date_end"] = d_end
+        housing = _safe_float(fields.get("housing"), 0.0)
+        transport = _safe_float(fields.get("transport"), 0.0)
+        other = _safe_float(fields.get("other_allowance"), 0.0)
+        if housing or transport or other:
+            payload["notes"] = f"نوع العقد: {fields.get('contract_type', 'محدد المدة')} | سكن: {housing} | نقل: {transport} | أخرى: {other}"
+        rec_id = gateway.create_record("hr.contract", payload)
+        return {"domain": domain, "model": "hr.contract", "id": rec_id, "employee_id": target_emp_id, "wage": wage_val, "name": payload["name"]}, m_trace, None
+
+    if domain == "payroll":
+        d_from = _normalize_iso_date(fields.get("month"), today_str[:7] + "-01")
+        payload = {
+            "name": f"مسير راتب وتأمينات - {emp_ident or target_emp_id}",
+            "employee_id": target_emp_id,
+            "date_from": d_from,
+            "date_to": d_from,
+            "company_id": effective_company_id,
+            "note": (
+                f"GOSI: {fields.get('gosi_type', '')} | رقم: {fields.get('gosi_sub_num', '')} | "
+                f"بنك: {fields.get('bank_name', '')} | أجر خاضع: {fields.get('gosi_wage', '')} | "
+                f"صافي متوقع: {fields.get('net_salary', '')}"
+            ),
+        }
+        rec_id = gateway.create_record("hr.payslip", payload)
+        return {"domain": domain, "model": "hr.payslip", "id": rec_id, "employee_id": target_emp_id, "name": payload["name"]}, m_trace, None
+
+    if domain == "timeoff":
+        d_from = _normalize_iso_date(fields.get("start_date"), today_str)
+        d_to = _normalize_iso_date(fields.get("end_date"), d_from)
+        days = _safe_float(fields.get("days_count"), 1.0)
+        leave_label = str(fields.get("leave_type") or "إجازة سنوية").strip()
+        payload = {
+            "name": f"{leave_label} - {emp_ident or target_emp_id}",
+            "employee_id": target_emp_id,
+            "holiday_status_id": leave_type_id,
+            "request_date_from": d_from,
+            "request_date_to": d_to,
+            "number_of_days": max(0.5, days),
+            "company_id": effective_company_id,
+        }
+        rec_id = gateway.create_record("hr.leave", payload)
+        return {"domain": domain, "model": "hr.leave", "id": rec_id, "employee_id": target_emp_id, "days": days, "name": payload["name"]}, m_trace, None
+
+    if domain == "attendance":
+        month_base = _normalize_iso_date(fields.get("month"), today_str)
+        payload = {
+            "employee_id": target_emp_id,
+            "check_in": f"{month_base} 08:00:00",
+            "check_out": f"{month_base} 16:00:00",
+        }
+        rec_id = gateway.create_record("hr.attendance", payload)
+        return {"domain": domain, "model": "hr.attendance", "id": rec_id, "employee_id": target_emp_id, "name": f"حضور {month_base[:7]} - {emp_ident}"}, m_trace, None
+
+    if domain == "overtime":
+        ot_date = _normalize_iso_date(fields.get("date"), today_str)
+        hours = _safe_float(fields.get("hours"), 0.0)
+        amt = _safe_float(fields.get("total_amount"), 0.0)
+        payload = {
+            "name": f"عمل إضافي ({hours} س) - {emp_ident or target_emp_id}",
+            "employee_id": target_emp_id,
+            "date_from": ot_date,
+            "date_to": ot_date,
+            "company_id": effective_company_id,
+            "note": f"نوع الإضافي: {fields.get('overtime_type', 'عادي')} | ساعات: {hours} | مستحق: {amt} | مبرر: {fields.get('reason', '')}",
+        }
+        rec_id = gateway.create_record("hr.payslip", payload)
+        return {"domain": domain, "model": "hr.payslip", "id": rec_id, "employee_id": target_emp_id, "hours": hours, "name": payload["name"]}, m_trace, None
+
+    if domain == "loan":
+        amt = _safe_float(fields.get("loan_amount"), 0.0)
+        inst = _safe_float(fields.get("installment_amt"), 0.0)
+        if inst <= 0:
+            terms = max(1.0, _safe_float(fields.get("term_months"), 1.0))
+            inst = round(amt / terms, 2) if amt > 0 else 0.0
+        payload = {
+            "name": f"{fields.get('loan_type') or 'سلفة موظف'} - {emp_ident or target_emp_id}",
+            "employee_id": target_emp_id,
+            "loan_amount": amt,
+            "installment": inst,
+            "date": _normalize_iso_date(fields.get("start_date"), today_str),
+            "company_id": effective_company_id,
+        }
+        rec_id = gateway.create_record("hr.loan", payload)
+        return {"domain": domain, "model": "hr.loan", "id": rec_id, "employee_id": target_emp_id, "loan_amount": amt, "name": payload["name"]}, m_trace, None
+
+    if domain == "disciplinary":
+        v_date = _normalize_iso_date(fields.get("violation_date"), today_str)
+        payload = {
+            "name": f"{fields.get('penalty_type') or 'جزاء إداري'} - {emp_ident or target_emp_id}",
+            "employee_id": target_emp_id,
+            "date": v_date,
+            "description": f"المخالفة: {fields.get('reason', '')} | أيام الخصم: {fields.get('deduction_days', 0)} | تاريخ التحقيق: {fields.get('investigation_date', '')}",
+            "company_id": effective_company_id,
+        }
+        rec_id = gateway.create_record("hr.disciplinary", payload)
+        return {"domain": domain, "model": "hr.disciplinary", "id": rec_id, "employee_id": target_emp_id, "name": payload["name"]}, m_trace, None
+
+    if domain == "end_of_service":
+        h_date = _normalize_iso_date(fields.get("hire_date"), today_str)
+        t_date = _normalize_iso_date(fields.get("term_date"), today_str)
+        payload = {
+            "name": f"مخالصة نهاية خدمة - {emp_ident or target_emp_id}",
+            "employee_id": target_emp_id,
+            "date_from": h_date,
+            "date_to": t_date,
+            "company_id": effective_company_id,
+            "note": f"السبب: {fields.get('reason', '')} | المكافأة: {fields.get('eos_amount', '')} | الصافي: {fields.get('net_settlement', '')}",
+        }
+        rec_id = gateway.create_record("hr.payslip", payload)
+        return {"domain": domain, "model": "hr.payslip", "id": rec_id, "employee_id": target_emp_id, "name": payload["name"]}, m_trace, None
+
+    if domain == "appraisal":
+        yr = str(fields.get("year") or today_str[:4]).strip()
+        d_close = f"{yr[:4]}-12-31" if yr[:4].isdigit() else today_str
+        payload = {
+            "employee_id": target_emp_id,
+            "date_close": d_close,
+            "company_id": effective_company_id,
+            "note": f"السنة: {yr} | النوع: {fields.get('type', '')} | المقيّم: {fields.get('manager', '')} | التقدير: {fields.get('rating', '')} | الدرجة: {fields.get('total_score', '')} | التوصية: {fields.get('recommendation', '')}",
+        }
+        rec_id = gateway.create_record("hr.appraisal", payload)
+        return {"domain": domain, "model": "hr.appraisal", "id": rec_id, "employee_id": target_emp_id, "name": f"تقييم {yr} - {emp_ident}"}, m_trace, None
+
+    if domain == "recruitment":
+        cand_name = str(fields.get("name") or emp_ident or "مرشح جديد").strip()
+        job_title = str(fields.get("job") or fields.get("job_title") or "").strip()
+        dept_title = str(fields.get("dept") or fields.get("department") or "").strip()
+        j_id, jt = _resolve_with_muwaffaq(job_title, job_candidates, entity_type="job", muwaffaq=muwaffaq) if job_title else (None, None)
+        d_id, dt = _resolve_with_muwaffaq(dept_title, dept_candidates, entity_type="department", muwaffaq=muwaffaq) if dept_title else (None, None)
+        payload = {
+            "partner_name": cand_name,
+            "company_id": effective_company_id,
+        }
+        if fields.get("email"):
+            payload["email_from"] = str(fields["email"]).strip()
+        if fields.get("mobile"):
+            payload["partner_phone"] = str(fields["mobile"]).strip()
+        exp_sal = _safe_float(fields.get("expected_salary"), 0.0)
+        if exp_sal > 0:
+            payload["salary_expected"] = exp_sal
+        if j_id:
+            payload["job_id"] = j_id
+        if d_id:
+            payload["department_id"] = d_id
+        rec_id = gateway.create_record("hr.applicant", payload)
+        return {"domain": domain, "model": "hr.applicant", "id": rec_id, "name": cand_name, "job": job_title}, (jt or dt), None
+
+    if domain == "gr":
+        tx_date = _normalize_iso_date(fields.get("iqama_greg") or fields.get("passport_exp"), today_str)
+        payload = {
+            "name": f"معاملة حكومية ({fields.get('tx_type', 'مقيم/قوى')}) - {emp_ident or target_emp_id}",
+            "employee_id": target_emp_id,
+            "date": tx_date,
+            "description": f"الحالة: {fields.get('status', '')} | جواز: {fields.get('passport_num', '')} | رقم الحدود: {fields.get('border_num', '')} | الرسوم: {fields.get('gov_fees', 0)}",
+            "company_id": effective_company_id,
+        }
+        rec_id = gateway.create_record("hr.disciplinary", payload)
+        return {"domain": domain, "model": "hr.disciplinary", "id": rec_id, "employee_id": target_emp_id, "name": payload["name"]}, m_trace, None
+
+    return None, m_trace, f"نطاق غير مدعوم للتنفيذ التلقائي: {domain}"
 
 
 def _setup_onboarding_post_requisites(
@@ -454,7 +899,7 @@ def _setup_onboarding_post_requisites(
     """
     تأسيس السجلات اللاحقة بعد إنشاء الموظفين بالترتيب الاعتمادي:
     1) تأسيس العقود والبدلات (hr.contract).
-    2) تأسيس سجلات الإجازات (hr.leave) والحضور (hr.attendance) والسلف (hr.loan).
+    2) تأسيس سجلات الإجازات (hr.leave) والحضور (hr.attendance) والسلف (hr.loan) عبر الأوراق اللاحقة.
     """
     summary: Dict[str, Any] = {
         "contracts_created": [],
@@ -470,6 +915,51 @@ def _setup_onboarding_post_requisites(
         import openpyxl
         wb = openpyxl.load_workbook(input_path, data_only=True)
     except Exception:
+        return summary
+
+    try:
+        from excel_template_validator import TEMPLATE_SPECS, _resolve_sheet_domain, is_auxiliary_sheet
+    except Exception:
+        TEMPLATE_SPECS = {}
+        _resolve_sheet_domain = None
+        is_auxiliary_sheet = lambda s: s.strip().lower() in {"instructions", "reference"}
+
+    muwaffaq = _get_muwaffaq_instance()
+    repo_emp_candidates: Dict[str, int] = {}
+    try:
+        for o_emp in (repository.get_employees() if hasattr(repository, "get_employees") else []):
+            if o_emp.get("name") and o_emp.get("id") is not None:
+                repo_emp_candidates[str(o_emp["name"]).strip()] = int(o_emp["id"])
+                repo_emp_candidates[str(o_emp["name"]).strip().lower()] = int(o_emp["id"])
+    except Exception:
+        pass
+
+    domain_bucket_map = {
+        "contract": "contracts_created",
+        "timeoff": "leaves_created",
+        "attendance": "attendances_created",
+        "loan": "loans_created",
+    }
+
+    if _resolve_sheet_domain and TEMPLATE_SPECS:
+        for s_name in wb.sheetnames:
+            if is_auxiliary_sheet(s_name):
+                continue
+            dom = _resolve_sheet_domain(s_name)
+            if dom not in domain_bucket_map:
+                continue
+            spec = TEMPLATE_SPECS.get(dom)
+            if not spec:
+                continue
+            rows = _extract_raw_sheet_rows(wb[s_name], spec)
+            for r_info in rows:
+                flds = r_info.get("fields", {})
+                item, _, _ = _execute_domain_record(
+                    dom, flds, repository, gateway, target_company_id,
+                    employee_id_map, repo_emp_candidates, {}, {}, 1, muwaffaq=muwaffaq
+                )
+                if item:
+                    summary[domain_bucket_map[dom]].append(item)
         return summary
 
     contract_sheet = None
@@ -513,18 +1003,9 @@ def _setup_onboarding_post_requisites(
                     continue
 
                 emp_ident = str(contract_sheet.cell(row=r_idx, column=emp_col).value or "").strip() if emp_col else ""
-                target_emp_id = None
-                if emp_ident:
-                    target_emp_id = employee_id_map.get(emp_ident) or employee_id_map.get(emp_ident.lower())
-                    if not target_emp_id and hasattr(repository, "get_employees"):
-                        for o_emp in repository.get_employees():
-                            if o_emp.get("name", "").strip().lower() == emp_ident.lower():
-                                target_emp_id = o_emp.get("id")
-                                break
-
-                if not target_emp_id and len(employee_id_map) == 1:
-                    target_emp_id = list(employee_id_map.values())[0]
-
+                target_emp_id, _ = _resolve_employee_id_for_row(
+                    emp_ident, "", employee_id_map, repo_emp_candidates, muwaffaq=muwaffaq
+                )
                 if target_emp_id:
                     try:
                         contract_payload: Dict[str, Any] = {
@@ -549,6 +1030,336 @@ def _setup_onboarding_post_requisites(
                         logger.debug(f"Could not create contract for employee {target_emp_id}: {e}")
 
     return summary
+
+
+def execute_master_onboarding_sheets(
+    input_path: Optional[Path],
+    accepted_rows: List[Dict[str, Any]],
+    repository: Any,
+    gateway: Any,
+    target_company_id: int,
+    event_emitter: Any = None,
+    operation_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    ينفّذ جميع الأوراق الـ 13 المعبّأة في مصنف الماستر (Master Workbook) بالترتيب الاعتمادي الصارم:
+    1_Company_Setup -> 2_Employees -> 3_Contracts -> الأوراق التشغيلية (4..13).
+    """
+    from excel_template_validator import (
+        MASTER_SHEET_ORDER,
+        TEMPLATE_SPECS,
+        _resolve_sheet_domain,
+        is_auxiliary_sheet,
+    )
+
+    muwaffaq = _get_muwaffaq_instance()
+    created_count = 0
+    failed_count = 0
+    created_items: List[Dict[str, Any]] = []
+    muwaffaq_matches: List[Dict[str, Any]] = []
+    sheets_exec_summary: Dict[str, Dict[str, Any]] = {}
+    execution_order: List[str] = []
+
+    comp_candidates: Dict[str, int] = {}
+    dept_candidates: Dict[str, int] = {}
+    job_candidates: Dict[str, int] = {}
+    repo_emp_candidates: Dict[str, int] = {}
+    employee_id_map: Dict[str, int] = {}
+
+    try:
+        for c in (repository.get_companies() if hasattr(repository, "get_companies") else []):
+            if c.get("name") and c.get("id") is not None:
+                comp_candidates[str(c["name"]).strip()] = int(c["id"])
+                comp_candidates[str(c["name"]).strip().lower()] = int(c["id"])
+    except Exception:
+        pass
+
+    effective_company_id = int(target_company_id or 1)
+
+    def _refresh_org_caches(cid: int) -> None:
+        try:
+            for d in (repository.get_departments(cid) if hasattr(repository, "get_departments") else []):
+                if d.get("name") and d.get("id") is not None:
+                    dept_candidates[str(d["name"]).strip()] = int(d["id"])
+                    dept_candidates[str(d["name"]).strip().lower()] = int(d["id"])
+        except Exception:
+            pass
+        try:
+            for j in (repository.get_jobs(cid) if hasattr(repository, "get_jobs") else []):
+                if j.get("name") and j.get("id") is not None:
+                    job_candidates[str(j["name"]).strip()] = int(j["id"])
+                    job_candidates[str(j["name"]).strip().lower()] = int(j["id"])
+        except Exception:
+            pass
+
+    _refresh_org_caches(effective_company_id)
+
+    try:
+        for e in (repository.get_employees() if hasattr(repository, "get_employees") else []):
+            if e.get("name") and e.get("id") is not None:
+                eid = int(e["id"])
+                repo_emp_candidates[str(e["name"]).strip()] = eid
+                repo_emp_candidates[str(e["name"]).strip().lower()] = eid
+                if e.get("identification_id"):
+                    repo_emp_candidates[str(e["identification_id"]).strip()] = eid
+    except Exception:
+        pass
+
+    leave_type_id = 1
+    try:
+        if hasattr(repository, "_models") and repository._models:
+            lt_recs = repository._models.execute_kw(
+                repository.db, repository.uid, repository.api_key,
+                "hr.leave.type", "search_read", [[]], {"fields": ["id"], "limit": 1}
+            )
+            if lt_recs:
+                leave_type_id = int(lt_recs[0]["id"])
+    except Exception:
+        pass
+
+    # تجميع الصفوف المقبولة حسب النطاق التخصصي
+    rows_by_domain: Dict[str, List[Dict[str, Any]]] = {}
+    has_domain_tagged_rows = any(r.get("domain") or r.get("sheet_name") for r in accepted_rows)
+
+    if has_domain_tagged_rows:
+        for r in accepted_rows:
+            dom = r.get("domain") or (_resolve_sheet_domain(str(r.get("sheet_name") or "")) if r.get("sheet_name") else None) or "employee"
+            raw_fields = r.get("fields", {})
+            flat_fields: Dict[str, Any] = {}
+            for k, v in raw_fields.items():
+                flat_fields[k] = v.get("value") if isinstance(v, dict) else v
+            rows_by_domain.setdefault(dom, []).append({
+                "fields": flat_fields,
+                "sheet_name": r.get("sheet_name") or dom,
+                "row_number": r.get("excel_row_number") or r.get("row_number"),
+                "resolved_ids": r.get("resolved_ids", {}),
+            })
+    elif input_path and input_path.exists():
+        import openpyxl
+        wb = openpyxl.load_workbook(input_path, data_only=True)
+        for s_name in wb.sheetnames:
+            if is_auxiliary_sheet(s_name):
+                continue
+            dom = _resolve_sheet_domain(s_name)
+            if not dom or dom not in TEMPLATE_SPECS:
+                continue
+            extracted = _extract_raw_sheet_rows(wb[s_name], TEMPLATE_SPECS[dom])
+            for er in extracted:
+                rows_by_domain.setdefault(dom, []).append({
+                    "fields": er.get("fields", {}),
+                    "sheet_name": s_name,
+                    "row_number": er.get("excel_row_number"),
+                    "resolved_ids": {},
+                })
+
+    # التنفيذ بالترتيب الاعتمادي الصارم (1..13)
+    for dom, _aliases in MASTER_SHEET_ORDER:
+        dom_rows = rows_by_domain.get(dom, [])
+        if not dom_rows:
+            continue
+
+        execution_order.append(dom)
+        sheet_label = dom_rows[0].get("sheet_name") or dom
+        bucket = sheets_exec_summary.setdefault(sheet_label, {"domain": dom, "created": 0, "failed": 0, "items": []})
+
+        if event_emitter and operation_id:
+            event_emitter.emit_event(
+                operation_id=operation_id,
+                agent="katib",
+                event_type="sheet_execution_started",
+                action=f"execute_sheet_{dom}",
+                description_ar=f"كاتب يبدأ تنفيذ ورقة «{sheet_label}» ({len(dom_rows)} صفاً) وفق الترتيب الاعتمادي...",
+                metadata={"domain": dom, "sheet": sheet_label, "rows": len(dom_rows)},
+            )
+
+        if dom == "company":
+            for entry in dom_rows:
+                flds = entry["fields"]
+                comp_name = str(flds.get("name_ar") or flds.get("name_en") or flds.get("name") or "").strip()
+                if not comp_name:
+                    failed_count += 1
+                    bucket["failed"] += 1
+                    continue
+                existing_cid, m_trace = _resolve_with_muwaffaq(comp_name, comp_candidates, entity_type="company", muwaffaq=muwaffaq)
+                if m_trace:
+                    muwaffaq_matches.append(m_trace)
+                if existing_cid is not None:
+                    effective_company_id = existing_cid
+                    _refresh_org_caches(effective_company_id)
+                    item = {"domain": "company", "model": "res.company", "id": existing_cid, "name": comp_name, "reused": True}
+                    created_items.append(item)
+                    bucket["items"].append(item)
+                    created_count += 1
+                    bucket["created"] += 1
+                else:
+                    comp_vals: Dict[str, Any] = {"name": comp_name}
+                    if flds.get("vat_number"):
+                        comp_vals["vat"] = str(flds["vat_number"]).strip()
+                    if flds.get("city"):
+                        comp_vals["city"] = str(flds["city"]).strip()
+                    try:
+                        new_cid = int(gateway.create_record("res.company", comp_vals))
+                        effective_company_id = new_cid
+                        comp_candidates[comp_name] = new_cid
+                        comp_candidates[comp_name.lower()] = new_cid
+                        _refresh_org_caches(effective_company_id)
+                        item = {"domain": "company", "model": "res.company", "id": new_cid, "name": comp_name}
+                        created_items.append(item)
+                        bucket["items"].append(item)
+                        created_count += 1
+                        bucket["created"] += 1
+                    except Exception as exc:
+                        logger.warning(f"Failed creating company '{comp_name}': {exc}")
+                        failed_count += 1
+                        bucket["failed"] += 1
+            continue
+
+        if dom == "employee":
+            for entry in dom_rows:
+                flds = entry["fields"]
+                resolved = entry.get("resolved_ids", {})
+                emp_name = str(flds.get("name") or flds.get("name_en") or "").strip()
+                if not emp_name:
+                    failed_count += 1
+                    bucket["failed"] += 1
+                    continue
+
+                comp_name = str(flds.get("company") or "").strip()
+                dept_name = str(flds.get("department") or "").strip()
+                job_title = str(flds.get("job_title") or flds.get("job") or "").strip()
+
+                def _real_int_id(val: Any) -> Optional[int]:
+                    if isinstance(val, int) and val > 0:
+                        return val
+                    if isinstance(val, str) and val.strip().isdigit():
+                        return int(val.strip())
+                    return None
+
+                c_id = _real_int_id(resolved.get("company_id"))
+                if not c_id and comp_name:
+                    c_id, ct = _resolve_with_muwaffaq(comp_name, comp_candidates, entity_type="company", muwaffaq=muwaffaq)
+                    if ct:
+                        muwaffaq_matches.append(ct)
+                c_id = int(c_id or effective_company_id)
+
+                d_id = _real_int_id(resolved.get("department_id"))
+                if not d_id and dept_name:
+                    d_id, dt = _resolve_with_muwaffaq(dept_name, dept_candidates, entity_type="department", muwaffaq=muwaffaq)
+                    if dt:
+                        muwaffaq_matches.append(dt)
+                    if not d_id:
+                        try:
+                            d_id = int(gateway.create_record("hr.department", {"name": dept_name, "company_id": c_id}))
+                            dept_candidates[dept_name] = d_id
+                            dept_candidates[dept_name.lower()] = d_id
+                        except Exception:
+                            d_id = None
+
+                j_id = _real_int_id(resolved.get("job_id"))
+                if not j_id and job_title:
+                    j_id, jt = _resolve_with_muwaffaq(job_title, job_candidates, entity_type="job", muwaffaq=muwaffaq)
+                    if jt:
+                        muwaffaq_matches.append(jt)
+                    if not j_id:
+                        try:
+                            j_id = int(gateway.create_record("hr.job", {"name": job_title, "company_id": c_id}))
+                            job_candidates[job_title] = j_id
+                            job_candidates[job_title.lower()] = j_id
+                        except Exception:
+                            j_id = None
+
+                vals: Dict[str, Any] = {"name": emp_name, "company_id": c_id}
+                email = str(flds.get("work_email") or flds.get("email") or "").strip()
+                mobile = str(flds.get("mobile_phone") or flds.get("mobile") or "").strip()
+                iqama = str(flds.get("id_number") or flds.get("iqama") or "").strip()
+                gender_raw = str(flds.get("gender") or "").strip().lower()
+                bday = _normalize_iso_date(flds.get("birthday"))
+                if email:
+                    vals["work_email"] = email
+                if mobile:
+                    vals["mobile_phone"] = mobile
+                if job_title:
+                    vals["job_title"] = job_title
+                if iqama:
+                    vals["identification_id"] = iqama
+                if j_id:
+                    vals["job_id"] = j_id
+                if d_id:
+                    vals["department_id"] = d_id
+                if bday:
+                    vals["birthday"] = bday
+                if gender_raw in ("male", "ذكر", "m"):
+                    vals["gender"] = "male"
+                elif gender_raw in ("female", "أنثى", "انثى", "f"):
+                    vals["gender"] = "female"
+
+                try:
+                    new_eid = int(gateway.create_employee(vals))
+                    employee_id_map[emp_name] = new_eid
+                    employee_id_map[emp_name.lower()] = new_eid
+                    if flds.get("name_en"):
+                        en_n = str(flds["name_en"]).strip()
+                        employee_id_map[en_n] = new_eid
+                        employee_id_map[en_n.lower()] = new_eid
+                    if iqama:
+                        employee_id_map[iqama] = new_eid
+                    item = {"domain": "employee", "model": "hr.employee", "id": new_eid, "name": emp_name, "job": job_title}
+                    created_items.append(item)
+                    bucket["items"].append(item)
+                    created_count += 1
+                    bucket["created"] += 1
+                except Exception as exc:
+                    logger.warning(f"Failed creating employee '{emp_name}': {exc}")
+                    failed_count += 1
+                    bucket["failed"] += 1
+            continue
+
+        # تنفيذ أوراق العقود والعمليات اللاحقة (3..13)
+        for entry in dom_rows:
+            flds = entry["fields"]
+            try:
+                item, m_trace, err = _execute_domain_record(
+                    dom, flds, repository, gateway, effective_company_id,
+                    employee_id_map, repo_emp_candidates, dept_candidates, job_candidates, leave_type_id,
+                    muwaffaq=muwaffaq,
+                )
+                if m_trace:
+                    muwaffaq_matches.append(m_trace)
+                if item:
+                    created_items.append(item)
+                    bucket["items"].append(item)
+                    created_count += 1
+                    bucket["created"] += 1
+                else:
+                    logger.debug(f"Domain record skipped/failed ({dom}): {err}")
+                    failed_count += 1
+                    bucket["failed"] += 1
+            except Exception as exc:
+                logger.warning(f"Failed executing domain '{dom}' record: {exc}")
+                failed_count += 1
+                bucket["failed"] += 1
+
+    if muwaffaq_matches and event_emitter and operation_id:
+        event_emitter.emit_event(
+            operation_id=operation_id,
+            agent="muwaffaq",
+            from_agent="katib",
+            to_agent="katib",
+            event_type="semantic_entity_linked",
+            action="muwaffaq_master_linking",
+            description_ar=f"طابق «موفق» دلالياً {len(muwaffaq_matches)} مرجعاً/موظفاً عبر أوراق الماستر للربط السليم في Odoo.",
+            metadata={"matches": muwaffaq_matches[:10]},
+        )
+
+    return {
+        "created_count": created_count,
+        "failed_count": failed_count,
+        "created_items": created_items,
+        "effective_company_id": effective_company_id,
+        "sheets_execution_summary": sheets_exec_summary,
+        "muwaffaq_matches": muwaffaq_matches,
+        "execution_order": execution_order,
+    }
 
 
 def run_writer(
